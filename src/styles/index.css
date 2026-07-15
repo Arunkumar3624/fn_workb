@@ -1,0 +1,13 @@
+@import './fonts.css';
+@import './tailwind.css';
+@import './theme.css';
+/* 1. Sets the default double border to match the specific card's hoverBg */
+.cat-card {
+  border: 4px double var(--c) !important; 
+}
+
+/* 2. Forces the border to turn pure white when hovered OR clicked */
+.cat-card:hover,
+.cat-card:active {
+  border-color: #ffffff !important; 
+}
