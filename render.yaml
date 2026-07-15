@@ -1,0 +1,25 @@
+# Render Blueprint — codifies the static site config as IaC. You created the
+# service manually via the dashboard already; this file lets Render manage
+# the same service declaratively if you ever reconnect it as a Blueprint
+# (Dashboard → New → Blueprint), and documents the expected env var names
+# either way. Values marked `sync: false` are secrets — set them in the
+# dashboard, never here.
+services:
+  - type: web
+    name: workbridge-frontend
+    runtime: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: VITE_SENTRY_DSN
+        sync: false
+      - key: VITE_POSTHOG_KEY
+        sync: false
+      - key: VITE_POSTHOG_HOST
+        value: https://us.i.posthog.com
+    routes:
+      # SPA fallback — without this, a direct link to e.g. /business or
+      # /worker/workspace 404s on refresh (client-side routing only).
+      - type: rewrite
+        source: /*
+        destination: /index.html

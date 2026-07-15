@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import LockedCurrencyInput from "../common/LockedCurrencyInput";
 import { formatINR, postJobSchema } from "../../utils/formValidation";
+import { trackEvent } from "../../lib/analytics";
 
 // ── Constants ─────────────────────────────────────────────────────────────
 
@@ -137,6 +138,7 @@ export default function BusinessPostJob({ onVerify, isVerified }) {
   const { onChange: onTierChange, ...tierRegisterRest } = register("tier");
 
   const onSubmit = () => {
+    trackEvent("JobPosted", { tier: watchedTier, category: watchedCategory, budget: summaryBudget });
     window.alert("Job data validated and ready to save.");
   };
 

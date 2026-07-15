@@ -19,8 +19,7 @@ export const WORKERS = [
 
 // PROJECTS and TRANSACTIONS were deprecated during the State Unification —
 // business projects now live in PlatformContext.businessThreadsDb and wallet
-// transactions in PlatformContext.transactionHistory. See mockData.backup.js
-// for the pre-unification snapshot.
+// transactions in PlatformContext.transactionHistory.
 
 // Admin-console-only mock data (revenue trend, verifications, disputes,
 // flagged chats, RBAC roster) now lives in ./mockAdminData.js

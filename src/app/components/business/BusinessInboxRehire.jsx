@@ -5,6 +5,7 @@ import Avatar from "../shared/Avatar";
 import IdentityHeader from "../shared/IdentityHeader";
 import TimelineTracker from "../shared/TimelineTracker";
 import ProjectCompletionHub from "../shared/ProjectCompletionHub";
+import SecureVaultModal from "../shared/SecureVaultModal";
 import CelebrationOverlay from "../common/CelebrationOverlay";
 import { usePlatformData } from "../../context/PlatformContext";
 import { PROJECT_STATUS_META, nextProjectStatus } from "../../utils/projectStatus";
@@ -123,6 +124,7 @@ export default function BusinessInboxRehire({ initialThread, chatKey }) {
   const [selectedId, setSelectedId] = useState(threads[0].id);
   const [input, setInput] = useState("");
   const [celebration, setCelebration] = useState(null);
+  const [showVault, setShowVault] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -396,7 +398,7 @@ export default function BusinessInboxRehire({ initialThread, chatKey }) {
             {/* Row 2: The Revenue Driver — only a live proposal has funds to secure */}
             {selectedThread.type === "qa" && (
               <button
-                onClick={() => navigate(`/invoice?role=business&id=${selectedThread.id}`)}
+                onClick={() => setShowVault(true)}
                 className="w-full bg-[#FF6B35] hover:bg-[#e55a2b] text-white py-4 rounded-xl font-bold text-lg shadow-[0_4px_14px_0_rgba(255,107,53,0.39)] transition-transform active:scale-[0.98] flex justify-center items-center gap-2"
               >
                 <Lock className="w-5 h-5" />
@@ -432,6 +434,16 @@ export default function BusinessInboxRehire({ initialThread, chatKey }) {
           primaryLabel="Continue"
           onPrimary={() => setCelebration(null)}
           onClose={() => setCelebration(null)}
+        />
+      )}
+
+      {showVault && selectedThread && (
+        <SecureVaultModal
+          jobTitle={selectedThread.projectName}
+          workerName={selectedThread.workerName}
+          amount={selectedThread.budget}
+          onClose={() => setShowVault(false)}
+          onSuccess={() => advanceBusinessThreadStatus(selectedThread.id, "FUNDS_SECURED")}
         />
       )}
     </div>

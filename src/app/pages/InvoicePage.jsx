@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, CheckCircle2, Clock, Download, Loader2, Lock, ShieldCheck, Zap } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Clock, Download, ExternalLink, Loader2, Lock, ShieldCheck, Zap } from "lucide-react";
 import { usePlatformData } from "../context/PlatformContext";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
+import { trackEvent } from "../lib/analytics";
 
 // Mock invoice — tied to the QuickCart Retail / Priya Sharma job already
 // accepted in the Negotiations flow, so this page reads as a real follow-on
@@ -13,9 +14,11 @@ const INVOICE = {
   businessName: "QuickCart Retail",
   workerName: "Priya Sharma",
   workerVerified: true,
+  workerProfileUrl: "/p/priya-sharma",
   projectTitle: "Product Photography Retouch",
   baseAmount: 6200,
   platformFeePct: 8,
+  gstPct: 18, // GST on the platform's service fee only, per standard marketplace practice
   insuranceFee: 150,
 };
 
@@ -48,13 +51,19 @@ export default function InvoicePage() {
   const threadId = searchParams.get("id");
 
   const platformFee = Math.round(INVOICE.baseAmount * (INVOICE.platformFeePct / 100));
-  const total = INVOICE.baseAmount + platformFee + INVOICE.insuranceFee;
+  const gst = Math.round(platformFee * (INVOICE.gstPct / 100));
+  const total = INVOICE.baseAmount + platformFee + gst + INVOICE.insuranceFee;
+
+  // "Settled" from every vantage point once funds are secured — drives the
+  // header status pill and the rotated Paid stamp, regardless of role.
+  const isSettled = role === "worker" || role === "admin" || (role === "business" && status === "success");
 
   // Mocks the API call that would move funds into secure holding for this
   // project — this is the "System (Post-Payment)" trigger that kicks off the
   // Project Lifecycle FSM for whichever thread sent the business here.
   const handlePayment = () => {
     if (status !== "idle") return;
+    trackEvent("PaymentClicked", { amount: total, invoiceNumber: INVOICE.number });
     setStatus("processing");
     window.setTimeout(() => {
       setStatus("success");
@@ -76,7 +85,18 @@ export default function InvoicePage() {
           Back
         </button>
 
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_20px_60px_-15px_rgba(15,23,42,0.15)] print:border-0 print:shadow-none">
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_20px_60px_-15px_rgba(15,23,42,0.15)] print:border-0 print:shadow-none">
+
+          {/* Paid stamp — a physical-document flourish, only once funds are actually settled */}
+          {isSettled && (
+            <div
+              className="pointer-events-none absolute right-8 top-24 z-10 -rotate-[18deg] rounded-lg border-4 border-emerald-500/70 px-4 py-1.5 text-xl font-black uppercase tracking-widest text-emerald-500/70 sm:right-12 sm:top-28"
+              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              aria-hidden="true"
+            >
+              Paid
+            </div>
+          )}
 
           {role === "admin" && (
             <div className="flex items-center gap-2 bg-slate-900 px-6 py-2.5 text-white print:hidden">
@@ -101,7 +121,16 @@ export default function InvoicePage() {
               </span>
             </div>
             <div className="text-left sm:text-right">
-              <p className="font-serif text-2xl font-bold text-[#0F172A]">Invoice</p>
+              <div className="flex items-center gap-2 sm:justify-end">
+                <p className="font-serif text-2xl font-bold text-[#0F172A]">Invoice</p>
+                <span
+                  className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest ${
+                    isSettled ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
+                  }`}
+                >
+                  {isSettled ? "Paid" : "Pending"}
+                </span>
+              </div>
               <p className="mt-1 font-mono text-sm text-slate-500">#{INVOICE.number}</p>
               <button className="mt-3 inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50 print:hidden">
                 <Download className="h-3.5 w-3.5" />
@@ -118,12 +147,21 @@ export default function InvoicePage() {
               <p className="mt-1 text-sm text-slate-500">Project: {INVOICE.projectTitle}</p>
             </div>
             <div className="sm:text-right">
-              <p className="mb-2 text-xs font-bold uppercase tracking-widest text-slate-400">From</p>
+              <p className="mb-2 text-xs font-bold uppercase tracking-widest text-slate-400">Provider</p>
               <div className="flex items-center gap-2 sm:justify-end">
                 <p className="text-lg font-bold text-[#0F172A]">{INVOICE.workerName}</p>
                 {INVOICE.workerVerified && <ShieldCheck className="h-4 w-4 flex-shrink-0 text-blue-500" />}
               </div>
               <p className="mt-1 text-sm text-slate-500">Invoice Date: {INVOICE.date}</p>
+              <a
+                href={INVOICE.workerProfileUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-[#1B3FAB] hover:underline print:hidden"
+              >
+                View portfolio
+                <ExternalLink className="h-3 w-3" />
+              </a>
             </div>
           </div>
 
@@ -140,6 +178,12 @@ export default function InvoicePage() {
                 <span className="text-sm text-slate-600">Platform Service Fee ({INVOICE.platformFeePct}%)</span>
                 <span className="whitespace-nowrap font-mono text-sm font-semibold text-slate-900">
                   {formatINR(platformFee)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between gap-4 py-3">
+                <span className="text-sm text-slate-600">GST on Service Fee ({INVOICE.gstPct}%)</span>
+                <span className="whitespace-nowrap font-mono text-sm font-semibold text-slate-900">
+                  {formatINR(gst)}
                 </span>
               </div>
               <div className="flex items-center justify-between gap-4 py-3">

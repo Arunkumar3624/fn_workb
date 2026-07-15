@@ -1,20 +1,33 @@
-import { useState } from "react";
-import { BrowserRouter, Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import { Suspense, lazy, useEffect, useState } from "react";
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { trackPageView } from "./lib/analytics";
 import { PageShell } from "./components/common/PageShell";
 import LandingPage from "./pages/LandingPage";
 import FindWorkPage from "./pages/FindWorkPage";
 import HireTalentPage from "./pages/HireTalentPage";
 import EnterprisePage from "./pages/EnterprisePage";
 import AuthPage from "./pages/AuthPage";
-import WorkerDashboard from "./pages/WorkerDashboard";
-import WorkerShareableProfile from "./components/worker/WorkerShareableProfile";
-import BusinessDashboard from "./pages/BusinessDashboard";
-import BusinessVerification from "./pages/BusinessVerification";
-import BusinessVerificationDrawer from "./pages/BusinessVerificationDrawer";
-import AdminPanel from "./pages/AdminPanel";
 import InvoicePage from "./pages/InvoicePage";
 import CelebrationOverlay from "./components/common/CelebrationOverlay";
 import { PlatformProvider } from "./context/PlatformContext";
+
+// Code-split the heavy, post-auth dashboard bundles — none of these are
+// needed for the first paint of a marketing page or auth, so they shouldn't
+// be in the initial JS payload.
+const WorkerDashboard = lazy(() => import("./pages/WorkerDashboard"));
+const WorkerShareableProfile = lazy(() => import("./components/worker/WorkerShareableProfile"));
+const BusinessDashboard = lazy(() => import("./pages/BusinessDashboard"));
+const BusinessVerification = lazy(() => import("./pages/BusinessVerification"));
+const BusinessVerificationDrawer = lazy(() => import("./pages/BusinessVerificationDrawer"));
+const AdminPanel = lazy(() => import("./pages/AdminPanel"));
+
+function RouteFallback() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC]">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[#FF6B35]" />
+    </div>
+  );
+}
 
 export default function App() {
   return (
@@ -28,7 +41,12 @@ export default function App() {
 
 function AppRoutes() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [userType, setUserType] = useState("worker");
+
+  useEffect(() => {
+    trackPageView(location.pathname);
+  }, [location.pathname]);
   const [isBusinessVerified, setIsBusinessVerified] = useState(false);
   const [showPayDrawer, setShowPayDrawer] = useState(false);
   const [showVerifiedCelebration, setShowVerifiedCelebration] = useState(false);
@@ -55,6 +73,7 @@ function AppRoutes() {
 
   return (
     <>
+    <Suspense fallback={<RouteFallback />}>
     <Routes>
       <Route
         path="/"
@@ -132,6 +151,7 @@ function AppRoutes() {
       <Route path="/invoice" element={<InvoicePage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </Suspense>
 
     {showVerifiedCelebration && (
       <CelebrationOverlay

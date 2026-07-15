@@ -1,1 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&family=Lexend:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+/* Lexend/Inter are scoped to BusinessProjects.jsx only (per its specific
+   design brief) — every other page keeps Plus Jakarta Sans/DM Sans. Applied
+   via inline style on that page's elements, same pattern as the rest of
+   the app, not a global font-family change. */
