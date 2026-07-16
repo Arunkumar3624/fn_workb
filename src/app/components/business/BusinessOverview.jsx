@@ -56,7 +56,7 @@ function Chips({ options, active, onChange }) {
           {label}
           {count !== undefined && (
             <span className={`text-[10px] px-1.5 rounded-full font-bold ${
-              active === key ? "bg-white/25 text-white" : "bg-slate-200 text-slate-400"
+              active === key ? "bg-white/25 text-white" : "bg-slate-200 text-slate-600"
             }`}>{count}</span>
           )}
         </button>
@@ -278,26 +278,26 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
             },
             {
               label: "Funds in Process", value: formatINR(securedTotal), sub: "Secured for active projects",
-              subColor: "text-slate-400", icon: Shield,
+              subColor: "text-slate-600", icon: Shield,
               iconBg: "bg-emerald-50", iconColor: "text-emerald-600", valueColor: "text-emerald-600",
               spark: monthly.map((m) => m.secured), sparkColor: "#10b981",
             },
             {
               label: "Funds Delivered", value: formatINR(deliveredTotal), sub: "Paid to workers all-time",
-              subColor: "text-slate-400", icon: CheckCircle2,
+              subColor: "text-slate-600", icon: CheckCircle2,
               iconBg: "bg-purple-50", iconColor: "text-purple-600", valueColor: "text-purple-600",
               spark: monthly.map((m) => m.delivered), sparkColor: "#9333ea",
             },
             {
               label: "Workers Hired", value: String(workersHired), sub: "All-time placements",
-              subColor: "text-slate-400", icon: UserCheck,
+              subColor: "text-slate-600", icon: UserCheck,
               iconBg: "bg-orange-50", iconColor: "text-[#FF6B35]", valueColor: "text-[#FF6B35]",
               spark: monthly.map((m) => m.secured + m.delivered), sparkColor: "#FF6B35",
             },
           ].map(({ label, value, sub, subColor, icon: Icon, iconBg, iconColor, valueColor, spark, sparkColor }, i) => (
             <div
               key={label}
-              className="bg-white/60 backdrop-blur-xl border border-white/70 shadow-lg shadow-slate-200/40 p-5 wb-card-enter"
+              className="border border-white/50 bg-white/40 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] p-5 wb-card-enter"
               style={{ animationDelay: `${i * 60}ms` }}
             >
               <div className="flex items-center justify-between mb-4">
@@ -328,7 +328,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
 
           {/* Active Projects table */}
           <div
-            className="lg:col-span-2 bg-white/60 backdrop-blur-xl border border-white/70 shadow-lg shadow-slate-200/40 overflow-hidden wb-card-enter"
+            className="lg:col-span-2 border border-white/50 bg-white/40 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] overflow-hidden wb-card-enter"
             style={{ animationDelay: "240ms" }}
           >
             <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
@@ -339,7 +339,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
                 >
                   Active Projects
                 </h3>
-                <p className="text-xs text-slate-400 mt-0.5">{filteredProjects.length} matching</p>
+                <p className="text-xs text-slate-600 mt-0.5">{filteredProjects.length} matching</p>
               </div>
               <button
                 onClick={onViewProjects}
@@ -360,7 +360,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
                 { label: "PROGRESS", cls: "col-span-2 text-center" },
                 { label: "BUDGET", cls: "col-span-2 text-right" },
               ].map(({ label, cls }) => (
-                <span key={label} className={`${cls} text-[10px] font-black uppercase tracking-widest text-slate-400`}>
+                <span key={label} className={`${cls} text-[10px] font-black uppercase tracking-widest text-slate-600`}>
                   {label}
                 </span>
               ))}
@@ -377,7 +377,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
                     <Avatar initials={getInitials(p.worker_name)} size="w-8 h-8" text="text-xs" />
                     <div className="min-w-0">
                       <div className="font-semibold text-[#0F172A] text-sm truncate">{p.title}</div>
-                      <div className="text-slate-400 text-xs mt-0.5 flex items-center gap-1">
+                      <div className="text-slate-600 text-xs mt-0.5 flex items-center gap-1">
                         <Calendar className="w-2.5 h-2.5 flex-shrink-0" />
                         <span className="truncate">{p.worker_name} · {p.deadline ? new Date(p.deadline).toLocaleDateString("en-IN", { month: "short", day: "numeric" }) : "—"}</span>
                       </div>
@@ -401,7 +401,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
                         style={{ width: `${((PROJECT_STATUS_FLOW.indexOf(p.status) + 1) / PROJECT_STATUS_FLOW.length) * 100}%` }}
                       />
                     </div>
-                    <span className="text-[10px] text-slate-400 font-mono">
+                    <span className="text-[10px] text-slate-600 font-mono">
                       {PROJECT_STATUS_FLOW.indexOf(p.status) + 1}/{PROJECT_STATUS_FLOW.length}
                     </span>
                   </div>
@@ -411,7 +411,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
                   </div>
                 </div>
               )) : (
-                <div className="px-5 py-10 text-center text-slate-400 text-sm">
+                <div className="px-5 py-10 text-center text-slate-600 text-sm">
                   No projects match this filter
                 </div>
               )}
@@ -422,17 +422,17 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
           <div className="space-y-4">
 
             <div
-              className="bg-white/60 backdrop-blur-xl border border-white/70 shadow-lg shadow-slate-200/40 p-5 wb-card-enter"
+              className="border border-white/50 bg-white/40 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] p-5 wb-card-enter"
               style={{ animationDelay: "300ms" }}
             >
               <h3
-                className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4"
+                className="text-[10px] font-black uppercase tracking-widest text-slate-600 mb-4"
                 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
               >
                 Funds in Process
               </h3>
               {heldProjects.length === 0 ? (
-                <p className="text-xs text-slate-400">No funds currently held in escrow.</p>
+                <p className="text-xs text-slate-600">No funds currently held in escrow.</p>
               ) : (
                 <div className="space-y-4">
                   {heldProjects.map((p) => {
@@ -454,7 +454,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
                           />
                         </div>
                         <div className="flex justify-between mt-1">
-                          <span className="text-[10px] text-slate-400">{pct}% of total</span>
+                          <span className="text-[10px] text-slate-600">{pct}% of total</span>
                           <span className={`text-[10px] font-bold ${
                             statusGroup(p) === "active" ? "text-blue-600" : "text-amber-600"
                           }`}>
@@ -473,11 +473,11 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
             </div>
 
             <div
-              className="bg-white/60 backdrop-blur-xl border border-white/70 shadow-lg shadow-slate-200/40 p-5 wb-card-enter"
+              className="border border-white/50 bg-white/40 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] p-5 wb-card-enter"
               style={{ animationDelay: "360ms" }}
             >
               <h3
-                className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4"
+                className="text-[10px] font-black uppercase tracking-widest text-slate-600 mb-4"
                 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
               >
                 Financial Summary
@@ -505,7 +505,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
           <div
-            className="bg-white/60 backdrop-blur-xl border border-white/70 shadow-lg shadow-slate-200/40 overflow-hidden wb-card-enter"
+            className="border border-white/50 bg-white/40 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] overflow-hidden wb-card-enter"
             style={{ animationDelay: "420ms" }}
           >
             <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
@@ -535,7 +535,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-semibold text-[#0F172A] truncate">{tx.desc}</p>
-                      <p className="text-[10px] text-slate-400 mt-0.5">
+                      <p className="text-[10px] text-slate-600 mt-0.5">
                         {new Date(tx.at).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}
                         {tx.worker && <span className="ml-1.5 text-slate-300">·</span>}
                         {tx.worker && <span className="ml-1.5 font-semibold text-slate-500">{tx.worker}</span>}
@@ -552,7 +552,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
                   </div>
                 );
               }) : (
-                <div className="px-5 py-10 text-center text-slate-400 text-sm">
+                <div className="px-5 py-10 text-center text-slate-600 text-sm">
                   No transactions match this filter
                 </div>
               )}
@@ -561,7 +561,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
 
           {/* Monthly Spending Chart */}
           <div
-            className="bg-white/60 backdrop-blur-xl border border-white/70 shadow-lg shadow-slate-200/40 p-5 wb-card-enter"
+            className="border border-white/50 bg-white/40 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] p-5 wb-card-enter"
             style={{ animationDelay: "480ms" }}
           >
             <div className="flex items-start justify-between mb-1">
@@ -572,7 +572,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
                 >
                   Spending Overview
                 </h3>
-                <p className="text-xs text-slate-400 mt-0.5">Monthly fund activity</p>
+                <p className="text-xs text-slate-600 mt-0.5">Monthly fund activity</p>
               </div>
               <div className="flex flex-col gap-1 items-end">
                 <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500">
@@ -602,7 +602,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
                         style={{ height: `${dH}px` }}
                       />
                     </div>
-                    <p className="text-[10px] text-center text-slate-400 mt-2">{m}</p>
+                    <p className="text-[10px] text-center text-slate-600 mt-2">{m}</p>
                   </div>
                 );
               })}
@@ -617,7 +617,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
                 { label: "Still Held", value: formatINR(securedTotal), color: "text-emerald-600" },
               ].map(({ label, value, color }) => (
                 <div key={label}>
-                  <p className="text-xs text-slate-400">{label}</p>
+                  <p className="text-xs text-slate-600">{label}</p>
                   <p
                     className={`text-sm font-extrabold mt-0.5 ${color}`}
                     style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}

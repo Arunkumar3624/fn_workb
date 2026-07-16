@@ -25,13 +25,19 @@ export default function JobApplicationDrawer({
         }`}
       />
 
-      <aside
-        className={`fixed top-0 right-0 z-50 h-full w-full transform border-l border-white/40 bg-white/70 backdrop-blur-2xl shadow-2xl transition-transform duration-300 sm:w-[400px] ${
-          open ? "translate-x-0" : "translate-x-full"
+      <div
+        onClick={onClose}
+        className={`fixed inset-0 z-50 flex items-center justify-center p-4 transition-all duration-300 ${
+          open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         }`}
         aria-hidden={!open}
       >
-        <div className="flex h-full flex-col">
+        <aside
+          onClick={(event) => event.stopPropagation()}
+          className={`flex max-h-[90vh] w-full max-w-md transform flex-col overflow-hidden rounded-3xl border border-white/40 bg-white/70 backdrop-blur-2xl shadow-2xl transition-all duration-300 ${
+            open ? "translate-y-0 scale-100" : "translate-y-4 scale-95"
+          }`}
+        >
           <header className="flex flex-shrink-0 items-start justify-between gap-4 border-b border-slate-100 p-6">
             <div className="min-w-0">
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Apply to Job</p>
@@ -104,8 +110,8 @@ export default function JobApplicationDrawer({
               </p>
             </div>
           </div>
-        </div>
-      </aside>
+        </aside>
+      </div>
     </>
   );
 }
