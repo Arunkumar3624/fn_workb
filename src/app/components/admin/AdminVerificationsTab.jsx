@@ -1,115 +1,150 @@
-import { useState } from "react";
-import { CheckCircle2, XCircle, Eye, Sparkles } from "lucide-react";
-import { VERIFY_QUEUE, AI_CONFIDENCE } from "../../data/mockAdminData";
-
-function confidenceTone(score) {
-  if (score >= 90) return "bg-emerald-50 text-emerald-700 border-emerald-200";
-  if (score >= 70) return "bg-amber-50 text-amber-700 border-amber-200";
-  return "bg-red-50 text-red-700 border-red-200";
-}
+import { useEffect, useState } from "react";
+import { AlertCircle, CheckCircle2, XCircle } from "lucide-react";
+import { listVerifications, reviewVerification } from "../../lib/adminApi";
+import { getInitials } from "../../utils/formValidation";
+import { ApiError } from "../../lib/apiClient";
 
 export default function AdminVerificationsTab() {
-  const [verActions, setVerActions] = useState({});
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [filter, setFilter] = useState("All");
+  const [decided, setDecided] = useState({});
+  const [busyId, setBusyId] = useState(null);
+  const [actionError, setActionError] = useState("");
+
+  useEffect(() => {
+    listVerifications()
+      .then(setItems)
+      .catch((err) => setLoadError(err instanceof ApiError ? err.message : "Could not load the verification queue."))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const filtered = items.filter((item) => {
+    if (filter === "All") return true;
+    if (filter === "Freelancers") return item.role === "worker";
+    return item.role === "business";
+  });
+
+  const handleDecision = async (id, approved) => {
+    setBusyId(id);
+    setActionError("");
+    try {
+      await reviewVerification(id, approved);
+      setDecided((prev) => ({ ...prev, [id]: approved ? "approved" : "rejected" }));
+    } catch (err) {
+      setActionError(err instanceof ApiError ? err.message : "Could not record this decision.");
+    } finally {
+      setBusyId(null);
+    }
+  };
 
   return (
     <div className="p-7">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
-          <h1 className="text-xl font-extrabold text-[#0A1128]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Verification Center</h1>
-          <p className="text-slate-500 text-sm mt-0.5">247 documents awaiting review</p>
+          <h1 className="text-xl font-semibold text-slate-900" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Verification Center</h1>
+          <p className="text-slate-500 text-sm mt-0.5">{items.length} account{items.length === 1 ? "" : "s"} awaiting verification</p>
         </div>
         <div className="flex gap-2">
           {["All", "Freelancers", "Businesses"].map((f) => (
-            <button key={f} className="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-colors">{f}</button>
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                filter === f ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+              }`}
+            >
+              {f}
+            </button>
           ))}
         </div>
       </div>
-      <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full border-separate border-spacing-y-3">
-            <thead>
-              <tr className="bg-[#F4F6FF] border-b border-slate-100">
-                {["Name", "Type", "Documents", "Face Match", "AI Confidence", "Submitted", "Status", "Actions"].map((h) => (
-                  <th key={h} className="px-5 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {VERIFY_QUEUE.map((item) => (
-                <tr key={item.id} className="bg-white shadow-sm border border-slate-100 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-md">
-                  <td className="px-5 py-4 font-semibold text-slate-800 text-sm rounded-l-xl">{item.name}</td>
-                  <td className="px-5 py-4">
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${item.type === "Freelancer" ? "bg-blue-50 text-blue-700" : "bg-purple-50 text-purple-700"}`}>
-                      {item.type}
-                    </span>
-                  </td>
-                  <td className="px-5 py-4">
-                    <div className="flex flex-wrap gap-1">
-                      {item.docs.map((d) => (
-                        <span key={d} className="px-2 py-0.5 bg-slate-100 text-slate-600 text-xs rounded font-medium">{d}</span>
-                      ))}
-                    </div>
-                  </td>
-                  <td className="px-5 py-4">
-                    <span className={`flex items-center gap-1 text-xs font-semibold ${
-                      item.face === "Matched" ? "text-emerald-600" : item.face === "Mismatch" ? "text-red-600" : "text-slate-400"
-                    }`}>
-                      {item.face === "Matched" && <CheckCircle2 className="w-3.5 h-3.5" />}
-                      {item.face === "Mismatch" && <XCircle className="w-3.5 h-3.5" />}
-                      {item.face}
-                    </span>
-                  </td>
-                  <td className="px-5 py-4">
-                    <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-bold ${confidenceTone(AI_CONFIDENCE[item.id] ?? 0)}`}>
-                      <Sparkles className="h-3 w-3" />
-                      {AI_CONFIDENCE[item.id] ?? "—"}% Match
-                    </span>
-                  </td>
-                  <td className="px-5 py-4 text-slate-500 text-sm">{item.submitted}</td>
-                  <td className="px-5 py-4">
-                    {verActions[item.id] ? (
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${verActions[item.id] === "approved" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>
-                        {verActions[item.id] === "approved" ? "✓ Approved" : "✗ Rejected"}
-                      </span>
-                    ) : (
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                        item.status === "pending" ? "bg-amber-50 text-amber-700"
-                        : item.status === "flagged" ? "bg-red-50 text-red-700"
-                        : "bg-blue-50 text-blue-700"
-                      }`}>
-                        {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-5 py-4 rounded-r-xl">
-                    {!verActions[item.id] && (
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => setVerActions((p) => ({ ...p, [item.id]: "approved" }))}
-                          className="w-10 h-10 flex items-center justify-center bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg transition-transform hover:scale-105 active:scale-95"
-                          title="Approve"
-                        >
-                          <CheckCircle2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => setVerActions((p) => ({ ...p, [item.id]: "rejected" }))}
-                          className="w-10 h-10 flex items-center justify-center bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-transform hover:scale-105 active:scale-95"
-                          title="Reject"
-                        >
-                          <XCircle className="w-4 h-4" />
-                        </button>
-                        <button className="w-10 h-10 flex items-center justify-center bg-slate-50 text-slate-600 hover:bg-slate-100 rounded-lg transition-transform hover:scale-105 active:scale-95" title="View Docs">
-                          <Eye className="w-4 h-4" />
-                        </button>
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+
+      {actionError && (
+        <div className="mb-4 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+          <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+          <span>{actionError}</span>
         </div>
-      </div>
+      )}
+
+      {loading ? (
+        <div className="flex justify-center py-16">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[#FF6B35]" />
+        </div>
+      ) : loadError ? (
+        <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+          <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+          <span>{loadError}</span>
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-slate-300 bg-white py-16 text-center text-sm text-slate-400">
+          Nothing waiting for verification.
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-200">
+                  {["Name", "Role", "Title", "Requested", "Actions"].map((h) => (
+                    <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filtered.map((item) => (
+                  <tr key={item.id} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-600">
+                          {getInitials(item.name)}
+                        </div>
+                        <span className="font-medium text-slate-800 text-sm">{item.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-5 py-4">
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${item.role === "worker" ? "bg-blue-50 text-blue-700" : "bg-purple-50 text-purple-700"}`}>
+                        {item.role === "worker" ? "Freelancer" : "Business"}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 text-sm text-slate-500">{item.title || "—"}</td>
+                    <td className="px-5 py-4 text-sm text-slate-500">
+                      {new Date(item.created_at).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}
+                    </td>
+                    <td className="px-5 py-4">
+                      {decided[item.id] ? (
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${decided[item.id] === "approved" ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}>
+                          {decided[item.id] === "approved" ? "✓ Approved" : "✗ Rejected"}
+                        </span>
+                      ) : (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleDecision(item.id, true)}
+                            disabled={busyId === item.id}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-700 hover:bg-emerald-50 transition-colors disabled:opacity-60"
+                          >
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => handleDecision(item.id, false)}
+                            disabled={busyId === item.id}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50 transition-colors disabled:opacity-60"
+                          >
+                            <XCircle className="w-3.5 h-3.5" />
+                            Reject
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

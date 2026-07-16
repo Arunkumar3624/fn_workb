@@ -1,124 +1,148 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MessageSquare, Download, ArrowUpRight, CheckCircle2, Receipt } from "lucide-react";
-import { DISPUTES } from "../../data/mockAdminData";
+import { AlertCircle, ArrowUpRight, CheckCircle2, Receipt } from "lucide-react";
+import { listDisputes, resolveDispute } from "../../lib/adminApi";
+import { PROJECT_STATUS_META } from "../../utils/projectStatus";
+
+function formatINR(amount) {
+  return `₹${Number(amount || 0).toLocaleString("en-IN")}`;
+}
 
 export default function AdminDisputesTab() {
   const navigate = useNavigate();
-  const [dispActions, setDispActions] = useState({});
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [resolved, setResolved] = useState({});
+  const [busyId, setBusyId] = useState(null);
+  const [actionError, setActionError] = useState("");
+
+  useEffect(() => {
+    listDisputes()
+      .then(setItems)
+      .catch((err) => setLoadError(err.message || "Could not load disputes."))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleResolve = async (id, resolution) => {
+    setBusyId(id);
+    setActionError("");
+    try {
+      await resolveDispute(id, resolution);
+      setResolved((prev) => ({ ...prev, [id]: resolution }));
+    } catch (err) {
+      setActionError(err.message || "Could not resolve this dispute.");
+    } finally {
+      setBusyId(null);
+    }
+  };
 
   return (
     <div className="p-7">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-xl font-extrabold text-[#0A1128]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Dispute Resolution</h1>
-          <p className="text-slate-500 text-sm mt-0.5">18 active disputes · Funds frozen until resolved</p>
+      <div className="mb-6">
+        <h1 className="text-xl font-semibold text-slate-900" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Dispute Resolution</h1>
+        <p className="text-slate-500 text-sm mt-0.5">{items.length} active dispute{items.length === 1 ? "" : "s"} — funds frozen until resolved</p>
+      </div>
+
+      {actionError && (
+        <div className="mb-4 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+          <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+          <span>{actionError}</span>
         </div>
-      </div>
-      <div className="space-y-4">
-        {DISPUTES.map((d) => (
-          <div
-            key={d.id}
-            className="bg-white rounded-2xl border border-slate-100 p-5 shadow-[0_4px_20px_0_rgba(239,68,68,0.08)]"
-          >
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <div className="flex items-center gap-2 mb-1.5">
-                  <span className="font-mono text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">{d.id}</span>
-                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                    d.status === "open" ? "bg-red-50 text-red-700"
-                    : d.status === "investigating" ? "bg-amber-50 text-amber-700"
-                    : "bg-emerald-50 text-emerald-700"
-                  }`}>
-                    {d.status.charAt(0).toUpperCase() + d.status.slice(1)}
-                  </span>
-                </div>
-                <h3 className="font-extrabold text-[#0A1128]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{d.project}</h3>
-                <p className="text-slate-500 text-sm mt-1">{d.reason}</p>
-              </div>
-              <div className="text-right flex-shrink-0 ml-4">
-                <div
-                  className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-400"
-                  style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-                >
-                  {d.amount}
-                </div>
-                <div className="text-xs text-slate-400 mt-0.5">In Dispute</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-4 text-sm mb-4 flex-wrap">
-              <div className="flex items-center gap-1.5"><span className="text-slate-400 text-xs">Freelancer:</span><span className="font-semibold text-slate-700 text-xs">{d.worker}</span></div>
-              <span className="text-slate-200">·</span>
-              <div className="flex items-center gap-1.5"><span className="text-slate-400 text-xs">Business:</span><span className="font-semibold text-slate-700 text-xs">{d.business}</span></div>
-              <span className="text-slate-200">·</span>
-              <div className="flex items-center gap-1.5"><span className="text-slate-400 text-xs">Filed:</span><span className="font-semibold text-slate-700 text-xs">{d.filed}</span></div>
-            </div>
+      )}
 
-            {/* Forensic audit trail */}
-            <div className="ml-3 mt-4 flex flex-col gap-3 border-l-2 border-slate-200 pl-4">
-              <div className="relative">
-                <div className="absolute -left-[21px] top-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500 shadow-sm" />
-                <p className="text-xs font-semibold text-slate-700">Escrow Funded</p>
-                <p className="text-[11px] text-slate-400">2 days before filing</p>
-              </div>
-              <div className="relative">
-                <div className="absolute -left-[21px] top-0.5 h-3 w-3 rounded-full border-2 border-white bg-blue-500 shadow-sm" />
-                <p className="text-xs font-semibold text-slate-700">Files Submitted</p>
-                <p className="text-[11px] text-slate-400">1 day before filing</p>
-              </div>
-              <div className="relative">
-                <div className="absolute -left-[21px] top-0.5 h-3 w-3 rounded-full border-2 border-white bg-red-500 shadow-sm" />
-                <p className="text-xs font-semibold text-slate-700">Dispute Raised ({d.filed})</p>
-                <p className="text-[11px] text-slate-400">Reason: {d.reason}</p>
-              </div>
-            </div>
+      {loading ? (
+        <div className="flex justify-center py-16">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[#FF6B35]" />
+        </div>
+      ) : loadError ? (
+        <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+          <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+          <span>{loadError}</span>
+        </div>
+      ) : items.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-slate-300 bg-white py-16 text-center text-sm text-slate-400">
+          No active disputes.
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {items.map((d) => {
+            const decision = resolved[d.id];
+            return (
+              <div key={d.id} className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+                <div className="flex items-start justify-between mb-4 gap-4">
+                  <div>
+                    <span className="font-mono text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                      {d.id.slice(0, 8).toUpperCase()}
+                    </span>
+                    <h3 className="mt-1.5 font-semibold text-slate-900" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{d.title}</h3>
+                    <p className="text-slate-500 text-sm mt-0.5">No reason recorded — review the activity timeline below.</p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <div className="text-2xl font-semibold text-rose-600" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                      {formatINR(d.budget)}
+                    </div>
+                    <div className="text-xs text-slate-400 mt-0.5">In Dispute</div>
+                  </div>
+                </div>
 
-            {d.status !== "resolved" ? (
-              <div className="flex gap-3 flex-wrap mt-4">
-                <button className="flex items-center gap-1.5 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors">
-                  <MessageSquare className="w-3.5 h-3.5" />View Chat Logs
-                </button>
-                <button className="flex items-center gap-1.5 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors">
-                  <Download className="w-3.5 h-3.5" />Download Files
-                </button>
-                <button
-                  onClick={() => navigate("/invoice?role=admin")}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
-                >
-                  <Receipt className="w-3.5 h-3.5" />View Invoice
-                </button>
-                <button
-                  onClick={() => setDispActions((p) => ({ ...p, [d.id]: "refunded" }))}
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-colors ${
-                    dispActions[d.id] === "refunded"
-                      ? "bg-blue-100 text-blue-800 border border-blue-200"
-                      : "bg-blue-50 text-blue-700 border border-blue-100 hover:bg-blue-100"
-                  }`}
-                >
-                  <ArrowUpRight className="w-3.5 h-3.5" />
-                  {dispActions[d.id] === "refunded" ? "✓ Refund Issued" : "Refund Business"}
-                </button>
-                <button
-                  onClick={() => setDispActions((p) => ({ ...p, [d.id]: "released" }))}
-                  className={`flex items-center gap-1.5 px-6 py-2.5 rounded-xl text-xs font-bold transition-transform active:scale-95 ${
-                    dispActions[d.id] === "released"
-                      ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                      : "bg-gradient-to-r from-orange-500 to-[#FF6B35] hover:from-orange-600 hover:to-orange-700 text-white shadow-lg"
-                  }`}
-                >
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  {dispActions[d.id] === "released" ? "✓ Funds Released" : "Release to Freelancer"}
-                </button>
+                <div className="flex items-center gap-4 text-sm mb-4 flex-wrap">
+                  <div className="flex items-center gap-1.5"><span className="text-slate-400 text-xs">Freelancer:</span><span className="font-medium text-slate-700 text-xs">{d.worker_name}</span></div>
+                  <span className="text-slate-200">·</span>
+                  <div className="flex items-center gap-1.5"><span className="text-slate-400 text-xs">Business:</span><span className="font-medium text-slate-700 text-xs">{d.business_name}</span></div>
+                </div>
+
+                {/* Real activity timeline (project.timeline), not fabricated events */}
+                {d.timeline?.length > 0 && (
+                  <div className="ml-3 mt-4 flex flex-col gap-3 border-l-2 border-slate-200 pl-4">
+                    {d.timeline.map((event, i) => (
+                      <div key={i} className="relative">
+                        <div className="absolute -left-[21px] top-0.5 h-3 w-3 rounded-full border-2 border-white bg-slate-400 shadow-sm" />
+                        <p className="text-xs font-semibold text-slate-700">{PROJECT_STATUS_META[event.status]?.label ?? event.status}</p>
+                        <p className="text-[11px] text-slate-400">
+                          {new Date(event.at).toLocaleString("en-IN", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {decision ? (
+                  <div className="flex items-center gap-2 text-emerald-600 text-sm font-semibold mt-4">
+                    <CheckCircle2 className="w-4 h-4" />
+                    {decision === "refund" ? "Refunded to business" : "Released to freelancer"}
+                  </div>
+                ) : (
+                  <div className="flex gap-3 flex-wrap mt-4">
+                    <button
+                      onClick={() => navigate(`/invoice?id=${d.id}`)}
+                      className="flex items-center gap-1.5 px-4 py-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+                    >
+                      <Receipt className="w-3.5 h-3.5" />View Invoice
+                    </button>
+                    <button
+                      onClick={() => handleResolve(d.id, "refund")}
+                      disabled={busyId === d.id}
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors disabled:opacity-60"
+                    >
+                      <ArrowUpRight className="w-3.5 h-3.5" />
+                      Refund Business
+                    </button>
+                    <button
+                      onClick={() => handleResolve(d.id, "release")}
+                      disabled={busyId === d.id}
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors disabled:opacity-60"
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      Release to Freelancer
+                    </button>
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className="flex items-center gap-2 text-emerald-600 text-sm font-semibold mt-4">
-                <CheckCircle2 className="w-4 h-4" />
-                Dispute resolved — Funds released to freelancer on Jun 23, 2026
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

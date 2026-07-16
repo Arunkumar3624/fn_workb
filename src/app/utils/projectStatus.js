@@ -63,6 +63,25 @@ export const PROJECT_STATUS_META = {
     actionBy: null,
     nextActionLabel: null,
   },
+  // Terminal states reachable from any non-completed status (see backend's
+  // canTransition) — not part of PROJECT_STATUS_FLOW's happy-path sequence,
+  // but real values every status-label lookup needs to handle.
+  DISPUTED: {
+    label: "Disputed",
+    shortLabel: "Disputed",
+    tone: "red",
+    triggeredBy: "either party",
+    actionBy: "admin",
+    nextActionLabel: null,
+  },
+  CANCELLED: {
+    label: "Cancelled",
+    shortLabel: "Cancelled",
+    tone: "slate",
+    triggeredBy: "either party",
+    actionBy: null,
+    nextActionLabel: null,
+  },
 };
 
 export function nextProjectStatus(currentStatus) {
