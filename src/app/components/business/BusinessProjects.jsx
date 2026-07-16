@@ -357,7 +357,7 @@ function PaymentApprovalModal({ project, isSubmitting, submitError, onClose, onC
 }
 
 // ─── Rating + Rehire modal (History rows) ────────────────────────────────────
-function RatingModal({ project, currentUserId, onClose, onRehire }) {
+function RatingModal({ project, currentUserId, onClose, onRehire, onRated }) {
   const [existingReview, setExistingReview] = useState(undefined);
 
   useEffect(() => {
@@ -398,6 +398,7 @@ function RatingModal({ project, currentUserId, onClose, onRehire }) {
             onSubmit={async (rating, feedback) => {
               const created = await submitReview({ projectId: project.id, rating, feedback });
               setExistingReview(created);
+              onRated?.(project.id, created.rating);
             }}
             onRehire={onRehire}
           />
@@ -424,6 +425,9 @@ export default function BusinessProjects() {
   const [secureError, setSecureError] = useState(null);
   const [ratingProject, setRatingProject] = useState(null);
   const [rehireToast, setRehireToast] = useState("");
+  // projectId -> rating, so a History row can show the stars you already gave
+  // without having to reopen the modal every time.
+  const [ratingsByProject, setRatingsByProject] = useState({});
 
   const loadProjects = useCallback(async () => {
     setIsLoading(true);
@@ -444,6 +448,28 @@ export default function BusinessProjects() {
 
   const liveProjects = projects.filter((p) => p.status !== "COMPLETED");
   const historyProjects = projects.filter((p) => p.status === "COMPLETED");
+
+  // Populate ratingsByProject once history projects are known — one
+  // listReviewsFor call per unique worker (not per project), matched back to
+  // the project the review was actually left on.
+  useEffect(() => {
+    if (historyProjects.length === 0 || !currentUser?.id) return;
+    let cancelled = false;
+    const workerIds = [...new Set(historyProjects.map((p) => p.worker_id).filter(Boolean))];
+    Promise.all(workerIds.map((workerId) => listReviewsFor(workerId).catch(() => [])))
+      .then((results) => {
+        if (cancelled) return;
+        const map = {};
+        results.flat().forEach((review) => {
+          if (review.reviewer_id === currentUser.id) map[review.project_id] = review.rating;
+        });
+        setRatingsByProject(map);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projects, currentUser?.id]);
 
   const toggleFreeze = (id) => {
     setFrozenProjects((prev) => {
@@ -490,14 +516,15 @@ export default function BusinessProjects() {
   };
 
   const handleRehire = async (project) => {
+    const workerLabel = project.worker_name || "the freelancer";
     try {
       await createProject({
         workerId: project.worker_id,
-        title: `New task with ${project.worker_name}`,
+        title: `New task with ${workerLabel}`,
         description: `Follow-up work after "${project.title}".`,
         budget: Number(project.budget),
       });
-      setRehireToast(`Invitation sent to ${project.worker_name} for a new task.`);
+      setRehireToast(`Invitation sent to ${workerLabel} for a new task.`);
       window.setTimeout(() => setRehireToast(""), 2800);
     } catch (err) {
       setRehireToast(err.message || "Could not send the rehire invite.");
@@ -723,39 +750,63 @@ export default function BusinessProjects() {
               History
             </h2>
             <div className="space-y-3">
-              {historyProjects.map((p) => (
-                <div
-                  key={p.id}
-                  className="flex flex-col gap-3 rounded-xl border border-emerald-100 bg-emerald-50/50 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-5"
-                >
-                  <div className="flex min-w-0 items-center gap-3">
-                    <Avatar initials={getInitials(p.worker_name)} bg="bg-[#1B3FAB]" size="w-10 h-10" text="text-xs" />
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-bold text-[#0F172A]">{p.title}</p>
-                      <p className="text-xs text-slate-500">with {p.worker_name}</p>
+              {historyProjects.map((p) => {
+                const myRating = ratingsByProject[p.id];
+                return (
+                  <div
+                    key={p.id}
+                    className="flex flex-col gap-3 rounded-xl border border-emerald-100 bg-emerald-50/50 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-5"
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      <Avatar initials={getInitials(p.worker_name)} bg="bg-[#1B3FAB]" size="w-10 h-10" text="text-xs" />
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-bold text-[#0F172A]">{p.title}</p>
+                        <p className="text-xs text-slate-500">with {p.worker_name || "a freelancer"}</p>
+                      </div>
+                    </div>
+                    <div className="flex flex-shrink-0 flex-wrap items-center gap-3">
+                      <span className="font-mono text-sm font-bold text-emerald-700">{formatINR(p.budget)}</span>
+
+                      {myRating ? (
+                        <span className="flex items-center gap-0.5" title={`You rated this ${myRating}/5`}>
+                          {[1, 2, 3, 4, 5].map((n) => (
+                            <Star
+                              key={n}
+                              className={`h-3.5 w-3.5 ${n <= myRating ? "fill-amber-400 text-amber-400" : "fill-slate-200 text-slate-200"}`}
+                            />
+                          ))}
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => setRatingProject(p)}
+                          className="flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-600 hover:bg-slate-50"
+                        >
+                          <Star className="h-3 w-3" />
+                          Rate
+                        </button>
+                      )}
+
+                      <button
+                        onClick={() => handleRehire(p)}
+                        className="flex items-center gap-1 rounded-full border border-[#FF6B35]/30 bg-[#FF6B35]/10 px-2.5 py-1 text-xs font-bold text-[#FF6B35] hover:bg-[#FF6B35]/20"
+                      >
+                        <RefreshCw className="h-3 w-3" />
+                        Rehire
+                      </button>
+
+                      <a
+                        href={`/invoice?role=business&id=${p.id}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700 hover:bg-emerald-200"
+                      >
+                        <CheckCircle2 className="h-3 w-3" />
+                        View Invoice
+                      </a>
                     </div>
                   </div>
-                  <div className="flex flex-shrink-0 items-center gap-3">
-                    <span className="font-mono text-sm font-bold text-emerald-700">{formatINR(p.budget)}</span>
-                    <button
-                      onClick={() => setRatingProject(p)}
-                      className="flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-600 hover:bg-slate-50"
-                    >
-                      <Star className="h-3 w-3" />
-                      Rate &amp; Rehire
-                    </button>
-                    <a
-                      href={`/invoice?role=business&id=${p.id}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700 hover:bg-emerald-200"
-                    >
-                      <CheckCircle2 className="h-3 w-3" />
-                      View Invoice
-                    </a>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
@@ -786,6 +837,7 @@ export default function BusinessProjects() {
           handleRehire(ratingProject);
           setRatingProject(null);
         }}
+        onRated={(projectId, rating) => setRatingsByProject((prev) => ({ ...prev, [projectId]: rating }))}
       />
 
       {rehireToast && (

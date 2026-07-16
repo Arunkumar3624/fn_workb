@@ -206,22 +206,31 @@ export default function WorkerWallet() {
             <p className="text-sm text-slate-400 py-6 text-center">No transactions yet.</p>
           ) : (
             <div className="divide-y divide-slate-50">
-              {wallet.transactions.map((t) => (
-                <div key={t.id} className="flex items-center justify-between gap-3 py-3 hover:bg-slate-50/50 transition-colors rounded-lg px-1 -mx-1">
-                  <div className="min-w-0">
-                    <div className="text-xs font-semibold text-slate-700 truncate">{t.reference_note ?? t.type}</div>
-                    <div
-                      className="text-xs text-slate-400 mt-0.5"
-                      style={{ fontFamily: "'DM Mono', monospace" }}
-                    >
-                      {new Date(t.created_at).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}
+              {wallet.transactions.map((t) => {
+                // `direction` is written from the business's side of the ledger
+                // (FUNDS_SECURED is a debit *from the business's pool*), but this
+                // same row is reused here in the worker's own history — where
+                // funds being secured is good news, not a deduction. Only that
+                // one type needs a worker-perspective override; PAYOUT/WITHDRAWAL/
+                // PLATFORM_FEE/REFUND already read correctly either way.
+                const isWorkerCredit = t.direction === "credit" || t.type === "FUNDS_SECURED";
+                return (
+                  <div key={t.id} className="flex items-center justify-between gap-3 py-3 hover:bg-slate-50/50 transition-colors rounded-lg px-1 -mx-1">
+                    <div className="min-w-0">
+                      <div className="text-xs font-semibold text-slate-700 truncate">{t.reference_note ?? t.type}</div>
+                      <div
+                        className="text-xs text-slate-400 mt-0.5"
+                        style={{ fontFamily: "'DM Mono', monospace" }}
+                      >
+                        {new Date(t.created_at).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}
+                      </div>
+                    </div>
+                    <div className={`flex-shrink-0 text-sm font-bold ${isWorkerCredit ? "text-emerald-600" : "text-slate-500"}`}>
+                      {isWorkerCredit ? "+" : "–"}{formatINR(t.amount)}
                     </div>
                   </div>
-                  <div className={`flex-shrink-0 text-sm font-bold ${t.direction === "credit" ? "text-emerald-600" : "text-slate-500"}`}>
-                    {t.direction === "credit" ? "+" : "–"}{formatINR(t.amount)}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

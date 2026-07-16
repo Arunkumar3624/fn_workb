@@ -29,13 +29,16 @@ const COPY = {
 // businesses) hand a one-click way to bring the same worker back.
 export default function ProjectCompletionHub({
   perspective,
-  counterpartName,
+  counterpartName: rawCounterpartName,
   amount,
   review,
   onSubmit,
   onRehire,
   onViewHistory,
 }) {
+  // A dummy/incompletely-linked project can come back with no joined name —
+  // never show the literal word "undefined" to a user.
+  const counterpartName = rawCounterpartName || "this freelancer";
   const [rating, setRating] = useState(review?.rating ?? 0);
   const [hoverRating, setHoverRating] = useState(0);
   const [feedback, setFeedback] = useState(review?.feedback ?? "");
@@ -43,14 +46,19 @@ export default function ProjectCompletionHub({
   const copy = COPY[perspective];
   const submitted = Boolean(review);
 
-  const handleRateAndRehire = () => {
+  // Rating and rehiring are independent decisions — a business should be able
+  // to leave a rating without committing to rehire, or rehire without having
+  // rated yet. Each button below only ever drives its own action.
+  const handleSubmitReview = () => {
     if (!submitted && rating > 0) {
       onSubmit(rating, feedback.trim());
     }
-    if (onRehire) {
-      setRehired(true);
-      onRehire();
-    }
+  };
+
+  const handleRehireClick = () => {
+    if (!onRehire) return;
+    setRehired(true);
+    onRehire();
   };
 
   return (
@@ -120,13 +128,26 @@ export default function ProjectCompletionHub({
           )}
         </div>
 
-        {/* Retention Engine — business only */}
+        {/* Retention Engine — business only. Rating and rehiring are two
+            separate calls to action; neither one gates the other. */}
         {perspective === "business" && (
           <div className="border-t border-slate-100 bg-slate-50/60 px-5 py-8 sm:px-12">
+            {!submitted && (
+              <button
+                onClick={handleSubmitReview}
+                disabled={rating === 0}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0F172A] py-3.5 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
+              >
+                Submit Review
+              </button>
+            )}
+
             <button
-              onClick={handleRateAndRehire}
-              disabled={(!submitted && rating === 0) || rehired}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#FF6B35] py-4 text-base font-black text-white shadow-[0_10px_30px_-8px_rgba(255,107,53,0.55)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#e55a2b] hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+              onClick={handleRehireClick}
+              disabled={rehired}
+              className={`flex w-full items-center justify-center gap-2 rounded-2xl bg-[#FF6B35] py-4 text-base font-black text-white shadow-[0_10px_30px_-8px_rgba(255,107,53,0.55)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#e55a2b] hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 ${
+                !submitted ? "mt-3" : ""
+              }`}
             >
               <Zap className="h-5 w-5" />
               {rehired ? "Invitation Sent!" : `Rehire ${counterpartName} for a New Task`}

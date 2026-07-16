@@ -383,12 +383,13 @@ export default function WorkerJobFeed() {
 
   return (
     <div
-      className={`relative z-0 h-full min-h-screen overflow-x-hidden bg-gradient-to-br from-[#eef2ff] via-[#f8fafc] to-[#fff3ec] pb-32 text-slate-900 ${
+      className={`relative z-0 h-full min-h-screen overflow-x-hidden bg-gradient-to-br from-[#dbe4ff] via-[#eef1ff] to-[#ffe4d2] pb-32 text-slate-900 ${
         isPortalOpen ? "overflow-y-hidden" : "overflow-y-auto"
       }`}
     >
-      <div className="pointer-events-none fixed -top-20 -left-16 -z-10 h-72 w-72 rounded-full bg-[#1B3FAB]/10 blur-[100px]" />
-      <div className="pointer-events-none fixed top-40 -right-20 -z-10 h-72 w-72 rounded-full bg-[#FF6B35]/10 blur-[100px]" />
+      <div className="pointer-events-none fixed -top-24 -left-24 -z-10 h-[26rem] w-[26rem] rounded-full bg-[#1B3FAB]/30 blur-[110px]" />
+      <div className="pointer-events-none fixed top-56 -right-24 -z-10 h-[26rem] w-[26rem] rounded-full bg-[#FF6B35]/30 blur-[110px]" />
+      <div className="pointer-events-none fixed bottom-0 left-1/3 -z-10 h-96 w-96 rounded-full bg-purple-400/20 blur-[110px]" />
       <section className="relative mx-auto max-w-7xl px-6 py-8">
         <div className="mb-8 rounded-2xl border border-white/70 bg-white/60 backdrop-blur-xl p-6 shadow-lg shadow-slate-200/40">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
@@ -575,7 +576,7 @@ export default function WorkerJobFeed() {
             className="absolute inset-0 bg-slate-900/60 opacity-100 backdrop-blur-md transition-opacity duration-300"
           />
 
-          <section className="relative z-50 flex h-[92vh] w-[96vw] max-w-6xl flex-col overflow-hidden rounded-3xl border border-white/70 bg-gradient-to-br from-[#eef2ff] via-[#f8fafc] to-[#fff3ec] shadow-[0_32px_90px_rgba(15,23,42,0.35)] transition-transform duration-300 ease-out">
+          <section className="relative z-50 flex h-[92vh] w-[96vw] max-w-6xl flex-col overflow-hidden rounded-3xl border border-white/70 bg-gradient-to-br from-[#dbe4ff] via-[#eef1ff] to-[#ffe4d2] shadow-[0_32px_90px_rgba(15,23,42,0.35)] transition-transform duration-300 ease-out">
             <header className="relative flex flex-shrink-0 items-start justify-between gap-5 overflow-hidden border-b border-slate-200 bg-slate-950 p-6 text-white sm:p-7">
               <div className="pointer-events-none absolute right-[-90px] top-[-120px] h-72 w-72 rounded-full bg-[#FF6B35]/30 blur-3xl" />
               <div className="pointer-events-none absolute bottom-[-120px] left-20 h-64 w-64 rounded-full bg-blue-500/20 blur-3xl" />

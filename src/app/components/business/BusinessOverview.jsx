@@ -238,9 +238,10 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
   }
 
   return (
-    <div className="relative bg-gradient-to-br from-[#eef2ff] via-[#f8fafc] to-[#fff3ec] p-7 wb-tab-enter">
-      <div className="pointer-events-none absolute -top-20 -left-16 -z-10 h-72 w-72 rounded-full bg-[#1B3FAB]/10 blur-[100px]" />
-      <div className="pointer-events-none absolute top-40 -right-20 -z-10 h-72 w-72 rounded-full bg-[#FF6B35]/10 blur-[100px]" />
+    <div className="relative bg-gradient-to-br from-[#e0e9ff] via-[#eef5ff] to-[#e9fff5] p-7 wb-tab-enter">
+      <div className="pointer-events-none fixed -top-24 -left-24 -z-10 h-[26rem] w-[26rem] rounded-full bg-[#1B3FAB]/25 blur-[110px]" />
+      <div className="pointer-events-none fixed top-56 -right-24 -z-10 h-[26rem] w-[26rem] rounded-full bg-emerald-400/20 blur-[110px]" />
+      <div className="pointer-events-none fixed bottom-0 left-1/3 -z-10 h-96 w-96 rounded-full bg-purple-400/20 blur-[110px]" />
       <div className="relative max-w-6xl mx-auto">
 
         {/* ── Header ─────────────────────────────────────────────────────── */}
