@@ -1,37 +1,22 @@
-// Thin fetch wrapper for the real backend (backend/src/server.js). Currently
-// consumed only by BusinessProjects.jsx — every other page still runs on
-// PlatformContext mock state (see Frontend/TECH_ROADMAP.md's migration plan).
+// Thin fetch wrapper for the real backend (backend/src/server.js).
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
-// DEV-ONLY auth bridge. There is no real login flow yet — AuthPage.jsx is
-// UI-only, and backend/src/routes/dev.routes.js only mounts outside
-// production. These ids must match real rows in the local Postgres
-// instance; swap this whole bridge for a real login flow before this ever
-// touches production.
-const DEV_USER_IDS = {
-  business: "a0000000-0000-0000-0000-00000000000b", // QuickCart Retail
-  worker: "a0000000-0000-0000-0000-000000000001", // Priya Sharma
-};
+// The single source of truth for the signed-in user's JWT — written by
+// AuthContext on login/register/logout, read here on every request. Kept as
+// a plain localStorage key (not React state) so apiFetch can be called from
+// plain lib functions (projectsApi.js etc.) without needing a hook.
+const TOKEN_KEY = "workbridge_token";
 
-const tokenCache = new Map(); // role -> token
+export function getToken() {
+  return localStorage.getItem(TOKEN_KEY);
+}
 
-async function getDevToken(role) {
-  if (tokenCache.has(role)) return tokenCache.get(role);
-
-  const userId = DEV_USER_IDS[role];
-  if (!userId) throw new Error(`No dev user id configured for role "${role}".`);
-
-  const res = await fetch(`${API_URL}/api/dev/token`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId }),
-  });
-  if (!res.ok) {
-    throw new Error("Could not get a dev auth token — is the backend running on :4000?");
+export function setToken(token) {
+  if (token) {
+    localStorage.setItem(TOKEN_KEY, token);
+  } else {
+    localStorage.removeItem(TOKEN_KEY);
   }
-  const { data } = await res.json();
-  tokenCache.set(role, data.token);
-  return data.token;
 }
 
 export class ApiError extends Error {
@@ -43,20 +28,23 @@ export class ApiError extends Error {
 }
 
 /**
- * apiFetch("/api/projects", { role: "business" })
- * apiFetch(`/api/projects/${id}/complete`, { method: "POST", role: "business" })
+ * apiFetch("/api/projects?role=business")
+ * apiFetch(`/api/projects/${id}/complete`, { method: "POST" })
+ *
+ * Attaches the stored JWT if one exists; unauthenticated calls (register,
+ * login, public profile reads) simply omit the header rather than failing —
+ * the backend decides what's guarded, this client doesn't duplicate that.
  */
-export async function apiFetch(path, { method = "GET", role = "business", body } = {}) {
-  const token = await getDevToken(role);
+export async function apiFetch(path, { method = "GET", body } = {}) {
+  const token = getToken();
+  const headers = { "Content-Type": "application/json" };
+  if (token) headers.Authorization = `Bearer ${token}`;
 
   let res;
   try {
     res = await fetch(`${API_URL}${path}`, {
       method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+      headers,
       body: body ? JSON.stringify(body) : undefined,
     });
   } catch {

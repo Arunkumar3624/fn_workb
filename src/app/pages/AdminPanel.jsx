@@ -1,15 +1,17 @@
 import { useState } from "react";
-import { BarChart3, Shield, AlertTriangle, ShieldAlert, UserCog, Receipt, Zap, LogOut } from "lucide-react";
+import { BarChart3, Shield, AlertTriangle, ShieldAlert, UserCog, Receipt, Zap, LogOut, Image as ImageIcon } from "lucide-react";
 import AdminOverviewTab from "../components/admin/AdminOverviewTab";
 import AdminVerificationsTab from "../components/admin/AdminVerificationsTab";
 import AdminDisputesTab from "../components/admin/AdminDisputesTab";
 import AdminSecurityTab from "../components/admin/AdminSecurityTab";
 import AdminTeamTab from "../components/admin/AdminTeamTab";
 import AdminTransactionsTab from "../components/admin/AdminTransactionsTab";
+import AdminContentReviewTab from "../components/admin/AdminContentReviewTab";
 
 const NAV = [
   { id: "overview", label: "Master Dashboard", icon: BarChart3 },
   { id: "verification", label: "Verification Center", icon: Shield, badge: "247" },
+  { id: "content", label: "Content Review", icon: ImageIcon },
   { id: "disputes", label: "Dispute Resolution", icon: AlertTriangle, badge: "18" },
   { id: "transactions", label: "Transaction History", icon: Receipt },
   { id: "security", label: "Security Monitor", icon: ShieldAlert, badge: "3" },
@@ -21,6 +23,7 @@ const NAV = [
 const TAB_COMPONENTS = {
   overview: AdminOverviewTab,
   verification: AdminVerificationsTab,
+  content: AdminContentReviewTab,
   disputes: AdminDisputesTab,
   transactions: AdminTransactionsTab,
   security: AdminSecurityTab,

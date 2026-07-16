@@ -2,17 +2,40 @@
 // Negotiation Inbox, Business Inbox) and IdentityHeader read from, so a
 // project's status can only ever be one of these four steps, in this order.
 
-export const PROJECT_STATUS_FLOW = ["FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_SUBMITTED", "COMPLETED"];
+export const PROJECT_STATUS_FLOW = [
+  "INVITED",
+  "ACCEPTED",
+  "FUNDS_SECURED",
+  "WORK_IN_PROGRESS",
+  "FILES_SUBMITTED",
+  "COMPLETED",
+];
 
 export const PROJECT_STATUS_META = {
   // triggeredBy: who causes entry INTO this state.
   // actionBy/nextActionLabel: who clicks the Primary Action *while in* this
   // state, and what it's labeled — that click causes the next transition.
+  INVITED: {
+    label: "Invitation Sent",
+    shortLabel: "Invited",
+    tone: "slate",
+    triggeredBy: "business",
+    actionBy: "worker",
+    nextActionLabel: "Accept Invitation",
+  },
+  ACCEPTED: {
+    label: "Accepted — Awaiting Funds",
+    shortLabel: "Accepted",
+    tone: "blue",
+    triggeredBy: "worker",
+    actionBy: "business",
+    nextActionLabel: "Secure Funds",
+  },
   FUNDS_SECURED: {
     label: "Funds Secured",
     shortLabel: "Secured",
     tone: "emerald",
-    triggeredBy: "system",
+    triggeredBy: "business",
     actionBy: "worker",
     nextActionLabel: "Start Work",
   },

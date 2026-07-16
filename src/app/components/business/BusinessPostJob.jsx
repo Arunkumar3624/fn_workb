@@ -98,7 +98,7 @@ function SectionCard({ icon: Icon, title, sub, children }) {
 
 // ── Main Component ────────────────────────────────────────────────────────
 
-export default function BusinessPostJob({ onVerify, isVerified }) {
+export default function BusinessPostJob({ onVerify, isVerified, onContinueToWorkers }) {
   const [urgent, setUrgent] = useState(false);
   const [refLinks, setRefLinks] = useState([""]);
 
@@ -137,9 +137,17 @@ export default function BusinessPostJob({ onVerify, isVerified }) {
   // Destructure to compose tier onChange with budget auto-sync
   const { onChange: onTierChange, ...tierRegisterRest } = register("tier");
 
-  const onSubmit = () => {
+  // Only title/description/budget/deadline map to the real `projects` table
+  // (schema has no category/tier/skills/urgent columns) — skills are folded
+  // into the description text rather than silently dropped.
+  const onSubmit = (formData) => {
     trackEvent("JobPosted", { tier: watchedTier, category: watchedCategory, budget: summaryBudget });
-    window.alert("Job data validated and ready to save.");
+    onContinueToWorkers({
+      title: formData.title,
+      description: formData.skills ? `${formData.brief}\n\nSkills: ${formData.skills}` : formData.brief,
+      budget: summaryBudget,
+      deadline: formData.deadline,
+    });
   };
 
   // Reference link helpers
@@ -564,7 +572,8 @@ export default function BusinessPostJob({ onVerify, isVerified }) {
                   <div className="flex items-start gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100 mb-5">
                     <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" />
                     <p className="text-xs text-slate-500 leading-relaxed">
-                      Funds are held securely and released only after you approve the delivered work.
+                      Next you'll pick a worker to invite — funds are held securely once they accept,
+                      and released only after you approve the delivered work.
                     </p>
                   </div>
 
@@ -573,8 +582,7 @@ export default function BusinessPostJob({ onVerify, isVerified }) {
                     className="w-full py-4 bg-[#FF6B35] hover:bg-[#E55E1F] text-white rounded-xl font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-[#FF6B35]/30 hover:shadow-xl hover:-translate-y-0.5"
                     style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
                   >
-                    <Lock className="w-4 h-4" />
-                    Lock Funds & Post Job
+                    Continue — Select a Worker
                     <ChevronRight className="w-4 h-4 opacity-70" />
                   </button>
                 </div>

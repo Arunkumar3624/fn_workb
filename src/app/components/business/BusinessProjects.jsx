@@ -5,18 +5,28 @@ import {
   Download,
   Loader2,
   Lock,
-  MessageSquare,
   RefreshCw,
   ShieldCheck,
   Star,
   UserCheck,
+  Wallet,
   X,
 } from "lucide-react";
 import Avatar from "../shared/Avatar";
 import TimelineTracker from "../shared/TimelineTracker";
+import ProjectCompletionHub from "../shared/ProjectCompletionHub";
+import DeliverablesPanel from "../shared/DeliverablesPanel";
 import { PROJECT_STATUS_META } from "../../utils/projectStatus";
-import { listBusinessProjects, completeProject as apiCompleteProject } from "../../lib/projectsApi";
+import {
+  listBusinessProjects,
+  completeProject as apiCompleteProject,
+  secureFunds as apiSecureFunds,
+  createProject,
+} from "../../lib/projectsApi";
 import { getPublicProfile } from "../../lib/profilesApi";
+import { submitReview, listReviewsFor } from "../../lib/reviewsApi";
+import { getInitials } from "../../utils/formValidation";
+import { useAuth } from "../../context/AuthContext";
 import { motion, AnimatePresence } from "motion/react";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 
@@ -32,15 +42,11 @@ function formatDate(iso) {
   return new Date(iso).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" });
 }
 
-function getInitials(name = "") {
-  return name.split(" ").filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join("") || "?";
-}
-
 // ─── Worker detail side-drawer ───────────────────────────────────────────────
 // Fetches the real public profile (GET /api/profiles/:id — the one
 // unauthenticated route) on open, rather than showing mock skills/trust-score
 // data schema.sql has no columns for.
-function WorkerDetailDrawer({ project, onClose, onChat }) {
+function WorkerDetailDrawer({ project, onClose }) {
   const isOpen = Boolean(project);
   const [profile, setProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -221,21 +227,16 @@ function WorkerDetailDrawer({ project, onClose, onChat }) {
                       </p>
                     </div>
                   </div>
+
+                  <DeliverablesPanel projectId={project.id} />
                 </div>
               )}
             </div>
 
             <div className="flex flex-shrink-0 gap-3 border-t border-slate-100 bg-white p-5">
               <button
-                onClick={() => onChat?.(project.worker_name)}
-                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#1B3FAB] py-3 text-sm font-bold text-white shadow-md shadow-[#1B3FAB]/20 transition-colors hover:bg-[#1635A0]"
-              >
-                <MessageSquare className="h-4 w-4" />
-                Open Chat
-              </button>
-              <button
                 onClick={onClose}
-                className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50"
+                className="flex-1 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50"
               >
                 Close
               </button>
@@ -355,9 +356,61 @@ function PaymentApprovalModal({ project, isSubmitting, submitError, onClose, onC
   );
 }
 
+// ─── Rating + Rehire modal (History rows) ────────────────────────────────────
+function RatingModal({ project, currentUserId, onClose, onRehire }) {
+  const [existingReview, setExistingReview] = useState(undefined);
+
+  useEffect(() => {
+    if (!project) return;
+    setExistingReview(undefined);
+    listReviewsFor(project.worker_id)
+      .then((reviews) => {
+        const mine = reviews.find((r) => r.project_id === project.id && r.reviewer_id === currentUserId);
+        setExistingReview(mine ?? null);
+      })
+      .catch(() => setExistingReview(null));
+  }, [project, currentUserId]);
+
+  if (!project) return null;
+
+  const feePct = Number(project.platform_fee_pct ?? 8);
+  const earnings = Math.round(Number(project.budget) * (1 - feePct / 100));
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+      <div className="relative w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl bg-white shadow-2xl">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/80 text-slate-500 hover:bg-slate-100"
+        >
+          <X className="h-4 w-4" />
+        </button>
+        {existingReview === undefined ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="h-6 w-6 animate-spin text-slate-300" />
+          </div>
+        ) : (
+          <ProjectCompletionHub
+            perspective="business"
+            counterpartName={project.worker_name}
+            amount={earnings}
+            review={existingReview}
+            onSubmit={async (rating, feedback) => {
+              const created = await submitReview({ projectId: project.id, rating, feedback });
+              setExistingReview(created);
+            }}
+            onRehire={onRehire}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main component ──────────────────────────────────────────────────────────
-export default function BusinessProjects({ onOpenChat }) {
+export default function BusinessProjects() {
   useDocumentTitle("Active Projects — WorkBridge Business");
+  const { currentUser } = useAuth();
 
   const [projects, setProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -367,6 +420,10 @@ export default function BusinessProjects({ onOpenChat }) {
   const [completingId, setCompletingId] = useState(null);
   const [completeError, setCompleteError] = useState(null);
   const [workerDrawerProject, setWorkerDrawerProject] = useState(null);
+  const [securingId, setSecuringId] = useState(null);
+  const [secureError, setSecureError] = useState(null);
+  const [ratingProject, setRatingProject] = useState(null);
+  const [rehireToast, setRehireToast] = useState("");
 
   const loadProjects = useCallback(async () => {
     setIsLoading(true);
@@ -418,6 +475,36 @@ export default function BusinessProjects({ onOpenChat }) {
     }
   };
 
+  const handleSecureFunds = async (id) => {
+    if (securingId) return;
+    setSecuringId(id);
+    setSecureError(null);
+    try {
+      const result = await apiSecureFunds(id);
+      setProjects((prev) => prev.map((p) => (p.id === id ? result.project : p)));
+    } catch (err) {
+      setSecureError(err.message || "Couldn't secure funds — try again.");
+    } finally {
+      setSecuringId(null);
+    }
+  };
+
+  const handleRehire = async (project) => {
+    try {
+      await createProject({
+        workerId: project.worker_id,
+        title: `New task with ${project.worker_name}`,
+        description: `Follow-up work after "${project.title}".`,
+        budget: Number(project.budget),
+      });
+      setRehireToast(`Invitation sent to ${project.worker_name} for a new task.`);
+      window.setTimeout(() => setRehireToast(""), 2800);
+    } catch (err) {
+      setRehireToast(err.message || "Could not send the rehire invite.");
+      window.setTimeout(() => setRehireToast(""), 2800);
+    }
+  };
+
   return (
     <div className="min-h-screen overflow-x-hidden bg-slate-50 p-4 sm:p-7 wb-tab-enter" style={DATA_FONT}>
       <div className="mx-auto max-w-5xl">
@@ -452,6 +539,12 @@ export default function BusinessProjects({ onOpenChat }) {
             >
               Retry
             </button>
+          </div>
+        )}
+
+        {secureError && (
+          <div role="alert" className="mb-6 rounded-2xl border border-red-100 bg-red-50 p-4">
+            <p className="text-sm font-semibold text-red-600">{secureError}</p>
           </div>
         )}
 
@@ -545,14 +638,6 @@ export default function BusinessProjects({ onOpenChat }) {
                         </button>
 
                         <button
-                          onClick={() => onOpenChat?.(p.worker_name)}
-                          className="flex min-h-[44px] items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50"
-                        >
-                          <MessageSquare className="h-3.5 w-3.5" />
-                          Chat
-                        </button>
-
-                        <button
                           onClick={() => toggleFreeze(p.id)}
                           className={`flex min-h-[44px] items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold transition-colors ${
                             isFrozen
@@ -563,6 +648,26 @@ export default function BusinessProjects({ onOpenChat }) {
                           <AlertTriangle className="h-3.5 w-3.5" />
                           {isFrozen ? "Unfreeze Funds" : "Freeze Funds"}
                         </button>
+
+                        {p.status === "ACCEPTED" && (
+                          <button
+                            onClick={() => handleSecureFunds(p.id)}
+                            disabled={securingId === p.id}
+                            className="flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-xl bg-[#1B3FAB] px-5 py-2 text-xs font-bold text-white shadow-sm shadow-blue-500/25 transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#1635A0] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60 sm:ml-auto sm:w-auto sm:justify-start"
+                          >
+                            {securingId === p.id ? (
+                              <>
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                Securing…
+                              </>
+                            ) : (
+                              <>
+                                <Wallet className="h-3.5 w-3.5" />
+                                Secure Funds
+                              </>
+                            )}
+                          </button>
+                        )}
 
                         {/* The single primary CTA on this card — only one
                             renders at a time, always the heaviest visual
@@ -632,6 +737,13 @@ export default function BusinessProjects({ onOpenChat }) {
                   </div>
                   <div className="flex flex-shrink-0 items-center gap-3">
                     <span className="font-mono text-sm font-bold text-emerald-700">{formatINR(p.budget)}</span>
+                    <button
+                      onClick={() => setRatingProject(p)}
+                      className="flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-600 hover:bg-slate-50"
+                    >
+                      <Star className="h-3 w-3" />
+                      Rate &amp; Rehire
+                    </button>
                     <a
                       href={`/invoice?role=business&id=${p.id}`}
                       target="_blank"
@@ -652,10 +764,6 @@ export default function BusinessProjects({ onOpenChat }) {
       <WorkerDetailDrawer
         project={workerDrawerProject}
         onClose={() => setWorkerDrawerProject(null)}
-        onChat={(name) => {
-          setWorkerDrawerProject(null);
-          onOpenChat?.(name);
-        }}
       />
 
       <PaymentApprovalModal
@@ -669,6 +777,22 @@ export default function BusinessProjects({ onOpenChat }) {
         }}
         onConfirm={handleConfirmPayment}
       />
+
+      <RatingModal
+        project={ratingProject}
+        currentUserId={currentUser?.id}
+        onClose={() => setRatingProject(null)}
+        onRehire={() => {
+          handleRehire(ratingProject);
+          setRatingProject(null);
+        }}
+      />
+
+      {rehireToast && (
+        <div className="fixed bottom-6 right-6 z-20 rounded-2xl border border-emerald-200 bg-white px-5 py-4 text-sm font-bold text-emerald-700 shadow-2xl">
+          {rehireToast}
+        </div>
+      )}
     </div>
   );
 }

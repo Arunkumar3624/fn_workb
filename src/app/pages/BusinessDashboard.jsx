@@ -6,14 +6,13 @@ import BusinessPostJob from "../components/business/BusinessPostJob";
 import BusinessWorkers from "../components/business/BusinessWorkers";
 import BusinessProjects from "../components/business/BusinessProjects";
 import BusinessCompany from "../components/business/BusinessCompany";
-import BusinessInboxRehire from "../components/business/BusinessInboxRehire";
 
 export default function BusinessDashboard({ onLogout, onVerify, isVerified = false }) {
   const [tab, setTab] = useState("overview");
-  const [activeThread, setActiveThread] = useState(null);
-  // chatKey increments each time "Chat" is clicked so useEffect re-fires
-  // even if the same worker is clicked twice in a row
-  const [chatKey, setChatKey] = useState(0);
+  // Set by BusinessPostJob's step 1 submit, consumed by BusinessWorkers'
+  // "pick a worker to invite" step 2 — the real Post Job -> Get Matched ->
+  // Select Worker flow from the business plan.
+  const [pendingJob, setPendingJob] = useState(null);
 
   const handlePostJob = () => {
     if (!isVerified) {
@@ -23,10 +22,14 @@ export default function BusinessDashboard({ onLogout, onVerify, isVerified = fal
     }
   };
 
-  const handleOpenChat = (workerName) => {
-    setActiveThread(workerName);
-    setChatKey((k) => k + 1);
-    setTab("inbox");
+  const handleContinueToWorkers = (draft) => {
+    setPendingJob(draft);
+    setTab("workers");
+  };
+
+  const handleInviteSent = () => {
+    setPendingJob(null);
+    setTab("projects");
   };
 
   return (
@@ -51,12 +54,17 @@ export default function BusinessDashboard({ onLogout, onVerify, isVerified = fal
           />
         )}
         {tab === "post" && (
-          <BusinessPostJob onVerify={onVerify} isVerified={isVerified} />
+          <BusinessPostJob onVerify={onVerify} isVerified={isVerified} onContinueToWorkers={handleContinueToWorkers} />
         )}
-        {tab === "workers"  && <BusinessWorkers onOpenChat={handleOpenChat} />}
-        {tab === "projects" && <BusinessProjects onOpenChat={handleOpenChat} />}
-        {tab === "inbox"    && <BusinessInboxRehire initialThread={activeThread} chatKey={chatKey} />}
-        {tab === "company"  && <BusinessCompany />}
+        {tab === "workers" && (
+          <BusinessWorkers
+            pendingJob={pendingJob}
+            onInviteSent={pendingJob ? handleInviteSent : undefined}
+            onViewProjects={() => setTab("projects")}
+          />
+        )}
+        {tab === "projects" && <BusinessProjects />}
+        {tab === "company" && <BusinessCompany />}
       </div>
     </DashboardLayout>
   );

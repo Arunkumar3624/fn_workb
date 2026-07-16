@@ -1,27 +1,39 @@
+import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Bell, Sparkles } from "lucide-react";
 import DashboardLayout from "../components/common/DashboardLayout";
 import WorkerSidebar from "../components/worker/WorkerSidebar";
-import WorkerJobFeed from "../components/worker/WorkerJobFeed";
 import WorkerNegotiationInbox from "../components/worker/WorkerNegotiationInbox";
-import WorkerWorkspace, { SECURE_CHAT_CONVERSATIONS, SecureChatEngine } from "../components/worker/WorkerWorkspace";
+import WorkerWorkspace from "../components/worker/WorkerWorkspace";
 import WorkerWallet from "../components/worker/WorkerWallet";
 import WorkerProfile from "../components/worker/WorkerProfile";
-import { usePlatformData } from "../context/PlatformContext";
+import { useAuth } from "../context/AuthContext";
+import { listProjects } from "../lib/projectsApi";
+import { getWallet } from "../lib/walletApi";
+import { getInitials } from "../utils/formValidation";
 
 export default function WorkerDashboard({ onLogout }) {
   const navigate = useNavigate();
   const { tab: urlTab } = useParams();
   const [searchParams] = useSearchParams();
-  const { invitesDb, walletBalance } = usePlatformData();
+  const { currentUser } = useAuth();
+  const [hasPendingInvites, setHasPendingInvites] = useState(false);
+  const [walletBalance, setWalletBalance] = useState(0);
 
   // Tab is driven entirely by the URL (/worker or /worker/:tab) so deep
   // links — like a "Job Invite" notification — can land directly on a tab.
   const tab = urlTab ?? "workspace";
   const setTab = (id) => navigate(id === "workspace" ? "/worker" : `/worker/${id}`);
-  const inviteIdFromUrl = searchParams.get("invite");
+  const projectIdFromUrl = searchParams.get("invite");
 
-  const hasPendingInvites = invitesDb.some((invite) => !invite.isAccepted);
+  useEffect(() => {
+    listProjects({ role: "worker", status: "INVITED" })
+      .then((projects) => setHasPendingInvites(projects.length > 0))
+      .catch(() => {});
+    getWallet()
+      .then((wallet) => setWalletBalance(Number(wallet.balance)))
+      .catch(() => {});
+  }, []);
 
   return (
     <DashboardLayout
@@ -57,7 +69,7 @@ export default function WorkerDashboard({ onLogout }) {
               </button>
               <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
                 <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#0f172a] text-sm font-semibold text-white">
-                  PS
+                  {getInitials(currentUser?.name)}
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-slate-900">₹{walletBalance.toLocaleString("en-IN")}</p>
@@ -69,16 +81,8 @@ export default function WorkerDashboard({ onLogout }) {
         </header>
 
         <div className="flex-1 overflow-hidden">
-          {tab === "feed" && <WorkerJobFeed />}
-          {tab === "negotiations" && <WorkerNegotiationInbox initialInviteId={inviteIdFromUrl} />}
+          {tab === "negotiations" && <WorkerNegotiationInbox initialProjectId={projectIdFromUrl} />}
           {tab === "workspace" && <WorkerWorkspace />}
-          {tab === "messages" && (
-            <SecureChatEngine
-              conversations={SECURE_CHAT_CONVERSATIONS}
-              selectedThreadId={SECURE_CHAT_CONVERSATIONS[0]?.threadId}
-              onBack={() => setTab("workspace")}
-            />
-          )}
           {tab === "wallet" && <WorkerWallet />}
           {tab === "profile" && <WorkerProfile />}
         </div>

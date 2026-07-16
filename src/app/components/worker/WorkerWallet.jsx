@@ -1,15 +1,20 @@
-import { TrendingUp, Lock, Wallet, Zap, Crown, ShieldCheck, Gift, Ticket, Megaphone } from "lucide-react";
+import { useEffect, useState } from "react";
+import { TrendingUp, Lock, Wallet, Zap, Crown, ShieldCheck, Gift, Ticket, Megaphone, AlertCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import LockedCurrencyInput from "../common/LockedCurrencyInput";
 import { positiveCurrencySchema } from "../../utils/formValidation";
-import { usePlatformData } from "../../context/PlatformContext";
-import { parseAmount } from "../../utils/projectStatus";
+import { useAuth } from "../../context/AuthContext";
+import { getWallet, withdraw } from "../../lib/walletApi";
+import { listProjects } from "../../lib/projectsApi";
+import { ApiError } from "../../lib/apiClient";
 
 function formatINR(amount) {
   return `₹${Number(amount || 0).toLocaleString("en-IN")}`;
 }
+
+const IN_ESCROW_STATUSES = new Set(["FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_SUBMITTED"]);
 
 const withdrawalSchema = z.object({
   amount: positiveCurrencySchema,
@@ -17,39 +22,87 @@ const withdrawalSchema = z.object({
 });
 
 export default function WorkerWallet() {
-  const { walletBalance, transactionHistory, invitesDb, businessThreadsDb } = usePlatformData();
+  const { currentUser } = useAuth();
+  const [wallet, setWallet] = useState(null);
+  const [heldSecurely, setHeldSecurely] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [submitError, setSubmitError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  const totalEarned = transactionHistory
-    .filter((t) => t.credit)
-    .reduce((sum, t) => sum + parseAmount(t.amount), 0);
+  const loadWallet = async () => {
+    setLoading(true);
+    setLoadError("");
+    try {
+      const [walletData, projects] = await Promise.all([getWallet(), listProjects({ role: "worker" })]);
+      setWallet(walletData);
+      setHeldSecurely(
+        projects
+          .filter((p) => IN_ESCROW_STATUSES.has(p.status))
+          .reduce((sum, p) => sum + Number(p.budget), 0)
+      );
+    } catch (err) {
+      setLoadError(err instanceof ApiError ? err.message : "Could not load your wallet.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // Funded but not yet paid out — the live "in escrow" state across both
-  // marketplace vantage points.
-  const heldSecurely =
-    invitesDb
-      .filter((i) => i.projectStatus && i.projectStatus !== "COMPLETED")
-      .reduce((sum, i) => sum + parseAmount(i.budget), 0) +
-    businessThreadsDb
-      .filter((t) => t.projectStatus && t.projectStatus !== "COMPLETED")
-      .reduce((sum, t) => sum + parseAmount(t.budget), 0);
+  useEffect(() => {
+    loadWallet();
+  }, []);
+
+  const totalEarned = (wallet?.transactions ?? [])
+    .filter((t) => t.type === "PAYOUT")
+    .reduce((sum, t) => sum + Number(t.amount), 0);
 
   const {
     handleSubmit,
     register,
     setValue,
     watch,
+    reset,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(withdrawalSchema),
     defaultValues: {
       amount: "",
-      destination: "HDFC Bank ...4521",
+      destination: "Primary Bank Account",
     },
   });
 
-  const onSubmit = () => {
-    window.alert("Withdrawal request validated.");
+  const onSubmit = async (formData) => {
+    setSubmitting(true);
+    setSubmitError("");
+    try {
+      await withdraw({ amount: formData.amount, destination: formData.destination });
+      reset({ amount: "", destination: formData.destination });
+      await loadWallet();
+    } catch (err) {
+      setSubmitError(err instanceof ApiError ? err.message : "Withdrawal failed. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex h-full min-h-0 items-center justify-center p-7">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[#1B3FAB]" />
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="p-7">
+        <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+          <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+          <span>{loadError}</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full min-h-0 overflow-y-auto overflow-x-hidden p-4 pb-12 sm:p-7 wb-tab-enter">
@@ -80,7 +133,7 @@ export default function WorkerWallet() {
           },
           {
             label: "Ready to Cash Out",
-            value: formatINR(walletBalance),
+            value: formatINR(wallet?.balance),
             icon: Wallet,
             col: "text-[#1B3FAB]",
             bg: "bg-[#1B3FAB]/5",
@@ -110,6 +163,12 @@ export default function WorkerWallet() {
         <div className="wb-dash-card rounded-2xl p-5 wb-card-enter" style={{ animationDelay: "240ms" }}>
           <h3 className="font-bold text-slate-800 mb-4">Cash Out in 60 Seconds</h3>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+            {submitError && (
+              <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-3 py-2.5 text-xs text-red-600">
+                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                <span>{submitError}</span>
+              </div>
+            )}
             <div>
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Amount</label>
               <LockedCurrencyInput
@@ -123,13 +182,17 @@ export default function WorkerWallet() {
             <div>
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Withdraw to</label>
               <select {...register("destination")} className="w-full px-4 py-2.5 bg-[#F4F6FF] border border-slate-200 rounded-xl text-sm focus:outline-none">
-                <option>HDFC Bank ...4521</option>
-                <option>Google Pay UPI - priya@okicici</option>
-                <option>PhonePe UPI - 9876543210@ybl</option>
+                <option>Primary Bank Account</option>
+                <option>Google Pay UPI</option>
+                <option>PhonePe UPI</option>
               </select>
             </div>
-            <button type="submit" className="w-full min-h-[44px] py-3 bg-[#1B3FAB] text-white rounded-xl text-sm font-bold hover:bg-[#1635A0] hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2 shadow-md shadow-[#1B3FAB]/20 hover:shadow-lg">
-              <Zap className="w-4 h-4" />Withdraw in 60 Seconds
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full min-h-[44px] py-3 bg-[#1B3FAB] text-white rounded-xl text-sm font-bold hover:bg-[#1635A0] hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2 shadow-md shadow-[#1B3FAB]/20 hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0"
+            >
+              <Zap className="w-4 h-4" />{submitting ? "Processing…" : "Withdraw in 60 Seconds"}
             </button>
             <p className="text-xs text-slate-400 text-center">7% platform commission already deducted from earnings</p>
           </form>
@@ -137,29 +200,33 @@ export default function WorkerWallet() {
 
         <div className="wb-dash-card rounded-2xl p-5 wb-card-enter" style={{ animationDelay: "320ms" }}>
           <h3 className="font-bold text-slate-800 mb-4">Transaction History</h3>
-          <div className="divide-y divide-slate-50">
-            {transactionHistory.map((t) => (
-              <div key={t.id} className="flex items-center justify-between gap-3 py-3 hover:bg-slate-50/50 transition-colors rounded-lg px-1 -mx-1">
-                <div className="min-w-0">
-                  <div className="text-xs font-semibold text-slate-700 truncate">{t.desc}</div>
-                  <div
-                    className="text-xs text-slate-400 mt-0.5"
-                    style={{ fontFamily: "'DM Mono', monospace" }}
-                  >
-                    {t.date} - {t.id}
+          {(wallet?.transactions ?? []).length === 0 ? (
+            <p className="text-sm text-slate-400 py-6 text-center">No transactions yet.</p>
+          ) : (
+            <div className="divide-y divide-slate-50">
+              {wallet.transactions.map((t) => (
+                <div key={t.id} className="flex items-center justify-between gap-3 py-3 hover:bg-slate-50/50 transition-colors rounded-lg px-1 -mx-1">
+                  <div className="min-w-0">
+                    <div className="text-xs font-semibold text-slate-700 truncate">{t.reference_note ?? t.type}</div>
+                    <div
+                      className="text-xs text-slate-400 mt-0.5"
+                      style={{ fontFamily: "'DM Mono', monospace" }}
+                    >
+                      {new Date(t.created_at).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}
+                    </div>
+                  </div>
+                  <div className={`flex-shrink-0 text-sm font-bold ${t.direction === "credit" ? "text-emerald-600" : "text-slate-500"}`}>
+                    {t.direction === "credit" ? "+" : "–"}{formatINR(t.amount)}
                   </div>
                 </div>
-                <div className={`flex-shrink-0 text-sm font-bold ${t.credit ? "text-emerald-600" : "text-slate-500"}`}>
-                  {t.amount}
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
       {/* ── WorkBridge Elite — ROI Guarantee ── */}
-      <EliteUpsellCard behaviorScore={847} />
+      <EliteUpsellCard behaviorScore={currentUser?.behavior_score ?? 0} />
     </div>
   );
 }

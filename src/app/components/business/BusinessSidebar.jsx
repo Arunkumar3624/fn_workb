@@ -2,7 +2,6 @@ import {
   BarChart3,
   Briefcase,
   Building2,
-  Inbox,
   Lock,
   LogOut,
   Plus,
@@ -10,13 +9,14 @@ import {
   Users,
   Zap,
 } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import { getInitials } from "../../utils/formValidation";
 
 const NAV = [
   { id: "overview", label: "Overview", icon: BarChart3 },
   { id: "post", label: "Post a Job", icon: Plus },
   { id: "workers", label: "Find Workers", icon: Users },
   { id: "projects", label: "Active Projects", icon: Briefcase },
-  { id: "inbox", label: "Messages", icon: Inbox },
   { id: "company", label: "Company Page", icon: Building2 },
 ];
 
@@ -28,6 +28,7 @@ export default function BusinessSidebar({
   onLogout,
   isVerified,
 }) {
+  const { currentUser } = useAuth();
   return (
     <aside className="flex h-screen w-[260px] flex-shrink-0 flex-col bg-[#0F172A]">
       <div className="border-b border-white/5 p-5">
@@ -46,20 +47,25 @@ export default function BusinessSidebar({
 
       <div className="border-b border-white/5 p-5">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#1B3FAB] text-sm font-bold text-white">
-            RX
-          </div>
+          {currentUser?.avatar_url ? (
+            <img src={currentUser.avatar_url} alt={currentUser.name} className="h-10 w-10 rounded-lg object-cover" />
+          ) : (
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#1B3FAB] text-sm font-bold text-white">
+              {getInitials(currentUser?.name)}
+            </div>
+          )}
           <div>
-            <div className="text-sm font-semibold text-white">RetailX Pvt Ltd</div>
+            <div className="text-sm font-semibold text-white">{currentUser?.name || "—"}</div>
             <div className="text-xs text-slate-400">Business Account</div>
           </div>
         </div>
-        <div className="mt-3 flex items-center gap-2">
-          <span className="rounded bg-amber-500/20 px-2 py-0.5 text-xs font-semibold text-amber-400">
-            Premium
-          </span>
-          <span className="text-xs text-slate-500">GST Verified</span>
-        </div>
+        {currentUser?.verified && (
+          <div className="mt-3 flex items-center gap-2">
+            <span className="rounded bg-amber-500/20 px-2 py-0.5 text-xs font-semibold text-amber-400">
+              Verified
+            </span>
+          </div>
+        )}
       </div>
 
       <nav className="flex-1 space-y-1 p-4">

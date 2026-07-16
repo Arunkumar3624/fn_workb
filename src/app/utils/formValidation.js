@@ -10,6 +10,13 @@ export function formatINR(value) {
   return inrFormatter.format(Number(value) || 0);
 }
 
+// Real profiles have no stored avatar initials (unlike the old mock `av`
+// field) — derived client-side from the display name wherever an avatar
+// image isn't set.
+export function getInitials(name = "") {
+  return name.split(" ").filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join("") || "?";
+}
+
 export const cleanText = z
   .string()
   .trim()
@@ -50,35 +57,6 @@ export const authSchema = z.object({
 export const signupSchema = authSchema.extend({
   fullName: cleanText,
 });
-
-export const profileDetailsSchema = z.object({
-  name: cleanText,
-  role: cleanText,
-  location: cleanText,
-  bio: cleanLongText,
-});
-
-export const activitySchema = z.object({
-  id: z.number(),
-  client: cleanText,
-  initials: z.string().trim().min(1, "Initials are required").max(3, "Use 1-3 letters"),
-  title: cleanText,
-  budget: positiveCurrencySchema,
-  description: cleanLongText,
-  tags: z.array(cleanText).min(1, "Add at least one tag"),
-  status: cleanText,
-  date: cleanText,
-});
-
-export const portfolioSchema = z.object({
-  id: z.number(),
-  title: cleanText,
-  budget: positiveCurrencySchema,
-  summary: cleanLongText,
-  tags: z.array(cleanText).min(1, "Add at least one tag"),
-});
-
-export const skillsSchema = z.array(cleanText).min(1, "Add at least one skill");
 
 export const postJobSchema = z.object({
   title: cleanText,

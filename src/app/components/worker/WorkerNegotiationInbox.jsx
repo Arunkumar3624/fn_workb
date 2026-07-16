@@ -1,28 +1,32 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
 import {
-  Briefcase, Check, CheckCircle2, IndianRupee, MapPin, MessageSquare,
-  Send, ShieldCheck, Sparkles, Star, Timer, Trophy, X,
+  AlertCircle, Briefcase, CheckCircle2, IndianRupee, MessageSquare,
+  ShieldCheck, Sparkles, Star, Timer, Trophy, X,
 } from "lucide-react";
 import Avatar from "../shared/Avatar";
 import IdentityHeader from "../shared/IdentityHeader";
 import TimelineTracker from "../shared/TimelineTracker";
 import ProjectCompletionHub from "../shared/ProjectCompletionHub";
-import { usePlatformData } from "../../context/PlatformContext";
+import { useAuth } from "../../context/AuthContext";
+import { listProjects, updateProjectStatus } from "../../lib/projectsApi";
+import { getPublicProfile } from "../../lib/profilesApi";
+import { submitReview, listReviewsFor } from "../../lib/reviewsApi";
+import { getInitials } from "../../utils/formValidation";
 import { calculatePotentialPoints } from "../../utils/pointMatrix";
 import { PROJECT_STATUS_META, nextProjectStatus } from "../../utils/projectStatus";
+import { ApiError } from "../../lib/apiClient";
 
-// Invitation data now lives in PlatformContext (invitesDb) so the sidebar's
-// pending badge and this inbox always agree on what's outstanding.
-
-function parseBudget(budgetString) {
-  return Number(String(budgetString).replace(/[^0-9]/g, "")) || 0;
-}
+// Real projects come from GET /api/projects?role=worker — INVITED status is
+// the Acceptance Gate; every other status unlocks the detail/status view.
+// Chat is deliberately not part of this phase (no messages table yet) — see
+// the plan notes; this used to be a full chat surface per invite.
 
 // ─── Thread list item ────────────────────────────────────────────────────────
 
-function InviteItem({ invite, isSelected, onClick }) {
+function ProjectItem({ project, isSelected, onClick }) {
+  const accepted = project.status !== "INVITED";
   return (
     <button
       onClick={onClick}
@@ -32,12 +36,12 @@ function InviteItem({ invite, isSelected, onClick }) {
     >
       {isSelected && <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-[#1B3FAB]" />}
       <div className="flex items-center gap-3">
-        <Avatar initials={invite.businessInitials} bg={invite.businessBg} size="w-10 h-10" text="text-xs" />
+        <Avatar initials={getInitials(project.business_name)} bg="bg-[#1B3FAB]" size="w-10 h-10" text="text-xs" />
         <div className="flex-1 min-w-0">
-          <p className="font-bold text-[#0F172A] text-sm truncate">{invite.businessName}</p>
-          <p className="text-xs text-slate-500 truncate">{invite.jobTitle}</p>
+          <p className="font-bold text-[#0F172A] text-sm truncate">{project.business_name}</p>
+          <p className="text-xs text-slate-500 truncate">{project.title}</p>
         </div>
-        {invite.isAccepted ? (
+        {accepted ? (
           <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
         ) : (
           <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse flex-shrink-0" />
@@ -47,49 +51,33 @@ function InviteItem({ invite, isSelected, onClick }) {
   );
 }
 
-// ─── Chat bubble — "Escrow Terminal" tone: gray for business, orange for worker ──
-
-function ChatBubble({ message }) {
-  const isWorker = message.from === "worker";
-  return (
-    <div className={`flex ${isWorker ? "justify-end" : "justify-start"}`}>
-      <div className="max-w-[76%]">
-        <div
-          className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
-            isWorker ? "bg-[#FF6B35] text-white rounded-br-sm" : "bg-slate-100 text-slate-700 rounded-bl-sm"
-          }`}
-        >
-          {message.text}
-        </div>
-        <p className={`text-[10px] text-slate-400 mt-1 ${isWorker ? "text-right mr-1" : "ml-1"}`}>{message.time}</p>
-      </div>
-    </div>
-  );
-}
-
 // ─── Business Quick View — stays inside the negotiation flow ────────────────
 
-function BusinessQuickView({ invite, onClose }) {
-  if (!invite) return null;
+function BusinessQuickView({ project, businessProfile, loading, onClose }) {
+  if (!project) return null;
 
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
       <div className="w-full max-w-sm bg-white rounded-2xl border border-slate-200 shadow-2xl p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
-            <Avatar initials={invite.businessInitials} bg={invite.businessBg} size="w-12 h-12" text="text-base" />
+            <Avatar initials={getInitials(project.business_name)} bg="bg-[#1B3FAB]" size="w-12 h-12" text="text-base" />
             <div>
               <div className="flex items-center gap-1.5">
                 <p className="font-bold text-lg text-slate-900" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                  {invite.businessName}
+                  {project.business_name}
                 </p>
-                <ShieldCheck className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                {businessProfile?.verified && <ShieldCheck className="w-4 h-4 text-blue-500 flex-shrink-0" />}
               </div>
-              {invite.businessRating != null && (
-                <p className="flex items-center gap-1 text-xs text-slate-500 mt-0.5">
-                  <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                  {invite.businessRating} · {invite.businessJobsPosted} jobs posted
-                </p>
+              {loading ? (
+                <p className="text-xs text-slate-400 mt-0.5">Loading…</p>
+              ) : (
+                businessProfile?.rating != null && (
+                  <p className="flex items-center gap-1 text-xs text-slate-500 mt-0.5">
+                    <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                    {businessProfile.rating} · {businessProfile.reviews_count} reviews
+                  </p>
+                )
               )}
             </div>
           </div>
@@ -104,12 +92,16 @@ function BusinessQuickView({ invite, onClose }) {
         <div className="space-y-2">
           <div className="flex items-center justify-between px-3 py-2.5 bg-slate-50 rounded-xl">
             <span className="text-xs text-slate-500">Currently hiring for</span>
-            <span className="text-xs font-bold text-slate-900 text-right">{invite.jobTitle}</span>
+            <span className="text-xs font-bold text-slate-900 text-right">{project.title}</span>
           </div>
           <div className="flex items-center justify-between px-3 py-2.5 bg-slate-50 rounded-xl">
             <span className="text-xs text-slate-500">Verification</span>
-            <span className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
-              Verified
+            <span
+              className={`inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full ${
+                businessProfile?.verified ? "text-blue-600 bg-blue-50" : "text-slate-500 bg-slate-100"
+              }`}
+            >
+              {businessProfile?.verified ? "Verified" : "Unverified"}
             </span>
           </div>
         </div>
@@ -118,7 +110,7 @@ function BusinessQuickView({ invite, onClose }) {
           onClick={onClose}
           className="w-full mt-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-semibold transition-colors"
         >
-          Back to Invitation
+          Back
         </button>
       </div>
     </div>
@@ -126,35 +118,30 @@ function BusinessQuickView({ invite, onClose }) {
 }
 
 // ─── State 1: The Acceptance Gate ────────────────────────────────────────────
-// Renders ONLY the job offer. No chat input, no message history exist in the
-// DOM here — they cannot be reached until the worker accepts.
+// Renders ONLY the job offer. Nothing about status/action is reachable until
+// the worker accepts (INVITED -> ACCEPTED).
 
-function InvitationGateView({ invite, onAccept, onNameClick }) {
-  const potentialPoints = calculatePotentialPoints(parseBudget(invite.budget), Boolean(invite.urgent));
+function InvitationGateView({ project, onAccept, onNameClick, accepting }) {
+  const potentialPoints = calculatePotentialPoints(Number(project.budget), false);
 
   return (
     <>
-      {/* Identity Anchor — white "cover page" zone of the contract document */}
       <IdentityHeader
-        name={invite.businessName}
+        name={project.business_name}
         subtitle="Business"
-        initials={invite.businessInitials}
-        avatarBg={invite.businessBg}
+        initials={getInitials(project.business_name)}
         verified
-        rating={invite.businessRating}
-        reviews={invite.businessJobsPosted}
         onNameClick={onNameClick}
       />
 
       <div className="flex-shrink-0 bg-white border-b border-slate-200 px-6 py-5 sm:px-7">
         <p className="text-sm italic text-slate-500">
-          You've been invited by {invite.businessName} to discuss this project…
+          You've been invited by {project.business_name} to work on this project…
         </p>
         <h2 className="mt-2 text-2xl font-black leading-tight tracking-tight text-slate-900 sm:text-3xl">
-          {invite.jobTitle}
+          {project.title}
         </h2>
         <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-bold text-slate-600">
-          <span className="rounded-full bg-slate-100 px-3 py-1.5">{invite.duration}</span>
           <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1.5 text-emerald-700 ring-1 ring-emerald-100">
             <ShieldCheck className="h-3.5 w-3.5" />
             Verified client
@@ -165,7 +152,6 @@ function InvitationGateView({ invite, onAccept, onNameClick }) {
       <div className="flex-1 overflow-y-auto bg-slate-50 p-4 sm:p-6 lg:p-8">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           <main className="flex flex-col gap-6 lg:col-span-8">
-            {/* Role overview */}
             <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#1B3FAB] ring-1 ring-blue-100">
@@ -176,63 +162,12 @@ function InvitationGateView({ invite, onAccept, onNameClick }) {
                   <h3 className="text-lg font-black text-slate-900">Role Overview</h3>
                 </div>
               </div>
-              <p className="mt-5 text-[15px] leading-7 text-slate-600">{invite.description}</p>
+              <p className="mt-5 text-[15px] leading-7 text-slate-600">
+                {project.description || "No additional description was provided."}
+              </p>
             </section>
-
-            {/* Key deliverables */}
-            {invite.deliverables?.length > 0 && (
-              <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
-                    <CheckCircle2 className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">What success means</p>
-                    <h3 className="text-lg font-black text-slate-900">Key Deliverables</h3>
-                  </div>
-                </div>
-                <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                  {invite.deliverables.map((item) => (
-                    <div key={item} className="rounded-2xl border border-slate-200 bg-slate-50 p-4 transition-all duration-300 hover:-translate-y-0.5 hover:bg-white hover:shadow-sm">
-                      <div className="flex gap-3 text-sm leading-relaxed text-slate-600">
-                        <span className="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
-                          <Check className="h-3.5 w-3.5" />
-                        </span>
-                        <span>{item}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* Tech stack */}
-            {invite.techStack?.length > 0 && (
-              <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-[#FF6B35] ring-1 ring-orange-100">
-                    <Sparkles className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Required stack</p>
-                    <h3 className="text-lg font-black text-slate-900">Skills Matched to Brief</h3>
-                  </div>
-                </div>
-                <div className="mt-5 flex flex-wrap gap-2">
-                  {invite.techStack.map((tag) => (
-                    <span
-                      key={tag}
-                      className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 shadow-sm"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </section>
-            )}
           </main>
 
-          {/* Terms + single Accept action */}
           <aside className="self-start lg:sticky lg:top-0 lg:col-span-4">
             <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_22px_55px_rgba(15,23,42,0.10)]">
               <div className="border-b border-slate-100 bg-white p-6">
@@ -253,36 +188,30 @@ function InvitationGateView({ invite, onAccept, onNameClick }) {
                   <IndianRupee className="h-5 w-5 text-[#1B3FAB]" />
                   <div>
                     <p className="text-xs font-semibold text-slate-500">Budget</p>
-                    <p className="text-sm font-black text-slate-900">{invite.budget}</p>
+                    <p className="text-sm font-black text-slate-900">₹{Number(project.budget).toLocaleString("en-IN")}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100">
-                  <Timer className="h-5 w-5 text-[#1B3FAB]" />
-                  <div>
-                    <p className="text-xs font-semibold text-slate-500">Duration</p>
-                    <p className="text-sm font-black text-slate-900">{invite.duration}</p>
+                {project.deadline && (
+                  <div className="flex items-center gap-3 rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100">
+                    <Timer className="h-5 w-5 text-[#1B3FAB]" />
+                    <div>
+                      <p className="text-xs font-semibold text-slate-500">Deadline</p>
+                      <p className="text-sm font-black text-slate-900">
+                        {new Date(project.deadline).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-3 rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100">
-                  <MapPin className="h-5 w-5 text-[#1B3FAB]" />
-                  <div>
-                    <p className="text-xs font-semibold text-slate-500">Location</p>
-                    <p className="text-sm font-black text-slate-900">{invite.location}</p>
-                  </div>
-                </div>
+                )}
               </div>
 
               <div className="border-t border-slate-100 p-5">
                 <button
                   onClick={onAccept}
-                  className="w-full rounded-2xl bg-[#FF6B35] px-5 py-4 text-sm font-black text-white shadow-lg shadow-orange-200 transition-all duration-300 hover:-translate-y-0.5 hover:scale-105 hover:bg-[#e95c25] hover:shadow-xl active:scale-[0.98]"
+                  disabled={accepting}
+                  className="w-full rounded-2xl bg-[#FF6B35] px-5 py-4 text-sm font-black text-white shadow-lg shadow-orange-200 transition-all duration-300 hover:-translate-y-0.5 hover:scale-105 hover:bg-[#e95c25] hover:shadow-xl active:scale-[0.98] disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:scale-100"
                 >
-                  Accept Work &amp; Start Chat
+                  {accepting ? "Accepting…" : "Accept Invitation"}
                 </button>
-                <p className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-slate-400">
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  Chat unlocks only after you accept.
-                </p>
               </div>
             </div>
           </aside>
@@ -292,64 +221,97 @@ function InvitationGateView({ invite, onAccept, onNameClick }) {
   );
 }
 
-// ─── State 2: The Chat Interface ─────────────────────────────────────────────
-// Only mounted once isAccepted is true — message history and the input live
-// exclusively inside this component.
+// ─── State 2: Project Detail / Status View ───────────────────────────────────
 
-function ChatInterfaceView({ invite, input, onInputChange, onSend, messagesEndRef, onNameClick }) {
+function ProjectDetailView({ project, onNameClick, onAdvance, advancing }) {
   const navigate = useNavigate();
-  const { advanceInviteStatus, submitRating } = usePlatformData();
-  const status = invite.projectStatus;
-  const meta = status ? PROJECT_STATUS_META[status] : null;
-  const nextStatus = status ? nextProjectStatus(status) : null;
+  const { currentUser } = useAuth();
+  const status = project.status;
+  const meta = PROJECT_STATUS_META[status];
+  const nextStatus = nextProjectStatus(status);
+  const [existingReview, setExistingReview] = useState(undefined); // undefined = loading, null = none
+  const [reviewError, setReviewError] = useState("");
+
+  useEffect(() => {
+    if (status !== "COMPLETED") return;
+    let cancelled = false;
+    setExistingReview(undefined);
+    listReviewsFor(project.business_id)
+      .then((reviews) => {
+        if (cancelled) return;
+        const mine = reviews.find((r) => r.project_id === project.id && r.reviewer_id === currentUser?.id);
+        setExistingReview(mine ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setExistingReview(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [status, project.id, project.business_id, currentUser?.id]);
 
   if (status === "COMPLETED") {
-    // Project Completion & Retention Hub — replaces the active chat surface
-    // entirely once a project is done and paid out.
     return (
       <div className="flex-1 flex flex-col min-h-0">
         <IdentityHeader
-          name={invite.businessName}
-          subtitle={invite.jobTitle}
-          initials={invite.businessInitials}
-          avatarBg={invite.businessBg}
+          name={project.business_name}
+          subtitle={project.title}
+          initials={getInitials(project.business_name)}
           statusPill={{ text: "Completed", tone: "emerald" }}
           onNameClick={onNameClick}
         />
-        <ProjectCompletionHub
-          perspective="worker"
-          counterpartName={invite.businessName}
-          amount={parseBudget(invite.budget)}
-          review={invite.review}
-          onSubmit={(rating, feedback) => submitRating(invite.id, rating, feedback)}
-        />
+        {existingReview === undefined ? (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[#1B3FAB]" />
+          </div>
+        ) : (
+          <>
+            {reviewError && (
+              <div className="flex-shrink-0 mx-6 mt-4 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                <span>{reviewError}</span>
+              </div>
+            )}
+            <ProjectCompletionHub
+              perspective="worker"
+              counterpartName={project.business_name}
+              amount={Number(project.budget)}
+              review={existingReview}
+              onSubmit={async (rating, feedback) => {
+                setReviewError("");
+                try {
+                  const created = await submitReview({ projectId: project.id, rating, feedback });
+                  setExistingReview(created);
+                } catch (err) {
+                  setReviewError(err instanceof ApiError ? err.message : "Could not submit review.");
+                }
+              }}
+            />
+          </>
+        )}
       </div>
     );
   }
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      {/* Identity Anchor — pinned at the top while the chat scrolls beneath it */}
       <IdentityHeader
-        name={invite.businessName}
-        subtitle={invite.jobTitle}
-        initials={invite.businessInitials}
-        avatarBg={invite.businessBg}
-        verified={!status}
+        name={project.business_name}
+        subtitle={project.title}
+        initials={getInitials(project.business_name)}
         onNameClick={onNameClick}
       />
 
-      {/* Slim Timeline Header — only once funds are actually secured */}
-      {status && <TimelineTracker status={status} />}
+      <TimelineTracker status={status} />
 
-      {status ? (
+      {status === "FUNDS_SECURED" || status === "WORK_IN_PROGRESS" || status === "FILES_SUBMITTED" ? (
         <div className="flex-shrink-0 bg-emerald-50 border-b border-emerald-100 px-6 py-1.5 flex items-center justify-between gap-1.5">
           <span className="flex items-center gap-1.5">
             <ShieldCheck className="w-3 h-3 text-emerald-600 flex-shrink-0" />
             <p className="text-[11px] font-semibold text-emerald-700">Funds secured for this project</p>
           </span>
           <button
-            onClick={() => navigate("/invoice?role=worker")}
+            onClick={() => navigate(`/invoice?role=worker&id=${project.id}`)}
             className="text-[11px] font-bold text-emerald-700 hover:text-emerald-900 underline underline-offset-2 flex-shrink-0"
           >
             View Invoice
@@ -358,18 +320,18 @@ function ChatInterfaceView({ invite, input, onInputChange, onSend, messagesEndRe
       ) : (
         <div className="flex-shrink-0 bg-slate-100 border-b border-slate-200 px-6 py-1.5 flex items-center gap-1.5">
           <Timer className="w-3 h-3 text-slate-400 flex-shrink-0" />
-          <p className="text-[11px] font-semibold text-slate-500">Awaiting payment confirmation from {invite.businessName}</p>
+          <p className="text-[11px] font-semibold text-slate-500">Awaiting payment confirmation from {project.business_name}</p>
         </div>
       )}
 
-      {/* Primary Action — only rendered when it's the worker's turn to act */}
       {meta?.actionBy === "worker" && nextStatus && (
         <div className="flex-shrink-0 bg-white border-b border-slate-200 px-6 py-2.5 flex justify-end">
           <button
-            onClick={() => advanceInviteStatus(invite.id, nextStatus)}
-            className="bg-[#0F172A] hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors"
+            onClick={() => onAdvance(nextStatus)}
+            disabled={advancing}
+            className="bg-[#0F172A] hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors disabled:opacity-60"
           >
-            {meta.nextActionLabel}
+            {advancing ? "Updating…" : meta.nextActionLabel}
           </button>
         </div>
       )}
@@ -379,44 +341,19 @@ function ChatInterfaceView({ invite, input, onInputChange, onSend, messagesEndRe
         </div>
       )}
 
-      {/* Chat body */}
-      <div className="flex-1 overflow-y-auto px-6 py-5 space-y-3 bg-slate-50">
-        {invite.messages.map((msg) => (
-          <ChatBubble key={msg.id} message={msg} />
-        ))}
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Footer */}
-      <div className="flex-shrink-0 bg-white border-t border-slate-200 px-5 py-4">
-        <div className="flex items-center gap-3">
-          <input
-            value={input}
-            onChange={(e) => onInputChange(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                onSend();
-              }
-            }}
-            placeholder="Message securely via WorkBridge…"
-            className="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-[#0F172A] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#FF6B35]/20 focus:border-[#FF6B35] transition-colors"
-          />
-          <button
-            onClick={onSend}
-            disabled={!input.trim()}
-            className={`w-11 h-11 flex items-center justify-center rounded-xl transition-all duration-200 flex-shrink-0 ${
-              input.trim()
-                ? "bg-[#FF6B35] text-white hover:bg-[#e55a2b] shadow-md shadow-[#FF6B35]/20 hover:-translate-y-0.5"
-                : "bg-slate-100 text-slate-400 cursor-not-allowed"
-            }`}
-          >
-            <Send className="w-4 h-4" />
-          </button>
+      <div className="flex-1 overflow-y-auto px-6 py-8 bg-slate-50 flex items-start justify-center">
+        <div className="max-w-lg w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-[#FF6B35] ring-1 ring-orange-100">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Brief</p>
+              <h3 className="text-lg font-black text-slate-900">{project.title}</h3>
+            </div>
+          </div>
+          <p className="text-sm leading-7 text-slate-600">{project.description || "No additional description was provided."}</p>
         </div>
-        <p className="text-[10px] text-slate-400 mt-2 text-center">
-          256-bit secured · External contact info is monitored and blocked
-        </p>
       </div>
     </div>
   );
@@ -424,42 +361,110 @@ function ChatInterfaceView({ invite, input, onInputChange, onSend, messagesEndRe
 
 // ─── Main component ──────────────────────────────────────────────────────────
 
-export default function WorkerNegotiationInbox({ initialInviteId }) {
-  const { invitesDb: invites, acceptInvitation, sendInviteMessage } = usePlatformData();
-  const [selectedId, setSelectedId] = useState(initialInviteId ?? invites[0]?.id ?? null);
-  const [input, setInput] = useState("");
+export default function WorkerNegotiationInbox({ initialProjectId }) {
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [selectedId, setSelectedId] = useState(initialProjectId ?? null);
   const [toast, setToast] = useState("");
+  const [actionError, setActionError] = useState("");
+  const [accepting, setAccepting] = useState(false);
+  const [advancing, setAdvancing] = useState(false);
   const [showQuickView, setShowQuickView] = useState(false);
-  const messagesEndRef = useRef(null);
+  const [businessProfile, setBusinessProfile] = useState(null);
+  const [businessProfileLoading, setBusinessProfileLoading] = useState(false);
 
-  const selectedInvite = invites.find((i) => i.id === selectedId) ?? null;
-
-  // Deep-link support: a "Job Invite" notification elsewhere can push
-  // /worker/negotiations?invite=<id> and land directly on that offer.
   useEffect(() => {
-    if (initialInviteId && invites.some((i) => i.id === initialInviteId)) {
-      setSelectedId(initialInviteId);
+    let cancelled = false;
+    listProjects({ role: "worker" })
+      .then((data) => {
+        if (cancelled) return;
+        setProjects(data);
+        setSelectedId((current) => current ?? initialProjectId ?? data[0]?.id ?? null);
+      })
+      .catch((err) => {
+        if (!cancelled) setLoadError(err instanceof ApiError ? err.message : "Could not load your invitations.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (initialProjectId && projects.some((p) => p.id === initialProjectId)) {
+      setSelectedId(initialProjectId);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialInviteId]);
+  }, [initialProjectId]);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [selectedId, invites]);
+  const selectedProject = projects.find((p) => p.id === selectedId) ?? null;
 
-  const handleAcceptInvitation = () => {
-    if (!selectedInvite) return;
-    acceptInvitation(selectedInvite.id);
-    setToast(`Invitation accepted — ${selectedInvite.businessName} has been notified.`);
-    window.setTimeout(() => setToast(""), 2600);
+  const patchProject = (updated) => {
+    setProjects((current) => current.map((p) => (p.id === updated.id ? { ...p, ...updated } : p)));
   };
 
-  const sendMessage = () => {
-    const text = input.trim();
-    if (!text || !selectedInvite) return;
-    sendInviteMessage(selectedInvite.id, text);
-    setInput("");
+  const handleAccept = async () => {
+    if (!selectedProject) return;
+    setAccepting(true);
+    setActionError("");
+    try {
+      const updated = await updateProjectStatus(selectedProject.id, "ACCEPTED");
+      patchProject(updated);
+      setToast(`Invitation accepted — ${selectedProject.business_name} has been notified.`);
+      window.setTimeout(() => setToast(""), 2600);
+    } catch (err) {
+      setActionError(err instanceof ApiError ? err.message : "Could not accept this invitation.");
+    } finally {
+      setAccepting(false);
+    }
   };
+
+  const handleAdvance = async (nextStatus) => {
+    if (!selectedProject) return;
+    setAdvancing(true);
+    setActionError("");
+    try {
+      const updated = await updateProjectStatus(selectedProject.id, nextStatus);
+      patchProject(updated);
+    } catch (err) {
+      setActionError(err instanceof ApiError ? err.message : "Could not update this project.");
+    } finally {
+      setAdvancing(false);
+    }
+  };
+
+  const openQuickView = () => {
+    setShowQuickView(true);
+    if (!selectedProject) return;
+    setBusinessProfileLoading(true);
+    getPublicProfile(selectedProject.business_id)
+      .then(setBusinessProfile)
+      .catch(() => setBusinessProfile(null))
+      .finally(() => setBusinessProfileLoading(false));
+  };
+
+  if (loading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[#1B3FAB]" />
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="p-7">
+        <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+          <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+          <span>{loadError}</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full overflow-hidden" style={{ fontFamily: "'DM Sans', sans-serif" }}>
@@ -470,24 +475,34 @@ export default function WorkerNegotiationInbox({ initialInviteId }) {
             Invitations
           </h1>
           <p className="text-xs text-slate-400 mt-0.5">
-            {invites.filter((i) => !i.isAccepted).length} pending · {invites.filter((i) => i.isAccepted).length} accepted
+            {projects.filter((p) => p.status === "INVITED").length} pending · {projects.filter((p) => p.status !== "INVITED").length} accepted
           </p>
         </div>
         <div className="flex-1 overflow-y-auto">
-          {invites.map((invite) => (
-            <InviteItem
-              key={invite.id}
-              invite={invite}
-              isSelected={selectedId === invite.id}
-              onClick={() => setSelectedId(invite.id)}
-            />
-          ))}
+          {projects.length === 0 ? (
+            <p className="text-sm text-slate-400 text-center py-8 px-4">No invitations yet.</p>
+          ) : (
+            projects.map((project) => (
+              <ProjectItem
+                key={project.id}
+                project={project}
+                isSelected={selectedId === project.id}
+                onClick={() => setSelectedId(project.id)}
+              />
+            ))
+          )}
         </div>
       </div>
 
-      {/* ── Right: Dynamic Gate / Chat (w-2/3) ──────────────────────────── */}
+      {/* ── Right: Dynamic Gate / Detail (w-2/3) ────────────────────────── */}
       <div className="w-2/3 flex-1 flex flex-col min-h-0 bg-slate-50 relative">
-        {!selectedInvite ? (
+        {actionError && (
+          <div className="flex-shrink-0 m-4 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            <span>{actionError}</span>
+          </div>
+        )}
+        {!selectedProject ? (
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
               <MessageSquare className="w-12 h-12 text-slate-300 mx-auto mb-3" />
@@ -496,9 +511,9 @@ export default function WorkerNegotiationInbox({ initialInviteId }) {
           </div>
         ) : (
           <AnimatePresence mode="wait">
-            {!selectedInvite.isAccepted ? (
+            {selectedProject.status === "INVITED" ? (
               <motion.div
-                key={`gate-${selectedInvite.id}`}
+                key={`gate-${selectedProject.id}`}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -506,34 +521,32 @@ export default function WorkerNegotiationInbox({ initialInviteId }) {
                 className="flex-1 flex flex-col min-h-0"
               >
                 <InvitationGateView
-                  invite={selectedInvite}
-                  onAccept={handleAcceptInvitation}
-                  onNameClick={() => setShowQuickView(true)}
+                  project={selectedProject}
+                  onAccept={handleAccept}
+                  onNameClick={openQuickView}
+                  accepting={accepting}
                 />
               </motion.div>
             ) : (
               <motion.div
-                key={`chat-${selectedInvite.id}`}
+                key={`detail-${selectedProject.id}`}
                 initial={{ opacity: 0, x: 48 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.45, ease: "easeOut" }}
                 className="flex-1 flex flex-col min-h-0"
               >
-                <ChatInterfaceView
-                  invite={selectedInvite}
-                  input={input}
-                  onInputChange={setInput}
-                  onSend={sendMessage}
-                  messagesEndRef={messagesEndRef}
-                  onNameClick={() => setShowQuickView(true)}
+                <ProjectDetailView
+                  project={selectedProject}
+                  onNameClick={openQuickView}
+                  onAdvance={handleAdvance}
+                  advancing={advancing}
                 />
               </motion.div>
             )}
           </AnimatePresence>
         )}
 
-        {/* Accept toast */}
         {toast && (
           <div className="absolute bottom-6 right-6 z-20 rounded-2xl border border-emerald-200 bg-white px-5 py-4 text-sm font-bold text-emerald-700 shadow-2xl animate-in fade-in slide-in-from-bottom-2">
             <span className="flex items-center gap-2">
@@ -545,7 +558,12 @@ export default function WorkerNegotiationInbox({ initialInviteId }) {
       </div>
 
       {showQuickView && (
-        <BusinessQuickView invite={selectedInvite} onClose={() => setShowQuickView(false)} />
+        <BusinessQuickView
+          project={selectedProject}
+          businessProfile={businessProfile}
+          loading={businessProfileLoading}
+          onClose={() => setShowQuickView(false)}
+        />
       )}
     </div>
   );

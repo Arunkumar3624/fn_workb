@@ -9,13 +9,12 @@ import EnterprisePage from "./pages/EnterprisePage";
 import AuthPage from "./pages/AuthPage";
 import InvoicePage from "./pages/InvoicePage";
 import CelebrationOverlay from "./components/common/CelebrationOverlay";
-import { PlatformProvider } from "./context/PlatformContext";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 
 // Code-split the heavy, post-auth dashboard bundles — none of these are
 // needed for the first paint of a marketing page or auth, so they shouldn't
 // be in the initial JS payload.
 const WorkerDashboard = lazy(() => import("./pages/WorkerDashboard"));
-const WorkerShareableProfile = lazy(() => import("./components/worker/WorkerShareableProfile"));
 const BusinessDashboard = lazy(() => import("./pages/BusinessDashboard"));
 const BusinessVerification = lazy(() => import("./pages/BusinessVerification"));
 const BusinessVerificationDrawer = lazy(() => import("./pages/BusinessVerificationDrawer"));
@@ -29,19 +28,35 @@ function RouteFallback() {
   );
 }
 
+// Gates a route behind real authentication. `roles`, if given, additionally
+// requires the signed-in user's role to be one of the listed values —
+// someone logged in as a worker who navigates straight to /business is
+// redirected to their own dashboard, not shown someone else's.
+function ProtectedRoute({ roles, children }) {
+  const { status, currentUser } = useAuth();
+
+  if (status === "loading") return <RouteFallback />;
+  if (status === "guest") return <Navigate to="/auth" replace />;
+  if (roles && !roles.includes(currentUser.role)) {
+    return <Navigate to={`/${currentUser.role}`} replace />;
+  }
+  return children;
+}
+
 export default function App() {
   return (
-    <PlatformProvider>
+    <AuthProvider>
       <BrowserRouter>
         <AppRoutes />
       </BrowserRouter>
-    </PlatformProvider>
+    </AuthProvider>
   );
 }
 
 function AppRoutes() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { logout } = useAuth();
   const [userType, setUserType] = useState("worker");
 
   useEffect(() => {
@@ -56,8 +71,16 @@ function AppRoutes() {
     navigate("/auth");
   };
 
-  const handleAuthSuccess = () => {
-    navigate(`/${userType}`);
+  // Navigates by the REAL authenticated role (returned from AuthContext's
+  // login/register), not just whichever tab was clicked before signing in —
+  // guards against picking "Business" then logging into a worker account.
+  const handleAuthSuccess = (user) => {
+    navigate(`/${user.role}`);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
   };
 
   const handleWizardComplete = () => {
@@ -117,37 +140,61 @@ function AppRoutes() {
           />
         }
       />
-      <Route path="/worker" element={<WorkerDashboard onLogout={() => navigate("/")} />} />
-      <Route path="/worker/:tab" element={<WorkerDashboard onLogout={() => navigate("/")} />} />
-      <Route path="/p/priya-sharma" element={<WorkerShareableProfile />} />
+      <Route
+        path="/worker"
+        element={
+          <ProtectedRoute roles={["worker"]}>
+            <WorkerDashboard onLogout={handleLogout} />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/worker/:tab"
+        element={
+          <ProtectedRoute roles={["worker"]}>
+            <WorkerDashboard onLogout={handleLogout} />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/business"
         element={
-          <>
-            <BusinessDashboard
-              onLogout={() => navigate("/")}
-              onVerify={() => navigate("/verify")}
-              isVerified={isBusinessVerified}
-            />
-            {showPayDrawer && (
-              <BusinessVerificationDrawer
-                onClose={() => setShowPayDrawer(false)}
-                onPaymentSuccess={handlePaymentSuccess}
+          <ProtectedRoute roles={["business"]}>
+            <>
+              <BusinessDashboard
+                onLogout={handleLogout}
+                onVerify={() => navigate("/verify")}
+                isVerified={isBusinessVerified}
               />
-            )}
-          </>
+              {showPayDrawer && (
+                <BusinessVerificationDrawer
+                  onClose={() => setShowPayDrawer(false)}
+                  onPaymentSuccess={handlePaymentSuccess}
+                />
+              )}
+            </>
+          </ProtectedRoute>
         }
       />
       <Route
         path="/verify"
         element={
-          <BusinessVerification
-            onComplete={handleWizardComplete}
-            onExit={() => navigate("/business")}
-          />
+          <ProtectedRoute roles={["business"]}>
+            <BusinessVerification
+              onComplete={handleWizardComplete}
+              onExit={() => navigate("/business")}
+            />
+          </ProtectedRoute>
         }
       />
-      <Route path="/admin" element={<AdminPanel onLogout={() => navigate("/")} />} />
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute roles={["admin"]}>
+            <AdminPanel onLogout={handleLogout} />
+          </ProtectedRoute>
+        }
+      />
       <Route path="/invoice" element={<InvoicePage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
