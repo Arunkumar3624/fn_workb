@@ -3,9 +3,9 @@ import { CheckCircle2, PhoneOff, Sparkles, Ban, AlertTriangle, ChevronLeft, Eye,
 import { FLAGGED_THREADS } from "../../data/mockAdminData";
 
 const SEVERITY = {
-  high: { label: "High", dot: "bg-red-600", rail: "bg-red-600", text: "text-red-700", bg: "bg-red-50", border: "border-red-200" },
-  medium: { label: "Medium", dot: "bg-amber-500", rail: "bg-amber-500", text: "text-amber-700", bg: "bg-amber-50", border: "border-amber-200" },
-  low: { label: "Low", dot: "bg-slate-400", rail: "bg-slate-400", text: "text-slate-500", bg: "bg-slate-100", border: "border-slate-200" },
+  high: { label: "High", dot: "bg-red-500", rail: "bg-red-500", text: "text-red-300", bg: "bg-red-500/10", border: "border-red-500/20" },
+  medium: { label: "Medium", dot: "bg-amber-400", rail: "bg-amber-400", text: "text-amber-300", bg: "bg-amber-500/10", border: "border-amber-500/20" },
+  low: { label: "Low", dot: "bg-slate-400", rail: "bg-slate-400", text: "text-slate-400", bg: "bg-white/5", border: "border-white/10" },
 };
 
 export default function AdminSecurityTab() {
@@ -32,19 +32,19 @@ export default function AdminSecurityTab() {
   );
 
   return (
-    <div className="relative overflow-hidden w-full h-[600px] flex bg-slate-50">
+    <div className="relative overflow-hidden w-full h-full flex">
       {/* ── View 1: Case Queue ───────────────────────────────────────── */}
       <div
-        className={`w-full md:w-1/2 lg:w-1/3 h-full absolute left-0 top-0 bg-white overflow-y-auto transition-transform duration-500 ease-in-out ${
+        className={`w-full md:w-1/2 lg:w-1/3 h-full absolute left-0 top-0 border-r border-white/10 bg-white/5 backdrop-blur-2xl overflow-y-auto transition-transform duration-500 ease-in-out ${
           selectedThread ? "-translate-x-2 opacity-90" : "translate-x-0"
         }`}
       >
-        <div className="p-6 border-b border-slate-100">
+        <div className="p-6 border-b border-white/10">
           <div className="flex items-center gap-1.5 mb-1">
             <ShieldAlert className="w-3.5 h-3.5 text-slate-400" />
             <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Trust &amp; Safety</span>
           </div>
-          <h1 className="text-lg font-extrabold text-[#0A1128]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          <h1 className="text-lg font-extrabold text-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
             Security Monitor
           </h1>
           <div className="flex items-center gap-3 mt-2.5">
@@ -52,7 +52,7 @@ export default function AdminSecurityTab() {
               counts[sev] ? (
                 <div key={sev} className="flex items-center gap-1.5">
                   <span className={`w-1.5 h-1.5 rounded-full ${SEVERITY[sev].dot}`} />
-                  <span className="text-xs font-semibold text-slate-500">
+                  <span className="text-xs font-semibold text-slate-400">
                     {counts[sev]} {SEVERITY[sev].label}
                   </span>
                 </div>
@@ -60,7 +60,7 @@ export default function AdminSecurityTab() {
             )}
           </div>
         </div>
-        <div className="divide-y divide-slate-50">
+        <div className="divide-y divide-white/5">
           {FLAGGED_THREADS.map((thread) => {
             const isSelected = selectedThreadId === thread.id;
             const resolved = threadActions[thread.id];
@@ -70,22 +70,22 @@ export default function AdminSecurityTab() {
                 key={thread.id}
                 onClick={() => setSelectedThreadId(thread.id)}
                 className={`relative w-full text-left pl-5 pr-5 py-4 transition-colors ${
-                  isSelected ? "bg-[#F4F6FF]" : "hover:bg-slate-50"
+                  isSelected ? "bg-white/10" : "hover:bg-white/5"
                 }`}
               >
-                <span className={`absolute left-0 top-0 bottom-0 w-1 ${resolved ? "bg-emerald-500" : sev.rail}`} />
+                <span className={`absolute left-0 top-0 bottom-0 w-1 ${resolved ? "bg-emerald-400" : sev.rail}`} />
                 <div className="flex items-start justify-between gap-2 mb-1.5">
-                  <p className="font-bold text-[#0A1128] text-sm truncate">{thread.worker}</p>
-                  <span className="flex-shrink-0 font-mono text-[10px] font-bold text-slate-300">{thread.id}</span>
+                  <p className="font-bold text-white text-sm truncate">{thread.worker}</p>
+                  <span className="flex-shrink-0 font-mono text-[10px] font-bold text-slate-500">{thread.id}</span>
                 </div>
-                <p className="text-xs text-slate-500 truncate">{thread.business} · {thread.project}</p>
+                <p className="text-xs text-slate-400 truncate">{thread.business} · {thread.project}</p>
                 <div className="flex items-center justify-between gap-2 mt-2">
-                  <p className="flex items-center gap-1 text-[11px] text-slate-400">
+                  <p className="flex items-center gap-1 text-[11px] text-slate-500">
                     <Clock className="w-2.5 h-2.5" />
                     {thread.flaggedAt}
                   </p>
                   {resolved ? (
-                    <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600">
+                    <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-400">
                       <CheckCircle2 className="w-3 h-3" />
                       Resolved
                     </span>
@@ -101,7 +101,7 @@ export default function AdminSecurityTab() {
 
       {/* ── View 2: Case File ────────────────────────────────────────── */}
       <div
-        className={`absolute top-0 right-0 z-10 w-full md:w-1/2 lg:w-2/3 h-full bg-white rounded-l-3xl border-l border-slate-200 shadow-[-20px_0_40px_-15px_rgba(0,0,0,0.1)] overflow-y-auto transition-transform duration-500 ease-in-out ${
+        className={`absolute top-0 right-0 z-10 w-full md:w-1/2 lg:w-2/3 h-full border-l border-white/10 bg-white/10 backdrop-blur-2xl shadow-[-20px_0_40px_-15px_rgba(0,0,0,0.4)] overflow-y-auto transition-transform duration-500 ease-in-out ${
           selectedThread ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -111,7 +111,7 @@ export default function AdminSecurityTab() {
             <div className="p-7">
               <button
                 onClick={() => setSelectedThreadId(null)}
-                className="flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-slate-800 transition-colors mb-6"
+                className="flex items-center gap-1.5 text-sm font-semibold text-slate-400 hover:text-white transition-colors mb-6"
               >
                 <ChevronLeft className="w-4 h-4" />
                 Back to Queue
@@ -121,51 +121,51 @@ export default function AdminSecurityTab() {
                 <div>
                   <div className="flex items-center gap-2 mb-1.5">
                     <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Case File</span>
-                    <span className="font-mono text-xs font-bold text-slate-400">{displayThread.id}</span>
+                    <span className="font-mono text-xs font-bold text-slate-500">{displayThread.id}</span>
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${SEVERITY[displayThread.severity].bg} ${SEVERITY[displayThread.severity].text} ${SEVERITY[displayThread.severity].border}`}>
                       {SEVERITY[displayThread.severity].label.toUpperCase()} SEVERITY
                     </span>
                   </div>
-                  <h2 className="text-xl font-extrabold text-[#0A1128]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                  <h2 className="text-xl font-extrabold text-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                     {displayThread.project}
                   </h2>
-                  <p className="text-slate-500 text-sm mt-1">
-                    Worker: <span className="font-semibold text-slate-700">{displayThread.worker}</span>
+                  <p className="text-slate-400 text-sm mt-1">
+                    Worker: <span className="font-semibold text-slate-200">{displayThread.worker}</span>
                     {" · "}
-                    Business: <span className="font-semibold text-slate-700">{displayThread.business}</span>
+                    Business: <span className="font-semibold text-slate-200">{displayThread.business}</span>
                   </p>
                 </div>
               </div>
 
               {/* Evidence log */}
               <p className="mb-3 text-[11px] font-bold uppercase tracking-widest text-slate-400">Evidence Log</p>
-              <div className="bg-slate-50 rounded-2xl border border-slate-200 p-6 space-y-4 mb-6">
+              <div className="bg-black/20 rounded-2xl border border-white/10 p-6 space-y-4 mb-6">
                 {displayThread.messages.map((msg, idx) => {
                   const key = `${displayThread.id}-${idx}`;
                   const isRevealed = revealed[key];
                   return (
                     <div key={idx} className={`flex ${msg.from === "business" ? "justify-end" : "justify-start"}`}>
                       <div className="max-w-[75%]">
-                        <p className={`text-[11px] font-bold text-slate-400 mb-1 font-mono ${msg.from === "business" ? "text-right mr-1" : "ml-1"}`}>
+                        <p className={`text-[11px] font-bold text-slate-500 mb-1 font-mono ${msg.from === "business" ? "text-right mr-1" : "ml-1"}`}>
                           {msg.from === "business" ? displayThread.business : displayThread.worker}
                         </p>
                         {msg.flagged ? (
                           <button
                             onClick={() => setRevealed((p) => ({ ...p, [key]: !p[key] }))}
-                            className="w-full text-left rounded-2xl border border-dashed border-red-400 bg-red-50 p-4"
+                            className="w-full text-left rounded-2xl border border-dashed border-red-500/40 bg-red-500/10 p-4"
                           >
-                            <div className="flex items-center gap-1.5 mb-2 text-red-600 font-bold text-xs">
+                            <div className="flex items-center gap-1.5 mb-2 text-red-300 font-bold text-xs">
                               <PhoneOff className="w-3.5 h-3.5" />
                               Contact-info leak detected
                             </div>
                             {isRevealed ? (
-                              <span className="rounded bg-red-100 px-1 font-mono text-sm font-bold tracking-tight text-red-700">
+                              <span className="rounded bg-red-500/20 px-1 font-mono text-sm font-bold tracking-tight text-red-200">
                                 {msg.text}
                               </span>
                             ) : (
                               <span className="flex items-center gap-2">
-                                <span className="h-4 flex-1 rounded-sm bg-slate-900" />
-                                <span className="flex-shrink-0 flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-red-500">
+                                <span className="h-4 flex-1 rounded-sm bg-white/10" />
+                                <span className="flex-shrink-0 flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-red-300">
                                   <Eye className="w-3 h-3" />
                                   Reveal
                                 </span>
@@ -175,13 +175,13 @@ export default function AdminSecurityTab() {
                         ) : (
                           <div
                             className={`px-4 py-3 rounded-2xl text-sm leading-relaxed ${
-                              msg.from === "business" ? "bg-[#1B3FAB] text-white" : "bg-white text-slate-700 border border-slate-200"
+                              msg.from === "business" ? "bg-[#1B3FAB]/70 text-white" : "bg-white/10 text-slate-200 border border-white/10"
                             }`}
                           >
                             {msg.text}
                           </div>
                         )}
-                        <p className={`text-[10px] text-slate-400 mt-1 font-mono ${msg.from === "business" ? "text-right mr-1" : "ml-1"}`}>
+                        <p className={`text-[10px] text-slate-500 mt-1 font-mono ${msg.from === "business" ? "text-right mr-1" : "ml-1"}`}>
                           {msg.time}
                         </p>
                       </div>
@@ -192,7 +192,7 @@ export default function AdminSecurityTab() {
 
               {/* Resolution */}
               {threadActions[displayThread.id] ? (
-                <div className="flex items-center gap-2 px-5 py-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-700 font-semibold text-sm">
+                <div className="flex items-center gap-2 px-5 py-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-emerald-300 font-semibold text-sm">
                   <CheckCircle2 className="w-4 h-4" />
                   {threadActions[displayThread.id] === "redacted" && "Message redacted and safely delivered — worker penalized -50 Pts."}
                   {threadActions[displayThread.id] === "banned" && "User banned from the platform."}
@@ -212,21 +212,21 @@ export default function AdminSecurityTab() {
                     </button>
                     <button
                       onClick={() => setThreadActions((p) => ({ ...p, [displayThread.id]: "banned" }))}
-                      className="flex items-center justify-center gap-2 px-5 py-4 bg-white border-2 border-red-600 text-red-600 rounded-2xl text-sm font-black hover:bg-red-600 hover:text-white transition-all duration-200"
+                      className="flex items-center justify-center gap-2 px-5 py-4 bg-white/5 border-2 border-red-500/40 text-red-300 rounded-2xl text-sm font-black hover:bg-red-600 hover:text-white hover:border-red-600 transition-all duration-200"
                     >
                       <Ban className="w-4 h-4" />
                       Ban User
                     </button>
                     <button
                       onClick={() => setThreadActions((p) => ({ ...p, [displayThread.id]: "warned" }))}
-                      className="flex items-center justify-center gap-2 px-5 py-4 bg-white border border-slate-200 text-slate-600 rounded-2xl text-sm font-bold hover:bg-slate-50 transition-colors"
+                      className="flex items-center justify-center gap-2 px-5 py-4 bg-white/5 border border-white/10 text-slate-300 rounded-2xl text-sm font-bold hover:bg-white/10 transition-colors"
                     >
                       <AlertTriangle className="w-4 h-4" />
                       Send Formal Warning
                     </button>
                     <button
                       onClick={() => setThreadActions((p) => ({ ...p, [displayThread.id]: "dismissed" }))}
-                      className="flex items-center justify-center gap-2 px-5 py-4 bg-white border border-slate-200 text-slate-600 rounded-2xl text-sm font-bold hover:bg-slate-50 transition-colors"
+                      className="flex items-center justify-center gap-2 px-5 py-4 bg-white/5 border border-white/10 text-slate-300 rounded-2xl text-sm font-bold hover:bg-white/10 transition-colors"
                     >
                       False Alarm (Dismiss)
                     </button>

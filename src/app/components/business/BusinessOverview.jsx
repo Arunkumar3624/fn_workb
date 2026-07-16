@@ -238,8 +238,10 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
   }
 
   return (
-    <div className="bg-slate-50 p-7 wb-tab-enter">
-      <div className="max-w-6xl mx-auto">
+    <div className="relative bg-gradient-to-br from-[#eef2ff] via-[#f8fafc] to-[#fff3ec] p-7 wb-tab-enter">
+      <div className="pointer-events-none absolute -top-20 -left-16 -z-10 h-72 w-72 rounded-full bg-[#1B3FAB]/10 blur-[100px]" />
+      <div className="pointer-events-none absolute top-40 -right-20 -z-10 h-72 w-72 rounded-full bg-[#FF6B35]/10 blur-[100px]" />
+      <div className="relative max-w-6xl mx-auto">
 
         {/* ── Header ─────────────────────────────────────────────────────── */}
         <div className="flex items-center justify-between mb-7">
@@ -295,7 +297,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
           ].map(({ label, value, sub, subColor, icon: Icon, iconBg, iconColor, valueColor, spark, sparkColor }, i) => (
             <div
               key={label}
-              className="bg-white rounded-2xl border border-slate-200 p-5 wb-card-enter"
+              className="bg-white/60 backdrop-blur-xl border border-white/70 shadow-lg shadow-slate-200/40 p-5 wb-card-enter"
               style={{ animationDelay: `${i * 60}ms` }}
             >
               <div className="flex items-center justify-between mb-4">
@@ -326,7 +328,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
 
           {/* Active Projects table */}
           <div
-            className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 overflow-hidden wb-card-enter"
+            className="lg:col-span-2 bg-white/60 backdrop-blur-xl border border-white/70 shadow-lg shadow-slate-200/40 overflow-hidden wb-card-enter"
             style={{ animationDelay: "240ms" }}
           >
             <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
@@ -347,7 +349,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
               </button>
             </div>
 
-            <div className="px-5 py-3 bg-slate-50 border-b border-slate-100">
+            <div className="px-5 py-3 bg-white/30 border-b border-white/50">
               <Chips options={PROJECT_FILTERS} active={projectFilter} onChange={setProjectFilter} />
             </div>
 
@@ -420,7 +422,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
           <div className="space-y-4">
 
             <div
-              className="bg-white rounded-2xl border border-slate-200 p-5 wb-card-enter"
+              className="bg-white/60 backdrop-blur-xl border border-white/70 shadow-lg shadow-slate-200/40 p-5 wb-card-enter"
               style={{ animationDelay: "300ms" }}
             >
               <h3
@@ -471,7 +473,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
             </div>
 
             <div
-              className="bg-white rounded-2xl border border-slate-200 p-5 wb-card-enter"
+              className="bg-white/60 backdrop-blur-xl border border-white/70 shadow-lg shadow-slate-200/40 p-5 wb-card-enter"
               style={{ animationDelay: "360ms" }}
             >
               <h3
@@ -503,7 +505,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
           <div
-            className="bg-white rounded-2xl border border-slate-200 overflow-hidden wb-card-enter"
+            className="bg-white/60 backdrop-blur-xl border border-white/70 shadow-lg shadow-slate-200/40 overflow-hidden wb-card-enter"
             style={{ animationDelay: "420ms" }}
           >
             <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
@@ -515,7 +517,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
               </h3>
             </div>
 
-            <div className="px-5 py-3 bg-slate-50 border-b border-slate-100">
+            <div className="px-5 py-3 bg-white/30 border-b border-white/50">
               <Chips options={TX_FILTERS} active={txFilter} onChange={setTxFilter} />
             </div>
 
@@ -559,7 +561,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
 
           {/* Monthly Spending Chart */}
           <div
-            className="bg-white rounded-2xl border border-slate-200 p-5 wb-card-enter"
+            className="bg-white/60 backdrop-blur-xl border border-white/70 shadow-lg shadow-slate-200/40 p-5 wb-card-enter"
             style={{ animationDelay: "480ms" }}
           >
             <div className="flex items-start justify-between mb-1">

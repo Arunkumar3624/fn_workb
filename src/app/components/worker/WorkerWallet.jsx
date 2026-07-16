@@ -105,7 +105,9 @@ export default function WorkerWallet() {
   }
 
   return (
-    <div className="h-full min-h-0 overflow-y-auto overflow-x-hidden p-4 pb-12 sm:p-7 wb-tab-enter">
+    <div className="relative h-full min-h-0 overflow-y-auto overflow-x-hidden bg-gradient-to-br from-[#eef2ff] via-[#f8fafc] to-[#fff3ec] p-4 pb-12 sm:p-7 wb-tab-enter">
+      <div className="pointer-events-none absolute -top-20 -left-16 -z-10 h-72 w-72 rounded-full bg-[#1B3FAB]/10 blur-[100px]" />
+      <div className="pointer-events-none absolute top-40 -right-20 -z-10 h-72 w-72 rounded-full bg-[#FF6B35]/10 blur-[100px]" />
       <h1
         className="text-xl font-extrabold text-[#0A1128] mb-6"
         style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
@@ -142,7 +144,7 @@ export default function WorkerWallet() {
         ].map(({ label, value, icon: I, col, bg, border }, i) => (
           <div
             key={label}
-            className={`bg-white rounded-2xl border ${border} p-5 wb-stat-card wb-card-enter`}
+            className={`bg-white/60 backdrop-blur-xl rounded-2xl border ${border} shadow-lg shadow-slate-200/40 p-5 wb-stat-card wb-card-enter`}
             style={{ animationDelay: `${i * 80}ms` }}
           >
             <div className={`w-10 h-10 ${bg} rounded-xl flex items-center justify-center mb-3`}>
@@ -160,7 +162,7 @@ export default function WorkerWallet() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <div className="wb-dash-card rounded-2xl p-5 wb-card-enter" style={{ animationDelay: "240ms" }}>
+        <div className="bg-white/60 backdrop-blur-xl rounded-2xl border border-white/70 shadow-lg shadow-slate-200/40 p-5 wb-card-enter" style={{ animationDelay: "240ms" }}>
           <h3 className="font-bold text-slate-800 mb-4">Cash Out in 60 Seconds</h3>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
             {submitError && (
@@ -198,7 +200,7 @@ export default function WorkerWallet() {
           </form>
         </div>
 
-        <div className="wb-dash-card rounded-2xl p-5 wb-card-enter" style={{ animationDelay: "320ms" }}>
+        <div className="bg-white/60 backdrop-blur-xl rounded-2xl border border-white/70 shadow-lg shadow-slate-200/40 p-5 wb-card-enter" style={{ animationDelay: "320ms" }}>
           <h3 className="font-bold text-slate-800 mb-4">Transaction History</h3>
           {(wallet?.transactions ?? []).length === 0 ? (
             <p className="text-sm text-slate-400 py-6 text-center">No transactions yet.</p>
@@ -257,7 +259,7 @@ function EliteUpsellCard({ behaviorScore }) {
 
   return (
     <div
-      className="relative mt-4 overflow-hidden rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50/90 via-white to-white p-6 wb-card-enter"
+      className="relative mt-4 overflow-hidden rounded-2xl border border-amber-200/60 bg-gradient-to-br from-amber-50/60 via-white/50 to-white/50 backdrop-blur-xl shadow-lg shadow-amber-100/40 p-6 wb-card-enter"
       style={{ animationDelay: "400ms" }}
     >
       {/* soft gold glow */}
@@ -291,7 +293,7 @@ function EliteUpsellCard({ behaviorScore }) {
 
       <div className="relative mt-5 grid gap-3 md:grid-cols-3">
         {ELITE_PERKS.map(({ Icon, title, text }) => (
-          <div key={title} className="rounded-xl border border-amber-100 bg-white/80 p-4">
+          <div key={title} className="rounded-xl border border-amber-100/60 bg-white/50 backdrop-blur-md p-4">
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 text-amber-500">
               <Icon className="h-4 w-4" />
             </span>
@@ -302,7 +304,7 @@ function EliteUpsellCard({ behaviorScore }) {
       </div>
 
       {/* Eligibility — Elite visibility pauses if the score drops below 600 */}
-      <div className="relative mt-5 rounded-xl border border-slate-200 bg-white p-4">
+      <div className="relative mt-5 rounded-xl border border-white/70 bg-white/50 backdrop-blur-md p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="flex items-center gap-2 text-sm font-bold text-slate-700">
             <ShieldCheck className={`h-4 w-4 ${inGoodStanding ? "text-emerald-500" : "text-rose-500"}`} />
