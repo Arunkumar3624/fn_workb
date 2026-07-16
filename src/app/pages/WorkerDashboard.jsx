@@ -3,6 +3,7 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Bell, Sparkles } from "lucide-react";
 import DashboardLayout from "../components/common/DashboardLayout";
 import WorkerSidebar from "../components/worker/WorkerSidebar";
+import WorkerJobFeed from "../components/worker/WorkerJobFeed";
 import WorkerNegotiationInbox from "../components/worker/WorkerNegotiationInbox";
 import WorkerWorkspace from "../components/worker/WorkerWorkspace";
 import WorkerWallet from "../components/worker/WorkerWallet";
@@ -81,6 +82,7 @@ export default function WorkerDashboard({ onLogout }) {
         </header>
 
         <div className="flex-1 overflow-hidden">
+          {tab === "feed" && <WorkerJobFeed />}
           {tab === "negotiations" && <WorkerNegotiationInbox initialProjectId={projectIdFromUrl} />}
           {tab === "workspace" && <WorkerWorkspace />}
           {tab === "wallet" && <WorkerWallet />}

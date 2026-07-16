@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
-import { Briefcase, Wallet, User, LogOut, ShieldCheck, Zap, Handshake } from "lucide-react";
+import { Briefcase, Search, Wallet, User, LogOut, ShieldCheck, Zap, Handshake } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { listProjects } from "../../lib/projectsApi";
 import { getInitials } from "../../utils/formValidation";
 
-// "Negotiations" sits between Job Feed and Active Workspace — it's the
-// bridge between finding work and doing work. "Job Feed"/"Messages" are
-// deferred this phase (see TECH_ROADMAP-equivalent plan notes) — neither
-// the open-browsing feed nor chat has a real backend yet.
+// "Job Feed" is a dummy/placeholder listing for now — the real backend only
+// supports business-initiated match-and-invite (no open "browse and apply"
+// endpoint yet), so nothing clicked here creates a real project. "Messages"
+// stays deferred (no chat backend at all). "Negotiations" sits between the
+// two — the bridge between finding work and doing work, and IS fully real.
 const NAV = [
+  { id: "feed", label: "Job Feed", icon: Search },
   { id: "negotiations", label: "Negotiations", icon: Handshake },
   { id: "workspace", label: "Active Workspace", icon: Briefcase },
   { id: "wallet", label: "Wallet", icon: Wallet },
