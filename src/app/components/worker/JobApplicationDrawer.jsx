@@ -26,7 +26,7 @@ export default function JobApplicationDrawer({
       />
 
       <aside
-        className={`fixed top-0 right-0 z-50 h-full w-full transform bg-white shadow-2xl transition-transform duration-300 sm:w-[400px] ${
+        className={`fixed top-0 right-0 z-50 h-full w-full transform border-l border-white/40 bg-white/70 backdrop-blur-2xl shadow-2xl transition-transform duration-300 sm:w-[400px] ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
         aria-hidden={!open}
@@ -61,7 +61,7 @@ export default function JobApplicationDrawer({
               <button
                 type="button"
                 onClick={onChooseQuiz}
-                className="w-full rounded-2xl border-2 border-green-500 bg-white p-5 text-left shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+                className="w-full rounded-2xl border-2 border-green-500 bg-white/50 backdrop-blur-md p-5 text-left shadow-sm transition-all duration-300 hover:-translate-y-1 hover:bg-white/70 hover:shadow-lg"
               >
                 <div className="flex items-center gap-1.5 text-green-600">
                   <Sparkles className="h-3.5 w-3.5" />
@@ -80,7 +80,7 @@ export default function JobApplicationDrawer({
               <button
                 type="button"
                 onClick={onChooseDirect}
-                className="w-full rounded-2xl border border-red-200 bg-slate-50 p-5 text-left opacity-90 transition-all duration-300 hover:opacity-100"
+                className="w-full rounded-2xl border border-red-200/60 bg-white/30 backdrop-blur-md p-5 text-left opacity-90 transition-all duration-300 hover:opacity-100"
               >
                 <div className="flex items-center gap-1.5 text-red-500">
                   <AlertTriangle className="h-3.5 w-3.5" />
@@ -96,7 +96,7 @@ export default function JobApplicationDrawer({
               </button>
             </div>
 
-            <div className="mt-6 flex items-start gap-2 rounded-xl bg-slate-50 p-4">
+            <div className="mt-6 flex items-start gap-2 rounded-xl bg-white/30 backdrop-blur-md p-4">
               <ShieldCheck className="mt-0.5 h-4 w-4 flex-shrink-0 text-slate-400" />
               <p className="text-xs leading-5 text-slate-500">
                 Behavior points feed your Trust Score, which controls Elite visibility and access to

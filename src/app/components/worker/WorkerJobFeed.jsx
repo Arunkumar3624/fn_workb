@@ -383,12 +383,14 @@ export default function WorkerJobFeed() {
 
   return (
     <div
-      className={`relative z-0 h-full min-h-screen overflow-x-hidden bg-slate-50 pb-32 text-slate-900 ${
+      className={`relative z-0 h-full min-h-screen overflow-x-hidden bg-gradient-to-br from-[#eef2ff] via-[#f8fafc] to-[#fff3ec] pb-32 text-slate-900 ${
         isPortalOpen ? "overflow-y-hidden" : "overflow-y-auto"
       }`}
     >
-      <section className="mx-auto max-w-7xl px-6 py-8">
-        <div className="mb-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="pointer-events-none fixed -top-20 -left-16 -z-10 h-72 w-72 rounded-full bg-[#1B3FAB]/10 blur-[100px]" />
+      <div className="pointer-events-none fixed top-40 -right-20 -z-10 h-72 w-72 rounded-full bg-[#FF6B35]/10 blur-[100px]" />
+      <section className="relative mx-auto max-w-7xl px-6 py-8">
+        <div className="mb-8 rounded-2xl border border-white/70 bg-white/60 backdrop-blur-xl p-6 shadow-lg shadow-slate-200/40">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">
@@ -457,7 +459,7 @@ export default function WorkerJobFeed() {
             return (
               <article
                 key={job.id}
-                className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-md"
+                className="rounded-2xl border border-white/70 bg-white/60 backdrop-blur-xl p-5 shadow-lg shadow-slate-200/40 transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -496,7 +498,7 @@ export default function WorkerJobFeed() {
 
                 <p className="mt-4 line-clamp-3 text-sm leading-6 text-slate-600">{job.summary}</p>
 
-                <div className="mt-4 grid grid-cols-3 gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-center">
+                <div className="mt-4 grid grid-cols-3 gap-2 rounded-2xl border border-white/60 bg-white/40 backdrop-blur-md p-3 text-center">
                   <div>
                     <p className="text-xs text-slate-500">Budget</p>
                     <p className="mt-1 text-sm font-black text-slate-900">{job.budget}</p>
@@ -518,7 +520,7 @@ export default function WorkerJobFeed() {
                   {job.tags.slice(0, 3).map((tag) => (
                     <span
                       key={tag}
-                      className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-600"
+                      className="rounded-full border border-white/60 bg-white/50 backdrop-blur-sm px-3 py-1 text-xs font-semibold text-slate-600"
                     >
                       {tag}
                     </span>
@@ -573,7 +575,7 @@ export default function WorkerJobFeed() {
             className="absolute inset-0 bg-slate-900/60 opacity-100 backdrop-blur-md transition-opacity duration-300"
           />
 
-          <section className="relative z-50 flex h-[92vh] w-[96vw] max-w-6xl flex-col overflow-hidden rounded-3xl border border-white/70 bg-slate-50 shadow-[0_32px_90px_rgba(15,23,42,0.35)] transition-transform duration-300 ease-out">
+          <section className="relative z-50 flex h-[92vh] w-[96vw] max-w-6xl flex-col overflow-hidden rounded-3xl border border-white/70 bg-gradient-to-br from-[#eef2ff] via-[#f8fafc] to-[#fff3ec] shadow-[0_32px_90px_rgba(15,23,42,0.35)] transition-transform duration-300 ease-out">
             <header className="relative flex flex-shrink-0 items-start justify-between gap-5 overflow-hidden border-b border-slate-200 bg-slate-950 p-6 text-white sm:p-7">
               <div className="pointer-events-none absolute right-[-90px] top-[-120px] h-72 w-72 rounded-full bg-[#FF6B35]/30 blur-3xl" />
               <div className="pointer-events-none absolute bottom-[-120px] left-20 h-64 w-64 rounded-full bg-blue-500/20 blur-3xl" />
@@ -615,11 +617,11 @@ export default function WorkerJobFeed() {
               </button>
             </header>
 
-            <div className="flex-1 overflow-y-auto bg-slate-50 p-4 pb-20 sm:p-6 lg:p-8">
+            <div className="flex-1 overflow-y-auto p-4 pb-20 sm:p-6 lg:p-8">
               {quizStep === "idle" && (
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
                   <main className="flex flex-col gap-6 lg:col-span-8">
-                    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <section className="rounded-2xl border border-white/70 bg-white/60 backdrop-blur-xl p-6 shadow-lg shadow-slate-200/40">
                       <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#1B3FAB] ring-1 ring-blue-100">
                           <Briefcase className="h-5 w-5" />
@@ -632,7 +634,7 @@ export default function WorkerJobFeed() {
                       <p className="mt-5 text-[15px] leading-7 text-slate-600">{selectedJob.overview}</p>
                     </section>
 
-                    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <section className="rounded-2xl border border-white/70 bg-white/60 backdrop-blur-xl p-6 shadow-lg shadow-slate-200/40">
                       <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
                           <CheckCircle2 className="h-5 w-5" />
@@ -644,7 +646,7 @@ export default function WorkerJobFeed() {
                       </div>
                       <div className="mt-5 grid gap-3 sm:grid-cols-2">
                         {selectedJob.deliverables.map((item) => (
-                          <div key={item} className="rounded-2xl border border-slate-200 bg-slate-50 p-4 transition-all duration-300 hover:-translate-y-0.5 hover:bg-white hover:shadow-sm">
+                          <div key={item} className="rounded-2xl border border-white/60 bg-white/40 backdrop-blur-md p-4 transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/60 hover:shadow-sm">
                             <div className="flex gap-3 text-sm leading-relaxed text-slate-600">
                               <span className="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
                                 <Check className="h-3.5 w-3.5" />
@@ -656,7 +658,7 @@ export default function WorkerJobFeed() {
                       </div>
                     </section>
 
-                    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <section className="rounded-2xl border border-white/70 bg-white/60 backdrop-blur-xl p-6 shadow-lg shadow-slate-200/40">
                       <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-[#FF6B35] ring-1 ring-orange-100">
                           <Sparkles className="h-5 w-5" />
@@ -670,7 +672,7 @@ export default function WorkerJobFeed() {
                         {selectedJob.techStack.map((tag) => (
                           <span
                             key={tag}
-                            className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 shadow-sm"
+                            className="rounded-full border border-white/60 bg-white/50 backdrop-blur-sm px-4 py-2 text-xs font-bold text-slate-700"
                           >
                             {tag}
                           </span>
@@ -680,8 +682,8 @@ export default function WorkerJobFeed() {
                   </main>
 
                   <aside className="self-start lg:sticky lg:top-0 lg:col-span-4">
-                    <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_22px_55px_rgba(15,23,42,0.10)]">
-                      <div className="border-b border-slate-100 bg-white p-6">
+                    <div className="overflow-hidden rounded-3xl border border-white/70 bg-white/60 backdrop-blur-xl shadow-lg shadow-slate-200/40">
+                      <div className="border-b border-white/50 bg-white/20 p-6">
                         <div className="flex items-start justify-between gap-3">
                           <div>
                             <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">Apply strategy</p>
@@ -698,21 +700,21 @@ export default function WorkerJobFeed() {
                       </div>
 
                       <div className="grid grid-cols-1 gap-3 p-5 sm:grid-cols-3 lg:grid-cols-1">
-                        <div className="flex items-center gap-3 rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100">
+                        <div className="flex items-center gap-3 rounded-2xl bg-white/40 backdrop-blur-md p-4 ring-1 ring-white/50">
                           <IndianRupee className="h-5 w-5 text-[#1B3FAB]" />
                           <div>
                             <p className="text-xs font-semibold text-slate-500">Budget</p>
                             <p className="text-sm font-black text-slate-900">{selectedJob.budget}</p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-3 rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100">
+                        <div className="flex items-center gap-3 rounded-2xl bg-white/40 backdrop-blur-md p-4 ring-1 ring-white/50">
                           <Timer className="h-5 w-5 text-[#1B3FAB]" />
                           <div>
                             <p className="text-xs font-semibold text-slate-500">Duration</p>
                             <p className="text-sm font-black text-slate-900">{selectedJob.duration}</p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-3 rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100">
+                        <div className="flex items-center gap-3 rounded-2xl bg-white/40 backdrop-blur-md p-4 ring-1 ring-white/50">
                           <MapPin className="h-5 w-5 text-[#1B3FAB]" />
                           <div>
                             <p className="text-xs font-semibold text-slate-500">Location</p>
@@ -754,7 +756,7 @@ export default function WorkerJobFeed() {
 
               {currentQuestion && (
                 <div className="mx-auto max-w-3xl transition-opacity duration-300">
-                  <div className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
+                  <div className="rounded-xl border border-white/70 bg-white/60 backdrop-blur-xl p-6 shadow-lg shadow-slate-200/40">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                       <div>
                         <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">
@@ -762,7 +764,7 @@ export default function WorkerJobFeed() {
                         </p>
                         <h3 className="mt-2 text-2xl font-black text-slate-900">{currentQuestion.title}</h3>
                       </div>
-                      <span className="rounded-full bg-white px-4 py-2 text-xs font-black text-slate-500 ring-1 ring-slate-200">
+                      <span className="rounded-full bg-white/50 backdrop-blur-sm px-4 py-2 text-xs font-black text-slate-500 ring-1 ring-white/60">
                         {QUIZ_ORDER.indexOf(quizStep) + 1} / {QUIZ_ORDER.length}
                       </span>
                     </div>
@@ -780,8 +782,8 @@ export default function WorkerJobFeed() {
                           onClick={() => setSelectedOption(option)}
                           className={`w-full rounded-2xl border p-5 text-left text-sm font-semibold leading-6 transition-all duration-300 ${
                             isSelected
-                              ? "border-slate-800 bg-slate-50 text-slate-900 ring-2 ring-slate-800"
-                              : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+                              ? "border-slate-800 bg-white/60 backdrop-blur-md text-slate-900 ring-2 ring-slate-800"
+                              : "border-white/60 bg-white/40 backdrop-blur-md text-slate-700 hover:border-white/80 hover:bg-white/60"
                           }`}
                         >
                           <span className="flex items-start gap-4">
@@ -810,7 +812,7 @@ export default function WorkerJobFeed() {
                   <div className="absolute bottom-24 left-28 h-2.5 w-2.5 rounded-full bg-blue-300 opacity-80" />
                   <div className="absolute bottom-16 right-20 h-3 w-3 rounded-full bg-emerald-400 opacity-80" />
 
-                  <div className="w-full max-w-3xl rounded-3xl border border-emerald-200 bg-white p-10 text-center shadow-[0_0_60px_-15px_rgba(34,197,94,0.5)]">
+                  <div className="w-full max-w-3xl rounded-3xl border border-emerald-200/60 bg-white/60 backdrop-blur-xl p-10 text-center shadow-[0_0_60px_-15px_rgba(34,197,94,0.5)]">
                     <div className="mx-auto flex h-24 w-24 animate-bounce items-center justify-center rounded-full bg-emerald-500 text-white shadow-[0_0_60px_-15px_rgba(34,197,94,0.7)]">
                       <Check className="h-12 w-12" />
                     </div>
@@ -842,7 +844,7 @@ export default function WorkerJobFeed() {
             </div>
 
             {currentQuestion && (
-              <footer className="flex flex-shrink-0 justify-end border-t border-slate-200 bg-white px-7 py-5">
+              <footer className="flex flex-shrink-0 justify-end border-t border-white/60 bg-white/40 backdrop-blur-xl px-7 py-5">
                 <button
                   type="button"
                   disabled={!selectedOption}
@@ -863,7 +865,7 @@ export default function WorkerJobFeed() {
 
       {isConfirmOpen && selectedJob && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm transition-opacity duration-300">
-          <div className="relative z-[70] w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl transition-all duration-300">
+          <div className="relative z-[70] w-full max-w-sm rounded-2xl border border-white/70 bg-white/70 backdrop-blur-xl p-6 shadow-2xl transition-all duration-300">
             <h3 className="text-center text-xl font-black text-slate-900">Skip Skill Assessment?</h3>
             <p className="mt-3 text-center text-sm leading-6 text-slate-500">
               You are skipping the vetting process. This will deduct 5 points. Proceed?
