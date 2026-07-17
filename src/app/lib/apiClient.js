@@ -63,9 +63,9 @@ let devProjects = [
     description: "Polish the WorkBridge dashboard UI and improve data states.",
     budget: 45000,
     deadline: daysFromNow(7),
-    status: "WORK_IN_PROGRESS",
+    status: "INVITED",
     platform_fee_pct: 8,
-    timeline: timelineFor(["INVITED", "ACCEPTED", "FUNDS_SECURED", "WORK_IN_PROGRESS"]),
+    timeline: timelineFor(["INVITED"]),
   },
   {
     id: "dev_project_2",

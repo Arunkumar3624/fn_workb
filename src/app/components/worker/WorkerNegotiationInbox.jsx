@@ -1,378 +1,331 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
-  AlertCircle, Briefcase, CheckCircle2, IndianRupee, MessageSquare,
-  ShieldCheck, Sparkles, Star, Timer, Trophy, X,
+  AlertCircle,
+  ArrowLeftRight,
+  BadgeCheck,
+  Briefcase,
+  Check,
+  Clock3,
+  IndianRupee,
+  LockKeyhole,
+  MessageSquare,
+  Send,
+  ShieldCheck,
+  Sparkles,
+  X,
+  Zap,
 } from "lucide-react";
-import Avatar from "../shared/Avatar";
 import IdentityHeader from "../shared/IdentityHeader";
-import TimelineTracker from "../shared/TimelineTracker";
-import ProjectCompletionHub from "../shared/ProjectCompletionHub";
-import { useAuth } from "../../context/AuthContext";
 import { listProjects, updateProjectStatus } from "../../lib/projectsApi";
 import { getPublicProfile } from "../../lib/profilesApi";
-import { submitReview, listReviewsFor } from "../../lib/reviewsApi";
 import { getInitials } from "../../utils/formValidation";
-import { calculatePotentialPoints } from "../../utils/pointMatrix";
-import { PROJECT_STATUS_META, nextProjectStatus } from "../../utils/projectStatus";
 import { ApiError } from "../../lib/apiClient";
 
-// Real projects come from GET /api/projects?role=worker — INVITED status is
-// the Acceptance Gate; every other status unlocks the detail/status view.
-// Chat is deliberately not part of this phase (no messages table yet) — see
-// the plan notes; this used to be a full chat surface per invite.
+function formatINR(amount) {
+  return `INR ${Number(amount || 0).toLocaleString("en-IN")}`;
+}
 
-// ─── Thread list item ────────────────────────────────────────────────────────
+function formatDuration(deadline) {
+  if (!deadline) return "Flexible timeline";
+  const ms = new Date(deadline).getTime() - Date.now();
+  const days = Math.max(1, Math.ceil(ms / (24 * 60 * 60 * 1000)));
+  return `${days} day${days === 1 ? "" : "s"}`;
+}
 
-function ProjectItem({ project, isSelected, onClick }) {
-  const accepted = project.status !== "INVITED";
+function seedMessages(project) {
+  return [
+    {
+      id: "business-brief",
+      sender: "business",
+      text: `Hi, we'd like to invite you to work on "${project.title}". The budget and scope are ready for your review.`,
+      time: "10:12 AM",
+    },
+    {
+      id: "worker-question",
+      sender: "worker",
+      text: "Thanks for the invite. I am reviewing the scope and timeline now.",
+      time: "10:14 AM",
+    },
+    {
+      id: "business-confirm",
+      sender: "business",
+      text: "Perfect. The terms are ready to lock once you accept.",
+      time: "10:16 AM",
+    },
+  ];
+}
+
+function MotionPanel({ children, panelKey }) {
   return (
-    <button
-      onClick={onClick}
-      className={`w-full text-left px-4 py-4 border-b border-slate-100 transition-colors relative ${
-        isSelected ? "bg-[#F4F6FF]" : "hover:bg-slate-50"
-      }`}
+    <motion.div
+      key={panelKey}
+      initial={{ opacity: 0, x: 34 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -34 }}
+      transition={{ duration: 0.34, ease: "easeInOut" }}
+      className="h-full min-h-0"
     >
-      {isSelected && <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-[#1B3FAB]" />}
-      <div className="flex items-center gap-3">
-        <Avatar initials={getInitials(project.business_name)} bg="bg-[#1B3FAB]" size="w-10 h-10" text="text-xs" />
-        <div className="flex-1 min-w-0">
-          <p className="font-bold text-[#0F172A] text-sm truncate">{project.business_name}</p>
-          <p className="text-xs text-slate-500 truncate">{project.title}</p>
-        </div>
-        {accepted ? (
-          <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-        ) : (
-          <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse flex-shrink-0" />
-        )}
-      </div>
-    </button>
+      {children}
+    </motion.div>
   );
 }
 
-// ─── Business Quick View — stays inside the negotiation flow ────────────────
-
-function BusinessQuickView({ project, businessProfile, loading, onClose }) {
-  if (!project) return null;
-
+function FieldPill({ icon: Icon, label, value, dark = false }) {
   return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-      <div className="w-full max-w-sm bg-white rounded-2xl border border-slate-200 shadow-2xl p-6">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <Avatar initials={getInitials(project.business_name)} bg="bg-[#1B3FAB]" size="w-12 h-12" text="text-base" />
+    <div
+      className={`rounded-2xl border px-4 py-3 shadow-sm ${
+        dark
+          ? "border-emerald-900 bg-slate-900 text-white"
+          : "border-slate-200 bg-white text-slate-900"
+      }`}
+    >
+      <div className="flex items-center gap-2">
+        <Icon className={`h-4 w-4 ${dark ? "text-emerald-300" : "text-slate-400"}`} />
+        <p className={`text-[11px] font-bold uppercase tracking-wide ${dark ? "text-emerald-200" : "text-slate-500"}`}>
+          {label}
+        </p>
+      </div>
+      <p className={`mt-1 text-sm font-black ${dark ? "text-emerald-100" : "text-slate-900"}`}>{value}</p>
+    </div>
+  );
+}
+
+function JobDetailsPanel({ project, onAccept, onDecline, actionBusy }) {
+  return (
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="flex-1 overflow-hidden">
+        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex items-start justify-between gap-4">
             <div>
-              <div className="flex items-center gap-1.5">
-                <p className="font-bold text-lg text-slate-900" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                  {project.business_name}
-                </p>
-                {businessProfile?.verified && <ShieldCheck className="w-4 h-4 text-blue-500 flex-shrink-0" />}
-              </div>
-              {loading ? (
-                <p className="text-xs text-slate-400 mt-0.5">Loading…</p>
-              ) : (
-                businessProfile?.rating != null && (
-                  <p className="flex items-center gap-1 text-xs text-slate-500 mt-0.5">
-                    <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                    {businessProfile.rating} · {businessProfile.reviews_count} reviews
-                  </p>
-                )
-              )}
+              <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">Job invitation</p>
+              <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-900">
+                {project.title}
+              </h2>
+            </div>
+            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-orange-50 text-[#FF6B35] ring-1 ring-orange-100">
+              <Briefcase className="h-5 w-5" />
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors flex-shrink-0"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
 
-        <div className="space-y-2">
-          <div className="flex items-center justify-between px-3 py-2.5 bg-slate-50 rounded-xl">
-            <span className="text-xs text-slate-500">Currently hiring for</span>
-            <span className="text-xs font-bold text-slate-900 text-right">{project.title}</span>
+          <div className="mt-5 grid grid-cols-2 gap-3">
+            <FieldPill icon={IndianRupee} label="Budget" value={formatINR(project.budget)} dark />
+            <FieldPill icon={Clock3} label="Duration" value={formatDuration(project.deadline)} />
           </div>
-          <div className="flex items-center justify-between px-3 py-2.5 bg-slate-50 rounded-xl">
-            <span className="text-xs text-slate-500">Verification</span>
-            <span
-              className={`inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full ${
-                businessProfile?.verified ? "text-blue-600 bg-blue-50" : "text-slate-500 bg-slate-100"
-              }`}
-            >
-              {businessProfile?.verified ? "Verified" : "Unverified"}
-            </span>
+
+          <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">Description</p>
+            <p className="mt-2 max-h-44 overflow-y-auto pr-1 text-sm leading-6 text-slate-600">
+              {project.description || "No additional description was provided by the business."}
+            </p>
+          </div>
+
+          <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/70 p-4">
+            <div className="flex items-start gap-3">
+              <ShieldCheck className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#1B3FAB]" />
+              <div>
+                <p className="text-sm font-black text-slate-900">Terms stay protected</p>
+                <p className="mt-1 text-xs leading-5 text-slate-500">
+                  Acceptance locks this scope, budget, and timeline into your WorkBridge workspace.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
+      </div>
 
+      <div className="mt-5 flex-shrink-0 space-y-3">
         <button
-          onClick={onClose}
-          className="w-full mt-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-semibold transition-colors"
+          type="button"
+          onClick={onAccept}
+          disabled={actionBusy}
+          className="flex min-h-[58px] w-full items-center justify-center gap-2 rounded-2xl bg-[#FF6B35] px-5 py-4 text-sm font-black text-white shadow-md shadow-orange-200 transition hover:-translate-y-0.5 hover:bg-[#e85d27] hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
         >
-          Back
+          <LockKeyhole className="h-4 w-4" />
+          Accept Invitation & Lock Terms
+        </button>
+        <button
+          type="button"
+          onClick={onDecline}
+          className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-slate-900"
+        >
+          <X className="h-4 w-4" />
+          Decline
         </button>
       </div>
     </div>
   );
 }
 
-// ─── State 1: The Acceptance Gate ────────────────────────────────────────────
-// Renders ONLY the job offer. Nothing about status/action is reachable until
-// the worker accepts (INVITED -> ACCEPTED).
-
-function InvitationGateView({ project, onAccept, onNameClick, accepting }) {
-  const potentialPoints = calculatePotentialPoints(Number(project.budget), false);
+function WizardStep({ index, title, description, state }) {
+  const isDone = state === "done";
+  const isActive = state === "active";
 
   return (
-    <>
-      <IdentityHeader
-        name={project.business_name}
-        subtitle="Business"
-        initials={getInitials(project.business_name)}
-        verified
-        onNameClick={onNameClick}
-      />
-
-      <div className="flex-shrink-0 bg-white border-b border-slate-200 px-6 py-5 sm:px-7">
-        <p className="text-sm italic text-slate-500">
-          You've been invited by {project.business_name} to work on this project…
-        </p>
-        <h2 className="mt-2 text-2xl font-black leading-tight tracking-tight text-slate-900 sm:text-3xl">
-          {project.title}
-        </h2>
-        <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-bold text-slate-600">
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1.5 text-emerald-700 ring-1 ring-emerald-100">
-            <ShieldCheck className="h-3.5 w-3.5" />
-            Verified client
-          </span>
-        </div>
+    <div className="relative flex gap-4">
+      {index < 3 && <div className="absolute left-5 top-11 h-[calc(100%-1.25rem)] w-px bg-slate-200" />}
+      <div
+        className={`z-10 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl border text-sm font-black shadow-sm ${
+          isDone
+            ? "border-emerald-200 bg-emerald-500 text-white"
+            : isActive
+              ? "border-orange-200 bg-orange-50 text-[#FF6B35]"
+              : "border-slate-200 bg-white text-slate-400"
+        }`}
+      >
+        {isDone ? <Check className="h-5 w-5" /> : index}
       </div>
-
-      <div className="flex-1 overflow-y-auto bg-slate-50 p-4 sm:p-6 lg:p-8">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-          <main className="flex flex-col gap-6 lg:col-span-8">
-            <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#1B3FAB] ring-1 ring-blue-100">
-                  <Briefcase className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Project context</p>
-                  <h3 className="text-lg font-black text-slate-900">Role Overview</h3>
-                </div>
-              </div>
-              <p className="mt-5 text-[15px] leading-7 text-slate-600">
-                {project.description || "No additional description was provided."}
-              </p>
-            </section>
-          </main>
-
-          <aside className="self-start lg:sticky lg:top-0 lg:col-span-4">
-            <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_22px_55px_rgba(15,23,42,0.10)]">
-              <div className="border-b border-slate-100 bg-white p-6">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">Invitation terms</p>
-                    <h3 className="mt-1 text-xl font-black text-slate-900">Ready to accept?</h3>
-                  </div>
-                  <span className="flex items-center gap-1 rounded-full border border-purple-200 bg-purple-100 px-3 py-1 text-xs font-black text-purple-700">
-                    <Trophy size={12} />
-                    {potentialPoints} PTS
-                  </span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-3 p-5">
-                <div className="flex items-center gap-3 rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100">
-                  <IndianRupee className="h-5 w-5 text-[#1B3FAB]" />
-                  <div>
-                    <p className="text-xs font-semibold text-slate-500">Budget</p>
-                    <p className="text-sm font-black text-slate-900">₹{Number(project.budget).toLocaleString("en-IN")}</p>
-                  </div>
-                </div>
-                {project.deadline && (
-                  <div className="flex items-center gap-3 rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100">
-                    <Timer className="h-5 w-5 text-[#1B3FAB]" />
-                    <div>
-                      <p className="text-xs font-semibold text-slate-500">Deadline</p>
-                      <p className="text-sm font-black text-slate-900">
-                        {new Date(project.deadline).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="border-t border-slate-100 p-5">
-                <button
-                  onClick={onAccept}
-                  disabled={accepting}
-                  className="w-full rounded-2xl bg-[#FF6B35] px-5 py-4 text-sm font-black text-white shadow-lg shadow-orange-200 transition-all duration-300 hover:-translate-y-0.5 hover:scale-105 hover:bg-[#e95c25] hover:shadow-xl active:scale-[0.98] disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:scale-100"
-                >
-                  {accepting ? "Accepting…" : "Accept Invitation"}
-                </button>
-              </div>
-            </div>
-          </aside>
-        </div>
+      <div className={`rounded-2xl border p-4 shadow-sm ${isActive ? "border-orange-200 bg-orange-50/70" : "border-slate-200 bg-white"}`}>
+        <p className="text-sm font-black text-slate-900">{title}</p>
+        <p className="mt-1 text-xs leading-5 text-slate-500">{description}</p>
       </div>
-    </>
+    </div>
   );
 }
 
-// ─── State 2: Project Detail / Status View ───────────────────────────────────
-
-function ProjectDetailView({ project, onNameClick, onAdvance, advancing }) {
-  const navigate = useNavigate();
-  const { currentUser } = useAuth();
-  const status = project.status;
-  const meta = PROJECT_STATUS_META[status];
-  const nextStatus = nextProjectStatus(status);
-  const [existingReview, setExistingReview] = useState(undefined); // undefined = loading, null = none
-  const [reviewError, setReviewError] = useState("");
-
-  useEffect(() => {
-    if (status !== "COMPLETED") return;
-    let cancelled = false;
-    setExistingReview(undefined);
-    listReviewsFor(project.business_id)
-      .then((reviews) => {
-        if (cancelled) return;
-        const mine = reviews.find((r) => r.project_id === project.id && r.reviewer_id === currentUser?.id);
-        setExistingReview(mine ?? null);
-      })
-      .catch(() => {
-        if (!cancelled) setExistingReview(null);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [status, project.id, project.business_id, currentUser?.id]);
-
-  if (status === "COMPLETED") {
-    return (
-      <div className="flex-1 flex flex-col min-h-0">
-        <IdentityHeader
-          name={project.business_name}
-          subtitle={project.title}
-          initials={getInitials(project.business_name)}
-          statusPill={{ text: "Completed", tone: "emerald" }}
-          onNameClick={onNameClick}
-        />
-        {existingReview === undefined ? (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[#1B3FAB]" />
-          </div>
-        ) : (
-          <>
-            {reviewError && (
-              <div className="flex-shrink-0 mx-6 mt-4 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
-                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                <span>{reviewError}</span>
-              </div>
-            )}
-            <ProjectCompletionHub
-              perspective="worker"
-              counterpartName={project.business_name}
-              amount={Number(project.budget)}
-              review={existingReview}
-              onSubmit={async (rating, feedback) => {
-                setReviewError("");
-                try {
-                  const created = await submitReview({ projectId: project.id, rating, feedback });
-                  setExistingReview(created);
-                } catch (err) {
-                  setReviewError(err instanceof ApiError ? err.message : "Could not submit review.");
-                }
-              }}
-            />
-          </>
-        )}
-      </div>
-    );
-  }
-
+function AcceptWizardPanel({ project, onBack, onStart, actionBusy }) {
   return (
-    <div className="flex-1 flex flex-col min-h-0">
-      <IdentityHeader
-        name={project.business_name}
-        subtitle={project.title}
-        initials={getInitials(project.business_name)}
-        onNameClick={onNameClick}
-      />
+    <div className="flex h-full min-h-0 flex-col">
+      <button
+        type="button"
+        onClick={onBack}
+        className="mb-4 flex w-fit items-center gap-2 rounded-xl px-2 py-1 text-xs font-bold text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+      >
+        <ArrowLeftRight className="h-3.5 w-3.5" />
+        Back to invitation
+      </button>
 
-      <TimelineTracker status={status} />
+      <div className="flex-1 overflow-hidden rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="mb-5 flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0A1128] text-white">
+            <Sparkles className="h-5 w-5 text-[#FF6B35]" />
+          </div>
+          <div>
+            <p className="text-[11px] font-black uppercase tracking-[0.22em] text-[#1B3FAB]">Lock terms</p>
+            <h2 className="text-xl font-black text-slate-900">Acceptance wizard</h2>
+          </div>
+        </div>
 
-      {status === "FUNDS_SECURED" || status === "WORK_IN_PROGRESS" || status === "FILES_SUBMITTED" ? (
-        <div className="flex-shrink-0 bg-emerald-50 border-b border-emerald-100 px-6 py-1.5 flex items-center justify-between gap-1.5">
-          <span className="flex items-center gap-1.5">
-            <ShieldCheck className="w-3 h-3 text-emerald-600 flex-shrink-0" />
-            <p className="text-[11px] font-semibold text-emerald-700">Funds secured for this project</p>
-          </span>
-          <button
-            onClick={() => navigate(`/invoice?role=worker&id=${project.id}`)}
-            className="text-[11px] font-bold text-emerald-700 hover:text-emerald-900 underline underline-offset-2 flex-shrink-0"
-          >
-            View Invoice
-          </button>
-        </div>
-      ) : (
-        <div className="flex-shrink-0 bg-slate-100 border-b border-slate-200 px-6 py-1.5 flex items-center gap-1.5">
-          <Timer className="w-3 h-3 text-slate-400 flex-shrink-0" />
-          <p className="text-[11px] font-semibold text-slate-500">Awaiting payment confirmation from {project.business_name}</p>
-        </div>
-      )}
-
-      {meta?.actionBy === "worker" && nextStatus && (
-        <div className="flex-shrink-0 bg-white border-b border-slate-200 px-6 py-2.5 flex justify-end">
-          <button
-            onClick={() => onAdvance(nextStatus)}
-            disabled={advancing}
-            className="bg-[#0F172A] hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors disabled:opacity-60"
-          >
-            {advancing ? "Updating…" : meta.nextActionLabel}
-          </button>
-        </div>
-      )}
-      {status === "FILES_SUBMITTED" && (
-        <div className="flex-shrink-0 bg-amber-50 border-b border-amber-100 px-6 py-1.5">
-          <p className="text-[11px] font-semibold text-amber-700">Awaiting business approval &amp; fund release</p>
-        </div>
-      )}
-
-      <div className="flex-1 overflow-y-auto px-6 py-8 bg-slate-50 flex items-start justify-center">
-        <div className="max-w-lg w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-[#FF6B35] ring-1 ring-orange-100">
-              <Sparkles className="h-5 w-5" />
+        <div className="space-y-4">
+          <WizardStep
+            index={1}
+            title="Review Scope"
+            description={`Scope reviewed for "${project.title}". Budget, timeline, and deliverables are attached to this invite.`}
+            state="done"
+          />
+          <WizardStep
+            index={2}
+            title="Confirm Escrow Lock"
+            description="The funded terms are protected in WorkBridge escrow before work moves into the active workspace."
+            state="active"
+          />
+          <div className="relative flex gap-4">
+            <div className="z-10 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-sm font-black text-slate-500 shadow-sm">
+              3
             </div>
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Brief</p>
-              <h3 className="text-lg font-black text-slate-900">{project.title}</h3>
+            <div className="flex-1 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+              <p className="text-sm font-black text-slate-900">Start Project</p>
+              <p className="mt-1 text-xs leading-5 text-slate-500">
+                Finalize acceptance and move this project into your active workspace.
+              </p>
+              <button
+                type="button"
+                onClick={onStart}
+                disabled={actionBusy}
+                className="mt-4 flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl bg-[#1B3FAB] px-5 py-3 text-sm font-black text-white shadow-md shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-[#173795] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+              >
+                <Zap className="h-4 w-4" />
+                {actionBusy ? "Finalizing..." : "Start Project ⚡"}
+              </button>
             </div>
           </div>
-          <p className="text-sm leading-7 text-slate-600">{project.description || "No additional description was provided."}</p>
         </div>
       </div>
     </div>
   );
 }
 
-// ─── Main component ──────────────────────────────────────────────────────────
+function MessageBubble({ message }) {
+  const isWorker = message.sender === "worker";
+
+  return (
+    <div className={`flex ${isWorker ? "justify-end" : "justify-start"}`}>
+      <div className={`max-w-[72%] ${isWorker ? "items-end" : "items-start"} flex flex-col gap-1`}>
+        <div
+          className={`rounded-3xl px-4 py-3 text-sm leading-6 shadow-sm ${
+            isWorker
+              ? "rounded-br-lg bg-[#1B3FAB] text-white"
+              : "rounded-bl-lg border border-slate-200 bg-white text-slate-800"
+          }`}
+        >
+          {message.text}
+        </div>
+        <span className="px-1 text-[11px] font-semibold text-slate-400">{message.time}</span>
+      </div>
+    </div>
+  );
+}
+
+function ChatPanel({ project, messages, draft, onDraftChange, onSend }) {
+  const feedRef = useRef(null);
+
+  useEffect(() => {
+    feedRef.current?.scrollTo({ top: feedRef.current.scrollHeight, behavior: "smooth" });
+  }, [messages.length, project?.id]);
+
+  return (
+    <section className="flex h-full min-h-0 w-[60%] flex-col bg-slate-50">
+      <header className="sticky top-0 z-10 flex min-h-[72px] flex-shrink-0 items-center justify-between border-b border-slate-200 bg-white/95 px-6 backdrop-blur-xl">
+        <div>
+          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Negotiation Chat</p>
+          <h2 className="mt-1 text-lg font-black text-slate-900">Chat with {project.business_name}</h2>
+        </div>
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">
+          <BadgeCheck className="h-3.5 w-3.5" />
+          Verified client
+        </span>
+      </header>
+
+      <div ref={feedRef} className="flex-1 space-y-5 overflow-y-auto px-6 py-6">
+        {messages.map((message) => (
+          <MessageBubble key={message.id} message={message} />
+        ))}
+      </div>
+
+      <form onSubmit={onSend} className="flex-shrink-0 border-t border-slate-200 bg-white px-5 py-4">
+        <div className="flex items-center gap-3 rounded-full border border-slate-200 bg-slate-50 p-2 shadow-sm focus-within:border-[#1B3FAB] focus-within:ring-4 focus-within:ring-[#1B3FAB]/10">
+          <input
+            value={draft}
+            onChange={(event) => onDraftChange(event.target.value)}
+            placeholder="Write a message..."
+            className="min-h-[42px] flex-1 bg-transparent px-4 text-sm text-slate-900 outline-none placeholder:text-slate-400"
+          />
+          <button
+            type="submit"
+            className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-[#FF6B35] text-white shadow-sm shadow-orange-200 transition hover:bg-[#e85d27] disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={!draft.trim()}
+            aria-label="Send message"
+          >
+            <Send className="h-4 w-4" />
+          </button>
+        </div>
+      </form>
+    </section>
+  );
+}
 
 export default function WorkerNegotiationInbox({ initialProjectId }) {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
-  const [selectedId, setSelectedId] = useState(initialProjectId ?? null);
-  const [toast, setToast] = useState("");
   const [actionError, setActionError] = useState("");
-  const [accepting, setAccepting] = useState(false);
-  const [advancing, setAdvancing] = useState(false);
-  const [showQuickView, setShowQuickView] = useState(false);
+  const [selectedId, setSelectedId] = useState(initialProjectId ?? null);
+  const [panelMode, setPanelMode] = useState("details");
+  const [actionBusy, setActionBusy] = useState(false);
+  const [toast, setToast] = useState("");
   const [businessProfile, setBusinessProfile] = useState(null);
-  const [businessProfileLoading, setBusinessProfileLoading] = useState(false);
+  const [messagesByProject, setMessagesByProject] = useState({});
+  const [draft, setDraft] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -380,7 +333,11 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
       .then((data) => {
         if (cancelled) return;
         setProjects(data);
-        setSelectedId((current) => current ?? initialProjectId ?? data[0]?.id ?? null);
+        const preferred = data.find((project) => project.id === initialProjectId)
+          ?? data.find((project) => project.status === "INVITED")
+          ?? data[0]
+          ?? null;
+        setSelectedId(preferred?.id ?? null);
       })
       .catch((err) => {
         if (!cancelled) setLoadError(err instanceof ApiError ? err.message : "Could not load your invitations.");
@@ -391,65 +348,89 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (initialProjectId && projects.some((p) => p.id === initialProjectId)) {
-      setSelectedId(initialProjectId);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialProjectId]);
 
-  const selectedProject = projects.find((p) => p.id === selectedId) ?? null;
+  const selectedProject = useMemo(
+    () => projects.find((project) => project.id === selectedId) ?? null,
+    [projects, selectedId]
+  );
+
+  useEffect(() => {
+    setPanelMode("details");
+    setActionError("");
+    setDraft("");
+  }, [selectedId]);
+
+  useEffect(() => {
+    if (!selectedProject) return;
+    setMessagesByProject((current) => {
+      if (current[selectedProject.id]) return current;
+      return { ...current, [selectedProject.id]: seedMessages(selectedProject) };
+    });
+  }, [selectedProject]);
+
+  useEffect(() => {
+    if (!selectedProject?.business_id) return;
+    let cancelled = false;
+    getPublicProfile(selectedProject.business_id)
+      .then((profile) => {
+        if (!cancelled) setBusinessProfile(profile);
+      })
+      .catch(() => {
+        if (!cancelled) setBusinessProfile(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedProject?.business_id]);
 
   const patchProject = (updated) => {
-    setProjects((current) => current.map((p) => (p.id === updated.id ? { ...p, ...updated } : p)));
+    setProjects((current) => current.map((project) => (project.id === updated.id ? { ...project, ...updated } : project)));
   };
 
-  const handleAccept = async () => {
+  const handleStartProject = async () => {
     if (!selectedProject) return;
-    setAccepting(true);
+    setActionBusy(true);
     setActionError("");
     try {
-      const updated = await updateProjectStatus(selectedProject.id, "ACCEPTED");
-      patchProject(updated);
-      setToast(`Invitation accepted — ${selectedProject.business_name} has been notified.`);
+      if (selectedProject.status === "INVITED") {
+        const updated = await updateProjectStatus(selectedProject.id, "ACCEPTED");
+        patchProject(updated);
+      }
+      setPanelMode("details");
+      setToast("Terms locked. Project moved into your workspace.");
       window.setTimeout(() => setToast(""), 2600);
     } catch (err) {
-      setActionError(err instanceof ApiError ? err.message : "Could not accept this invitation.");
+      setActionError(err instanceof ApiError ? err.message : "Could not lock this invitation.");
     } finally {
-      setAccepting(false);
+      setActionBusy(false);
     }
   };
 
-  const handleAdvance = async (nextStatus) => {
-    if (!selectedProject) return;
-    setAdvancing(true);
-    setActionError("");
-    try {
-      const updated = await updateProjectStatus(selectedProject.id, nextStatus);
-      patchProject(updated);
-    } catch (err) {
-      setActionError(err instanceof ApiError ? err.message : "Could not update this project.");
-    } finally {
-      setAdvancing(false);
-    }
+  const handleDecline = () => {
+    setToast("Invitation declined for now.");
+    window.setTimeout(() => setToast(""), 2200);
   };
 
-  const openQuickView = () => {
-    setShowQuickView(true);
-    if (!selectedProject) return;
-    setBusinessProfileLoading(true);
-    getPublicProfile(selectedProject.business_id)
-      .then(setBusinessProfile)
-      .catch(() => setBusinessProfile(null))
-      .finally(() => setBusinessProfileLoading(false));
+  const handleSend = (event) => {
+    event.preventDefault();
+    if (!selectedProject || !draft.trim()) return;
+    const message = {
+      id: `worker-${Date.now()}`,
+      sender: "worker",
+      text: draft.trim(),
+      time: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }),
+    };
+    setMessagesByProject((current) => ({
+      ...current,
+      [selectedProject.id]: [...(current[selectedProject.id] ?? []), message],
+    }));
+    setDraft("");
   };
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center">
+      <div className="flex h-full items-center justify-center bg-slate-50">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[#1B3FAB]" />
       </div>
     );
@@ -457,113 +438,107 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
 
   if (loadError) {
     return (
-      <div className="p-7">
-        <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
-          <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+      <div className="flex h-full items-center justify-center bg-slate-50 p-7">
+        <div className="flex max-w-md items-start gap-2 rounded-2xl border border-red-100 bg-white px-4 py-3 text-sm text-red-600 shadow-sm">
+          <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
           <span>{loadError}</span>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="flex h-full overflow-hidden" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-      {/* ── Left: Invitation Inbox (w-1/3) ──────────────────────────────── */}
-      <div className="w-1/3 min-w-[280px] max-w-[360px] flex flex-col border-r border-slate-200 bg-white flex-shrink-0">
-        <div className="px-5 py-4 border-b border-slate-100 flex-shrink-0">
-          <h1 className="font-extrabold text-[#0F172A] text-base" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-            Invitations
-          </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
-            {projects.filter((p) => p.status === "INVITED").length} pending · {projects.filter((p) => p.status !== "INVITED").length} accepted
-          </p>
-        </div>
-        <div className="flex-1 overflow-y-auto">
-          {projects.length === 0 ? (
-            <p className="text-sm text-slate-400 text-center py-8 px-4">No invitations yet.</p>
-          ) : (
-            projects.map((project) => (
-              <ProjectItem
-                key={project.id}
-                project={project}
-                isSelected={selectedId === project.id}
-                onClick={() => setSelectedId(project.id)}
-              />
-            ))
-          )}
+  if (!selectedProject) {
+    return (
+      <div className="flex h-full items-center justify-center bg-slate-50 p-7">
+        <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+          <MessageSquare className="mx-auto h-10 w-10 text-slate-300" />
+          <h2 className="mt-4 text-lg font-black text-slate-900">No invitations yet</h2>
+          <p className="mt-1 text-sm text-slate-500">New business invites will appear here.</p>
         </div>
       </div>
+    );
+  }
 
-      {/* ── Right: Dynamic Gate / Detail (w-2/3) ────────────────────────── */}
-      <div className="w-2/3 flex-1 flex flex-col min-h-0 bg-slate-50 relative">
+  const messages = messagesByProject[selectedProject.id] ?? [];
+
+  return (
+    <div className="relative flex h-full min-h-0 overflow-hidden bg-white" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+      <aside className="flex h-full min-h-0 w-[40%] min-w-[380px] flex-col border-r border-slate-200 bg-white">
+        <IdentityHeader
+          name={selectedProject.business_name}
+          subtitle={selectedProject.title}
+          initials={getInitials(selectedProject.business_name)}
+          verified={businessProfile?.verified ?? true}
+          rating={businessProfile?.rating}
+          reviews={businessProfile?.reviews_count}
+        />
+
+        {projects.length > 1 && (
+          <div className="flex flex-shrink-0 gap-2 overflow-x-auto border-b border-slate-200 bg-white px-5 py-3">
+            {projects.slice(0, 6).map((project) => (
+              <button
+                key={project.id}
+                type="button"
+                onClick={() => setSelectedId(project.id)}
+                className={`whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-black transition ${
+                  project.id === selectedProject.id
+                    ? "border-[#1B3FAB] bg-[#1B3FAB] text-white"
+                    : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-900"
+                }`}
+              >
+                {project.title}
+              </button>
+            ))}
+          </div>
+        )}
+
         {actionError && (
-          <div className="flex-shrink-0 m-4 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
-            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+          <div className="mx-5 mt-4 flex flex-shrink-0 items-start gap-2 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+            <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
             <span>{actionError}</span>
           </div>
         )}
-        {!selectedProject ? (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
-              <MessageSquare className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500 font-semibold">Select an invitation</p>
-            </div>
-          </div>
-        ) : (
-          <AnimatePresence mode="wait">
-            {selectedProject.status === "INVITED" ? (
-              <motion.div
-                key={`gate-${selectedProject.id}`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
-                className="flex-1 flex flex-col min-h-0"
-              >
-                <InvitationGateView
+
+        <div className="min-h-0 flex-1 overflow-hidden p-5">
+          <AnimatePresence mode="wait" initial={false}>
+            {panelMode === "details" ? (
+              <MotionPanel panelKey={`details-${selectedProject.id}`}>
+                <JobDetailsPanel
                   project={selectedProject}
-                  onAccept={handleAccept}
-                  onNameClick={openQuickView}
-                  accepting={accepting}
+                  onAccept={() => setPanelMode("wizard")}
+                  onDecline={handleDecline}
+                  actionBusy={actionBusy}
                 />
-              </motion.div>
+              </MotionPanel>
             ) : (
-              <motion.div
-                key={`detail-${selectedProject.id}`}
-                initial={{ opacity: 0, x: 48 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.45, ease: "easeOut" }}
-                className="flex-1 flex flex-col min-h-0"
-              >
-                <ProjectDetailView
+              <MotionPanel panelKey={`wizard-${selectedProject.id}`}>
+                <AcceptWizardPanel
                   project={selectedProject}
-                  onNameClick={openQuickView}
-                  onAdvance={handleAdvance}
-                  advancing={advancing}
+                  onBack={() => setPanelMode("details")}
+                  onStart={handleStartProject}
+                  actionBusy={actionBusy}
                 />
-              </motion.div>
+              </MotionPanel>
             )}
           </AnimatePresence>
-        )}
+        </div>
+      </aside>
 
-        {toast && (
-          <div className="absolute bottom-6 right-6 z-20 rounded-2xl border border-emerald-200 bg-white px-5 py-4 text-sm font-bold text-emerald-700 shadow-2xl animate-in fade-in slide-in-from-bottom-2">
-            <span className="flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5" />
-              {toast}
-            </span>
-          </div>
-        )}
-      </div>
+      <ChatPanel
+        project={selectedProject}
+        messages={messages}
+        draft={draft}
+        onDraftChange={setDraft}
+        onSend={handleSend}
+      />
 
-      {showQuickView && (
-        <BusinessQuickView
-          project={selectedProject}
-          businessProfile={businessProfile}
-          loading={businessProfileLoading}
-          onClose={() => setShowQuickView(false)}
-        />
+      {toast && (
+        <div className="absolute bottom-6 left-1/2 z-20 -translate-x-1/2 rounded-2xl border border-emerald-200 bg-white px-5 py-3 text-sm font-black text-emerald-700 shadow-md">
+          <span className="flex items-center gap-2">
+            <Check className="h-4 w-4" />
+            {toast}
+          </span>
+        </div>
       )}
     </div>
   );
