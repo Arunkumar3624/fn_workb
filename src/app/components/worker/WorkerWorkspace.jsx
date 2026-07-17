@@ -240,8 +240,10 @@ export default function WorkerWorkspace() {
                   try {
                     const created = await submitReview({ projectId: selectedTask.id, rating, feedback });
                     setExistingReview(created);
+                    return created;
                   } catch (err) {
                     setReviewError(err instanceof ApiError ? err.message : "Could not submit review.");
+                    throw err;
                   }
                 }}
               />

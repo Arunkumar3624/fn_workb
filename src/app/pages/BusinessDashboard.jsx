@@ -5,6 +5,7 @@ import BusinessOverview from "../components/business/BusinessOverview";
 import BusinessPostJob from "../components/business/BusinessPostJob";
 import BusinessWorkers from "../components/business/BusinessWorkers";
 import BusinessProjects from "../components/business/BusinessProjects";
+import BusinessNegotiationHub from "../components/business/BusinessNegotiationHub";
 import BusinessCompany from "../components/business/BusinessCompany";
 
 export default function BusinessDashboard({ onLogout, onVerify, isVerified = false }) {
@@ -64,6 +65,12 @@ export default function BusinessDashboard({ onLogout, onVerify, isVerified = fal
           />
         )}
         {tab === "projects" && <BusinessProjects />}
+        {tab === "negotiations" && (
+          <BusinessNegotiationHub
+            onFindTalent={() => setTab("workers")}
+            onViewContractTerms={() => setTab("projects")}
+          />
+        )}
         {tab === "company" && <BusinessCompany />}
       </div>
     </DashboardLayout>

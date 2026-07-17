@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
-import { CheckCircle2, History, Star, Zap } from "lucide-react";
+import { CheckCircle2, History, Zap } from "lucide-react";
+import ReviewModule from "./ReviewModule";
 
 function formatINR(amount) {
   if (!amount) return null;
@@ -39,31 +40,20 @@ export default function ProjectCompletionHub({
   // A dummy/incompletely-linked project can come back with no joined name —
   // never show the literal word "undefined" to a user.
   const counterpartName = rawCounterpartName || "this freelancer";
-  const [rating, setRating] = useState(review?.rating ?? 0);
-  const [hoverRating, setHoverRating] = useState(0);
-  const [feedback, setFeedback] = useState(review?.feedback ?? "");
+  const [localReview, setLocalReview] = useState(review ?? null);
   const [rehired, setRehired] = useState(false);
   const copy = COPY[perspective];
-  const submitted = Boolean(review);
 
   useEffect(() => {
-    if (review) {
-      setRating(review.rating ?? 0);
-      setFeedback(review.feedback ?? "");
-    } else {
-      setRating(0);
-      setFeedback("");
-    }
-    setHoverRating(0);
-  }, [review?.rating, review?.feedback]);
+    setLocalReview(review ?? null);
+  }, [review]);
 
   // Rating and rehiring are independent decisions — a business should be able
   // to leave a rating without committing to rehire, or rehire without having
   // rated yet. Each button below only ever drives its own action.
-  const handleSubmitReview = () => {
-    if (!submitted && rating > 0) {
-      onSubmit(rating, feedback.trim());
-    }
+  const handleSaveReview = async (nextRating, nextFeedback) => {
+    const savedReview = await onSubmit?.(nextRating, nextFeedback);
+    setLocalReview(savedReview ?? { ...(localReview ?? {}), rating: nextRating, feedback: nextFeedback });
   };
 
   const handleRehireClick = () => {
@@ -100,68 +90,17 @@ export default function ProjectCompletionHub({
 
         {/* Evaluation Card */}
         <div className="border-t border-slate-100 px-5 py-8 sm:px-12">
-          <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 sm:p-5">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h3 className="text-base font-bold text-[#0F172A]">{copy.ratingTitle(counterpartName)}</h3>
-                <p className="mt-1 text-sm text-slate-500">
-                  {submitted
-                    ? "Your rating is saved. You can still rehire them separately if you want."
-                    : "Leave a rating without committing to rehire."}
-                </p>
-              </div>
-              {submitted && (
-                <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
-                  Rated
-                </span>
-              )}
-            </div>
-
-            <div className="mt-4 flex items-center justify-center gap-2">
-              {[1, 2, 3, 4, 5].map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  disabled={submitted}
-                  onMouseEnter={() => !submitted && setHoverRating(n)}
-                  onMouseLeave={() => !submitted && setHoverRating(0)}
-                  onClick={() => !submitted && setRating(n)}
-                  aria-label={`Rate ${n} out of 5`}
-                  className="flex h-11 w-11 items-center justify-center transition-transform disabled:cursor-default enabled:hover:scale-110"
-                >
-                  <Star
-                    className={`h-8 w-8 ${
-                      n <= (hoverRating || rating) ? "fill-amber-400 text-amber-400" : "fill-slate-100 text-slate-300"
-                    }`}
-                  />
-                </button>
-              ))}
-            </div>
-
-            <textarea
-              value={feedback}
-              onChange={(e) => setFeedback(e.target.value)}
-              disabled={submitted}
-              placeholder={copy.feedbackPlaceholder}
-              rows={3}
-              className="mt-5 w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-[#0F172A] placeholder-slate-400 transition-colors focus:border-[#FF6B35] focus:outline-none focus:ring-2 focus:ring-[#FF6B35]/30 disabled:bg-slate-100 disabled:text-slate-500"
-            />
-
-            {!submitted ? (
-              <button
-                onClick={handleSubmitReview}
-                disabled={rating === 0}
-                className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0F172A] py-3.5 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
-              >
-                Submit Rating
-              </button>
-            ) : (
-              <p className="mt-3 flex items-center justify-center gap-1.5 text-xs font-semibold text-emerald-600">
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                Review submitted — thanks for the feedback
-              </p>
-            )}
-          </div>
+          <ReviewModule
+            title={copy.ratingTitle(counterpartName)}
+            helperText={
+              localReview
+                ? "Your review is saved. You can edit it without triggering duplicate actions."
+                : "Leave a rating without committing to rehire."
+            }
+            initialRating={localReview?.rating ?? 0}
+            initialFeedback={localReview?.feedback ?? ""}
+            onSave={handleSaveReview}
+          />
         </div>
 
         {/* Retention Engine — business only. Rating and rehiring are two
@@ -198,18 +137,6 @@ export default function ProjectCompletionHub({
           </div>
         )}
 
-        {/* Worker perspective: submit-only, no rehire engine */}
-        {perspective === "worker" && !submitted && (
-          <div className="border-t border-slate-100 bg-slate-50/60 px-5 py-6 sm:px-12">
-            <button
-              onClick={() => rating > 0 && onSubmit(rating, feedback.trim())}
-              disabled={rating === 0}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0F172A] py-3.5 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
-            >
-              Submit Rating
-            </button>
-          </div>
-        )}
       </motion.div>
     </div>
   );

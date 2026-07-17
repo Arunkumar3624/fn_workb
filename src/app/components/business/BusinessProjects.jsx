@@ -399,6 +399,7 @@ function RatingModal({ project, currentUserId, onClose, onRehire, onRated }) {
               const created = await submitReview({ projectId: project.id, rating, feedback });
               setExistingReview(created);
               onRated?.(project.id, created.rating);
+              return created;
             }}
             onRehire={onRehire}
           />

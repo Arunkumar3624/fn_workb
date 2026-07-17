@@ -4,6 +4,7 @@ import {
   Building2,
   Lock,
   LogOut,
+  MessageSquare,
   Plus,
   ShieldCheck,
   Users,
@@ -17,6 +18,7 @@ const NAV = [
   { id: "post", label: "Post a Job", icon: Plus },
   { id: "workers", label: "Find Workers", icon: Users },
   { id: "projects", label: "Active Projects", icon: Briefcase },
+  { id: "negotiations", label: "Negotiations", icon: MessageSquare },
   { id: "company", label: "Company Page", icon: Building2 },
 ];
 
