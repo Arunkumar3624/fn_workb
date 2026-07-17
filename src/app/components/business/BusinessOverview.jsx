@@ -252,7 +252,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
                 className="text-2xl font-extrabold text-[#0F172A]"
                 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
               >
-                Command Center
+                OverView
               </h1>
               <span className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold rounded-full">
                 <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />

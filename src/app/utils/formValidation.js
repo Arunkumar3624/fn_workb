@@ -58,6 +58,11 @@ export const signupSchema = authSchema.extend({
   fullName: cleanText,
 });
 
+export const adminAuthSchema = z.object({
+  email: emailSchema,
+  password: z.string().min(1, "Password is required"),
+});
+
 export const postJobSchema = z.object({
   title: cleanText,
   category: cleanText,

@@ -2,10 +2,22 @@ import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  Briefcase, Building2, Shield, ChevronRight,
-  Lock, Zap, Award, AlertCircle,
+  AlertCircle,
+  ArrowLeft,
+  Award,
+  Briefcase,
+  Building2,
+  ChevronRight,
+  Eye,
+  EyeOff,
+  Lock,
+  Mail,
+  Shield,
+  Smartphone,
+  User,
+  Zap,
 } from "lucide-react";
-import { authSchema } from "../utils/formValidation";
+import { adminAuthSchema, authSchema, signupSchema } from "../utils/formValidation";
 import { apiFetch } from "../lib/apiClient";
 import { useAuth } from "../context/AuthContext";
 
@@ -16,180 +28,178 @@ const USER_CONFIG = {
 };
 
 const BRAND_FEATURES = [
-  { I: Lock, t: "Protected payments held in escrow until you approve" },
-  { I: Zap, t: "Protected payments released in 60 seconds" },
-  { I: Shield, t: "Verified profiles and behavior-score trust system" },
-  { I: Award, t: "Behavior score & trust badges system" },
+  { Icon: Lock, text: "Protected payments held securely until approval" },
+  { Icon: Zap, text: "Fast payouts released in under 60 seconds" },
+  { Icon: Shield, text: "Verified profiles and behavior-score trust" },
+  { Icon: Award, text: "Trust badges that reward great work" },
 ];
 
 const OTP_LENGTH = 6;
+const AUTH_INPUT_CLASS = "h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-[#1B3FAB] focus:bg-white focus:ring-4 focus:ring-[#1B3FAB]/10";
 
-function normalizeIdentifier(value) {
-  const trimmed = value.trim();
-  const digits = trimmed.replace(/\D/g, "");
-  if (/^91\d{10}$/.test(digits)) return digits.slice(2);
-  if (/^\d{10}$/.test(digits)) return digits;
-  return trimmed.toLowerCase();
-}
-
-function isPhoneIdentifier(value) {
-  return /^\d{10}$/.test(value);
-}
-
-function isEmailIdentifier(value) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-}
-
-function displayIdentifier(value) {
-  return isPhoneIdentifier(value) ? `+91 ${value}` : value;
+function otpPayload(values, role, mode) {
+  const email = values.email.trim().toLowerCase();
+  const phone = values.phone.replace(/\D/g, "").slice(-10);
+  return {
+    identifier: email,
+    role,
+    mode,
+    email,
+    phone,
+    password: values.password,
+    ...(mode === "signup" ? { name: values.fullName.trim() } : {}),
+  };
 }
 
 export default function AuthPage({ userType, onSuccess, onBack }) {
   const isAdmin = userType === "admin";
+  const cfg = USER_CONFIG[userType] ?? USER_CONFIG.worker;
   const [authStep, setAuthStep] = useState(isAdmin ? "admin" : "input");
-  const [identifier, setIdentifier] = useState("");
-  const [sentTo, setSentTo] = useState("");
-  const [identifierError, setIdentifierError] = useState("");
+  const [authMode, setAuthMode] = useState("signin");
+  const [pendingCredentials, setPendingCredentials] = useState(null);
   const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(""));
   const [otpError, setOtpError] = useState("");
   const [infoMessage, setInfoMessage] = useState("");
+  const [formError, setFormError] = useState("");
   const [sendingOtp, setSendingOtp] = useState(false);
   const [verifyingOtp, setVerifyingOtp] = useState(false);
   const [resendCountdown, setResendCountdown] = useState(0);
+  const [showPassword, setShowPassword] = useState(false);
   const otpInputs = useRef([]);
-  const [submitting, setSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const verifyingRef = useRef(false);
   const { login, authenticate } = useAuth();
+
+  const activeSchema = isAdmin
+    ? adminAuthSchema
+    : authMode === "signup"
+      ? signupSchema
+      : authSchema;
+
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(authSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
+    resolver: zodResolver(activeSchema),
+    defaultValues: { fullName: "", email: "", phone: "", password: "" },
   });
-
-  const cfg = USER_CONFIG[userType];
 
   useEffect(() => {
     setAuthStep(isAdmin ? "admin" : "input");
-    setIdentifier("");
-    setSentTo("");
-    setIdentifierError("");
+    setAuthMode("signin");
+    setPendingCredentials(null);
     setOtp(Array(OTP_LENGTH).fill(""));
     setOtpError("");
     setInfoMessage("");
-    setSendingOtp(false);
-    setVerifyingOtp(false);
+    setFormError("");
     setResendCountdown(0);
-    reset({ email: "", password: "" });
-  }, [isAdmin, userType, reset]);
+    setShowPassword(false);
+    reset({ fullName: "", email: "", phone: "", password: "" });
+  }, [isAdmin, reset, userType]);
 
   useEffect(() => {
     if (authStep === "otp") {
-      window.setTimeout(() => otpInputs.current[0]?.focus(), 0);
+      const focusTimer = window.setTimeout(() => otpInputs.current[0]?.focus(), 80);
+      return () => window.clearTimeout(focusTimer);
     }
+    return undefined;
   }, [authStep]);
 
   useEffect(() => {
-    if (resendCountdown <= 0) return;
-    const timer = window.setTimeout(() => setResendCountdown((count) => count - 1), 1000);
+    if (resendCountdown <= 0) return undefined;
+    const timer = window.setTimeout(
+      () => setResendCountdown((count) => Math.max(0, count - 1)),
+      1000
+    );
     return () => window.clearTimeout(timer);
   }, [resendCountdown]);
 
-  const handleSendOtp = async (event) => {
-    event.preventDefault();
-    setIdentifierError("");
+  const changeMode = (mode) => {
+    if (mode === authMode) return;
+    setAuthMode(mode);
+    setFormError("");
+    setShowPassword(false);
+    reset({ fullName: "", email: "", phone: "", password: "" });
+  };
+
+  const requestOtp = async (credentials, isResend = false) => {
+    setSendingOtp(true);
+    setFormError("");
     setOtpError("");
     setInfoMessage("");
 
-    const normalized = normalizeIdentifier(identifier);
-    if (!isPhoneIdentifier(normalized) && !isEmailIdentifier(normalized)) {
-      setIdentifierError("Enter a valid email address or 10-digit phone number.");
-      return;
-    }
-
-    setSendingOtp(true);
-
     try {
-      await apiFetch("/api/auth/send-otp", {
+      const result = await apiFetch("/api/auth/send-otp", {
         method: "POST",
-        body: {
-          identifier: normalized,
-          role: userType,
-        },
+        body: credentials,
       });
-
-      setSentTo(normalized);
-      setAuthStep("otp");
-      setResendCountdown(60);
+      setPendingCredentials(credentials);
       setOtp(Array(OTP_LENGTH).fill(""));
-      setInfoMessage(`A 6-digit code has been sent to ${displayIdentifier(normalized)}.`);
-    } catch (err) {
-      setIdentifierError(err.message ?? "Could not send OTP. Try again.");
+      setAuthStep("otp");
+      setResendCountdown(result?.resendAfterSeconds ?? 60);
+      setInfoMessage(isResend ? "A fresh code has been sent." : "Your secure code is on its way.");
+    } catch (error) {
+      const message = error.message ?? "Could not send the OTP. Please try again.";
+      if (isResend) setOtpError(message);
+      else setFormError(message);
     } finally {
       setSendingOtp(false);
     }
   };
 
+  const onUserContinue = (values) => requestOtp(otpPayload(values, userType, authMode));
+
   const verifyCode = async (code) => {
-    if (verifyingOtp) return;
+    if (verifyingRef.current || code.length !== OTP_LENGTH || !pendingCredentials) return;
+    verifyingRef.current = true;
+    setVerifyingOtp(true);
     setOtpError("");
     setInfoMessage("");
-    setVerifyingOtp(true);
 
     try {
       const { token, user } = await apiFetch("/api/auth/verify-otp", {
         method: "POST",
-        body: {
-          identifier: sentTo,
-          otp: code,
-          role: userType,
-        },
+        body: { ...pendingCredentials, otp: code },
       });
-
       authenticate(token, user);
       onSuccess(user);
-    } catch (err) {
-      setOtpError(err.message ?? "Invalid code. Check your digits and try again.");
+    } catch (error) {
+      setOtpError(error.message ?? "That code is invalid or expired. Please try again.");
       setOtp(Array(OTP_LENGTH).fill(""));
-      otpInputs.current[0]?.focus();
+      window.setTimeout(() => otpInputs.current[0]?.focus(), 0);
     } finally {
+      verifyingRef.current = false;
       setVerifyingOtp(false);
     }
   };
 
   const handleOtpChange = (index, event) => {
-    const nextValue = event.target.value.replace(/\D/g, "").slice(0, 1);
+    const digit = event.target.value.replace(/\D/g, "").slice(-1);
     const nextOtp = [...otp];
-    nextOtp[index] = nextValue;
+    nextOtp[index] = digit;
     setOtp(nextOtp);
+    setOtpError("");
 
-    if (nextValue && index < OTP_LENGTH - 1) {
-      otpInputs.current[index + 1]?.focus();
-    }
-
-    if (nextOtp.every(Boolean)) {
-      verifyCode(nextOtp.join(""));
-    }
+    if (digit && index < OTP_LENGTH - 1) otpInputs.current[index + 1]?.focus();
+    if (nextOtp.every(Boolean)) window.queueMicrotask(() => verifyCode(nextOtp.join("")));
   };
 
   const handleOtpKeyDown = (index, event) => {
-    if (event.key !== "Backspace") return;
-    event.preventDefault();
-
-    if (otp[index]) {
-      const nextOtp = [...otp];
-      nextOtp[index] = "";
-      setOtp(nextOtp);
+    if (event.key === "ArrowLeft" && index > 0) {
+      event.preventDefault();
+      otpInputs.current[index - 1]?.focus();
       return;
     }
-
+    if (event.key === "ArrowRight" && index < OTP_LENGTH - 1) {
+      event.preventDefault();
+      otpInputs.current[index + 1]?.focus();
+      return;
+    }
+    if (event.key !== "Backspace") return;
+    if (otp[index]) return;
     if (index > 0) {
+      event.preventDefault();
       const nextOtp = [...otp];
       nextOtp[index - 1] = "";
       setOtp(nextOtp);
@@ -201,258 +211,326 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
     event.preventDefault();
     const pasted = event.clipboardData.getData("text").replace(/\D/g, "").slice(0, OTP_LENGTH);
     if (!pasted) return;
-
-    const nextOtp = Array(OTP_LENGTH).fill("");
-    for (let i = 0; i < pasted.length; i += 1) {
-      nextOtp[i] = pasted[i];
-    }
+    const nextOtp = Array.from({ length: OTP_LENGTH }, (_, index) => pasted[index] ?? "");
     setOtp(nextOtp);
-    otpInputs.current[Math.min(pasted.length, OTP_LENGTH - 1)]?.focus();
-
-    if (pasted.length === OTP_LENGTH) {
-      verifyCode(pasted);
-    }
+    otpInputs.current[Math.min(pasted.length, OTP_LENGTH) - 1]?.focus();
+    if (pasted.length === OTP_LENGTH) window.queueMicrotask(() => verifyCode(pasted));
   };
 
-  const handleResend = async () => {
-    if (resendCountdown > 0 || sendingOtp || !sentTo) return;
+  const handleResend = () => {
+    if (resendCountdown > 0 || sendingOtp || !pendingCredentials) return;
+    requestOtp(pendingCredentials, true);
+  };
+
+  const editDetails = () => {
+    setAuthStep("input");
+    setOtp(Array(OTP_LENGTH).fill(""));
     setOtpError("");
     setInfoMessage("");
-    setSendingOtp(true);
+    setPendingCredentials(null);
+    setResendCountdown(0);
+  };
 
+  const onAdminLogin = async (values) => {
+    setSendingOtp(true);
+    setFormError("");
     try {
-      await apiFetch("/api/auth/send-otp", {
-        method: "POST",
-        body: {
-          identifier: sentTo,
-          role: userType,
-        },
-      });
-      setResendCountdown(60);
-      setInfoMessage(`A new code has been sent to ${displayIdentifier(sentTo)}.`);
-    } catch (err) {
-      setOtpError(err.message ?? "Could not resend OTP. Please try again.");
+      const user = await login(values.email, values.password);
+      onSuccess(user);
+    } catch (error) {
+      setFormError(error.message ?? "Could not sign in. Please try again.");
     } finally {
       setSendingOtp(false);
     }
   };
 
-  const canResend = resendCountdown === 0 && !sendingOtp;
   const isOtpComplete = otp.every(Boolean);
 
-  const onAdminLogin = async (formData) => {
-    setSubmitting(true);
-    setErrorMessage("");
-    try {
-      const user = await login(formData.email, formData.password);
-      onSuccess(user);
-    } catch (err) {
-      setErrorMessage(err.message ?? "Something went wrong. Please try again.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   return (
-    <div className="min-h-screen flex" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-      {/* Left brand panel */}
-      <div className="hidden md:flex flex-col w-5/12 bg-[#0A1128] p-10 relative overflow-hidden">
+    <div className="flex min-h-screen" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+      <aside className="relative hidden w-5/12 flex-col overflow-hidden bg-[#0A1128] p-10 md:flex">
         <button
+          type="button"
           onClick={onBack}
-          className="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors text-sm mb-14 w-fit"
+          className="z-10 mb-14 flex w-fit items-center gap-1.5 text-sm text-slate-400 transition-colors hover:text-white"
         >
-          <ChevronRight className="w-4 h-4 rotate-180" />
+          <ChevronRight className="h-4 w-4 rotate-180" />
           Back to home
         </button>
 
-        <div className="flex-1 flex flex-col justify-center max-w-sm">
-          <div className="flex items-center gap-3 mb-10">
-            <div className="w-10 h-10 bg-[#FF6B2C] rounded-xl flex items-center justify-center shadow-lg shadow-[#FF6B2C]/30">
-              <Zap className="w-5 h-5 text-white" />
+        <div className="z-10 flex max-w-sm flex-1 flex-col justify-center">
+          <div className="mb-10 flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FF6B2C] shadow-lg shadow-[#FF6B2C]/30">
+              <Zap className="h-5 w-5 text-white" />
             </div>
-            <span className="text-white font-extrabold text-xl" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            <span className="text-xl font-extrabold text-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
               WorkBridge
             </span>
           </div>
 
-          <h2 className="text-3xl font-extrabold text-white leading-tight mb-4" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-            {isAdmin ? "Admin access" : "A faster, safer sign in"}
-          </h2>
-          <p className="text-slate-400 text-sm leading-relaxed mb-10">
-            {userType === "worker" && "Access verified projects, track earnings, and get paid in under 60 seconds."}
-            {userType === "business" && "Hire verified talent, keep payments secure, and scale with confidence."}
-            {userType === "admin" && "Manage platform verifications, disputes, and real-time operations."}
+          <h1 className="mb-4 text-3xl font-extrabold leading-tight text-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            {isAdmin ? (
+              "Secure admin access"
+            ) : (
+              <>Welcome back.<br /><span className="text-[#FF6B2C]">India&apos;s faster freelance platform.</span></>
+            )}
+          </h1>
+          <p className="mb-10 text-sm leading-relaxed text-slate-400">
+            {userType === "worker" && "Access verified projects, track earnings, and get paid with confidence."}
+            {userType === "business" && "Hire verified talent, protect every payment, and scale with confidence."}
+            {userType === "admin" && "Manage platform verifications, disputes, and live operations securely."}
           </p>
 
           <div className="space-y-4">
-            {BRAND_FEATURES.map(({ I, t }) => (
-              <div key={t} className="flex items-center gap-3">
-                <div className="w-7 h-7 rounded-lg bg-white/8 flex items-center justify-center flex-shrink-0">
-                  <I className="w-3.5 h-3.5 text-[#FF6B2C]" />
+            {BRAND_FEATURES.map(({ Icon, text }) => (
+              <div key={text} className="flex items-center gap-3">
+                <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-white/[0.08]">
+                  <Icon className="h-3.5 w-3.5 text-[#FF6B2C]" />
                 </div>
-                <span className="text-slate-300 text-sm">{t}</span>
+                <span className="text-sm text-slate-300">{text}</span>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-[#FF6B2C]/4 rounded-full pointer-events-none" />
-        <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-[#1B3FAB]/8 rounded-full pointer-events-none" />
-      </div>
+        <div className="pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 animate-pulse rounded-full bg-[#FF6B2C]/[0.05]" />
+        <div className="pointer-events-none absolute -bottom-12 -right-12 h-48 w-48 rounded-full bg-[#1B3FAB]/10" />
+      </aside>
 
-      {/* Right form panel */}
-      <div className="flex-1 bg-[#F4F6FF] flex flex-col items-center justify-center p-8">
-        <div className="w-full max-w-md">
-          <div className="flex justify-center mb-7">
-            <div className={`flex items-center gap-2 ${cfg.bg} shadow-lg ${cfg.shadow} text-white px-4 py-2 rounded-full text-sm font-semibold`}>
-              <cfg.Icon className="w-4 h-4" />
+      <main className="relative flex flex-1 items-center justify-center overflow-hidden bg-[#F4F6FF] px-4 py-10 sm:p-8">
+        <div className="pointer-events-none absolute -right-24 top-16 h-72 w-72 animate-pulse rounded-full bg-[#FF6B2C]/10 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-28 left-12 h-80 w-80 rounded-full bg-[#1B3FAB]/10 blur-3xl" />
+
+        <button
+          type="button"
+          onClick={onBack}
+          className="absolute left-5 top-5 flex items-center gap-2 text-sm font-medium text-slate-500 md:hidden"
+        >
+          <ArrowLeft className="h-4 w-4" /> Back
+        </button>
+
+        <div className="relative z-10 w-full max-w-md">
+          <div className="mb-6 flex justify-center">
+            <div className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-white shadow-lg ${cfg.bg} ${cfg.shadow}`}>
+              <cfg.Icon className="h-4 w-4" />
               {cfg.label} Account
             </div>
           </div>
 
-          <div className="bg-white/90 backdrop-blur-xl border border-white/50 shadow-xl rounded-[32px] overflow-hidden">
-            <div className="p-7">
-              {!isAdmin ? (
-                <div className="space-y-6">
+          <section className="overflow-hidden rounded-2xl border border-white/50 bg-white/70 shadow-xl backdrop-blur-xl">
+            {!isAdmin && authStep === "input" && (
+              <div className="grid grid-cols-2 border-b border-slate-200/80 bg-white/40">
+                <button
+                  type="button"
+                  onClick={() => changeMode("signin")}
+                  className={`relative py-4 text-sm font-bold transition ${authMode === "signin" ? "text-[#1B3FAB]" : "text-slate-400 hover:text-slate-600"}`}
+                >
+                  Sign In
+                  {authMode === "signin" && <span className="absolute inset-x-0 bottom-0 h-0.5 bg-[#1B3FAB]" />}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => changeMode("signup")}
+                  className={`relative py-4 text-sm font-bold transition ${authMode === "signup" ? "text-[#1B3FAB]" : "text-slate-400 hover:text-slate-600"}`}
+                >
+                  Create Account
+                  {authMode === "signup" && <span className="absolute inset-x-0 bottom-0 h-0.5 bg-[#1B3FAB]" />}
+                </button>
+              </div>
+            )}
+
+            <div className="p-6 sm:p-8">
+              {!isAdmin && authStep === "otp" ? (
+                <div className="rounded-2xl border border-white/50 bg-white/40 p-5 shadow-xl backdrop-blur-xl sm:p-6">
+                  <button
+                    type="button"
+                    onClick={editDetails}
+                    className="mb-5 flex items-center gap-2 text-xs font-semibold text-slate-500 transition hover:text-[#1B3FAB]"
+                  >
+                    <ArrowLeft className="h-4 w-4" /> Edit account details
+                  </button>
+
                   <div className="text-center">
-                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#1B3FAB] mb-3">Secure login</p>
-                    <h2 className="text-3xl font-black tracking-tight text-slate-900">Sign in with OTP</h2>
-                    <p className="mt-3 text-sm text-slate-500">
-                      Enter the email or phone number for your {cfg.label.toLowerCase()} account.
+                    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FFF0E9] text-[#FF6B2C] shadow-sm">
+                      <Shield className="h-7 w-7" />
+                    </div>
+                    <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.24em] text-[#1B3FAB]">Identity check</p>
+                    <h2 className="text-2xl font-black tracking-tight text-[#0A1128]">Verify it&apos;s you</h2>
+                    <p className="mt-2 text-sm leading-relaxed text-slate-500">
+                      Enter the 6-digit code sent to<br />
+                      <span className="font-semibold text-slate-800">{pendingCredentials?.email}</span>
                     </p>
                   </div>
 
-                  {authStep === "input" ? (
-                    <form onSubmit={handleSendOtp} className="space-y-5">
-                      {identifierError && (
-                        <div className="rounded-3xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
-                          {identifierError}
-                        </div>
-                      )}
+                  <div className="mt-6 grid grid-cols-6 gap-2 sm:gap-3">
+                    {otp.map((digit, index) => (
+                      <input
+                        key={index}
+                        ref={(element) => { otpInputs.current[index] = element; }}
+                        value={digit}
+                        onChange={(event) => handleOtpChange(index, event)}
+                        onKeyDown={(event) => handleOtpKeyDown(index, event)}
+                        onPaste={handleOtpPaste}
+                        inputMode="numeric"
+                        autoComplete={index === 0 ? "one-time-code" : "off"}
+                        aria-label={`OTP digit ${index + 1}`}
+                        maxLength={1}
+                        disabled={verifyingOtp}
+                        className="h-12 min-w-0 rounded-xl border border-slate-200 bg-white/80 text-center text-xl font-black text-[#0A1128] shadow-sm outline-none transition focus:-translate-y-0.5 focus:border-[#FF6B2C] focus:ring-4 focus:ring-[#FF6B2C]/10 disabled:opacity-60 sm:h-14 sm:text-2xl"
+                      />
+                    ))}
+                  </div>
 
-                      <div className="space-y-3">
-                        <label className="block text-sm font-semibold text-slate-700">Email or phone number</label>
-                        <input
-                          value={identifier}
-                          onChange={(event) => setIdentifier(event.target.value)}
-                          placeholder="you@example.com or 9876543210"
-                          className="w-full rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-[#1B3FAB] focus:ring-2 focus:ring-[#1B3FAB]/20"
-                        />
-                      </div>
+                  <div aria-live="polite" className="mt-4 min-h-10 text-center">
+                    {verifyingOtp && <p className="text-sm font-semibold text-[#1B3FAB]">Verifying your code…</p>}
+                    {!verifyingOtp && otpError && <p className="text-sm font-medium text-red-600">{otpError}</p>}
+                    {!verifyingOtp && !otpError && infoMessage && <p className="text-sm text-emerald-700">{infoMessage}</p>}
+                  </div>
 
-                      <button
-                        type="submit"
-                        disabled={sendingOtp}
-                        className="w-full rounded-[24px] bg-[#1B3FAB] py-3.5 text-sm font-bold text-white transition hover:bg-[#1635A0] disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        {sendingOtp ? "Sending OTP…" : "Send OTP"}
-                      </button>
-                    </form>
-                  ) : (
-                    <div className="rounded-[28px] border border-slate-200 bg-white/80 p-6 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.18)]">
-                      <div className="text-center">
-                        <p className="text-sm text-slate-500">Enter the 6-digit code sent to</p>
-                        <p className="mt-2 text-base font-semibold text-slate-900 break-all">{displayIdentifier(sentTo)}</p>
-                      </div>
+                  <button
+                    type="button"
+                    onClick={() => verifyCode(otp.join(""))}
+                    disabled={!isOtpComplete || verifyingOtp}
+                    className="mt-2 w-full rounded-xl bg-[#1B3FAB] py-3.5 text-sm font-bold text-white shadow-lg shadow-[#1B3FAB]/20 transition hover:bg-[#163596] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {verifyingOtp ? "Verifying…" : "Verify & Continue"}
+                  </button>
 
-                      <div className="mt-6 grid grid-cols-6 gap-3">
-                        {otp.map((digit, index) => (
-                          <input
-                            key={index}
-                            ref={(element) => (otpInputs.current[index] = element)}
-                            value={digit}
-                            onChange={(event) => handleOtpChange(index, event)}
-                            onKeyDown={(event) => handleOtpKeyDown(index, event)}
-                            onPaste={handleOtpPaste}
-                            inputMode="numeric"
-                            pattern="[0-9]*"
-                            maxLength={1}
-                            className="h-16 w-full rounded-3xl border border-slate-200 bg-slate-50 text-center text-2xl font-bold text-slate-900 shadow-sm outline-none transition focus:border-[#1B3FAB] focus:ring-2 focus:ring-[#1B3FAB]/20"
-                          />
-                        ))}
-                      </div>
-
-                      {otpError && <p className="mt-4 text-sm text-red-600">{otpError}</p>}
-                      {infoMessage && <p className="mt-4 text-sm text-slate-500">{infoMessage}</p>}
-
-                      <button
-                        type="button"
-                        onClick={() => verifyCode(otp.join(""))}
-                        disabled={!isOtpComplete || verifyingOtp}
-                        className="mt-6 w-full rounded-[24px] bg-[#FF6B2C] py-3.5 text-sm font-bold text-white transition hover:bg-[#e55a2b] disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        {verifyingOtp ? "Verifying…" : "Verify Code"}
-                      </button>
-
-                      <div className="mt-4 flex flex-col gap-3 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-                        <button
-                          type="button"
-                          onClick={handleResend}
-                          disabled={!canResend}
-                          className="rounded-[24px] border border-slate-200 bg-white px-4 py-3 text-slate-700 transition hover:border-slate-300 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                          {canResend ? "Resend Code" : `Resend in 0:${String(resendCountdown).padStart(2, "0")}`}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setAuthStep("input")}
-                          className="text-slate-400 transition hover:text-slate-600"
-                        >
-                          Use a different email or phone
-                        </button>
-                      </div>
-                    </div>
-                  )}
+                  <div className="mt-5 text-center text-sm text-slate-500">
+                    Didn&apos;t receive it?{" "}
+                    <button
+                      type="button"
+                      onClick={handleResend}
+                      disabled={resendCountdown > 0 || sendingOtp}
+                      className="font-bold text-[#FF6B2C] transition hover:text-[#e65b22] disabled:cursor-not-allowed disabled:text-slate-400"
+                    >
+                      {sendingOtp
+                        ? "Sending…"
+                        : resendCountdown > 0
+                          ? `Resend in 0:${String(resendCountdown).padStart(2, "0")}`
+                          : "Resend Code"}
+                    </button>
+                  </div>
+                  <p className="mt-3 text-center text-xs text-slate-400">The code expires in 5 minutes.</p>
                 </div>
               ) : (
                 <>
-                  <div className="px-7 pt-6 pb-1">
-                    <p className="text-xs text-slate-400 text-center">
-                      Admin accounts are provisioned internally — sign in below.
+                  <div className="mb-6 text-center">
+                    <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.24em] text-[#1B3FAB]">
+                      {isAdmin ? "Protected area" : "Password + OTP security"}
+                    </p>
+                    <h2 className="text-2xl font-black tracking-tight text-[#0A1128]">
+                      {isAdmin ? "Admin sign in" : authMode === "signin" ? "Welcome back" : "Join WorkBridge"}
+                    </h2>
+                    <p className="mt-2 text-sm text-slate-500">
+                      {isAdmin
+                        ? "Use your internally provisioned admin account."
+                        : authMode === "signin"
+                          ? "Enter your details and we’ll verify your identity."
+                          : `Create your ${cfg.label.toLowerCase()} account securely.`}
                     </p>
                   </div>
 
-                  <form onSubmit={handleSubmit(onAdminLogin)} className="space-y-4">
-                    {errorMessage && (
-                      <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
-                        <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                        <span>{errorMessage}</span>
-                      </div>
+                  {formError && (
+                    <div className="mb-5 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+                      <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                      <span>{formError}</span>
+                    </div>
+                  )}
+
+                  <form onSubmit={handleSubmit(isAdmin ? onAdminLogin : onUserContinue)} className="space-y-4">
+                    {!isAdmin && authMode === "signup" && (
+                      <Field label="Full name" error={errors.fullName?.message} Icon={User}>
+                        <input
+                          type="text"
+                          autoComplete="name"
+                          placeholder="Your full name"
+                          {...register("fullName")}
+                          className={AUTH_INPUT_CLASS}
+                        />
+                      </Field>
                     )}
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Email</label>
+
+                    <Field label="Email" error={errors.email?.message} Icon={Mail}>
                       <input
                         type="email"
-                        placeholder="admin@example.com"
+                        autoComplete="email"
+                        placeholder="you@example.com"
                         {...register("email", { setValueAs: (value) => value.trim().toLowerCase() })}
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB] transition-all"
+                        className={AUTH_INPUT_CLASS}
                       />
-                      {errors.email && <p className="mt-1 text-xs font-semibold text-red-500">{errors.email.message}</p>}
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Password</label>
-                      <input
-                        type="password"
-                        placeholder="••••••••"
-                        {...register("password")}
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB] transition-all"
-                      />
-                      {errors.password && <p className="mt-1 text-xs font-semibold text-red-500">{errors.password.message}</p>}
-                    </div>
+                    </Field>
+
+                    {!isAdmin && (
+                      <Field label="Mobile number" error={errors.phone?.message} Icon={Smartphone}>
+                        <div className="flex gap-2">
+                          <span className="flex h-12 items-center rounded-xl border border-slate-200 bg-slate-100 px-3 text-sm font-semibold text-slate-600">+91</span>
+                          <input
+                            type="tel"
+                            inputMode="numeric"
+                            autoComplete="tel-national"
+                            maxLength={10}
+                            placeholder="9876543210"
+                            {...register("phone", { setValueAs: (value) => value.replace(/\D/g, "") })}
+                            className={AUTH_INPUT_CLASS}
+                          />
+                        </div>
+                      </Field>
+                    )}
+
+                    <Field label="Password" error={errors.password?.message} Icon={Lock}>
+                      <div className="relative">
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          autoComplete={isAdmin || authMode === "signin" ? "current-password" : "new-password"}
+                          placeholder="Minimum 8 characters"
+                          {...register("password")}
+                          className={`${AUTH_INPUT_CLASS} pr-12`}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword((visible) => !visible)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                          aria-label={showPassword ? "Hide password" : "Show password"}
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </Field>
+
                     <button
                       type="submit"
-                      disabled={submitting}
-                      className="w-full py-3.5 bg-[#1B3FAB] hover:bg-[#1635A0] disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-xl font-bold text-sm transition-colors mt-1 shadow-md shadow-[#1B3FAB]/20"
+                      disabled={sendingOtp}
+                      className="mt-2 w-full rounded-xl bg-[#1B3FAB] py-3.5 text-sm font-bold text-white shadow-lg shadow-[#1B3FAB]/20 transition hover:bg-[#163596] disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      {submitting ? "Please wait…" : "Sign In"}
+                      {sendingOtp ? "Please wait…" : isAdmin ? "Sign In" : "Continue securely"}
                     </button>
+
+                    {!isAdmin && (
+                      <div className="flex items-center justify-center gap-2 pt-1 text-xs text-slate-400">
+                        <Shield className="h-3.5 w-3.5 text-emerald-600" />
+                        Your password is verified before we send the OTP
+                      </div>
+                    )}
                   </form>
                 </>
               )}
             </div>
-          </div>
+          </section>
         </div>
-      </div>
+      </main>
     </div>
+  );
+}
+
+function Field({ label, error, Icon, children }) {
+  return (
+    <label className="block">
+      <span className="mb-1.5 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-slate-600">
+        <Icon className="h-3.5 w-3.5 text-slate-400" /> {label}
+      </span>
+      {children}
+      {error && <span className="mt-1.5 block text-xs font-semibold text-red-500">{error}</span>}
+    </label>
   );
 }

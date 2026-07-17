@@ -75,7 +75,12 @@ function AppRoutes() {
   // login/register), not just whichever tab was clicked before signing in —
   // guards against picking "Business" then logging into a worker account.
   const handleAuthSuccess = (user) => {
-    navigate(`/${user.role}`);
+    const dashboardByRole = {
+      worker: "/worker-dashboard",
+      business: "/business-dashboard",
+      admin: "/admin",
+    };
+    navigate(dashboardByRole[user.role] ?? "/");
   };
 
   const handleLogout = () => {
@@ -149,6 +154,22 @@ function AppRoutes() {
         }
       />
       <Route
+        path="/worker-dashboard"
+        element={
+          <ProtectedRoute roles={["worker"]}>
+            <WorkerDashboard onLogout={handleLogout} />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/worker-dashboard/:tab"
+        element={
+          <ProtectedRoute roles={["worker"]}>
+            <WorkerDashboard onLogout={handleLogout} />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/worker/:tab"
         element={
           <ProtectedRoute roles={["worker"]}>
@@ -158,6 +179,26 @@ function AppRoutes() {
       />
       <Route
         path="/business"
+        element={
+          <ProtectedRoute roles={["business"]}>
+            <>
+              <BusinessDashboard
+                onLogout={handleLogout}
+                onVerify={() => navigate("/verify")}
+                isVerified={isBusinessVerified}
+              />
+              {showPayDrawer && (
+                <BusinessVerificationDrawer
+                  onClose={() => setShowPayDrawer(false)}
+                  onPaymentSuccess={handlePaymentSuccess}
+                />
+              )}
+            </>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/business-dashboard"
         element={
           <ProtectedRoute roles={["business"]}>
             <>

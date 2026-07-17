@@ -499,7 +499,7 @@ export default function WorkerJobFeed() {
 
                 <p className="mt-4 line-clamp-3 text-sm leading-6 text-slate-600">{job.summary}</p>
 
-                <div className="mt-4 grid grid-cols-3 gap-2 rounded-2xl border border-white/60 bg-white/40 backdrop-blur-md p-3 text-center">
+                <div className="mt-4 grid grid-cols-3 gap-2 rounded-2xl border border-white/20 bg-white/40 backdrop-blur-md p-3 text-center">
                   <div>
                     <p className="text-xs text-slate-500">Budget</p>
                     <p className="mt-1 text-sm font-black text-slate-900">{job.budget}</p>
