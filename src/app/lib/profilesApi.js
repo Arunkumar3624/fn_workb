@@ -1,11 +1,15 @@
 // GET /api/profiles/:id and /api/profiles?role= are the two unguarded
 // routes in the API — public_user_profiles has no email/phone columns at
 // all, so no auth/token is needed for either.
-import { apiFetch } from "./apiClient";
+import { apiFetch, getDevBypassPublicProfile } from "./apiClient";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 export async function getPublicProfile(userId) {
+  // DEV BYPASS: avoid live backend calls while using dev_bypass_token_123.
+  const devProfile = getDevBypassPublicProfile(userId);
+  if (devProfile) return devProfile;
+
   const res = await fetch(`${API_URL}/api/profiles/${userId}`);
   const payload = await res.json().catch(() => null);
   if (!res.ok) {

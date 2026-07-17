@@ -6,6 +6,283 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 // a plain localStorage key (not React state) so apiFetch can be called from
 // plain lib functions (projectsApi.js etc.) without needing a hook.
 const TOKEN_KEY = "workbridge_token";
+const DEV_BYPASS_TOKEN = "dev_bypass_token_123";
+const DEV_BYPASS_USER_STORAGE_KEY = "workbridge_dev_bypass_user";
+
+// DEV BYPASS: local dashboard-development data. This prevents the fake auth
+// token from being sent to guarded backend routes, where it would correctly
+// fail as "Invalid or expired token." Remove this whole block with the auth
+// bypass before production.
+const now = new Date();
+const daysFromNow = (days) => new Date(now.getTime() + days * 24 * 60 * 60 * 1000).toISOString();
+const daysAgo = (days) => new Date(now.getTime() - days * 24 * 60 * 60 * 1000).toISOString();
+
+function timelineFor(statuses) {
+  return statuses.map((status, index) => ({
+    status,
+    at: daysAgo((statuses.length - index) * 3),
+    timestamp: daysAgo((statuses.length - index) * 3),
+  }));
+}
+
+const devWorkers = [
+  {
+    id: "dev_worker_1",
+    role: "worker",
+    name: "Priya Sharma",
+    title: "Full-Stack Developer",
+    avatar_url: null,
+    verified: true,
+    behavior_score: 840,
+    rating: 4.9,
+    reviews_count: 32,
+    profile: { skills: ["React", "Node.js", "Postgres", "Tailwind"], hourlyRate: 1500, location: "Bengaluru" },
+  },
+  {
+    id: "dev_worker_2",
+    role: "worker",
+    name: "Arjun Mehta",
+    title: "UI/UX Designer",
+    avatar_url: null,
+    verified: true,
+    behavior_score: 770,
+    rating: 4.8,
+    reviews_count: 24,
+    profile: { skills: ["Figma", "Design Systems", "SaaS UX"], hourlyRate: 1200, location: "Mumbai" },
+  },
+];
+
+let devProjects = [
+  {
+    id: "dev_project_1",
+    business_id: "dev_business_1",
+    business_name: "RetailX Pvt Ltd",
+    worker_id: "dev_worker_1",
+    worker_name: "Priya Sharma",
+    title: "SaaS Dashboard Polish",
+    description: "Polish the WorkBridge dashboard UI and improve data states.",
+    budget: 45000,
+    deadline: daysFromNow(7),
+    status: "WORK_IN_PROGRESS",
+    platform_fee_pct: 8,
+    timeline: timelineFor(["INVITED", "ACCEPTED", "FUNDS_SECURED", "WORK_IN_PROGRESS"]),
+  },
+  {
+    id: "dev_project_2",
+    business_id: "dev_business_1",
+    business_name: "RetailX Pvt Ltd",
+    worker_id: "dev_worker_2",
+    worker_name: "Arjun Mehta",
+    title: "Landing Page Redesign",
+    description: "Create a high-conversion landing page refresh.",
+    budget: 28000,
+    deadline: daysFromNow(3),
+    status: "FILES_SUBMITTED",
+    platform_fee_pct: 8,
+    timeline: timelineFor(["INVITED", "ACCEPTED", "FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_SUBMITTED"]),
+  },
+  {
+    id: "dev_project_3",
+    business_id: "dev_business_1",
+    business_name: "RetailX Pvt Ltd",
+    worker_id: "dev_worker_1",
+    worker_name: "Priya Sharma",
+    title: "Invoice Flow Cleanup",
+    description: "Complete invoice status and payment release copy.",
+    budget: 18000,
+    deadline: daysAgo(6),
+    status: "COMPLETED",
+    platform_fee_pct: 8,
+    timeline: timelineFor(["INVITED", "ACCEPTED", "FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_SUBMITTED", "COMPLETED"]),
+  },
+];
+
+function getDevUser() {
+  const stored = localStorage.getItem(DEV_BYPASS_USER_STORAGE_KEY);
+  if (!stored) return { id: "dev_999", email: "dev@workbridge.com", role: "worker", name: "Dev User" };
+  try {
+    return JSON.parse(stored);
+  } catch {
+    return { id: "dev_999", email: "dev@workbridge.com", role: "worker", name: "Dev User" };
+  }
+}
+
+function addTimeline(project, status) {
+  return {
+    ...project,
+    status,
+    timeline: [...(project.timeline ?? []), { status, at: new Date().toISOString(), timestamp: new Date().toISOString() }],
+  };
+}
+
+function devProjectById(id) {
+  return devProjects.find((project) => project.id === id) ?? devProjects[0];
+}
+
+export function getDevBypassPublicProfile(userId) {
+  if (getToken() !== DEV_BYPASS_TOKEN) return null;
+  const worker = devWorkers.find((item) => item.id === userId);
+  if (worker) return worker;
+  if (userId === "dev_business_1") {
+    return {
+      id: "dev_business_1",
+      role: "business",
+      name: "RetailX Pvt Ltd",
+      title: "Verified Business",
+      avatar_url: null,
+      verified: true,
+      behavior_score: 900,
+      rating: 4.9,
+      reviews_count: 18,
+      profile: { location: "Mumbai", industry: "Retail" },
+    };
+  }
+  return getDevUser();
+}
+
+function devBypassFetch(path, { method = "GET", body } = {}) {
+  const url = new URL(path, "http://workbridge.local");
+  const pathname = url.pathname;
+
+  if (pathname === "/api/auth/me") return getDevUser();
+
+  if (pathname === "/api/wallet") {
+    return {
+      balance: 18500,
+      transactions: [
+        { id: "dev_txn_1", type: "PAYOUT", direction: "credit", amount: 16560, reference_note: "Invoice Flow Cleanup payout", created_at: daysAgo(5) },
+        { id: "dev_txn_2", type: "FUNDS_SECURED", direction: "debit", amount: 45000, reference_note: "SaaS Dashboard Polish secured", created_at: daysAgo(3) },
+      ],
+    };
+  }
+
+  if (pathname === "/api/wallet/withdraw") {
+    return { ok: true, amount: body?.amount, destination: body?.destination };
+  }
+
+  if (pathname === "/api/profiles" && url.searchParams.get("role") === "worker") return devWorkers;
+
+  if (pathname === "/api/profiles/me" && method === "PATCH") {
+    const current = getDevUser();
+    const updated = {
+      ...current,
+      avatar_url: body?.avatarUrl ?? current.avatar_url,
+      title: body?.title ?? current.title,
+      profile: { ...(current.profile ?? {}), ...(body?.profilePatch ?? {}) },
+    };
+    localStorage.setItem(DEV_BYPASS_USER_STORAGE_KEY, JSON.stringify(updated));
+    return updated;
+  }
+
+  if (pathname === "/api/projects") {
+    if (method === "POST") {
+      const worker = devWorkers.find((item) => item.id === body?.workerId) ?? devWorkers[0];
+      const created = {
+        id: `dev_project_${Date.now()}`,
+        business_id: getDevUser().id,
+        business_name: getDevUser().name,
+        worker_id: worker.id,
+        worker_name: worker.name,
+        title: body?.title ?? "Dev Project",
+        description: body?.description ?? "",
+        budget: Number(body?.budget ?? 0),
+        deadline: body?.deadline ?? daysFromNow(14),
+        status: "INVITED",
+        platform_fee_pct: 8,
+        timeline: timelineFor(["INVITED"]),
+      };
+      devProjects = [created, ...devProjects];
+      return created;
+    }
+
+    let projects = devProjects;
+    const status = url.searchParams.get("status");
+    if (status) projects = projects.filter((project) => project.status === status);
+    return projects;
+  }
+
+  const projectMatch = pathname.match(/^\/api\/projects\/([^/]+)(?:\/([^/]+))?/);
+  if (projectMatch) {
+    const [, id, action] = projectMatch;
+    const project = devProjectById(id);
+
+    if (action === "submissions") {
+      if (method === "POST") {
+        return {
+          id: `dev_submission_${Date.now()}`,
+          project_id: id,
+          submitted_by: getDevUser().id,
+          submitted_by_name: getDevUser().name,
+          type: body?.type,
+          url: body?.url,
+          image_data: body?.imageData,
+          caption: body?.caption,
+          status: "PENDING_REVIEW",
+          created_at: new Date().toISOString(),
+        };
+      }
+      return [];
+    }
+
+    if (action === "secure-funds") {
+      devProjects = devProjects.map((item) => (item.id === id ? addTimeline(item, "FUNDS_SECURED") : item));
+      return devProjectById(id);
+    }
+
+    if (action === "complete") {
+      devProjects = devProjects.map((item) => (item.id === id ? addTimeline(item, "COMPLETED") : item));
+      return devProjectById(id);
+    }
+
+    if (method === "PATCH") {
+      devProjects = devProjects.map((item) => (item.id === id ? addTimeline(item, body?.status ?? item.status) : item));
+      return devProjectById(id);
+    }
+
+    return project;
+  }
+
+  if (pathname === "/api/reviews") {
+    if (method === "POST") {
+      return {
+        id: `dev_review_${Date.now()}`,
+        project_id: body?.projectId,
+        reviewer_id: getDevUser().id,
+        reviewer_name: getDevUser().name,
+        rating: Number(body?.rating ?? 5),
+        feedback: body?.feedback ?? "",
+        created_at: new Date().toISOString(),
+      };
+    }
+    return [];
+  }
+
+  if (pathname === "/api/admin/stats") {
+    return {
+      totalUsers: 128,
+      totalProjects: 42,
+      jobsToday: 6,
+      platformRevenue: 186000,
+      fundsSecuredPool: 730000,
+      pendingVerifications: 2,
+      openDisputes: 1,
+      weeklyRevenue: [
+        { day: "Mon", revenue: 12000 },
+        { day: "Tue", revenue: 18000 },
+        { day: "Wed", revenue: 15000 },
+        { day: "Thu", revenue: 26000 },
+        { day: "Fri", revenue: 22000 },
+      ],
+    };
+  }
+
+  if (pathname === "/api/admin/verify") return [];
+  if (pathname === "/api/admin/disputes") return [];
+  if (pathname === "/api/admin/submissions") return [];
+  if (pathname.startsWith("/api/admin/")) return { ok: true };
+
+  return {};
+}
 
 export function getToken() {
   return localStorage.getItem(TOKEN_KEY);
@@ -37,6 +314,10 @@ export class ApiError extends Error {
  */
 export async function apiFetch(path, { method = "GET", body } = {}) {
   const token = getToken();
+  if (token === DEV_BYPASS_TOKEN) {
+    return devBypassFetch(path, { method, body });
+  }
+
   const headers = { "Content-Type": "application/json" };
   if (token) headers.Authorization = `Bearer ${token}`;
 
