@@ -50,6 +50,12 @@ export function AuthProvider({ children }) {
     return user;
   };
 
+  const authenticate = (token, user) => {
+    setToken(token);
+    setCurrentUser(user);
+    setStatus("authenticated");
+  };
+
   const logout = () => {
     setToken(null);
     setCurrentUser(null);
@@ -64,7 +70,7 @@ export function AuthProvider({ children }) {
   };
 
   const value = useMemo(
-    () => ({ currentUser, status, login, register, logout, updateCurrentUser }),
+    () => ({ currentUser, status, login, register, authenticate, logout, updateCurrentUser }),
     [currentUser, status]
   );
 

@@ -1,11 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Briefcase, Building2, Shield, ChevronRight,
   Lock, Zap, Award, AlertCircle,
 } from "lucide-react";
-import { authSchema, signupSchema } from "../utils/formValidation";
+import { authSchema } from "../utils/formValidation";
+import { apiFetch } from "../lib/apiClient";
 import { useAuth } from "../context/AuthContext";
 
 const USER_CONFIG = {
@@ -21,26 +22,53 @@ const BRAND_FEATURES = [
   { I: Award, t: "Behavior score & trust badges system" },
 ];
 
+const OTP_LENGTH = 6;
+
+function normalizeIdentifier(value) {
+  const trimmed = value.trim();
+  const digits = trimmed.replace(/\D/g, "");
+  if (/^91\d{10}$/.test(digits)) return digits.slice(2);
+  if (/^\d{10}$/.test(digits)) return digits;
+  return trimmed.toLowerCase();
+}
+
+function isPhoneIdentifier(value) {
+  return /^\d{10}$/.test(value);
+}
+
+function isEmailIdentifier(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function displayIdentifier(value) {
+  return isPhoneIdentifier(value) ? `+91 ${value}` : value;
+}
+
 export default function AuthPage({ userType, onSuccess, onBack }) {
-  // Admin accounts are provisioned directly in the database (see
-  // backend/src/validators/auth.validators.js) — there is no public admin
-  // signup, so this page never lets the admin tab reach "signup" mode.
-  const [mode, setMode] = useState(userType === "admin" ? "login" : "login");
+  const isAdmin = userType === "admin";
+  const [authStep, setAuthStep] = useState(isAdmin ? "admin" : "input");
+  const [identifier, setIdentifier] = useState("");
+  const [sentTo, setSentTo] = useState("");
+  const [identifierError, setIdentifierError] = useState("");
+  const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(""));
+  const [otpError, setOtpError] = useState("");
+  const [infoMessage, setInfoMessage] = useState("");
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
+  const [resendCountdown, setResendCountdown] = useState(0);
+  const otpInputs = useRef([]);
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const { login, register: registerAccount } = useAuth();
+  const { login, authenticate } = useAuth();
   const {
     register,
     handleSubmit,
     reset,
-    setValue,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(mode === "signup" ? signupSchema : authSchema),
+    resolver: zodResolver(authSchema),
     defaultValues: {
-      fullName: "",
       email: "",
-      phone: "",
       password: "",
     },
   });
@@ -48,28 +76,175 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
   const cfg = USER_CONFIG[userType];
 
   useEffect(() => {
-    reset({ fullName: "", email: "", phone: "", password: "" });
-    setErrorMessage("");
-  }, [mode, reset]);
+    setAuthStep(isAdmin ? "admin" : "input");
+    setIdentifier("");
+    setSentTo("");
+    setIdentifierError("");
+    setOtp(Array(OTP_LENGTH).fill(""));
+    setOtpError("");
+    setInfoMessage("");
+    setSendingOtp(false);
+    setVerifyingOtp(false);
+    setResendCountdown(0);
+    reset({ email: "", password: "" });
+  }, [isAdmin, userType, reset]);
 
   useEffect(() => {
-    if (userType === "admin") setMode("login");
-  }, [userType]);
+    if (authStep === "otp") {
+      window.setTimeout(() => otpInputs.current[0]?.focus(), 0);
+    }
+  }, [authStep]);
 
-  const onSubmit = async (formData) => {
+  useEffect(() => {
+    if (resendCountdown <= 0) return;
+    const timer = window.setTimeout(() => setResendCountdown((count) => count - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [resendCountdown]);
+
+  const handleSendOtp = async (event) => {
+    event.preventDefault();
+    setIdentifierError("");
+    setOtpError("");
+    setInfoMessage("");
+
+    const normalized = normalizeIdentifier(identifier);
+    if (!isPhoneIdentifier(normalized) && !isEmailIdentifier(normalized)) {
+      setIdentifierError("Enter a valid email address or 10-digit phone number.");
+      return;
+    }
+
+    setSendingOtp(true);
+
+    try {
+      await apiFetch("/api/auth/send-otp", {
+        method: "POST",
+        body: {
+          identifier: normalized,
+          role: userType,
+        },
+      });
+
+      setSentTo(normalized);
+      setAuthStep("otp");
+      setResendCountdown(60);
+      setOtp(Array(OTP_LENGTH).fill(""));
+      setInfoMessage(`A 6-digit code has been sent to ${displayIdentifier(normalized)}.`);
+    } catch (err) {
+      setIdentifierError(err.message ?? "Could not send OTP. Try again.");
+    } finally {
+      setSendingOtp(false);
+    }
+  };
+
+  const verifyCode = async (code) => {
+    if (verifyingOtp) return;
+    setOtpError("");
+    setInfoMessage("");
+    setVerifyingOtp(true);
+
+    try {
+      const { token, user } = await apiFetch("/api/auth/verify-otp", {
+        method: "POST",
+        body: {
+          identifier: sentTo,
+          otp: code,
+          role: userType,
+        },
+      });
+
+      authenticate(token, user);
+      onSuccess(user);
+    } catch (err) {
+      setOtpError(err.message ?? "Invalid code. Check your digits and try again.");
+      setOtp(Array(OTP_LENGTH).fill(""));
+      otpInputs.current[0]?.focus();
+    } finally {
+      setVerifyingOtp(false);
+    }
+  };
+
+  const handleOtpChange = (index, event) => {
+    const nextValue = event.target.value.replace(/\D/g, "").slice(0, 1);
+    const nextOtp = [...otp];
+    nextOtp[index] = nextValue;
+    setOtp(nextOtp);
+
+    if (nextValue && index < OTP_LENGTH - 1) {
+      otpInputs.current[index + 1]?.focus();
+    }
+
+    if (nextOtp.every(Boolean)) {
+      verifyCode(nextOtp.join(""));
+    }
+  };
+
+  const handleOtpKeyDown = (index, event) => {
+    if (event.key !== "Backspace") return;
+    event.preventDefault();
+
+    if (otp[index]) {
+      const nextOtp = [...otp];
+      nextOtp[index] = "";
+      setOtp(nextOtp);
+      return;
+    }
+
+    if (index > 0) {
+      const nextOtp = [...otp];
+      nextOtp[index - 1] = "";
+      setOtp(nextOtp);
+      otpInputs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (event) => {
+    event.preventDefault();
+    const pasted = event.clipboardData.getData("text").replace(/\D/g, "").slice(0, OTP_LENGTH);
+    if (!pasted) return;
+
+    const nextOtp = Array(OTP_LENGTH).fill("");
+    for (let i = 0; i < pasted.length; i += 1) {
+      nextOtp[i] = pasted[i];
+    }
+    setOtp(nextOtp);
+    otpInputs.current[Math.min(pasted.length, OTP_LENGTH - 1)]?.focus();
+
+    if (pasted.length === OTP_LENGTH) {
+      verifyCode(pasted);
+    }
+  };
+
+  const handleResend = async () => {
+    if (resendCountdown > 0 || sendingOtp || !sentTo) return;
+    setOtpError("");
+    setInfoMessage("");
+    setSendingOtp(true);
+
+    try {
+      await apiFetch("/api/auth/send-otp", {
+        method: "POST",
+        body: {
+          identifier: sentTo,
+          role: userType,
+        },
+      });
+      setResendCountdown(60);
+      setInfoMessage(`A new code has been sent to ${displayIdentifier(sentTo)}.`);
+    } catch (err) {
+      setOtpError(err.message ?? "Could not resend OTP. Please try again.");
+    } finally {
+      setSendingOtp(false);
+    }
+  };
+
+  const canResend = resendCountdown === 0 && !sendingOtp;
+  const isOtpComplete = otp.every(Boolean);
+
+  const onAdminLogin = async (formData) => {
     setSubmitting(true);
     setErrorMessage("");
     try {
-      const user =
-        mode === "signup"
-          ? await registerAccount({
-              role: userType,
-              name: formData.fullName,
-              email: formData.email,
-              phone: formData.phone,
-              password: formData.password,
-            })
-          : await login(formData.email, formData.password);
+      const user = await login(formData.email, formData.password);
       onSuccess(user);
     } catch (err) {
       setErrorMessage(err.message ?? "Something went wrong. Please try again.");
@@ -101,15 +276,12 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
           </div>
 
           <h2 className="text-3xl font-extrabold text-white leading-tight mb-4" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-            {mode === "login" ? "Welcome back." : "Join India's fastest"}<br />
-            <span className="text-[#FF6B2C]">
-              {mode === "login" ? "India's fastest freelance platform." : "freelance platform."}
-            </span>
+            {isAdmin ? "Admin access" : "A faster, safer sign in"}
           </h2>
           <p className="text-slate-400 text-sm leading-relaxed mb-10">
-            {userType === "worker" && "Access thousands of verified projects. Track your earnings and withdraw to UPI in under 60 seconds."}
-            {userType === "business" && "Post projects, hire verified talent, and release payment only when satisfied with the work."}
-            {userType === "admin" && "Access the master control panel for verifications, dispute resolution, and platform monitoring."}
+            {userType === "worker" && "Access verified projects, track earnings, and get paid in under 60 seconds."}
+            {userType === "business" && "Hire verified talent, keep payments secure, and scale with confidence."}
+            {userType === "admin" && "Manage platform verifications, disputes, and real-time operations."}
           </p>
 
           <div className="space-y-4">
@@ -138,121 +310,145 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-            {userType === "admin" ? (
-              <div className="px-7 pt-6 pb-1">
-                <p className="text-xs text-slate-400 text-center">
-                  Admin accounts are provisioned internally — sign in below.
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 border-b border-slate-100">
-                {["login", "signup"].map((m) => (
-                  <button
-                    key={m}
-                    onClick={() => setMode(m)}
-                    className={`py-4 text-sm font-semibold transition-colors ${
-                      mode === m
-                        ? "text-[#1B3FAB] border-b-2 border-[#1B3FAB] -mb-px"
-                        : "text-slate-400 hover:text-slate-600"
-                    }`}
-                  >
-                    {m === "login" ? "Sign In" : "Create Account"}
-                  </button>
-                ))}
-              </div>
-            )}
-
+          <div className="bg-white/90 backdrop-blur-xl border border-white/50 shadow-xl rounded-[32px] overflow-hidden">
             <div className="p-7">
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                {errorMessage && (
-                  <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
-                    <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                    <span>{errorMessage}</span>
+              {!isAdmin ? (
+                <div className="space-y-6">
+                  <div className="text-center">
+                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#1B3FAB] mb-3">Secure login</p>
+                    <h2 className="text-3xl font-black tracking-tight text-slate-900">Sign in with OTP</h2>
+                    <p className="mt-3 text-sm text-slate-500">
+                      Enter the email or phone number for your {cfg.label.toLowerCase()} account.
+                    </p>
                   </div>
-                )}
-                {mode === "signup" && (
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Full Name</label>
-                    <input
-                      type="text"
-                      placeholder="Priya Sharma"
-                      {...register("fullName", { setValueAs: (value) => value.trim() })}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB] transition-all"
-                    />
-                    {errors.fullName && <p className="mt-1 text-xs font-semibold text-red-500">{errors.fullName.message}</p>}
-                  </div>
-                )}
-                {mode === "signup" && (
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Email Address</label>
-                    <input
-                      type="email"
-                      placeholder="priya@example.com"
-                      {...register("email", { setValueAs: (value) => value.trim().toLowerCase() })}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB] transition-all"
-                    />
-                    {errors.email && <p className="mt-1 text-xs font-semibold text-red-500">{errors.email.message}</p>}
-                  </div>
-                )}
-                {mode === "login" && (
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Email</label>
-                    <input
-                      type="email"
-                      placeholder="priya@example.com"
-                      {...register("email", { setValueAs: (value) => value.trim().toLowerCase() })}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB] transition-all"
-                    />
-                    {errors.email && <p className="mt-1 text-xs font-semibold text-red-500">{errors.email.message}</p>}
-                  </div>
-                )}
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Mobile Number</label>
-                  <div className="flex gap-2">
-                    <div className="px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-500 font-medium">+91</div>
-                    <input
-                      type="tel"
-                      inputMode="numeric"
-                      maxLength={10}
-                      placeholder="9876543210"
-                      {...register("phone", {
-                        onChange: (event) => {
-                          setValue("phone", event.target.value.replace(/\D/g, "").slice(0, 10), {
-                            shouldValidate: true,
-                          });
-                        },
-                      })}
-                      className="flex-1 px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB] transition-all"
-                    />
-                  </div>
-                  {errors.phone && <p className="mt-1 text-xs font-semibold text-red-500">{errors.phone.message}</p>}
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">
-                    {mode === "login" ? "Password" : "Create Password"}
-                  </label>
-                  <input
-                    type="password"
-                    placeholder="••••••••"
-                    {...register("password")}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB] transition-all"
-                  />
-                  {errors.password && <p className="mt-1 text-xs font-semibold text-red-500">{errors.password.message}</p>}
-                  {mode === "login" && (
-                    <div className="mt-1.5 text-right">
-                      <span className="text-xs text-slate-300 cursor-not-allowed" title="Coming soon">Forgot Password?</span>
+
+                  {authStep === "input" ? (
+                    <form onSubmit={handleSendOtp} className="space-y-5">
+                      {identifierError && (
+                        <div className="rounded-3xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+                          {identifierError}
+                        </div>
+                      )}
+
+                      <div className="space-y-3">
+                        <label className="block text-sm font-semibold text-slate-700">Email or phone number</label>
+                        <input
+                          value={identifier}
+                          onChange={(event) => setIdentifier(event.target.value)}
+                          placeholder="you@example.com or 9876543210"
+                          className="w-full rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-[#1B3FAB] focus:ring-2 focus:ring-[#1B3FAB]/20"
+                        />
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={sendingOtp}
+                        className="w-full rounded-[24px] bg-[#1B3FAB] py-3.5 text-sm font-bold text-white transition hover:bg-[#1635A0] disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {sendingOtp ? "Sending OTP…" : "Send OTP"}
+                      </button>
+                    </form>
+                  ) : (
+                    <div className="rounded-[28px] border border-slate-200 bg-white/80 p-6 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.18)]">
+                      <div className="text-center">
+                        <p className="text-sm text-slate-500">Enter the 6-digit code sent to</p>
+                        <p className="mt-2 text-base font-semibold text-slate-900 break-all">{displayIdentifier(sentTo)}</p>
+                      </div>
+
+                      <div className="mt-6 grid grid-cols-6 gap-3">
+                        {otp.map((digit, index) => (
+                          <input
+                            key={index}
+                            ref={(element) => (otpInputs.current[index] = element)}
+                            value={digit}
+                            onChange={(event) => handleOtpChange(index, event)}
+                            onKeyDown={(event) => handleOtpKeyDown(index, event)}
+                            onPaste={handleOtpPaste}
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            maxLength={1}
+                            className="h-16 w-full rounded-3xl border border-slate-200 bg-slate-50 text-center text-2xl font-bold text-slate-900 shadow-sm outline-none transition focus:border-[#1B3FAB] focus:ring-2 focus:ring-[#1B3FAB]/20"
+                          />
+                        ))}
+                      </div>
+
+                      {otpError && <p className="mt-4 text-sm text-red-600">{otpError}</p>}
+                      {infoMessage && <p className="mt-4 text-sm text-slate-500">{infoMessage}</p>}
+
+                      <button
+                        type="button"
+                        onClick={() => verifyCode(otp.join(""))}
+                        disabled={!isOtpComplete || verifyingOtp}
+                        className="mt-6 w-full rounded-[24px] bg-[#FF6B2C] py-3.5 text-sm font-bold text-white transition hover:bg-[#e55a2b] disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {verifyingOtp ? "Verifying…" : "Verify Code"}
+                      </button>
+
+                      <div className="mt-4 flex flex-col gap-3 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+                        <button
+                          type="button"
+                          onClick={handleResend}
+                          disabled={!canResend}
+                          className="rounded-[24px] border border-slate-200 bg-white px-4 py-3 text-slate-700 transition hover:border-slate-300 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {canResend ? "Resend Code" : `Resend in 0:${String(resendCountdown).padStart(2, "0")}`}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setAuthStep("input")}
+                          className="text-slate-400 transition hover:text-slate-600"
+                        >
+                          Use a different email or phone
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="w-full py-3.5 bg-[#1B3FAB] hover:bg-[#1635A0] disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-xl font-bold text-sm transition-colors mt-1 shadow-md shadow-[#1B3FAB]/20"
-                >
-                  {submitting ? "Please wait…" : mode === "login" ? "Sign In" : "Create Account"}
-                </button>
-              </form>
+              ) : (
+                <>
+                  <div className="px-7 pt-6 pb-1">
+                    <p className="text-xs text-slate-400 text-center">
+                      Admin accounts are provisioned internally — sign in below.
+                    </p>
+                  </div>
+
+                  <form onSubmit={handleSubmit(onAdminLogin)} className="space-y-4">
+                    {errorMessage && (
+                      <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+                        <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                        <span>{errorMessage}</span>
+                      </div>
+                    )}
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Email</label>
+                      <input
+                        type="email"
+                        placeholder="admin@example.com"
+                        {...register("email", { setValueAs: (value) => value.trim().toLowerCase() })}
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB] transition-all"
+                      />
+                      {errors.email && <p className="mt-1 text-xs font-semibold text-red-500">{errors.email.message}</p>}
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Password</label>
+                      <input
+                        type="password"
+                        placeholder="••••••••"
+                        {...register("password")}
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB] transition-all"
+                      />
+                      {errors.password && <p className="mt-1 text-xs font-semibold text-red-500">{errors.password.message}</p>}
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="w-full py-3.5 bg-[#1B3FAB] hover:bg-[#1635A0] disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-xl font-bold text-sm transition-colors mt-1 shadow-md shadow-[#1B3FAB]/20"
+                    >
+                      {submitting ? "Please wait…" : "Sign In"}
+                    </button>
+                  </form>
+                </>
+              )}
             </div>
           </div>
         </div>
