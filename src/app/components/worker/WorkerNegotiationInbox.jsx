@@ -16,14 +16,21 @@ import {
   X,
   Zap,
 } from "lucide-react";
+import Avatar from "../shared/Avatar";
 import IdentityHeader from "../shared/IdentityHeader";
 import { listProjects, updateProjectStatus } from "../../lib/projectsApi";
 import { getPublicProfile } from "../../lib/profilesApi";
 import { getInitials } from "../../utils/formValidation";
 import { ApiError } from "../../lib/apiClient";
 
+const ACTIVE_THREAD_STATUSES = new Set(["INVITED", "ACCEPTED", "FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_SUBMITTED"]);
+
 function formatINR(amount) {
   return `INR ${Number(amount || 0).toLocaleString("en-IN")}`;
+}
+
+function isActiveThread(project) {
+  return ACTIVE_THREAD_STATUSES.has(project.status);
 }
 
 function formatDuration(deadline) {
@@ -31,6 +38,16 @@ function formatDuration(deadline) {
   const ms = new Date(deadline).getTime() - Date.now();
   const days = Math.max(1, Math.ceil(ms / (24 * 60 * 60 * 1000)));
   return `${days} day${days === 1 ? "" : "s"}`;
+}
+
+function getThreadStatus(project) {
+  if (project.status === "INVITED") return { label: "Pending Invite", className: "bg-orange-50 text-orange-700 border-orange-100" };
+  if (project.status === "ACCEPTED") return { label: "Negotiating", className: "bg-blue-50 text-blue-700 border-blue-100" };
+  if (project.status === "FUNDS_SECURED") return { label: "Escrow Locked", className: "bg-emerald-50 text-emerald-700 border-emerald-100" };
+  if (project.status === "WORK_IN_PROGRESS") return { label: "In Progress", className: "bg-slate-100 text-slate-700 border-slate-200" };
+  if (project.status === "FILES_SUBMITTED") return { label: "In Review", className: "bg-amber-50 text-amber-700 border-amber-100" };
+  if (project.status === "COMPLETED") return { label: "Completed", className: "bg-emerald-50 text-emerald-700 border-emerald-100" };
+  return { label: project.status ?? "Active", className: "bg-slate-100 text-slate-600 border-slate-200" };
 }
 
 function seedMessages(project) {
@@ -88,6 +105,58 @@ function FieldPill({ icon: Icon, label, value, dark = false }) {
       </div>
       <p className={`mt-1 text-sm font-black ${dark ? "text-emerald-100" : "text-slate-900"}`}>{value}</p>
     </div>
+  );
+}
+
+function ThreadNavigator({ threads, selectedThreadId, onSelect }) {
+  return (
+    <section className="flex h-[22%] min-h-[158px] flex-shrink-0 flex-col border-b border-slate-200 bg-white">
+      <div className="flex items-center justify-between px-5 py-3">
+        <div>
+          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Active Threads</p>
+          <h2 className="text-base font-black text-slate-900">{threads.length} invitation{threads.length === 1 ? "" : "s"}</h2>
+        </div>
+        <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-black text-slate-500">
+          Live
+        </span>
+      </div>
+
+      <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-3">
+        {threads.map((thread) => {
+          const selected = thread.id === selectedThreadId;
+          const status = getThreadStatus(thread);
+          return (
+            <button
+              key={thread.id}
+              type="button"
+              onClick={() => onSelect(thread.id)}
+              className={`mb-2 flex w-full items-center gap-3 rounded-2xl border py-3 pl-3 pr-3 text-left shadow-sm transition ${
+                selected
+                  ? "border-slate-200 border-l-4 border-l-[#FF6B35] bg-slate-100"
+                  : "border-transparent border-l-4 border-l-transparent bg-white hover:border-slate-200 hover:bg-slate-50"
+              }`}
+            >
+              {thread.business_avatar_url ? (
+                <img
+                  src={thread.business_avatar_url}
+                  alt={thread.business_name}
+                  className="h-10 w-10 flex-shrink-0 rounded-2xl object-cover"
+                />
+              ) : (
+                <Avatar initials={getInitials(thread.business_name)} bg="bg-[#1B3FAB]" size="w-10 h-10" text="text-xs" />
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-black text-slate-900">{thread.business_name}</p>
+                <p className="mt-0.5 truncate text-xs font-semibold text-slate-500">{thread.title}</p>
+              </div>
+              <span className={`flex-shrink-0 rounded-full border px-2 py-1 text-[10px] font-black ${status.className}`}>
+                {status.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
@@ -319,7 +388,7 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [actionError, setActionError] = useState("");
-  const [selectedId, setSelectedId] = useState(initialProjectId ?? null);
+  const [selectedThreadId, setSelectedThreadId] = useState(initialProjectId ?? null);
   const [panelMode, setPanelMode] = useState("details");
   const [actionBusy, setActionBusy] = useState(false);
   const [toast, setToast] = useState("");
@@ -332,12 +401,13 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
     listProjects({ role: "worker" })
       .then((data) => {
         if (cancelled) return;
-        setProjects(data);
-        const preferred = data.find((project) => project.id === initialProjectId)
-          ?? data.find((project) => project.status === "INVITED")
-          ?? data[0]
+        const activeThreads = data.filter(isActiveThread);
+        setProjects(activeThreads);
+        const preferred = activeThreads.find((project) => project.id === initialProjectId)
+          ?? activeThreads.find((project) => project.status === "INVITED")
+          ?? activeThreads[0]
           ?? null;
-        setSelectedId(preferred?.id ?? null);
+        setSelectedThreadId(preferred?.id ?? null);
       })
       .catch((err) => {
         if (!cancelled) setLoadError(err instanceof ApiError ? err.message : "Could not load your invitations.");
@@ -351,15 +421,15 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
   }, [initialProjectId]);
 
   const selectedProject = useMemo(
-    () => projects.find((project) => project.id === selectedId) ?? null,
-    [projects, selectedId]
+    () => projects.find((project) => project.id === selectedThreadId) ?? null,
+    [projects, selectedThreadId]
   );
 
   useEffect(() => {
     setPanelMode("details");
     setActionError("");
     setDraft("");
-  }, [selectedId]);
+  }, [selectedThreadId]);
 
   useEffect(() => {
     if (!selectedProject) return;
@@ -372,6 +442,7 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
   useEffect(() => {
     if (!selectedProject?.business_id) return;
     let cancelled = false;
+    setBusinessProfile(null);
     getPublicProfile(selectedProject.business_id)
       .then((profile) => {
         if (!cancelled) setBusinessProfile(profile);
@@ -452,7 +523,7 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
       <div className="flex h-full items-center justify-center bg-slate-50 p-7">
         <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
           <MessageSquare className="mx-auto h-10 w-10 text-slate-300" />
-          <h2 className="mt-4 text-lg font-black text-slate-900">No invitations yet</h2>
+          <h2 className="mt-4 text-lg font-black text-slate-900">No active invitations yet</h2>
           <p className="mt-1 text-sm text-slate-500">New business invites will appear here.</p>
         </div>
       </div>
@@ -464,64 +535,54 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
   return (
     <div className="relative flex h-full min-h-0 overflow-hidden bg-white" style={{ fontFamily: "'DM Sans', sans-serif" }}>
       <aside className="flex h-full min-h-0 w-[40%] min-w-[380px] flex-col border-r border-slate-200 bg-white">
-        <IdentityHeader
-          name={selectedProject.business_name}
-          subtitle={selectedProject.title}
-          initials={getInitials(selectedProject.business_name)}
-          verified={businessProfile?.verified ?? true}
-          rating={businessProfile?.rating}
-          reviews={businessProfile?.reviews_count}
+        <ThreadNavigator
+          threads={projects}
+          selectedThreadId={selectedThreadId}
+          onSelect={setSelectedThreadId}
         />
 
-        {projects.length > 1 && (
-          <div className="flex flex-shrink-0 gap-2 overflow-x-auto border-b border-slate-200 bg-white px-5 py-3">
-            {projects.slice(0, 6).map((project) => (
-              <button
-                key={project.id}
-                type="button"
-                onClick={() => setSelectedId(project.id)}
-                className={`whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-black transition ${
-                  project.id === selectedProject.id
-                    ? "border-[#1B3FAB] bg-[#1B3FAB] text-white"
-                    : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-900"
-                }`}
-              >
-                {project.title}
-              </button>
-            ))}
-          </div>
-        )}
+        <section className="flex min-h-0 flex-1 flex-col bg-white">
+          <IdentityHeader
+            name={selectedProject.business_name}
+            subtitle={selectedProject.title}
+            initials={getInitials(selectedProject.business_name)}
+            avatarUrl={selectedProject.business_avatar_url}
+            verified={businessProfile?.verified ?? true}
+            rating={businessProfile?.rating}
+            reviews={businessProfile?.reviews_count}
+          />
 
-        {actionError && (
-          <div className="mx-5 mt-4 flex flex-shrink-0 items-start gap-2 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
-            <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
-            <span>{actionError}</span>
-          </div>
-        )}
+          {actionError && (
+            <div className="mx-5 mt-4 flex flex-shrink-0 items-start gap-2 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+              <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+              <span>{actionError}</span>
+            </div>
+          )}
 
-        <div className="min-h-0 flex-1 overflow-hidden p-5">
-          <AnimatePresence mode="wait" initial={false}>
-            {panelMode === "details" ? (
-              <MotionPanel panelKey={`details-${selectedProject.id}`}>
-                <JobDetailsPanel
-                  project={selectedProject}
-                  onAccept={() => setPanelMode("wizard")}
-                  onDecline={handleDecline}
-                  actionBusy={actionBusy}
-                />
-              </MotionPanel>
-            ) : (
-              <MotionPanel panelKey={`wizard-${selectedProject.id}`}>
-                <AcceptWizardPanel
-                  project={selectedProject}
-                  onBack={() => setPanelMode("details")}
-                  onStart={handleStartProject}
-                  actionBusy={actionBusy}
-                />
-              </MotionPanel>
-            )}
-          </AnimatePresence>
-        </div>
+          <div className="min-h-0 flex-1 overflow-hidden p-5">
+            <AnimatePresence mode="wait" initial={false}>
+              {panelMode === "details" ? (
+                <MotionPanel panelKey={`details-${selectedProject.id}`}>
+                  <JobDetailsPanel
+                    project={selectedProject}
+                    onAccept={() => setPanelMode("wizard")}
+                    onDecline={handleDecline}
+                    actionBusy={actionBusy}
+                  />
+                </MotionPanel>
+              ) : (
+                <MotionPanel panelKey={`wizard-${selectedProject.id}`}>
+                  <AcceptWizardPanel
+                    project={selectedProject}
+                    onBack={() => setPanelMode("details")}
+                    onStart={handleStartProject}
+                    actionBusy={actionBusy}
+                  />
+                </MotionPanel>
+              )}
+            </AnimatePresence>
+          </div>
+        </section>
       </aside>
 
       <ChatPanel

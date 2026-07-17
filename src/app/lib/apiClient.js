@@ -56,12 +56,12 @@ let devProjects = [
   {
     id: "dev_project_1",
     business_id: "dev_business_1",
-    business_name: "RetailX Pvt Ltd",
+    business_name: "Google Creative Lab",
     worker_id: "dev_worker_1",
     worker_name: "Priya Sharma",
-    title: "SaaS Dashboard Polish",
-    description: "Polish the WorkBridge dashboard UI and improve data states.",
-    budget: 45000,
+    title: "UI Audit for Search Labs",
+    description: "Review the new experiment dashboard, identify UX friction, and deliver a concise audit with prioritized improvements.",
+    budget: 65000,
     deadline: daysFromNow(7),
     status: "INVITED",
     platform_fee_pct: 8,
@@ -69,31 +69,31 @@ let devProjects = [
   },
   {
     id: "dev_project_2",
-    business_id: "dev_business_1",
-    business_name: "RetailX Pvt Ltd",
+    business_id: "dev_business_2",
+    business_name: "StartUpX",
     worker_id: "dev_worker_2",
     worker_name: "Arjun Mehta",
-    title: "Landing Page Redesign",
-    description: "Create a high-conversion landing page refresh.",
-    budget: 28000,
+    title: "Launch Landing Page",
+    description: "Design and build a fast, high-conversion landing page for a product launch campaign.",
+    budget: 38000,
     deadline: daysFromNow(3),
-    status: "FILES_SUBMITTED",
+    status: "ACCEPTED",
     platform_fee_pct: 8,
-    timeline: timelineFor(["INVITED", "ACCEPTED", "FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_SUBMITTED"]),
+    timeline: timelineFor(["INVITED", "ACCEPTED"]),
   },
   {
     id: "dev_project_3",
-    business_id: "dev_business_1",
-    business_name: "RetailX Pvt Ltd",
+    business_id: "dev_business_3",
+    business_name: "DesignCo Studio",
     worker_id: "dev_worker_1",
     worker_name: "Priya Sharma",
-    title: "Invoice Flow Cleanup",
-    description: "Complete invoice status and payment release copy.",
-    budget: 18000,
-    deadline: daysAgo(6),
-    status: "COMPLETED",
+    title: "Brand Logo System",
+    description: "Create a logo refresh with three lockups, color guidance, and compact usage notes for the brand team.",
+    budget: 22000,
+    deadline: daysFromNow(10),
+    status: "INVITED",
     platform_fee_pct: 8,
-    timeline: timelineFor(["INVITED", "ACCEPTED", "FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_SUBMITTED", "COMPLETED"]),
+    timeline: timelineFor(["INVITED"]),
   },
 ];
 
@@ -123,19 +123,47 @@ export function getDevBypassPublicProfile(userId) {
   if (getToken() !== DEV_BYPASS_TOKEN) return null;
   const worker = devWorkers.find((item) => item.id === userId);
   if (worker) return worker;
-  if (userId === "dev_business_1") {
-    return {
+  const devBusinesses = {
+    dev_business_1: {
       id: "dev_business_1",
       role: "business",
-      name: "RetailX Pvt Ltd",
-      title: "Verified Business",
+      name: "Google Creative Lab",
+      title: "Verified Enterprise Client",
       avatar_url: null,
       verified: true,
-      behavior_score: 900,
+      behavior_score: 960,
       rating: 4.9,
-      reviews_count: 18,
-      profile: { location: "Mumbai", industry: "Retail" },
-    };
+      reviews_count: 42,
+      profile: { location: "Bengaluru", industry: "Technology" },
+    },
+    dev_business_2: {
+      id: "dev_business_2",
+      role: "business",
+      name: "StartUpX",
+      title: "Verified Startup",
+      avatar_url: null,
+      verified: true,
+      behavior_score: 880,
+      rating: 4.7,
+      reviews_count: 15,
+      profile: { location: "Pune", industry: "SaaS" },
+    },
+    dev_business_3: {
+      id: "dev_business_3",
+      role: "business",
+      name: "DesignCo Studio",
+      title: "Verified Creative Team",
+      avatar_url: null,
+      verified: true,
+      behavior_score: 820,
+      rating: 4.8,
+      reviews_count: 21,
+      profile: { location: "Mumbai", industry: "Design" },
+    },
+  };
+
+  if (devBusinesses[userId]) {
+    return devBusinesses[userId];
   }
   return getDevUser();
 }
