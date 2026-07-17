@@ -142,18 +142,6 @@ function AppRoutes() {
             userType={userType}
             onSuccess={handleAuthSuccess}
             onBack={() => navigate("/")}
-            onAdminAccess={() => navigate("/admin/login")}
-          />
-        }
-      />
-      <Route
-        path="/admin/login"
-        element={
-          <AuthPage
-            userType="admin"
-            onSuccess={handleAuthSuccess}
-            onBack={() => navigate("/")}
-            onUserAccess={() => navigate("/auth")}
           />
         }
       />

@@ -50,12 +50,16 @@ export const integerSchema = z.coerce
 export const authSchema = z.object({
   fullName: z.string().optional(),
   email: emailSchema,
-  phone: phoneSchema,
+  // Phone remains required for account creation, but is optional on sign-in
+  // so internally provisioned admins (whose phone can be null) can use the
+  // same shared authentication form as every other account.
+  phone: z.union([phoneSchema, z.literal("")]).optional(),
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
 export const signupSchema = authSchema.extend({
   fullName: cleanText,
+  phone: phoneSchema,
 });
 
 export const adminAuthSchema = z.object({

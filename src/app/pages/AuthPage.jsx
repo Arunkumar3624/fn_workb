@@ -39,19 +39,19 @@ const AUTH_INPUT_CLASS = "h-12 w-full rounded-xl border border-slate-200 bg-slat
 
 function otpPayload(values, role, mode) {
   const email = values.email.trim().toLowerCase();
-  const phone = values.phone.replace(/\D/g, "").slice(-10);
+  const phone = (values.phone ?? "").replace(/\D/g, "").slice(-10);
   return {
     identifier: email,
     role,
     mode,
     email,
-    phone,
     password: values.password,
+    ...(phone ? { phone } : {}),
     ...(mode === "signup" ? { name: values.fullName.trim() } : {}),
   };
 }
 
-export default function AuthPage({ userType, onSuccess, onBack, onAdminAccess, onUserAccess }) {
+export default function AuthPage({ userType, onSuccess, onBack }) {
   const isAdmin = userType === "admin";
   const cfg = USER_CONFIG[userType] ?? USER_CONFIG.worker;
   const [authStep, setAuthStep] = useState("input");
@@ -67,7 +67,7 @@ export default function AuthPage({ userType, onSuccess, onBack, onAdminAccess, o
   const [showPassword, setShowPassword] = useState(false);
   const otpInputs = useRef([]);
   const verifyingRef = useRef(false);
-  const { login, authenticate } = useAuth();
+  const { authenticate } = useAuth();
 
   const activeSchema = isAdmin
     ? adminAuthSchema
@@ -134,7 +134,13 @@ export default function AuthPage({ userType, onSuccess, onBack, onAdminAccess, o
         method: "POST",
         body: credentials,
       });
-      setPendingCredentials(credentials);
+      // The server resolves the real account role after the password check.
+      // This lets an admin use either public sign-in entry and still receive
+      // an admin-scoped OTP/JWT rather than trusting the selected UI role.
+      setPendingCredentials({
+        ...credentials,
+        role: result?.role ?? credentials.role,
+      });
       setOtp(Array(OTP_LENGTH).fill(""));
       setAuthStep("otp");
       setResendCountdown(result?.resendAfterSeconds ?? 60);
@@ -229,19 +235,6 @@ export default function AuthPage({ userType, onSuccess, onBack, onAdminAccess, o
     setInfoMessage("");
     setPendingCredentials(null);
     setResendCountdown(0);
-  };
-
-  const onAdminLogin = async (values) => {
-    setSendingOtp(true);
-    setFormError("");
-    try {
-      const user = await login(values.email, values.password);
-      onSuccess(user);
-    } catch (error) {
-      setFormError(error.message ?? "Could not sign in. Please try again.");
-    } finally {
-      setSendingOtp(false);
-    }
   };
 
   const isOtpComplete = otp.every(Boolean);
@@ -452,7 +445,7 @@ export default function AuthPage({ userType, onSuccess, onBack, onAdminAccess, o
                     </div>
                   )}
 
-                  <form onSubmit={handleSubmit(isAdmin ? onAdminLogin : onUserContinue)} className="space-y-4">
+                  <form onSubmit={handleSubmit(onUserContinue)} className="space-y-4">
                     {!isAdmin && authMode === "signup" && (
                       <Field label="Full name" error={errors.fullName?.message} Icon={User}>
                         <input
@@ -475,7 +468,7 @@ export default function AuthPage({ userType, onSuccess, onBack, onAdminAccess, o
                       />
                     </Field>
 
-                    <Field label={isAdmin ? "Mobile number (optional)" : "Mobile number"} error={errors.phone?.message} Icon={Smartphone}>
+                    <Field label={authMode === "signin" ? "Mobile number (optional)" : "Mobile number"} error={errors.phone?.message} Icon={Smartphone}>
                         <div className="flex gap-2">
                           <span className="flex h-12 items-center rounded-xl border border-slate-200 bg-slate-100 px-3 text-sm font-semibold text-slate-600">+91</span>
                           <input
@@ -525,25 +518,6 @@ export default function AuthPage({ userType, onSuccess, onBack, onAdminAccess, o
                       </div>
                     )}
 
-                    {!isAdmin && onAdminAccess && (
-                      <button
-                        type="button"
-                        onClick={onAdminAccess}
-                        className="mx-auto block pt-1 text-xs font-semibold text-slate-400 transition hover:text-[#1B3FAB]"
-                      >
-                        Platform administrator? Sign in here
-                      </button>
-                    )}
-
-                    {isAdmin && onUserAccess && (
-                      <button
-                        type="button"
-                        onClick={onUserAccess}
-                        className="mx-auto block pt-1 text-xs font-semibold text-slate-400 transition hover:text-[#1B3FAB]"
-                      >
-                        Return to freelancer/business login
-                      </button>
-                    )}
                   </form>
                 </>
               )}

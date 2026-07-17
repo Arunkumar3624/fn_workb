@@ -28,17 +28,6 @@ export function AuthProvider({ children }) {
       });
   }, []);
 
-  const login = async (email, password) => {
-    const { token, user } = await apiFetch("/api/auth/login", {
-      method: "POST",
-      body: { email, password },
-    });
-    setToken(token);
-    setCurrentUser(user);
-    setStatus("authenticated");
-    return user;
-  };
-
   const register = async ({ role, name, email, phone, password }) => {
     const { token, user } = await apiFetch("/api/auth/register", {
       method: "POST",
@@ -70,7 +59,7 @@ export function AuthProvider({ children }) {
   };
 
   const value = useMemo(
-    () => ({ currentUser, status, login, register, authenticate, logout, updateCurrentUser }),
+    () => ({ currentUser, status, register, authenticate, logout, updateCurrentUser }),
     [currentUser, status]
   );
 
