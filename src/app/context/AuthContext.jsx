@@ -3,6 +3,11 @@ import { apiFetch, getToken, setToken } from "../lib/apiClient";
 
 const AuthContext = createContext(null);
 
+// DEV BYPASS: temporary dashboard-development auth bypass.
+// Remove this block when the OTP flow is restored for production.
+const DEV_BYPASS_TOKEN = "dev_bypass_token_123";
+const DEV_BYPASS_USER_STORAGE_KEY = "workbridge_dev_bypass_user";
+
 // "loading" only lasts as long as the initial /me rehydration call on first
 // mount; after that it's always "authenticated" or "guest".
 export function AuthProvider({ children }) {
@@ -10,7 +15,23 @@ export function AuthProvider({ children }) {
   const [status, setStatus] = useState("loading");
 
   useEffect(() => {
-    if (!getToken()) {
+    const token = getToken();
+
+    // DEV BYPASS: rehydrate the mock user after refresh without calling /api/auth/me.
+    if (token === DEV_BYPASS_TOKEN) {
+      const storedDevUser = localStorage.getItem(DEV_BYPASS_USER_STORAGE_KEY);
+      if (storedDevUser) {
+        try {
+          setCurrentUser(JSON.parse(storedDevUser));
+          setStatus("authenticated");
+          return;
+        } catch {
+          localStorage.removeItem(DEV_BYPASS_USER_STORAGE_KEY);
+        }
+      }
+    }
+
+    if (!token) {
       setStatus("guest");
       return;
     }
@@ -46,6 +67,8 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
+    // DEV BYPASS: clear the mock user alongside the fake token.
+    localStorage.removeItem(DEV_BYPASS_USER_STORAGE_KEY);
     setToken(null);
     setCurrentUser(null);
     setStatus("guest");

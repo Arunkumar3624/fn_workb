@@ -37,6 +37,26 @@ const BRAND_FEATURES = [
 const OTP_LENGTH = 6;
 const AUTH_INPUT_CLASS = "h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-[#1B3FAB] focus:bg-white focus:ring-4 focus:ring-[#1B3FAB]/10";
 
+// DEV BYPASS: temporary dashboard-development auth bypass.
+// Set this to false and restore the commented OTP call in onUserContinue before production.
+const DEV_BYPASS_AUTH = true;
+const DEV_BYPASS_TOKEN = "dev_bypass_token_123";
+const DEV_BYPASS_USER_STORAGE_KEY = "workbridge_dev_bypass_user";
+
+function createDevBypassUser(role) {
+  return {
+    id: "dev_999",
+    email: "dev@workbridge.com",
+    role: USER_CONFIG[role] ? role : "worker",
+    name: "Dev User",
+    verified: true,
+    behavior_score: 100,
+    avatar_url: null,
+    title: role === "business" ? "Business Owner" : role === "admin" ? "Platform Admin" : "Freelancer",
+    profile: {},
+  };
+}
+
 function otpPayload(values, role, mode) {
   const email = values.email.trim().toLowerCase();
   const phone = (values.phone ?? "").replace(/\D/g, "").slice(-10);
@@ -154,7 +174,30 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
     }
   };
 
-  const onUserContinue = (values) => requestOtp(otpPayload(values, userType, authMode));
+  const onUserContinue = (values) => {
+    // DEV BYPASS: skip /api/auth/send-otp and inject a mock authenticated session.
+    // This keeps the original OTP flow below intact for production restore.
+    if (DEV_BYPASS_AUTH) {
+      setFormError("");
+      setOtpError("");
+      setInfoMessage("DEV BYPASS: signed in without OTP.");
+
+      const selectedRole = USER_CONFIG[userType] ? userType : "worker";
+      const mockUser = createDevBypassUser(selectedRole);
+
+      localStorage.setItem(DEV_BYPASS_USER_STORAGE_KEY, JSON.stringify(mockUser));
+      authenticate(DEV_BYPASS_TOKEN, mockUser);
+      onSuccess(mockUser);
+      return;
+    }
+
+    /*
+     * DEV BYPASS: original production OTP flow.
+     * Uncomment this line and remove/disable the bypass block above before production.
+     *
+     * requestOtp(otpPayload(values, userType, authMode));
+     */
+  };
 
   const verifyCode = async (code) => {
     if (verifyingRef.current || code.length !== OTP_LENGTH || !pendingCredentials) return;
