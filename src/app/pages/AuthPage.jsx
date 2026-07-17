@@ -51,10 +51,10 @@ function otpPayload(values, role, mode) {
   };
 }
 
-export default function AuthPage({ userType, onSuccess, onBack }) {
+export default function AuthPage({ userType, onSuccess, onBack, onAdminAccess, onUserAccess }) {
   const isAdmin = userType === "admin";
   const cfg = USER_CONFIG[userType] ?? USER_CONFIG.worker;
-  const [authStep, setAuthStep] = useState(isAdmin ? "admin" : "input");
+  const [authStep, setAuthStep] = useState("input");
   const [authMode, setAuthMode] = useState("signin");
   const [pendingCredentials, setPendingCredentials] = useState(null);
   const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(""));
@@ -86,7 +86,7 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
   });
 
   useEffect(() => {
-    setAuthStep(isAdmin ? "admin" : "input");
+    setAuthStep("input");
     setAuthMode("signin");
     setPendingCredentials(null);
     setOtp(Array(OTP_LENGTH).fill(""));
@@ -272,7 +272,12 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
             {isAdmin ? (
               "Secure admin access"
             ) : (
-              <>Welcome back.<br /><span className="text-[#FF6B2C]">India&apos;s faster freelance platform.</span></>
+              <>
+                {authMode === "signin" ? "Welcome back." : "Join India’s faster"}<br />
+                <span className="text-[#FF6B2C]">
+                  {authMode === "signin" ? "India’s freelance platform." : "freelance platform."}
+                </span>
+              </>
             )}
           </h1>
           <p className="mb-10 text-sm leading-relaxed text-slate-400">
@@ -318,8 +323,15 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
           </div>
 
           <section className="overflow-hidden rounded-2xl border border-white/50 bg-white/70 shadow-xl backdrop-blur-xl">
-            {!isAdmin && authStep === "input" && (
-              <div className="grid grid-cols-2 border-b border-slate-200/80 bg-white/40">
+            {authStep === "input" && (
+              <div className={`grid border-b border-slate-200/80 bg-white/40 ${isAdmin ? "grid-cols-1" : "grid-cols-2"}`}>
+                {isAdmin ? (
+                  <div className="relative py-4 text-center text-sm font-bold text-[#1B3FAB]">
+                    Admin Sign In
+                    <span className="absolute inset-x-0 bottom-0 h-0.5 bg-[#1B3FAB]" />
+                  </div>
+                ) : (
+                  <>
                 <button
                   type="button"
                   onClick={() => changeMode("signin")}
@@ -336,6 +348,8 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
                   Create Account
                   {authMode === "signup" && <span className="absolute inset-x-0 bottom-0 h-0.5 bg-[#1B3FAB]" />}
                 </button>
+                  </>
+                )}
               </div>
             )}
 
@@ -461,8 +475,7 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
                       />
                     </Field>
 
-                    {!isAdmin && (
-                      <Field label="Mobile number" error={errors.phone?.message} Icon={Smartphone}>
+                    <Field label={isAdmin ? "Mobile number (optional)" : "Mobile number"} error={errors.phone?.message} Icon={Smartphone}>
                         <div className="flex gap-2">
                           <span className="flex h-12 items-center rounded-xl border border-slate-200 bg-slate-100 px-3 text-sm font-semibold text-slate-600">+91</span>
                           <input
@@ -476,7 +489,6 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
                           />
                         </div>
                       </Field>
-                    )}
 
                     <Field label="Password" error={errors.password?.message} Icon={Lock}>
                       <div className="relative">
@@ -511,6 +523,26 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
                         <Shield className="h-3.5 w-3.5 text-emerald-600" />
                         Your password is verified before we send the OTP
                       </div>
+                    )}
+
+                    {!isAdmin && onAdminAccess && (
+                      <button
+                        type="button"
+                        onClick={onAdminAccess}
+                        className="mx-auto block pt-1 text-xs font-semibold text-slate-400 transition hover:text-[#1B3FAB]"
+                      >
+                        Platform administrator? Sign in here
+                      </button>
+                    )}
+
+                    {isAdmin && onUserAccess && (
+                      <button
+                        type="button"
+                        onClick={onUserAccess}
+                        className="mx-auto block pt-1 text-xs font-semibold text-slate-400 transition hover:text-[#1B3FAB]"
+                      >
+                        Return to freelancer/business login
+                      </button>
                     )}
                   </form>
                 </>
