@@ -46,7 +46,7 @@ export default function BusinessDashboard({ onLogout, onVerify, isVerified = fal
         />
       }
     >
-      <div className="flex-1 overflow-auto">
+      <div className={`flex-1 ${tab === "negotiations" ? "overflow-hidden" : "overflow-auto"}`}>
         {tab === "overview" && (
           <BusinessOverview
             onPostJob={handlePostJob}
