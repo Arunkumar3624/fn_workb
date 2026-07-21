@@ -9,6 +9,7 @@ import EnterprisePage from "./pages/EnterprisePage";
 import AuthPage from "./pages/AuthPage";
 import InvoicePage from "./pages/InvoicePage";
 import CelebrationOverlay from "./components/common/CelebrationOverlay";
+import { Toaster } from "./components/ui/sonner";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 
 // Code-split the heavy, post-auth dashboard bundles — none of these are
@@ -251,6 +252,7 @@ function AppRoutes() {
         onClose={() => setShowVerifiedCelebration(false)}
       />
     )}
+    <Toaster position="top-right" richColors />
     </>
   );
 }

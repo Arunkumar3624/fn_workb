@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
+import { toast } from "sonner";
 import { AlertCircle, Briefcase, History, Send } from "lucide-react";
 import CelebrationOverlay from "../common/CelebrationOverlay";
 import TimelineTracker from "../shared/TimelineTracker";
@@ -11,6 +12,7 @@ import { submitReview, listReviewsFor } from "../../lib/reviewsApi";
 import { PROJECT_STATUS_META, nextProjectStatus } from "../../utils/projectStatus";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { ApiError } from "../../lib/apiClient";
+import { getSocket } from "../../lib/socketClient";
 
 const ACTIVE_STATUSES = new Set(["ACCEPTED", "FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_SUBMITTED"]);
 
@@ -85,6 +87,34 @@ export default function WorkerWorkspace() {
   const patchProject = (updated) => {
     setProjects((current) => current.map((p) => (p.id === updated.id ? { ...p, ...updated } : p)));
   };
+
+  // Kept in a ref (not read from `projects` directly) so the socket
+  // subscription below — mounted once — never closes over a stale list.
+  const projectsRef = useRef(projects);
+  useEffect(() => {
+    projectsRef.current = projects;
+  }, [projects]);
+
+  // Live nudge for state changes the business side makes while this tab is
+  // open — the REST call already updated the business's own view; this is
+  // purely so the worker doesn't have to refresh to see it. See
+  // backend/src/realtime/events.js for the emit side.
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return undefined;
+
+    const handleProjectEvent = (event) => {
+      if (event.type !== "FUNDS_SECURED") return;
+      const project = projectsRef.current.find((p) => p.id === event.projectId);
+      if (!project) return;
+
+      patchProject({ id: event.projectId, status: "FUNDS_SECURED" });
+      toast.success(`${project.business_name} just funded the Escrow for "${project.title}"!`);
+    };
+
+    socket.on("project:event", handleProjectEvent);
+    return () => socket.off("project:event", handleProjectEvent);
+  }, []);
 
   // Worker's turn to act (Start Work / Submit Work) — Approve & Release /
   // Secure Funds are business-only and happen from the business dashboard.

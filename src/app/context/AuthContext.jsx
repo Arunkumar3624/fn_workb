@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { apiFetch, getToken, setToken } from "../lib/apiClient";
+import { connectSocket, disconnectSocket } from "../lib/socketClient";
 
 const AuthContext = createContext(null);
 
@@ -38,6 +39,7 @@ export function AuthProvider({ children }) {
 
     apiFetch("/api/auth/me")
       .then((user) => {
+        connectSocket(token);
         setCurrentUser(user);
         setStatus("authenticated");
       })
@@ -55,6 +57,7 @@ export function AuthProvider({ children }) {
       body: { role, name, email, phone, password },
     });
     setToken(token);
+    connectSocket(token);
     setCurrentUser(user);
     setStatus("authenticated");
     return user;
@@ -62,6 +65,9 @@ export function AuthProvider({ children }) {
 
   const authenticate = (token, user) => {
     setToken(token);
+    // The dev-bypass token is never a real JWT — the real server (and
+    // socket auth, which reuses the same verify logic) would reject it.
+    if (token !== DEV_BYPASS_TOKEN) connectSocket(token);
     setCurrentUser(user);
     setStatus("authenticated");
   };
@@ -69,6 +75,7 @@ export function AuthProvider({ children }) {
   const logout = () => {
     // DEV BYPASS: clear the mock user alongside the fake token.
     localStorage.removeItem(DEV_BYPASS_USER_STORAGE_KEY);
+    disconnectSocket();
     setToken(null);
     setCurrentUser(null);
     setStatus("guest");

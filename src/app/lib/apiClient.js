@@ -1,5 +1,6 @@
 // Thin fetch wrapper for the real backend (backend/src/server.js).
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+// Exported so socketClient.js connects to the exact same origin.
+export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 // The single source of truth for the signed-in user's JWT — written by
 // AuthContext on login/register/logout, read here on every request. Kept as
@@ -95,7 +96,41 @@ let devProjects = [
     platform_fee_pct: 8,
     timeline: timelineFor(["INVITED"]),
   },
+  {
+    id: "dev_project_4",
+    business_id: "dev_business_4",
+    business_name: "RetailX Pvt Ltd",
+    worker_id: "dev_worker_1",
+    worker_name: "Priya Sharma",
+    title: "E-commerce Storefront Revamp",
+    description: "Rebuild the product listing and checkout flow for a retail storefront, improving conversion and mobile performance.",
+    budget: 52000,
+    deadline: daysAgo(2),
+    status: "COMPLETED",
+    platform_fee_pct: 8,
+    timeline: timelineFor(["INVITED", "ACCEPTED", "FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_SUBMITTED", "COMPLETED"]),
+  },
 ];
+
+// Keyed by project id — backs the "submissions" branch below so the
+// deliverables drawer/panel has something real to show for a completed
+// project instead of always returning [].
+const devSubmissions = {
+  dev_project_4: [
+    {
+      id: "dev_submission_1",
+      project_id: "dev_project_4",
+      submitted_by: "dev_worker_1",
+      submitted_by_name: "Priya Sharma",
+      type: "link",
+      url: "https://drive.google.com/drive/folders/dev-retailx-final-delivery",
+      image_data: null,
+      caption: "Final build + handoff docs",
+      status: "APPROVED",
+      created_at: daysAgo(1),
+    },
+  ],
+};
 
 function getDevUser() {
   const stored = localStorage.getItem(DEV_BYPASS_USER_STORAGE_KEY);
@@ -159,6 +194,18 @@ export function getDevBypassPublicProfile(userId) {
       rating: 4.8,
       reviews_count: 21,
       profile: { location: "Mumbai", industry: "Design" },
+    },
+    dev_business_4: {
+      id: "dev_business_4",
+      role: "business",
+      name: "RetailX Pvt Ltd",
+      title: "Verified Enterprise Client",
+      avatar_url: null,
+      verified: true,
+      behavior_score: 900,
+      rating: 4.6,
+      reviews_count: 18,
+      profile: { location: "Delhi", industry: "Retail" },
     },
   };
 
@@ -249,7 +296,7 @@ function devBypassFetch(path, { method = "GET", body } = {}) {
           created_at: new Date().toISOString(),
         };
       }
-      return [];
+      return devSubmissions[id] ?? [];
     }
 
     if (action === "secure-funds") {
