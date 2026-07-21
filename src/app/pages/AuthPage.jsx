@@ -37,9 +37,9 @@ const BRAND_FEATURES = [
 const OTP_LENGTH = 6;
 const AUTH_INPUT_CLASS = "h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-[#1B3FAB] focus:bg-white focus:ring-4 focus:ring-[#1B3FAB]/10";
 
-// DEV BYPASS: temporary dashboard-development auth bypass.
-// Set this to false and restore the commented OTP call in onUserContinue before production.
-const DEV_BYPASS_AUTH = true;
+// DEV BYPASS: temporary dashboard-development auth bypass. Disabled now that
+// the real OTP flow is confirmed working against the live Postgres backend.
+const DEV_BYPASS_AUTH = false;
 const DEV_BYPASS_TOKEN = "dev_bypass_token_123";
 const DEV_BYPASS_USER_STORAGE_KEY = "workbridge_dev_bypass_user";
 
@@ -176,7 +176,8 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
 
   const onUserContinue = (values) => {
     // DEV BYPASS: skip /api/auth/send-otp and inject a mock authenticated session.
-    // This keeps the original OTP flow below intact for production restore.
+    // Disabled (DEV_BYPASS_AUTH = false) — kept only so it can be flipped back
+    // on if the real backend/OTP path is ever unavailable again.
     if (DEV_BYPASS_AUTH) {
       setFormError("");
       setOtpError("");
@@ -191,12 +192,7 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
       return;
     }
 
-    /*
-     * DEV BYPASS: original production OTP flow.
-     * Uncomment this line and remove/disable the bypass block above before production.
-     *
-     * requestOtp(otpPayload(values, userType, authMode));
-     */
+    requestOtp(otpPayload(values, userType, authMode));
   };
 
   const verifyCode = async (code) => {

@@ -95,21 +95,50 @@ export default function WorkerWorkspace() {
     projectsRef.current = projects;
   }, [projects]);
 
-  // Live nudge for state changes the business side makes while this tab is
-  // open — the REST call already updated the business's own view; this is
-  // purely so the worker doesn't have to refresh to see it. See
+  // Live nudge for state changes the business/admin side makes while this
+  // tab is open — the REST call already updated their own view; this is
+  // purely so the worker doesn't have to refresh to see it. Events this
+  // same worker triggered elsewhere (another tab, or their own submission)
+  // patch state silently without a redundant toast. See
   // backend/src/realtime/events.js for the emit side.
   useEffect(() => {
     const socket = getSocket();
     if (!socket) return undefined;
 
     const handleProjectEvent = (event) => {
-      if (event.type !== "FUNDS_SECURED") return;
       const project = projectsRef.current.find((p) => p.id === event.projectId);
       if (!project) return;
 
-      patchProject({ id: event.projectId, status: "FUNDS_SECURED" });
-      toast.success(`${project.business_name} just funded the Escrow for "${project.title}"!`);
+      switch (event.type) {
+        case "FUNDS_SECURED":
+          patchProject({ id: event.projectId, status: "FUNDS_SECURED" });
+          toast.success(`${project.business_name} just funded the Escrow for "${project.title}"!`);
+          break;
+        case "COMPLETED":
+          patchProject({ id: event.projectId, status: "COMPLETED" });
+          toast.success(`${project.business_name} released payment for "${project.title}" — ₹${event.earnings} is on its way to your wallet.`);
+          break;
+        case "STATUS_CHANGED":
+          patchProject({ id: event.projectId, status: event.status });
+          if (event.actorRole !== "worker") {
+            toast.info(`${project.business_name} updated "${project.title}" to ${event.status.replaceAll("_", " ").toLowerCase()}.`);
+          }
+          break;
+        case "SUBMISSION_CREATED":
+          if (event.submittedBy !== currentUser?.id) {
+            toast.info(`${project.business_name} shared new reference material on "${project.title}".`);
+          }
+          break;
+        case "SUBMISSION_REVIEWED":
+          if (event.submittedBy === currentUser?.id) {
+            toast[event.status === "APPROVED" ? "success" : "error"](
+              `Your submission on "${project.title}" was ${event.status.toLowerCase()}.`
+            );
+          }
+          break;
+        default:
+          break;
+      }
     };
 
     socket.on("project:event", handleProjectEvent);

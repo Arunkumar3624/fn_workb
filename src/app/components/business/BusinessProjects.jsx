@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { toast } from "sonner";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -27,6 +28,7 @@ import { getPublicProfile } from "../../lib/profilesApi";
 import { submitReview, listReviewsFor } from "../../lib/reviewsApi";
 import { getInitials } from "../../utils/formValidation";
 import { useAuth } from "../../context/AuthContext";
+import { getSocket } from "../../lib/socketClient";
 import { motion, AnimatePresence } from "motion/react";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 
@@ -449,6 +451,59 @@ export default function BusinessProjects() {
 
   const liveProjects = projects.filter((p) => p.status !== "COMPLETED");
   const historyProjects = projects.filter((p) => p.status === "COMPLETED");
+
+  // Kept in a ref (not read from `projects` directly) so the socket
+  // subscription below — mounted once — never closes over a stale list.
+  const projectsRef = useRef(projects);
+  useEffect(() => {
+    projectsRef.current = projects;
+  }, [projects]);
+
+  // Live nudge for state changes the worker/admin side makes while this tab
+  // is open — this component previously had zero realtime wiring, so a
+  // worker starting/submitting work or an admin reviewing a deliverable
+  // never showed up here without a manual refresh. FUNDS_SECURED/COMPLETED
+  // are this business's own actions (already reflected via the direct REST
+  // response in handleSecureFunds/handleConfirmPayment) — patched silently
+  // here too, only for the rare second-open-tab case, no duplicate toast.
+  // See backend/src/realtime/events.js for the emit side.
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return undefined;
+
+    const handleProjectEvent = (event) => {
+      const project = projectsRef.current.find((p) => p.id === event.projectId);
+      if (!project) return;
+
+      switch (event.type) {
+        case "FUNDS_SECURED":
+          setProjects((prev) => prev.map((p) => (p.id === event.projectId ? { ...p, status: "FUNDS_SECURED" } : p)));
+          break;
+        case "COMPLETED":
+          setProjects((prev) => prev.map((p) => (p.id === event.projectId ? { ...p, status: "COMPLETED" } : p)));
+          break;
+        case "STATUS_CHANGED":
+          setProjects((prev) => prev.map((p) => (p.id === event.projectId ? { ...p, status: event.status } : p)));
+          if (event.actorRole !== "business") {
+            toast.info(`${project.worker_name} updated "${project.title}" to ${event.status.replaceAll("_", " ").toLowerCase()}.`);
+          }
+          break;
+        case "SUBMISSION_CREATED":
+          if (event.submittedBy !== currentUser?.id) {
+            toast.info(`${project.worker_name} submitted new work on "${project.title}" — pending review.`);
+          }
+          break;
+        case "SUBMISSION_REVIEWED":
+          toast.info(`A submission on "${project.title}" was ${event.status.toLowerCase()} by WorkBridge.`);
+          break;
+        default:
+          break;
+      }
+    };
+
+    socket.on("project:event", handleProjectEvent);
+    return () => socket.off("project:event", handleProjectEvent);
+  }, [currentUser?.id]);
 
   // Populate ratingsByProject once history projects are known — one
   // listReviewsFor call per unique worker (not per project), matched back to

@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { listSubmissions, submitLink, submitImage } from "../../lib/submissionsApi";
 import { ApiError } from "../../lib/apiClient";
+import { getSocket } from "../../lib/socketClient";
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024; // matches the backend's ~8MB cap
 
@@ -60,6 +61,23 @@ export default function DeliverablesPanel({ projectId }) {
 
   useEffect(() => {
     load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId]);
+
+  // Refetch when a submission on THIS project is created or reviewed by the
+  // other participant/admin, so the drawer/panel updates live instead of
+  // needing a close-and-reopen. See backend/src/realtime/events.js.
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return undefined;
+
+    const handleProjectEvent = (event) => {
+      if (event.projectId !== projectId) return;
+      if (event.type === "SUBMISSION_CREATED" || event.type === "SUBMISSION_REVIEWED") load();
+    };
+
+    socket.on("project:event", handleProjectEvent);
+    return () => socket.off("project:event", handleProjectEvent);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
 
