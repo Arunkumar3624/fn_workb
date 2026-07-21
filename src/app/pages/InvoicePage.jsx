@@ -120,7 +120,10 @@ export default function InvoicePage() {
                 </span>
               </div>
               <p className="mt-1 font-mono text-sm text-slate-500">#{project.id.slice(0, 8).toUpperCase()}</p>
-              <button className="mt-3 inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50 print:hidden">
+              <button
+                onClick={() => window.print()}
+                className="mt-3 inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50 print:hidden"
+              >
                 <Download className="h-3.5 w-3.5" />
                 Download PDF
               </button>

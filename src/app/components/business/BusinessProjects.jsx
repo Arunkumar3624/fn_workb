@@ -660,7 +660,10 @@ export default function BusinessProjects() {
                           View Worker
                         </button>
 
-                        <button className="flex min-h-[44px] items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50">
+                        <button
+                          onClick={() => setWorkerDrawerProject(p)}
+                          className="flex min-h-[44px] items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50"
+                        >
                           <Download className="h-3.5 w-3.5" />
                           Download Files
                         </button>

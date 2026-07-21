@@ -4,7 +4,7 @@ import { Bell, Sparkles } from "lucide-react";
 import DashboardLayout from "../components/common/DashboardLayout";
 import WorkerSidebar from "../components/worker/WorkerSidebar";
 import WorkerJobFeed from "../components/worker/WorkerJobFeed";
-import NegotiationInbox from "../components/worker/NegotiationInbox";
+import NegotiationInbox from "../components/worker/WorkerNegotiationInbox";
 import WorkerWorkspace from "../components/worker/WorkerWorkspace";
 import WorkerWallet from "../components/worker/WorkerWallet";
 import WorkerProfile from "../components/worker/WorkerProfile";
