@@ -28,6 +28,10 @@ export function listPendingSubmissions() {
   return apiFetch("/api/admin/submissions");
 }
 
+export function listReviewedSubmissions() {
+  return apiFetch("/api/admin/submissions/history");
+}
+
 export function reviewSubmission(id, { approved, rejectionReason }) {
   return apiFetch(`/api/admin/submissions/${id}`, {
     method: "PATCH",

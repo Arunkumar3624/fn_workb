@@ -15,6 +15,7 @@ import { updateOwnProfile } from "../../lib/profilesApi";
 import { listReviewsFor } from "../../lib/reviewsApi";
 import { getInitials } from "../../utils/formValidation";
 import { ApiError } from "../../lib/apiClient";
+import { getSocket } from "../../lib/socketClient";
 
 const MAX_AVATAR_BYTES = 1.5 * 1024 * 1024; // 1.5MB — stored as a data URL in avatar_url (TEXT), no file-storage backend exists yet.
 
@@ -112,6 +113,24 @@ export default function WorkerProfile() {
       .then(setReviews)
       .catch(() => setReviews([]))
       .finally(() => setReviewsLoading(false));
+  }, [currentUser?.id]);
+
+  // A business rating this worker mid-session (this tab already open)
+  // previously only showed up after a manual reload — the fetch above only
+  // ever ran once, on mount.
+  useEffect(() => {
+    if (!currentUser?.id) return undefined;
+    const socket = getSocket();
+    if (!socket) return undefined;
+
+    const handleProjectEvent = (event) => {
+      if (event.type === "REVIEW_SUBMITTED" && event.revieweeId === currentUser.id) {
+        listReviewsFor(currentUser.id).then(setReviews).catch(() => {});
+      }
+    };
+
+    socket.on("project:event", handleProjectEvent);
+    return () => socket.off("project:event", handleProjectEvent);
   }, [currentUser?.id]);
 
   const startEdit = () => {

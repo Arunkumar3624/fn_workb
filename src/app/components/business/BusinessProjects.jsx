@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import {
   AlertTriangle,
@@ -27,6 +29,7 @@ import {
   createProject,
 } from "../../lib/projectsApi";
 import { getPublicProfile } from "../../lib/profilesApi";
+import { listSubmissions } from "../../lib/submissionsApi";
 import { submitReview, listReviewsFor } from "../../lib/reviewsApi";
 import { getInitials } from "../../utils/formValidation";
 import { useAuth } from "../../context/AuthContext";
@@ -108,10 +111,20 @@ function WorkerDetailDrawer({ project, onClose }) {
   const feePct = Number(project?.platform_fee_pct ?? 8);
   const fee = project ? Math.round(Number(project.budget) * (feePct / 100)) : 0;
 
-  return (
+  // Rendered via a portal straight onto document.body — nesting this inside
+  // the tab's own root div (which carries .wb-tab-enter) would make it a
+  // descendant of an element that permanently holds a (no-op) CSS transform
+  // once its entrance animation finishes (animation-fill-mode: both keeps
+  // the `to` keyframe's `transform: translateY(0)` applied forever). Any
+  // non-`none` transform on an ancestor turns it into the containing block
+  // for `position: fixed` children, so this modal would center itself
+  // against that tall scrollable div instead of the actual viewport —
+  // exactly the "renders in the middle of the whole page, not the screen"
+  // bug. Portaling to document.body sidesteps that entirely.
+  return createPortal(
     <AnimatePresence>
       {isOpen && project && (
-        <div className="fixed inset-0 z-40">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -120,12 +133,12 @@ function WorkerDetailDrawer({ project, onClose }) {
             className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
             onClick={onClose}
           />
-          <motion.aside
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ type: "spring", stiffness: 300, damping: 32 }}
-            className="absolute right-0 top-0 z-50 flex h-full w-full max-w-[440px] flex-col bg-white/90 shadow-2xl backdrop-blur-xl"
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 16 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 16 }}
+            transition={{ type: "spring", stiffness: 320, damping: 28 }}
+            className="relative z-10 flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
           >
             <div className="relative flex-shrink-0">
               <div className="relative h-28 overflow-hidden bg-[#0F172A]">
@@ -256,19 +269,23 @@ function WorkerDetailDrawer({ project, onClose }) {
                 Close
               </button>
             </div>
-          </motion.aside>
+          </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
 
 // ─── Payment approval modal ──────────────────────────────────────────────────
 function PaymentApprovalModal({ project, isSubmitting, submitError, onClose, onConfirm }) {
-  return (
+  // Portaled to document.body for the same reason as WorkerDetailDrawer
+  // above — nested inside .wb-tab-enter's permanently-transformed root div,
+  // `fixed` would anchor to that div instead of the real viewport.
+  return createPortal(
     <AnimatePresence>
       {project && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -367,7 +384,8 @@ function PaymentApprovalModal({ project, isSubmitting, submitError, onClose, onC
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
 
@@ -375,10 +393,11 @@ function PaymentApprovalModal({ project, isSubmitting, submitError, onClose, onC
 // Sends a FILES_SUBMITTED project back to WORK_IN_PROGRESS instead of a full
 // approve/dispute — the middle ground for "90% there, just needs a tweak".
 function RequestRevisionModal({ project, note, onNoteChange, isSubmitting, submitError, onClose, onConfirm }) {
-  return (
+  // Portaled to document.body — see WorkerDetailDrawer's comment above for why.
+  return createPortal(
     <AnimatePresence>
       {project && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -468,16 +487,18 @@ function RequestRevisionModal({ project, note, onNoteChange, isSubmitting, submi
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
 
 // ─── Raise dispute confirm modal ──────────────────────────────────────────────
 function DisputeConfirmModal({ project, isSubmitting, submitError, onClose, onConfirm }) {
-  return (
+  // Portaled to document.body — see WorkerDetailDrawer's comment above for why.
+  return createPortal(
     <AnimatePresence>
       {project && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -557,7 +578,8 @@ function DisputeConfirmModal({ project, isSubmitting, submitError, onClose, onCo
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
 
@@ -581,8 +603,9 @@ function RatingModal({ project, currentUserId, onClose, onRehire, onRated }) {
   const feePct = Number(project.platform_fee_pct ?? 8);
   const earnings = Math.round(Number(project.budget) * (1 - feePct / 100));
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+  // Portaled to document.body — see WorkerDetailDrawer's comment above for why.
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
       <div className="relative w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl bg-white shadow-2xl">
         <button
           onClick={onClose}
@@ -610,7 +633,8 @@ function RatingModal({ project, currentUserId, onClose, onRehire, onRated }) {
           />
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
@@ -629,6 +653,7 @@ export default function BusinessProjects() {
   const [disputeProject, setDisputeProject] = useState(null);
   const [submittingDisputeId, setSubmittingDisputeId] = useState(null);
   const [disputeError, setDisputeError] = useState(null);
+  const [downloadingId, setDownloadingId] = useState(null);
   const [paymentProject, setPaymentProject] = useState(null);
   const [completingId, setCompletingId] = useState(null);
   const [completeError, setCompleteError] = useState(null);
@@ -809,6 +834,41 @@ export default function BusinessProjects() {
     }
   };
 
+  // The old "Download Files" button just opened the worker-detail drawer
+  // (same as "View Worker") — clicking it never actually downloaded
+  // anything. This fetches the project's real approved deliverables and
+  // forces a real download/open per submission: a link opens in a new tab,
+  // an inline image is forced through a temporary <a download> element so
+  // the browser treats it as a file save rather than just navigating to it.
+  const handleDownloadFiles = async (project) => {
+    if (downloadingId) return;
+    setDownloadingId(project.id);
+    try {
+      const submissions = await listSubmissions(project.id);
+      const approved = submissions.filter((s) => s.status === "APPROVED");
+      if (approved.length === 0) {
+        toast.info("No approved deliverables to download yet.");
+        return;
+      }
+      approved.forEach((submission, index) => {
+        if (submission.type === "link") {
+          window.open(submission.url, "_blank", "noopener,noreferrer");
+          return;
+        }
+        const anchor = document.createElement("a");
+        anchor.href = submission.image_data;
+        anchor.download = `${project.title}-deliverable-${index + 1}.png`;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+      });
+    } catch (err) {
+      toast.error(err.message || "Could not load this project's deliverables.");
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
   const handleRehire = async (project) => {
     const workerLabel = project.worker_name || "the freelancer";
     try {
@@ -955,10 +1015,15 @@ export default function BusinessProjects() {
                         </button>
 
                         <button
-                          onClick={() => setWorkerDrawerProject(p)}
-                          className="flex min-h-[44px] items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50"
+                          onClick={() => handleDownloadFiles(p)}
+                          disabled={downloadingId === p.id}
+                          className="flex min-h-[44px] items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
                         >
-                          <Download className="h-3.5 w-3.5" />
+                          {downloadingId === p.id ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <Download className="h-3.5 w-3.5" />
+                          )}
                           Download Files
                         </button>
 
@@ -1033,14 +1098,12 @@ export default function BusinessProjects() {
                         )}
 
                         {p.status === "COMPLETED" && (
-                          <a
-                            href={`/invoice?role=business&id=${p.id}`}
-                            target="_blank"
-                            rel="noreferrer"
+                          <Link
+                            to={`/invoice?id=${p.id}`}
                             className="ml-auto text-xs font-bold text-[#1B3FAB] hover:underline"
                           >
                             View Invoice
-                          </a>
+                          </Link>
                         )}
                       </div>
                     </div>
@@ -1107,15 +1170,13 @@ export default function BusinessProjects() {
                         Rehire
                       </button>
 
-                      <a
-                        href={`/invoice?role=business&id=${p.id}`}
-                        target="_blank"
-                        rel="noreferrer"
+                      <Link
+                        to={`/invoice?id=${p.id}`}
                         className="flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700 hover:bg-emerald-200"
                       >
                         <CheckCircle2 className="h-3 w-3" />
                         View Invoice
-                      </a>
+                      </Link>
                     </div>
                   </div>
                 );

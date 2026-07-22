@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
+  AlertCircle,
   ArrowUpRight,
   BadgeCheck,
-  BriefcaseBusiness,
+  Clock3,
   FileText,
   MessageCircle,
   Paperclip,
@@ -13,116 +14,60 @@ import {
   Sparkles,
   Users,
 } from "lucide-react";
+import Avatar from "../shared/Avatar";
 import IdentityHeader from "../shared/IdentityHeader";
+import { listProjects } from "../../lib/projectsApi";
 import { getInitials } from "../../utils/formValidation";
+import { ApiError } from "../../lib/apiClient";
 
-const DEFAULT_THREADS = [
-  {
-    id: "thread-rahul-fin-edge",
-    workerName: "Rahul K.",
-    workerTitle: "Frontend Specialist",
-    company: "FinEdge India",
-    projectTitle: "Portfolio Analytics Dashboard",
-    avatarBg: "bg-[#1B3FAB]",
-    status: "Escrow Funded",
-    escrowStatus: "Escrow Secure",
-    budget: "INR 45,000",
-    messages: [
-      {
-        id: "rk-1",
-        sender: "worker",
-        body: "Please make the portfolio chart interactive with hover tooltips.",
-        time: "10:24 AM",
-      },
-      {
-        id: "rk-2",
-        sender: "business",
-        body: "Done! Uploading the updated build now.",
-        time: "10:31 AM",
-      },
-      {
-        id: "rk-3",
-        sender: "worker",
-        body: "Looks great. Awaiting final files before we release payment.",
-        time: "10:35 AM",
-      },
-    ],
-  },
-  {
-    id: "thread-meena-growthpilot",
-    workerName: "Meena S.",
-    workerTitle: "Conversion Designer",
-    company: "GrowthPilot",
-    projectTitle: "Landing Page Redesign",
-    avatarBg: "bg-[#FF6B35]",
-    status: "Negotiating",
-    escrowStatus: "Escrow Secure",
-    budget: "INR 28,000",
-    messages: [
-      {
-        id: "ms-1",
-        sender: "worker",
-        body: "I can deliver the hero and pricing section by tomorrow evening.",
-        time: "9:41 AM",
-      },
-      {
-        id: "ms-2",
-        sender: "business",
-        body: "Perfect. Keep the CTA orange and the trust cards clean.",
-        time: "9:45 AM",
-      },
-    ],
-  },
-  {
-    id: "thread-priti-nourish",
-    workerName: "Priti D.",
-    workerTitle: "Brand Illustrator",
-    company: "Nourish Co.",
-    projectTitle: "Wellness App Illustrations",
-    avatarBg: "bg-emerald-600",
-    status: "Escrow Funded",
-    escrowStatus: "Escrow Secure",
-    budget: "INR 36,500",
-    messages: [
-      {
-        id: "pd-1",
-        sender: "worker",
-        body: "Perfect, talk then! Super excited about this project.",
-        time: "10:00 AM",
-      },
-      {
-        id: "pd-2",
-        sender: "business",
-        body: "Same here. We will review the first moodboard today.",
-        time: "10:04 AM",
-      },
-    ],
-  },
-];
+// Same "active" definition WorkerNegotiationInbox uses — a negotiation
+// thread only makes sense while the project hasn't been completed/
+// cancelled/disputed yet.
+const ACTIVE_THREAD_STATUSES = new Set(["INVITED", "ACCEPTED", "FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_SUBMITTED"]);
 
-function buildMessageLedger(threads) {
-  return threads.reduce((ledger, thread) => {
-    ledger[thread.id] = thread.messages ?? [];
-    return ledger;
-  }, {});
+const FUNDS_SECURED_STATUSES = new Set(["FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_SUBMITTED"]);
+
+const STATUS_META = {
+  INVITED: { label: "Awaiting Response", tone: "amber" },
+  ACCEPTED: { label: "Negotiating", tone: "blue" },
+  FUNDS_SECURED: { label: "Escrow Funded", tone: "emerald" },
+  WORK_IN_PROGRESS: { label: "In Progress", tone: "blue" },
+  FILES_SUBMITTED: { label: "Review Pending", tone: "amber" },
+};
+
+const TONE_CLASSES = {
+  amber: "border-amber-100 bg-amber-50 text-amber-700",
+  blue: "border-blue-100 bg-blue-50 text-blue-700",
+  emerald: "border-emerald-100 bg-emerald-50 text-emerald-700",
+};
+
+function formatINR(amount) {
+  return `INR ${Number(amount || 0).toLocaleString("en-IN")}`;
 }
 
-function getStatusTone(status) {
-  if (status?.toLowerCase().includes("escrow")) return "emerald";
-  if (status?.toLowerCase().includes("negotiating")) return "blue";
-  return "amber";
+function formatDueDate(deadline) {
+  if (!deadline) return "Flexible timeline";
+  return new Date(deadline).toLocaleDateString("en-IN", { month: "short", day: "numeric" });
 }
 
-function WorkerAvatar({ thread }) {
-  return (
-    <div
-      className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full ${
-        thread.avatarBg ?? "bg-[#1B3FAB]"
-      } text-sm font-black text-white shadow-sm`}
-    >
-      {getInitials(thread.workerName)}
-    </div>
-  );
+function getThreadStatus(project) {
+  return STATUS_META[project.status] ?? { label: project.status ?? "Active", tone: "blue" };
+}
+
+// There's no real persisted chat/messaging backend in this app (the worker
+// side's inbox makes the same simplification) — this seeds a single
+// business-authored opening line per thread rather than fabricating a
+// two-sided conversation and putting words in the real worker's mouth.
+// Replying appends to local-only state, same as the worker side.
+function seedMessages(project) {
+  return [
+    {
+      id: "business-brief",
+      sender: "business",
+      body: `Hi ${project.worker_name}, thanks for taking on "${project.title}". Let us know if you have any questions on scope or timeline.`,
+      time: "10:12 AM",
+    },
+  ];
 }
 
 function ThreadNavigator({ threads, selectedThreadId, onSelect }) {
@@ -148,32 +93,36 @@ function ThreadNavigator({ threads, selectedThreadId, onSelect }) {
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-3 py-4">
-        {threads.map((thread) => {
-          const selected = thread.id === selectedThreadId;
+        {threads.map((project) => {
+          const selected = project.id === selectedThreadId;
+          const status = getThreadStatus(project);
 
           return (
             <button
-              key={thread.id}
+              key={project.id}
               type="button"
-              onClick={() => onSelect(thread.id)}
+              onClick={() => onSelect(project.id)}
               className={`mb-3 flex w-full items-center gap-3 rounded-2xl border py-3.5 pl-3 pr-3 text-left transition ${
                 selected
                   ? "border-slate-200 border-l-4 border-l-[#FF6B35] bg-white shadow-sm"
                   : "border-transparent border-l-4 border-l-transparent bg-transparent hover:border-slate-200 hover:bg-white/70"
               }`}
             >
-              <WorkerAvatar thread={thread} />
+              <Avatar initials={getInitials(project.worker_name)} bg="bg-[#1B3FAB]" size="w-10 h-10" text="text-xs" />
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
                   <p className="truncate text-sm font-black text-slate-900">
-                    {thread.workerName}
+                    {project.worker_name}
                   </p>
                   <BadgeCheck className="h-3.5 w-3.5 flex-shrink-0 text-blue-500" />
                 </div>
                 <p className="mt-0.5 truncate text-xs font-semibold text-slate-500">
-                  {thread.projectTitle}
+                  {project.title}
                 </p>
               </div>
+              <span className={`flex-shrink-0 rounded-full border px-2 py-1 text-[10px] font-black ${TONE_CLASSES[status.tone]}`}>
+                {status.label}
+              </span>
             </button>
           );
         })}
@@ -195,7 +144,7 @@ function NoThreadSelected({ hasThreads, onFindTalent }) {
         <p className="mt-3 text-sm leading-6 text-slate-500">
           {hasThreads
             ? "Choose a worker thread from the navigator to review contract status and continue the conversation."
-            : "Browse candidates to get started. When a worker replies, the secure negotiation thread will appear here."}
+            : "Browse candidates to get started. Once you invite a worker, the secure negotiation thread will appear here."}
         </p>
         {!hasThreads && (
           <button
@@ -213,27 +162,34 @@ function NoThreadSelected({ hasThreads, onFindTalent }) {
 }
 
 function HubHeader({ thread, onViewContractTerms }) {
+  const status = getThreadStatus(thread);
+  const fundsSecured = FUNDS_SECURED_STATUSES.has(thread.status);
+
   return (
     <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/80 backdrop-blur-md">
       <div className="flex items-center justify-between gap-5 px-6 py-4">
         <div className="min-w-0 flex-1 [&>div]:border-b-0 [&>div]:bg-transparent [&>div]:px-0 [&>div]:py-0">
           <IdentityHeader
-            name={thread.workerName}
-            subtitle={`${thread.workerTitle} · ${thread.projectTitle}`}
-            initials={getInitials(thread.workerName)}
-            avatarBg={thread.avatarBg}
+            name={thread.worker_name}
+            subtitle={thread.title}
+            initials={getInitials(thread.worker_name)}
+            avatarBg="bg-[#1B3FAB]"
             verified
             statusPill={{
-              text: thread.status,
-              tone: getStatusTone(thread.status),
+              text: status.label,
+              tone: status.tone,
             }}
           />
         </div>
 
         <div className="flex flex-shrink-0 items-center gap-3">
-          <span className="inline-flex min-h-[40px] items-center gap-2 rounded-full border border-green-200 bg-green-50 px-3.5 text-xs font-black text-green-700">
+          <span
+            className={`inline-flex min-h-[40px] items-center gap-2 rounded-full border px-3.5 text-xs font-black ${
+              fundsSecured ? "border-green-200 bg-green-50 text-green-700" : "border-amber-200 bg-amber-50 text-amber-700"
+            }`}
+          >
             <ShieldCheck className="h-4 w-4" />
-            {thread.escrowStatus ?? "Escrow Secure"}
+            {fundsSecured ? "Escrow Secure" : "Awaiting Escrow"}
           </span>
           <button
             type="button"
@@ -249,12 +205,12 @@ function HubHeader({ thread, onViewContractTerms }) {
 
       <div className="flex flex-wrap items-center gap-3 px-6 pb-4">
         <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-3 py-1.5 text-xs font-bold text-slate-500">
-          <BriefcaseBusiness className="h-3.5 w-3.5" />
-          {thread.company}
+          <Clock3 className="h-3.5 w-3.5" />
+          Due {formatDueDate(thread.deadline)}
         </span>
         <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-3 py-1.5 text-xs font-bold text-slate-500">
           <Sparkles className="h-3.5 w-3.5 text-[#FF6B35]" />
-          {thread.budget}
+          {formatINR(thread.budget)}
         </span>
       </div>
     </header>
@@ -374,31 +330,47 @@ function FocusHub({ thread, messages, draft, onDraftChange, onSend, onViewContra
   );
 }
 
-export default function BusinessNegotiationHub({
-  threads = DEFAULT_THREADS,
-  onFindTalent,
-  onViewContractTerms,
-}) {
-  const safeThreads = useMemo(() => (Array.isArray(threads) ? threads : []), [threads]);
-  const [selectedThreadId, setSelectedThreadId] = useState(safeThreads[0]?.id ?? null);
-  const [messageLedger, setMessageLedger] = useState(() => buildMessageLedger(safeThreads));
+export default function BusinessNegotiationHub({ onFindTalent, onViewContractTerms }) {
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [selectedThreadId, setSelectedThreadId] = useState(null);
+  const [messageLedger, setMessageLedger] = useState({});
   const [draft, setDraft] = useState("");
 
   useEffect(() => {
-    setMessageLedger((current) => {
-      const next = { ...current };
-      safeThreads.forEach((thread) => {
-        if (!next[thread.id]) next[thread.id] = thread.messages ?? [];
+    let cancelled = false;
+    listProjects({ role: "business" })
+      .then((data) => {
+        if (cancelled) return;
+        const activeThreads = data.filter((p) => ACTIVE_THREAD_STATUSES.has(p.status));
+        setProjects(activeThreads);
+        setSelectedThreadId((current) => current ?? activeThreads[0]?.id ?? null);
+      })
+      .catch((err) => {
+        if (!cancelled) setLoadError(err instanceof ApiError ? err.message : "Could not load your negotiations.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
       });
-      return next;
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const activeThread = useMemo(
+    () => projects.find((project) => project.id === selectedThreadId) ?? null,
+    [projects, selectedThreadId]
+  );
+
+  useEffect(() => {
+    if (!activeThread) return;
+    setMessageLedger((current) => {
+      if (current[activeThread.id]) return current;
+      return { ...current, [activeThread.id]: seedMessages(activeThread) };
     });
+  }, [activeThread]);
 
-    if (!safeThreads.some((thread) => thread.id === selectedThreadId)) {
-      setSelectedThreadId(safeThreads[0]?.id ?? null);
-    }
-  }, [safeThreads, selectedThreadId]);
-
-  const activeThread = safeThreads.find((thread) => thread.id === selectedThreadId) ?? null;
   const activeMessages = activeThread ? messageLedger[activeThread.id] ?? [] : [];
 
   const handleSend = () => {
@@ -422,10 +394,29 @@ export default function BusinessNegotiationHub({
     setDraft("");
   };
 
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-slate-50">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[#FF6B35]" />
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-slate-50 p-7">
+        <div className="flex max-w-md items-start gap-2 rounded-2xl border border-red-100 bg-white px-4 py-3 text-sm text-red-600 shadow-sm">
+          <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+          <span>{loadError}</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <section className="flex h-screen w-full overflow-hidden bg-slate-50">
       <ThreadNavigator
-        threads={safeThreads}
+        threads={projects}
         selectedThreadId={activeThread?.id}
         onSelect={(threadId) => {
           setSelectedThreadId(threadId);
@@ -443,7 +434,7 @@ export default function BusinessNegotiationHub({
           onViewContractTerms={onViewContractTerms}
         />
       ) : (
-        <NoThreadSelected hasThreads={safeThreads.length > 0} onFindTalent={onFindTalent} />
+        <NoThreadSelected hasThreads={projects.length > 0} onFindTalent={onFindTalent} />
       )}
     </section>
   );

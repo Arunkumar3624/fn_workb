@@ -62,6 +62,8 @@ export default function BusinessDashboard({ onLogout, onVerify, isVerified = fal
             pendingJob={pendingJob}
             onInviteSent={pendingJob ? handleInviteSent : undefined}
             onViewProjects={() => setTab("projects")}
+            isVerified={isVerified}
+            onVerify={onVerify}
           />
         )}
         {tab === "projects" && <BusinessProjects />}

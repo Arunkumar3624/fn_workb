@@ -147,6 +147,12 @@ export default function WorkerWorkspace() {
             toast[event.status === "APPROVED" ? "success" : "error"](
               `Your submission on "${project.title}" was ${event.status.toLowerCase()}.`
             );
+          } else if (event.status === "APPROVED") {
+            // The business's own submission (reference material, etc.) just
+            // cleared moderation and became visible — previously silent, so
+            // approved content from the business could sit unnoticed in
+            // Deliverables with no signal it had ever arrived.
+            toast.info(`${project.business_name} shared new approved content on "${project.title}".`);
           }
           break;
         case "REVIEW_SUBMITTED":

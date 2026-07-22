@@ -57,13 +57,21 @@ export default function App() {
 function AppRoutes() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout } = useAuth();
+  const { logout, currentUser } = useAuth();
   const [userType, setUserType] = useState("worker");
 
   useEffect(() => {
     trackPageView(location.pathname);
   }, [location.pathname]);
-  const [isBusinessVerified, setIsBusinessVerified] = useState(false);
+  // The real, persisted fact — set only by an admin approving verification
+  // (POST /api/admin/verify/:id), so it's accurate across reloads/logins.
+  // mockVerifiedThisSession exists only because the payment gateway itself
+  // is still a local simulation (no real endpoint a business can call to
+  // set this on their own) — it lets the existing Pay & Verify demo flow
+  // keep working end-to-end in the current tab, but deliberately does NOT
+  // persist: reload and you're back to whatever currentUser.verified says.
+  const [mockVerifiedThisSession, setMockVerifiedThisSession] = useState(false);
+  const isBusinessVerified = Boolean(currentUser?.verified) || mockVerifiedThisSession;
   const [showPayDrawer, setShowPayDrawer] = useState(false);
   const [showVerifiedCelebration, setShowVerifiedCelebration] = useState(false);
 
@@ -96,7 +104,7 @@ function AppRoutes() {
 
   const handlePaymentSuccess = () => {
     setShowPayDrawer(false);
-    setIsBusinessVerified(true);
+    setMockVerifiedThisSession(true);
     setShowVerifiedCelebration(true);
   };
 

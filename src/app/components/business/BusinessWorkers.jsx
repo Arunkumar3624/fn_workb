@@ -9,6 +9,7 @@ import {
   Briefcase,
   IndianRupee,
   Timer,
+  Lock,
 } from "lucide-react";
 import Avatar from "../shared/Avatar";
 import WorkerShareableProfile from "../worker/WorkerShareableProfile";
@@ -118,7 +119,7 @@ function InviteModal({ worker, onClose, onSubmit, submitting, error }) {
   );
 }
 
-export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjects }) {
+export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjects, isVerified = false, onVerify }) {
   const [workers, setWorkers] = useState([]);
   const [invitedWorkerIds, setInvitedWorkerIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
@@ -188,7 +189,14 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
     }
   };
 
+  // Same global, one-time isVerified gate BusinessPostJob already enforces
+  // for "Post a Job" — a business shouldn't be able to invite workers
+  // through this second entry point while still unverified.
   const handleInviteClick = (worker) => {
+    if (!isVerified) {
+      onVerify?.();
+      return;
+    }
     if (pendingJob) {
       submitInvite(worker, pendingJob);
     } else {
@@ -343,7 +351,7 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         Invited
                       </button>
-                    ) : (
+                    ) : isVerified ? (
                       <button
                         onClick={() => handleInviteClick(w)}
                         disabled={submitting}
@@ -351,6 +359,15 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
                       >
                         <Send className="w-3.5 h-3.5" />
                         Invite
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleInviteClick(w)}
+                        title="Verify your business to invite workers"
+                        className="flex items-center gap-1.5 bg-slate-100 text-slate-500 hover:bg-slate-200 px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors"
+                      >
+                        <Lock className="w-3.5 h-3.5" />
+                        Verify to Invite
                       </button>
                     )}
                   </div>
