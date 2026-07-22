@@ -4,10 +4,13 @@ import { connectSocket, disconnectSocket } from "../lib/socketClient";
 
 const AuthContext = createContext(null);
 
-// DEV BYPASS: temporary dashboard-development auth bypass.
-// Remove this block when the OTP flow is restored for production.
-const DEV_BYPASS_TOKEN = "dev_bypass_token_123";
-const DEV_BYPASS_USER_STORAGE_KEY = "workbridge_dev_bypass_user";
+// A stale dev-bypass token/user object from before this app moved to real
+// auth may still be sitting in a browser's localStorage from earlier
+// testing — clear it out unconditionally so it can never again grant
+// access without a real backend check. Not just cleanup: this was a live
+// access-control hole (a locally-stored fake "role: admin" object was
+// enough to reach the Admin Panel, no server involved).
+const STALE_DEV_BYPASS_USER_KEY = "workbridge_dev_bypass_user";
 
 // "loading" only lasts as long as the initial /me rehydration call on first
 // mount; after that it's always "authenticated" or "guest".
@@ -16,21 +19,8 @@ export function AuthProvider({ children }) {
   const [status, setStatus] = useState("loading");
 
   useEffect(() => {
+    localStorage.removeItem(STALE_DEV_BYPASS_USER_KEY);
     const token = getToken();
-
-    // DEV BYPASS: rehydrate the mock user after refresh without calling /api/auth/me.
-    if (token === DEV_BYPASS_TOKEN) {
-      const storedDevUser = localStorage.getItem(DEV_BYPASS_USER_STORAGE_KEY);
-      if (storedDevUser) {
-        try {
-          setCurrentUser(JSON.parse(storedDevUser));
-          setStatus("authenticated");
-          return;
-        } catch {
-          localStorage.removeItem(DEV_BYPASS_USER_STORAGE_KEY);
-        }
-      }
-    }
 
     if (!token) {
       setStatus("guest");
@@ -53,16 +43,12 @@ export function AuthProvider({ children }) {
 
   const authenticate = (token, user) => {
     setToken(token);
-    // The dev-bypass token is never a real JWT — the real server (and
-    // socket auth, which reuses the same verify logic) would reject it.
-    if (token !== DEV_BYPASS_TOKEN) connectSocket(token);
+    connectSocket(token);
     setCurrentUser(user);
     setStatus("authenticated");
   };
 
   const logout = () => {
-    // DEV BYPASS: clear the mock user alongside the fake token.
-    localStorage.removeItem(DEV_BYPASS_USER_STORAGE_KEY);
     disconnectSocket();
     setToken(null);
     setCurrentUser(null);

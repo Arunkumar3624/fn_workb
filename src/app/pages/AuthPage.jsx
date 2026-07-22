@@ -37,26 +37,6 @@ const BRAND_FEATURES = [
 const OTP_LENGTH = 6;
 const AUTH_INPUT_CLASS = "h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-[#1B3FAB] focus:bg-white focus:ring-4 focus:ring-[#1B3FAB]/10";
 
-// DEV BYPASS: temporary dashboard-development auth bypass. Disabled now that
-// the real OTP flow is confirmed working against the live Postgres backend.
-const DEV_BYPASS_AUTH = false;
-const DEV_BYPASS_TOKEN = "dev_bypass_token_123";
-const DEV_BYPASS_USER_STORAGE_KEY = "workbridge_dev_bypass_user";
-
-function createDevBypassUser(role) {
-  return {
-    id: "dev_999",
-    email: "dev@workbridge.com",
-    role: USER_CONFIG[role] ? role : "worker",
-    name: "Dev User",
-    verified: true,
-    behavior_score: 100,
-    avatar_url: null,
-    title: role === "business" ? "Business Owner" : role === "admin" ? "Platform Admin" : "Freelancer",
-    profile: {},
-  };
-}
-
 export default function AuthPage({ userType, onSuccess, onBack }) {
   const isAdmin = userType === "admin";
   const cfg = USER_CONFIG[userType] ?? USER_CONFIG.worker;
@@ -173,23 +153,6 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
   };
 
   const onUserContinue = (values) => {
-    // DEV BYPASS: skip the real auth calls and inject a mock authenticated
-    // session. Disabled (DEV_BYPASS_AUTH = false) — kept only so it can be
-    // flipped back on if the real backend is ever unavailable again.
-    if (DEV_BYPASS_AUTH) {
-      setFormError("");
-      setOtpError("");
-      setInfoMessage("DEV BYPASS: signed in without OTP.");
-
-      const selectedRole = USER_CONFIG[userType] ? userType : "worker";
-      const mockUser = createDevBypassUser(selectedRole);
-
-      localStorage.setItem(DEV_BYPASS_USER_STORAGE_KEY, JSON.stringify(mockUser));
-      authenticate(DEV_BYPASS_TOKEN, mockUser);
-      onSuccess(mockUser);
-      return;
-    }
-
     if (isAdmin || authMode === "signin") {
       submitLogin(values);
     } else {
