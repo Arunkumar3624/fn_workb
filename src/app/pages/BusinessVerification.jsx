@@ -68,9 +68,11 @@ export default function BusinessVerification({ onComplete, onExit }) {
       style={{ fontFamily: "'DM Sans', sans-serif" }}
     >
       {/* ══════════════════════════════════════════
-          LEFT — Progress Sidebar
+          LEFT — Progress Sidebar — hidden below lg; at 30% width this
+          becomes unreadably narrow on a phone/tablet, and the step tracker
+          it shows is reinforced by the top bar's progress dots on mobile.
           ══════════════════════════════════════════ */}
-      <aside className="w-[30%] min-h-screen bg-[#0A1128] flex flex-col px-10 py-12 relative overflow-hidden flex-shrink-0">
+      <aside className="hidden w-[30%] min-h-screen flex-col overflow-hidden bg-[#0A1128] px-10 py-12 relative flex-shrink-0 lg:flex">
 
         {/* Brand */}
         <div className="flex items-center gap-2.5 mb-16">
@@ -180,9 +182,10 @@ export default function BusinessVerification({ onComplete, onExit }) {
       <main className="flex-1 flex flex-col min-h-screen bg-[#F8FAFC]">
 
         {/* Top bar */}
-        <div className="flex items-center justify-between px-10 py-5 bg-white border-b border-slate-100 shadow-sm shadow-slate-100/50 flex-shrink-0">
-          {/* Step breadcrumb */}
-          <div className="flex items-center gap-2 text-xs text-slate-400">
+        <div className="flex items-center justify-between px-5 py-5 bg-white border-b border-slate-100 shadow-sm shadow-slate-100/50 flex-shrink-0 sm:px-10">
+          {/* Step breadcrumb — hidden below sm; the progress dots next to it
+              already carry step position on narrow screens */}
+          <div className="hidden items-center gap-2 text-xs text-slate-400 sm:flex">
             <span>Business Verification</span>
             <ChevronRight className="w-3 h-3" />
             <span className="font-semibold text-slate-600">{STEPS[activeStep - 1].title}</span>
@@ -222,7 +225,7 @@ export default function BusinessVerification({ onComplete, onExit }) {
         </div>
 
         {/* Scrollable form content */}
-        <div className="flex-1 overflow-auto px-10 py-10">
+        <div className="flex-1 overflow-auto px-5 py-6 sm:px-10 sm:py-10">
           <div className="max-w-xl mx-auto">
 
             {/* ── STEP 1: Company Details ── */}
@@ -270,14 +273,14 @@ function Step1({ onNext, INPUT, LABEL, SELECT }) {
         sub="This information will appear on your WorkBridge business profile and is used for compliance verification."
       />
 
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-8 space-y-5">
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-5 sm:p-8">
 
         <div>
           <label className={LABEL}>Registered Company Name</label>
           <input type="text" placeholder="RetailX Pvt. Ltd." className={INPUT} />
         </div>
 
-        <div className="grid grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <div>
             <label className={LABEL}>Business Type</label>
             <select className={SELECT}>
@@ -295,7 +298,7 @@ function Step1({ onNext, INPUT, LABEL, SELECT }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <div>
             <label className={LABEL}>GST Number</label>
             <input type="text" placeholder="22AAAAA0000A1Z5" className={INPUT} />
@@ -339,7 +342,7 @@ function Step2({ gstFile, setGstFile, incorpFile, setIncorpFile, drag1, setDrag1
         sub="Upload your official documents to unlock the Business Verified badge and start hiring."
       />
 
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-8 space-y-7">
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-7 sm:p-8">
 
         {/* Upload Block 1: GST & PAN */}
         <div>
@@ -416,7 +419,7 @@ function Step3({ showAccNum, setShowAccNum, onBack, onComplete, INPUT, LABEL, SE
         sub="One final step — required to enable instant payouts and comply with RBI guidelines."
       />
 
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-8 space-y-7">
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-7 sm:p-8">
 
         {/* Director / Owner ID */}
         <div>
@@ -427,7 +430,7 @@ function Step3({ showAccNum, setShowAccNum, onBack, onComplete, INPUT, LABEL, SE
             Director / Owner Identity
           </h3>
 
-          <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-1 gap-4 mb-4 sm:grid-cols-2">
             <div>
               <label className={LABEL}>ID Type</label>
               <select className={SELECT}>
@@ -471,7 +474,7 @@ function Step3({ showAccNum, setShowAccNum, onBack, onComplete, INPUT, LABEL, SE
               <input type="text" placeholder="HDFC Bank" className={INPUT} />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label className={LABEL}>Account Number</label>
                 <div className="relative">

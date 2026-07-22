@@ -67,6 +67,10 @@ export const adminAuthSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
+export const forgotPasswordSchema = z.object({
+  email: emailSchema,
+});
+
 export const postJobSchema = z.object({
   title: cleanText,
   category: cleanText,

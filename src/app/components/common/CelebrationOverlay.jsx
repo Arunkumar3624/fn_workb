@@ -79,7 +79,10 @@ export default function CelebrationOverlay({
 }) {
   const cfg = VARIANTS[variant] ?? VARIANTS.milestone;
   const Icon = cfg.Icon;
-  const amountValue = amount ? Number(String(amount).replace(/[^\d]/g, "")) : 0;
+  // Keep the decimal point when stripping currency symbols/commas — earnings
+  // can carry paise (e.g. 9200.92), and dropping the "." here would read as
+  // 920092, inflating the displayed amount by ~100x.
+  const amountValue = amount ? Number(String(amount).replace(/[^\d.-]/g, "")) : 0;
   const displayAmount = useCountUp(amountValue);
 
   // Global scroll lock while the moment is on screen

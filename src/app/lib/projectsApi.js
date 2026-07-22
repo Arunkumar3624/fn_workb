@@ -33,8 +33,8 @@ export function createProject({ workerId, title, description, budget, deadline }
 // Non-terminal FSM steps only — INVITED->ACCEPTED (worker),
 // ACCEPTED->WORK_IN_PROGRESS/FILES_SUBMITTED (worker), CANCELLED/DISPUTED.
 // FUNDS_SECURED and COMPLETED go through their own atomic endpoints below.
-export function updateProjectStatus(id, status) {
-  return apiFetch(`/api/projects/${id}`, { method: "PATCH", body: { status } });
+export function updateProjectStatus(id, status, note) {
+  return apiFetch(`/api/projects/${id}`, { method: "PATCH", body: note ? { status, note } : { status } });
 }
 
 export function secureFunds(id) {

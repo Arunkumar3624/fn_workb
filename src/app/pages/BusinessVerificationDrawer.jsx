@@ -92,8 +92,8 @@ export default function BusinessVerificationDrawer({ onClose, onPaymentSuccess }
           THE DRAWER — slides in from right
           ══════════════════════════════════════════ */}
       <div
-        className="absolute right-0 top-0 bottom-0 flex shadow-2xl shadow-black/30"
-        style={{ width: "54%", animation: "slideInRight 0.35s cubic-bezier(0.22,1,0.36,1) both" }}
+        className="absolute right-0 top-0 bottom-0 flex w-full shadow-2xl shadow-black/30 md:w-[54%]"
+        style={{ animation: "slideInRight 0.35s cubic-bezier(0.22,1,0.36,1) both" }}
         onClick={(e) => e.stopPropagation()}
       >
         <style>{`
@@ -108,9 +108,11 @@ export default function BusinessVerificationDrawer({ onClose, onPaymentSuccess }
           .ping-slow { animation: ping-slow 1.8s ease-in-out infinite; }
         `}</style>
 
-        {/* ── LEFT: Marketing Panel ── */}
+        {/* ── LEFT: Marketing Panel — purely decorative, hidden below md so
+            the checkout panel (the actually functional half) gets the full
+            drawer width instead of being squeezed on narrow screens ── */}
         <div
-          className="w-[38%] flex flex-col relative overflow-hidden"
+          className="hidden w-[38%] flex-col relative overflow-hidden md:flex"
           style={{ background: "linear-gradient(160deg, #0A1128 0%, #1e293b 100%)" }}
         >
           {/* Top badge */}
@@ -284,7 +286,7 @@ export default function BusinessVerificationDrawer({ onClose, onPaymentSuccess }
             {/* Payment method selection */}
             <div>
               <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">Payment Method</p>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 {PAYMENT_METHODS.map((pm) => (
                   <button
                     key={pm.id}
@@ -358,7 +360,7 @@ export default function BusinessVerificationDrawer({ onClose, onPaymentSuccess }
             {method === "netbanking" && (
               <div className="space-y-3" style={{ animation: "fadeIn 0.2s ease both" }}>
                 <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Select Bank</p>
-                <div className="grid grid-cols-3 gap-2.5">
+                <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
                   {["HDFC Bank", "SBI", "ICICI", "Axis Bank", "Kotak", "Other"].map((bank) => (
                     <button
                       key={bank}
@@ -385,7 +387,7 @@ export default function BusinessVerificationDrawer({ onClose, onPaymentSuccess }
           </div>
 
           {/* ── Sticky footer ── */}
-          <div className="flex-shrink-0 border-t border-slate-100 px-8 py-5 bg-white flex items-center justify-between gap-4">
+          <div className="flex-shrink-0 border-t border-slate-100 px-5 py-5 bg-white flex flex-col items-stretch gap-4 sm:flex-row sm:items-center sm:justify-between sm:px-8">
             {/* Security note */}
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 bg-emerald-50 border border-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -401,7 +403,7 @@ export default function BusinessVerificationDrawer({ onClose, onPaymentSuccess }
             <button
               onClick={handlePay}
               disabled={paying}
-              className={`flex items-center gap-2.5 px-7 py-3.5 rounded-2xl font-extrabold text-sm text-white transition-all shadow-xl whitespace-nowrap ${
+              className={`flex w-full items-center justify-center gap-2.5 px-7 py-3.5 rounded-2xl font-extrabold text-sm text-white transition-all shadow-xl whitespace-nowrap sm:w-auto ${
                 paying
                   ? "bg-slate-400 cursor-not-allowed"
                   : "bg-gradient-to-r from-[#FF6B2C] to-rose-500 hover:opacity-90 shadow-orange-300/40 hover:-translate-y-0.5"

@@ -7,6 +7,7 @@ import {
   Loader2,
   Lock,
   RefreshCw,
+  RotateCcw,
   ShieldCheck,
   Star,
   UserCheck,
@@ -22,6 +23,7 @@ import {
   listBusinessProjects,
   completeProject as apiCompleteProject,
   secureFunds as apiSecureFunds,
+  updateProjectStatus as apiUpdateProjectStatus,
   createProject,
 } from "../../lib/projectsApi";
 import { getPublicProfile } from "../../lib/profilesApi";
@@ -34,6 +36,17 @@ import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 
 const HEADING_FONT = { fontFamily: "'Lexend', sans-serif" };
 const DATA_FONT = { fontFamily: "'Inter', sans-serif" };
+
+// Maps PROJECT_STATUS_META's `tone` to a real badge color — replaces the old
+// hardcoded red-vs-blue logic that only ever knew about the fake local
+// "frozen" state, not real statuses like DISPUTED/CANCELLED.
+const STATUS_TONE_CLASSES = {
+  slate: "border-slate-200 bg-slate-50 text-slate-600",
+  blue: "border-blue-100 bg-blue-50 text-blue-700",
+  emerald: "border-emerald-100 bg-emerald-50 text-emerald-700",
+  amber: "border-amber-100 bg-amber-50 text-amber-700",
+  red: "border-red-200 bg-red-50 text-red-600",
+};
 
 function formatINR(amount) {
   return `₹${Number(amount || 0).toLocaleString("en-IN")}`;
@@ -358,6 +371,196 @@ function PaymentApprovalModal({ project, isSubmitting, submitError, onClose, onC
   );
 }
 
+// ─── Request revision modal ──────────────────────────────────────────────────
+// Sends a FILES_SUBMITTED project back to WORK_IN_PROGRESS instead of a full
+// approve/dispute — the middle ground for "90% there, just needs a tweak".
+function RequestRevisionModal({ project, note, onNoteChange, isSubmitting, submitError, onClose, onConfirm }) {
+  return (
+    <AnimatePresence>
+      {project && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            onClick={isSubmitting ? undefined : onClose}
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 16 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 16 }}
+            transition={{ type: "spring", stiffness: 320, damping: 26 }}
+            className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white/90 shadow-2xl backdrop-blur-xl"
+          >
+            <div className="p-6">
+              <div className="mb-5 flex items-center gap-3">
+                <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl border border-amber-100 bg-amber-50">
+                  <RotateCcw className="h-5 w-5 text-amber-600" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-base font-extrabold text-[#0F172A]" style={HEADING_FONT}>
+                    Request Revision
+                  </h3>
+                  <p className="mt-0.5 truncate text-xs text-slate-400" style={DATA_FONT}>
+                    {project.title}
+                  </p>
+                </div>
+                {!isSubmitting && (
+                  <button
+                    onClick={onClose}
+                    aria-label="Cancel"
+                    className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+
+              <p className="mb-3 text-xs leading-relaxed text-slate-500" style={DATA_FONT}>
+                This sends the project back to <span className="font-semibold text-slate-700">In Progress</span> so{" "}
+                {project.worker_name} can upload a new file. Let them know what to fix.
+              </p>
+
+              <textarea
+                value={note}
+                onChange={(event) => onNoteChange(event.target.value)}
+                disabled={isSubmitting}
+                rows={3}
+                maxLength={1000}
+                placeholder="e.g. Could you make the logo blue and resend? (optional)"
+                className="mb-4 w-full resize-none rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-amber-400 focus:bg-white focus:ring-4 focus:ring-amber-400/10 disabled:opacity-60"
+              />
+
+              {submitError && (
+                <div
+                  role="alert"
+                  className="mb-4 rounded-xl border border-red-100 bg-red-50 p-3.5 text-xs font-semibold text-red-600"
+                >
+                  {submitError}
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <button
+                  onClick={onClose}
+                  disabled={isSubmitting}
+                  className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={onConfirm}
+                  disabled={isSubmitting}
+                  className="flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-xl bg-amber-600 text-sm font-bold text-white shadow-md shadow-amber-500/20 transition-colors hover:bg-amber-700 disabled:cursor-not-allowed disabled:bg-amber-600/60"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Sending…
+                    </>
+                  ) : (
+                    "Send Back for Revision"
+                  )}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+// ─── Raise dispute confirm modal ──────────────────────────────────────────────
+function DisputeConfirmModal({ project, isSubmitting, submitError, onClose, onConfirm }) {
+  return (
+    <AnimatePresence>
+      {project && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            onClick={isSubmitting ? undefined : onClose}
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 16 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 16 }}
+            transition={{ type: "spring", stiffness: 320, damping: 26 }}
+            className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white/90 shadow-2xl backdrop-blur-xl"
+          >
+            <div className="p-6">
+              <div className="mb-5 flex items-center gap-3">
+                <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl border border-red-100 bg-red-50">
+                  <AlertTriangle className="h-5 w-5 text-red-600" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-base font-extrabold text-[#0F172A]" style={HEADING_FONT}>
+                    Raise a Dispute
+                  </h3>
+                  <p className="mt-0.5 truncate text-xs text-slate-400" style={DATA_FONT}>
+                    {project.title}
+                  </p>
+                </div>
+                {!isSubmitting && (
+                  <button
+                    onClick={onClose}
+                    aria-label="Cancel"
+                    className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+
+              <p className="mb-5 text-xs leading-relaxed text-slate-500" style={DATA_FONT}>
+                This pauses the project and hands it to WorkBridge for review — funds stay held until
+                an admin resolves the dispute. Use this only when a revision request isn't enough.
+              </p>
+
+              {submitError && (
+                <div
+                  role="alert"
+                  className="mb-4 rounded-xl border border-red-100 bg-red-50 p-3.5 text-xs font-semibold text-red-600"
+                >
+                  {submitError}
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <button
+                  onClick={onClose}
+                  disabled={isSubmitting}
+                  className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={onConfirm}
+                  disabled={isSubmitting}
+                  className="flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-xl bg-red-600 text-sm font-bold text-white shadow-md shadow-red-500/20 transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-600/60"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Raising…
+                    </>
+                  ) : (
+                    "Raise Dispute"
+                  )}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  );
+}
+
 // ─── Rating + Rehire modal (History rows) ────────────────────────────────────
 function RatingModal({ project, currentUserId, onClose, onRehire, onRated }) {
   const [existingReview, setExistingReview] = useState(undefined);
@@ -419,7 +622,13 @@ export default function BusinessProjects() {
   const [projects, setProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
-  const [frozenProjects, setFrozenProjects] = useState(new Set());
+  const [revisionProject, setRevisionProject] = useState(null);
+  const [revisionNote, setRevisionNote] = useState("");
+  const [submittingRevisionId, setSubmittingRevisionId] = useState(null);
+  const [revisionError, setRevisionError] = useState(null);
+  const [disputeProject, setDisputeProject] = useState(null);
+  const [submittingDisputeId, setSubmittingDisputeId] = useState(null);
+  const [disputeError, setDisputeError] = useState(null);
   const [paymentProject, setPaymentProject] = useState(null);
   const [completingId, setCompletingId] = useState(null);
   const [completeError, setCompleteError] = useState(null);
@@ -532,13 +741,37 @@ export default function BusinessProjects() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projects, currentUser?.id]);
 
-  const toggleFreeze = (id) => {
-    setFrozenProjects((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+  const handleConfirmRevision = async () => {
+    if (!revisionProject || submittingRevisionId) return;
+    const id = revisionProject.id;
+    setSubmittingRevisionId(id);
+    setRevisionError(null);
+    try {
+      const updated = await apiUpdateProjectStatus(id, "WORK_IN_PROGRESS", revisionNote.trim());
+      setProjects((prev) => prev.map((p) => (p.id === id ? updated : p)));
+      setRevisionProject(null);
+      setRevisionNote("");
+    } catch (err) {
+      setRevisionError(err.message || "Couldn't request a revision — try again.");
+    } finally {
+      setSubmittingRevisionId(null);
+    }
+  };
+
+  const handleConfirmDispute = async () => {
+    if (!disputeProject || submittingDisputeId) return;
+    const id = disputeProject.id;
+    setSubmittingDisputeId(id);
+    setDisputeError(null);
+    try {
+      const updated = await apiUpdateProjectStatus(id, "DISPUTED");
+      setProjects((prev) => prev.map((p) => (p.id === id ? updated : p)));
+      setDisputeProject(null);
+    } catch (err) {
+      setDisputeError(err.message || "Couldn't raise a dispute — try again.");
+    } finally {
+      setSubmittingDisputeId(null);
+    }
   };
 
   // Defensive: setCompletingId is set synchronously before the API call, and
@@ -648,9 +881,12 @@ export default function BusinessProjects() {
           <div className="space-y-5">
             <AnimatePresence>
               {liveProjects.map((p, i) => {
-                const isFrozen = frozenProjects.has(p.id);
+                const isDisputed = p.status === "DISPUTED";
                 const meta = p.status ? PROJECT_STATUS_META[p.status] : null;
-                const canRelease = p.status === "FILES_SUBMITTED" && !isFrozen;
+                const badgeTone = STATUS_TONE_CLASSES[meta?.tone] ?? STATUS_TONE_CLASSES.blue;
+                const canRelease = p.status === "FILES_SUBMITTED";
+                const canRequestRevision = p.status === "FILES_SUBMITTED";
+                const canDispute = !["DISPUTED", "CANCELLED", "COMPLETED"].includes(p.status);
                 const isCompletingThis = completingId === p.id;
 
                 return (
@@ -662,14 +898,14 @@ export default function BusinessProjects() {
                     exit={{ opacity: 0, scale: 0.97 }}
                     transition={{ duration: 0.25, delay: i * 0.05 }}
                     className={`overflow-hidden rounded-2xl border bg-white/90 backdrop-blur-sm transition-shadow duration-200 ${
-                      isFrozen ? "border-red-200 shadow-sm shadow-red-100/60" : "border-slate-200 hover:shadow-md"
+                      isDisputed ? "border-red-200 shadow-sm shadow-red-100/60" : "border-slate-200 hover:shadow-md"
                     }`}
                   >
-                    {isFrozen && (
+                    {isDisputed && (
                       <div className="flex items-center gap-2 border-b border-red-100 bg-red-50 px-5 py-2.5">
                         <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0 text-red-500" />
                         <p className="text-xs font-bold text-red-600">
-                          Funds frozen · Payment is paused. Contact the worker to resolve the issue before unfreezing.
+                          Dispute raised · Funds stay held until WorkBridge reviews this project.
                         </p>
                       </div>
                     )}
@@ -700,12 +936,10 @@ export default function BusinessProjects() {
                         <span
                           role="status"
                           aria-live="polite"
-                          aria-label={`Project status: ${isFrozen ? "Frozen" : meta?.label ?? "Pending"}`}
-                          className={`flex-shrink-0 rounded-full px-3 py-1 text-xs font-bold ${
-                            isFrozen ? "border border-red-200 bg-red-50 text-red-600" : "border border-blue-100 bg-blue-50 text-blue-700"
-                          }`}
+                          aria-label={`Project status: ${meta?.label ?? "Pending"}`}
+                          className={`flex-shrink-0 rounded-full border px-3 py-1 text-xs font-bold ${badgeTone}`}
                         >
-                          {isFrozen ? "Frozen" : meta?.label ?? "Pending"}
+                          {meta?.label ?? "Pending"}
                         </span>
                       </div>
 
@@ -728,17 +962,32 @@ export default function BusinessProjects() {
                           Download Files
                         </button>
 
-                        <button
-                          onClick={() => toggleFreeze(p.id)}
-                          className={`flex min-h-[44px] items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold transition-colors ${
-                            isFrozen
-                              ? "border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                              : "border border-red-100 bg-red-50 text-red-600 hover:bg-red-100"
-                          }`}
-                        >
-                          <AlertTriangle className="h-3.5 w-3.5" />
-                          {isFrozen ? "Unfreeze Funds" : "Freeze Funds"}
-                        </button>
+                        {canRequestRevision && (
+                          <button
+                            onClick={() => {
+                              setRevisionProject(p);
+                              setRevisionNote("");
+                              setRevisionError(null);
+                            }}
+                            className="flex min-h-[44px] items-center gap-1.5 rounded-xl border border-amber-100 bg-amber-50 px-4 py-2 text-xs font-semibold text-amber-700 transition-colors hover:bg-amber-100"
+                          >
+                            <RotateCcw className="h-3.5 w-3.5" />
+                            Request Revision
+                          </button>
+                        )}
+
+                        {canDispute && (
+                          <button
+                            onClick={() => {
+                              setDisputeProject(p);
+                              setDisputeError(null);
+                            }}
+                            className="flex min-h-[44px] items-center gap-1.5 rounded-xl border border-red-100 bg-red-50 px-4 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-100"
+                          >
+                            <AlertTriangle className="h-3.5 w-3.5" />
+                            Raise Dispute
+                          </button>
+                        )}
 
                         {p.status === "ACCEPTED" && (
                           <button
@@ -891,6 +1140,32 @@ export default function BusinessProjects() {
           setCompleteError(null);
         }}
         onConfirm={handleConfirmPayment}
+      />
+
+      <RequestRevisionModal
+        project={revisionProject}
+        note={revisionNote}
+        onNoteChange={setRevisionNote}
+        isSubmitting={submittingRevisionId === revisionProject?.id}
+        submitError={revisionError}
+        onClose={() => {
+          if (submittingRevisionId) return;
+          setRevisionProject(null);
+          setRevisionError(null);
+        }}
+        onConfirm={handleConfirmRevision}
+      />
+
+      <DisputeConfirmModal
+        project={disputeProject}
+        isSubmitting={submittingDisputeId === disputeProject?.id}
+        submitError={disputeError}
+        onClose={() => {
+          if (submittingDisputeId) return;
+          setDisputeProject(null);
+          setDisputeError(null);
+        }}
+        onConfirm={handleConfirmDispute}
       />
 
       <RatingModal

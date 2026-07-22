@@ -116,12 +116,25 @@ export default function WorkerWorkspace() {
           break;
         case "COMPLETED":
           patchProject({ id: event.projectId, status: "COMPLETED" });
-          toast.success(`${project.business_name} released payment for "${project.title}" — ₹${event.earnings} is on its way to your wallet.`);
+          // The "paid" celebration variant already existed in
+          // CelebrationOverlay but nothing ever triggered it — a worker
+          // actually getting paid is the single biggest moment in this app,
+          // and it was showing a plain toast instead.
+          setCelebration({
+            variant: "paid",
+            title: "Payment received!",
+            message: `${project.business_name} approved "${project.title}" — the funds are in your wallet.`,
+            amount: event.earnings,
+          });
           break;
         case "STATUS_CHANGED":
           patchProject({ id: event.projectId, status: event.status });
           if (event.actorRole !== "worker") {
-            toast.info(`${project.business_name} updated "${project.title}" to ${event.status.replaceAll("_", " ").toLowerCase()}.`);
+            if (event.status === "WORK_IN_PROGRESS" && event.note) {
+              toast.info(`${project.business_name} requested a revision on "${project.title}": ${event.note}`);
+            } else {
+              toast.info(`${project.business_name} updated "${project.title}" to ${event.status.replaceAll("_", " ").toLowerCase()}.`);
+            }
           }
           break;
         case "SUBMISSION_CREATED":
@@ -398,6 +411,7 @@ export default function WorkerWorkspace() {
           variant={celebration.variant}
           title={celebration.title}
           message={celebration.message}
+          amount={celebration.amount}
           primaryLabel="Keep Working"
           onPrimary={() => setCelebration(null)}
           onClose={() => setCelebration(null)}

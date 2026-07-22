@@ -17,7 +17,7 @@ import {
   User,
   Zap,
 } from "lucide-react";
-import { adminAuthSchema, authSchema, signupSchema } from "../utils/formValidation";
+import { adminAuthSchema, authSchema, signupSchema, forgotPasswordSchema } from "../utils/formValidation";
 import { apiFetch } from "../lib/apiClient";
 import { useAuth } from "../context/AuthContext";
 
@@ -51,6 +51,8 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
   const [verifyingOtp, setVerifyingOtp] = useState(false);
   const [resendCountdown, setResendCountdown] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const otpInputs = useRef([]);
   const verifyingRef = useRef(false);
   const { authenticate } = useAuth();
@@ -59,7 +61,9 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
     ? adminAuthSchema
     : authMode === "signup"
       ? signupSchema
-      : authSchema;
+      : authMode === "forgot"
+        ? forgotPasswordSchema
+        : authSchema;
 
   const {
     register,
@@ -81,6 +85,8 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
     setFormError("");
     setResendCountdown(0);
     setShowPassword(false);
+    setNewPassword("");
+    setShowNewPassword(false);
     reset({ fullName: "", email: "", phone: "", password: "" });
   }, [isAdmin, reset, userType]);
 
@@ -106,6 +112,39 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
     setAuthMode(mode);
     setFormError("");
     setShowPassword(false);
+    setNewPassword("");
+    setShowNewPassword(false);
+    reset({ fullName: "", email: "", phone: "", password: "" });
+  };
+
+  // "Forgot password?" drops into its own mode rather than signin/signup —
+  // same input -> otp two-step shape, but the otp step here ends in setting
+  // a new password instead of just proving the email is real.
+  const startForgotPassword = () => {
+    setAuthStep("input");
+    setAuthMode("forgot");
+    setPendingCredentials(null);
+    setOtp(Array(OTP_LENGTH).fill(""));
+    setOtpError("");
+    setInfoMessage("");
+    setFormError("");
+    setResendCountdown(0);
+    setNewPassword("");
+    setShowNewPassword(false);
+    reset({ fullName: "", email: "", phone: "", password: "" });
+  };
+
+  const backToSignIn = () => {
+    setAuthStep("input");
+    setAuthMode("signin");
+    setPendingCredentials(null);
+    setOtp(Array(OTP_LENGTH).fill(""));
+    setOtpError("");
+    setInfoMessage("");
+    setFormError("");
+    setResendCountdown(0);
+    setNewPassword("");
+    setShowNewPassword(false);
     reset({ fullName: "", email: "", phone: "", password: "" });
   };
 
@@ -152,8 +191,35 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
     }
   };
 
+  // Forgot-password's "send code" step reuses the same
+  // input -> otp shape as registration, but always shows the same generic
+  // success message (the backend never reveals whether the email exists).
+  const submitForgotPassword = async ({ email }) => {
+    setSendingOtp(true);
+    setFormError("");
+    try {
+      const trimmedEmail = email.trim().toLowerCase();
+      const result = await apiFetch("/api/auth/forgot-password", {
+        method: "POST",
+        body: { email: trimmedEmail },
+      });
+      setPendingCredentials({ email: trimmedEmail });
+      setOtp(Array(OTP_LENGTH).fill(""));
+      setNewPassword("");
+      setAuthStep("otp");
+      setResendCountdown(result?.resendAfterSeconds ?? 60);
+      setInfoMessage("If an account exists for this email, a reset code is on its way.");
+    } catch (error) {
+      setFormError(error.message ?? "Could not send a reset code. Please try again.");
+    } finally {
+      setSendingOtp(false);
+    }
+  };
+
   const onUserContinue = (values) => {
-    if (isAdmin || authMode === "signin") {
+    if (authMode === "forgot") {
+      submitForgotPassword(values);
+    } else if (isAdmin || authMode === "signin") {
       submitLogin(values);
     } else {
       submitRegister(values);
@@ -184,6 +250,41 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
     }
   };
 
+  // Forgot-password's otp step also needs a new password, so it can't
+  // auto-submit the instant 6 digits are typed the way verifyCode does —
+  // it's wired to the "Reset Password" button instead.
+  const submitResetPassword = async () => {
+    if (verifyingRef.current || !pendingCredentials) return;
+    if (!otp.every(Boolean)) {
+      setOtpError("Enter the 6-digit code.");
+      return;
+    }
+    if (newPassword.length < 8) {
+      setOtpError("Password must be at least 8 characters.");
+      return;
+    }
+    verifyingRef.current = true;
+    setVerifyingOtp(true);
+    setOtpError("");
+    setInfoMessage("");
+
+    try {
+      const { token, user } = await apiFetch("/api/auth/reset-password", {
+        method: "POST",
+        body: { email: pendingCredentials.email, otp: otp.join(""), newPassword },
+      });
+      authenticate(token, user);
+      onSuccess(user);
+    } catch (error) {
+      setOtpError(error.message ?? "That code is invalid or expired. Please try again.");
+      setOtp(Array(OTP_LENGTH).fill(""));
+      window.setTimeout(() => otpInputs.current[0]?.focus(), 0);
+    } finally {
+      verifyingRef.current = false;
+      setVerifyingOtp(false);
+    }
+  };
+
   const handleOtpChange = (index, event) => {
     const digit = event.target.value.replace(/\D/g, "").slice(-1);
     const nextOtp = [...otp];
@@ -192,7 +293,7 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
     setOtpError("");
 
     if (digit && index < OTP_LENGTH - 1) otpInputs.current[index + 1]?.focus();
-    if (nextOtp.every(Boolean)) window.queueMicrotask(() => verifyCode(nextOtp.join("")));
+    if (nextOtp.every(Boolean) && authMode !== "forgot") window.queueMicrotask(() => verifyCode(nextOtp.join("")));
   };
 
   const handleOtpKeyDown = (index, event) => {
@@ -224,7 +325,7 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
     const nextOtp = Array.from({ length: OTP_LENGTH }, (_, index) => pasted[index] ?? "");
     setOtp(nextOtp);
     otpInputs.current[Math.min(pasted.length, OTP_LENGTH) - 1]?.focus();
-    if (pasted.length === OTP_LENGTH) window.queueMicrotask(() => verifyCode(pasted));
+    if (pasted.length === OTP_LENGTH && authMode !== "forgot") window.queueMicrotask(() => verifyCode(pasted));
   };
 
   const handleResend = async () => {
@@ -233,7 +334,8 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
     setOtpError("");
     setInfoMessage("");
     try {
-      const result = await apiFetch("/api/auth/resend-otp", {
+      const endpoint = authMode === "forgot" ? "/api/auth/forgot-password" : "/api/auth/resend-otp";
+      const result = await apiFetch(endpoint, {
         method: "POST",
         body: { email: pendingCredentials.email },
       });
@@ -334,7 +436,7 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
           </div>
 
           <section className="overflow-hidden rounded-2xl border border-white/50 bg-white/70 shadow-xl backdrop-blur-xl">
-            {authStep === "input" && (
+            {authStep === "input" && authMode !== "forgot" && (
               <div className={`grid border-b border-slate-200/80 bg-white/40 ${isAdmin ? "grid-cols-1" : "grid-cols-2"}`}>
                 {isAdmin ? (
                   <div className="relative py-4 text-center text-sm font-bold text-[#1B3FAB]">
@@ -365,22 +467,26 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
             )}
 
             <div className="p-6 sm:p-8">
-              {!isAdmin && authStep === "otp" ? (
+              {authStep === "otp" ? (
                 <div className="rounded-2xl border border-white/50 bg-white/40 p-5 shadow-xl backdrop-blur-xl sm:p-6">
                   <button
                     type="button"
                     onClick={editDetails}
                     className="mb-5 flex items-center gap-2 text-xs font-semibold text-slate-500 transition hover:text-[#1B3FAB]"
                   >
-                    <ArrowLeft className="h-4 w-4" /> Edit account details
+                    <ArrowLeft className="h-4 w-4" /> {authMode === "forgot" ? "Use a different email" : "Edit account details"}
                   </button>
 
                   <div className="text-center">
                     <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FFF0E9] text-[#FF6B2C] shadow-sm">
                       <Shield className="h-7 w-7" />
                     </div>
-                    <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.24em] text-[#1B3FAB]">Identity check</p>
-                    <h2 className="text-2xl font-black tracking-tight text-[#0A1128]">Verify it&apos;s you</h2>
+                    <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.24em] text-[#1B3FAB]">
+                      {authMode === "forgot" ? "Account recovery" : "Identity check"}
+                    </p>
+                    <h2 className="text-2xl font-black tracking-tight text-[#0A1128]">
+                      {authMode === "forgot" ? "Reset your password" : "Verify it's you"}
+                    </h2>
                     <p className="mt-2 text-sm leading-relaxed text-slate-500">
                       Enter the 6-digit code sent to<br />
                       <span className="font-semibold text-slate-800">{pendingCredentials?.email}</span>
@@ -406,19 +512,47 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
                     ))}
                   </div>
 
+                  {authMode === "forgot" && (
+                    <div className="mt-4">
+                      <Field label="New password" error={newPassword && newPassword.length < 8 ? "Password must be at least 8 characters" : ""} Icon={Lock}>
+                        <div className="relative">
+                          <input
+                            type={showNewPassword ? "text" : "password"}
+                            autoComplete="new-password"
+                            placeholder="Minimum 8 characters"
+                            value={newPassword}
+                            onChange={(event) => setNewPassword(event.target.value)}
+                            disabled={verifyingOtp}
+                            className={`${AUTH_INPUT_CLASS} pr-12`}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowNewPassword((visible) => !visible)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                            aria-label={showNewPassword ? "Hide password" : "Show password"}
+                          >
+                            {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                        </div>
+                      </Field>
+                    </div>
+                  )}
+
                   <div aria-live="polite" className="mt-4 min-h-10 text-center">
-                    {verifyingOtp && <p className="text-sm font-semibold text-[#1B3FAB]">Verifying your code…</p>}
+                    {verifyingOtp && <p className="text-sm font-semibold text-[#1B3FAB]">{authMode === "forgot" ? "Resetting your password…" : "Verifying your code…"}</p>}
                     {!verifyingOtp && otpError && <p className="text-sm font-medium text-red-600">{otpError}</p>}
                     {!verifyingOtp && !otpError && infoMessage && <p className="text-sm text-emerald-700">{infoMessage}</p>}
                   </div>
 
                   <button
                     type="button"
-                    onClick={() => verifyCode(otp.join(""))}
-                    disabled={!isOtpComplete || verifyingOtp}
+                    onClick={() => (authMode === "forgot" ? submitResetPassword() : verifyCode(otp.join("")))}
+                    disabled={!isOtpComplete || verifyingOtp || (authMode === "forgot" && newPassword.length < 8)}
                     className="mt-2 w-full rounded-xl bg-[#1B3FAB] py-3.5 text-sm font-bold text-white shadow-lg shadow-[#1B3FAB]/20 transition hover:bg-[#163596] disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    {verifyingOtp ? "Verifying…" : "Verify & Continue"}
+                    {authMode === "forgot"
+                      ? verifyingOtp ? "Resetting…" : "Reset Password"
+                      : verifyingOtp ? "Verifying…" : "Verify & Continue"}
                   </button>
 
                   <div className="mt-5 text-center text-sm text-slate-500">
@@ -436,23 +570,33 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
                           : "Resend Code"}
                     </button>
                   </div>
-                  <p className="mt-3 text-center text-xs text-slate-400">The code expires in 10 minutes.</p>
+                  <p className="mt-3 text-center text-xs text-slate-400">
+                    The code expires in {authMode === "forgot" ? "15" : "10"} minutes.
+                  </p>
                 </div>
               ) : (
                 <>
                   <div className="mb-6 text-center">
                     <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.24em] text-[#1B3FAB]">
-                      {isAdmin ? "Protected area" : authMode === "signup" ? "Secure email verification" : "Password sign-in"}
+                      {authMode === "forgot"
+                        ? "Account recovery"
+                        : isAdmin
+                          ? "Protected area"
+                          : authMode === "signup"
+                            ? "Secure email verification"
+                            : "Password sign-in"}
                     </p>
                     <h2 className="text-2xl font-black tracking-tight text-[#0A1128]">
-                      {isAdmin ? "Admin sign in" : authMode === "signin" ? "Welcome back" : "Join WorkBridge"}
+                      {authMode === "forgot" ? "Reset your password" : isAdmin ? "Admin sign in" : authMode === "signin" ? "Welcome back" : "Join WorkBridge"}
                     </h2>
                     <p className="mt-2 text-sm text-slate-500">
-                      {isAdmin
-                        ? "Use your internally provisioned admin account."
-                        : authMode === "signin"
-                          ? "Enter your email and password to continue."
-                          : `Create your ${cfg.label.toLowerCase()} account — we'll email you a code to verify it.`}
+                      {authMode === "forgot"
+                        ? "Enter your account email and we'll send you a reset code."
+                        : isAdmin
+                          ? "Use your internally provisioned admin account."
+                          : authMode === "signin"
+                            ? "Enter your email and password to continue."
+                            : `Create your ${cfg.label.toLowerCase()} account — we'll email you a code to verify it.`}
                     </p>
                   </div>
 
@@ -464,6 +608,16 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
                   )}
 
                   <form onSubmit={handleSubmit(onUserContinue)} className="space-y-4">
+                    {authMode === "forgot" && (
+                      <button
+                        type="button"
+                        onClick={backToSignIn}
+                        className="mb-1 flex items-center gap-2 text-xs font-semibold text-slate-500 transition hover:text-[#1B3FAB]"
+                      >
+                        <ArrowLeft className="h-4 w-4" /> Back to sign in
+                      </button>
+                    )}
+
                     {!isAdmin && authMode === "signup" && (
                       <Field label="Full name" error={errors.fullName?.message} Icon={User}>
                         <input
@@ -508,25 +662,39 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
                       </Field>
                     )}
 
-                    <Field label="Password" error={errors.password?.message} Icon={Lock}>
-                      <div className="relative">
-                        <input
-                          type={showPassword ? "text" : "password"}
-                          autoComplete={isAdmin || authMode === "signin" ? "current-password" : "new-password"}
-                          placeholder="Minimum 8 characters"
-                          {...register("password")}
-                          className={`${AUTH_INPUT_CLASS} pr-12`}
-                        />
+                    {authMode !== "forgot" && (
+                      <Field label="Password" error={errors.password?.message} Icon={Lock}>
+                        <div className="relative">
+                          <input
+                            type={showPassword ? "text" : "password"}
+                            autoComplete={isAdmin || authMode === "signin" ? "current-password" : "new-password"}
+                            placeholder="Minimum 8 characters"
+                            {...register("password")}
+                            className={`${AUTH_INPUT_CLASS} pr-12`}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword((visible) => !visible)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                            aria-label={showPassword ? "Hide password" : "Show password"}
+                          >
+                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                        </div>
+                      </Field>
+                    )}
+
+                    {authMode === "signin" && (
+                      <div className="-mt-2 text-right">
                         <button
                           type="button"
-                          onClick={() => setShowPassword((visible) => !visible)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
-                          aria-label={showPassword ? "Hide password" : "Show password"}
+                          onClick={startForgotPassword}
+                          className="text-xs font-semibold text-[#1B3FAB] transition hover:text-[#163596]"
                         >
-                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          Forgot password?
                         </button>
                       </div>
-                    </Field>
+                    )}
 
                     <button
                       type="submit"
@@ -535,9 +703,11 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
                     >
                       {sendingOtp
                         ? "Please wait…"
-                        : isAdmin || authMode === "signin"
-                          ? "Sign In"
-                          : "Create account"}
+                        : authMode === "forgot"
+                          ? "Send Reset Code"
+                          : isAdmin || authMode === "signin"
+                            ? "Sign In"
+                            : "Create account"}
                     </button>
 
                     {!isAdmin && authMode === "signup" && (

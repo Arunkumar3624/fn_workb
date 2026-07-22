@@ -60,7 +60,13 @@ export default function InvoicePage() {
 
   const isBusinessViewer = currentUser?.id === project.business_id;
   const isWorkerViewer = currentUser?.id === project.worker_id;
+  // Funds can be secured (held in escrow) well before the worker is
+  // actually paid — those are two different facts. isSettled only means
+  // "money has left the business's side," so the reassurance block below
+  // can use it; the "Paid" badge/stamp specifically means the worker has
+  // been paid out, which only happens at COMPLETED.
   const isSettled = FUNDS_SECURED_STATUSES.has(project.status);
+  const isPaid = project.status === "COMPLETED";
   const budget = Number(project.budget);
   const feePct = Number(project.platform_fee_pct ?? 8);
   const platformFee = Math.round(budget * (feePct / 100));
@@ -113,10 +119,10 @@ export default function InvoicePage() {
                 <p className="font-serif text-2xl font-bold text-[#0F172A]">Invoice</p>
                 <span
                   className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest ${
-                    isSettled ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
+                    isPaid ? "bg-emerald-50 text-emerald-700" : isSettled ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-700"
                   }`}
                 >
-                  {isSettled ? "Paid" : PROJECT_STATUS_META[project.status]?.label ?? project.status}
+                  {isPaid ? "Paid" : PROJECT_STATUS_META[project.status]?.label ?? project.status}
                 </span>
               </div>
               <p className="mt-1 font-mono text-sm text-slate-500">#{project.id.slice(0, 8).toUpperCase()}</p>
@@ -176,7 +182,7 @@ export default function InvoicePage() {
                 {formatINR(budget)}
               </span>
 
-              {isSettled && (
+              {isPaid && (
                 <div
                   className="pointer-events-none absolute -top-6 right-0 z-10 -rotate-[13deg] mix-blend-multiply sm:-top-8 sm:right-8"
                   aria-hidden="true"
@@ -253,9 +259,11 @@ export default function InvoicePage() {
               <div className="flex items-center justify-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4">
                 <ShieldCheck className="h-5 w-5 flex-shrink-0 text-emerald-600" />
                 <div className="text-center">
-                  <p className="text-sm font-bold text-emerald-800">Funds Secured</p>
+                  <p className="text-sm font-bold text-emerald-800">{isPaid ? "Payment Released" : "Funds Secured"}</p>
                   <p className="text-xs text-emerald-600">
-                    {formatINR(budget)} is held and protected until work is approved.
+                    {isPaid
+                      ? `${formatINR(workerReceives)} has been released to ${project.worker_name}.`
+                      : `${formatINR(budget)} is held and protected until work is approved.`}
                   </p>
                 </div>
               </div>
