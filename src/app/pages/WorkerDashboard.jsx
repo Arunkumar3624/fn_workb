@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
 import { Bell, Sparkles } from "lucide-react";
 import DashboardLayout from "../components/common/DashboardLayout";
 import WorkerSidebar from "../components/worker/WorkerSidebar";
@@ -12,6 +13,7 @@ import { useAuth } from "../context/AuthContext";
 import { listProjects } from "../lib/projectsApi";
 import { getWallet } from "../lib/walletApi";
 import { getInitials } from "../utils/formValidation";
+import { getSocket } from "../lib/socketClient";
 
 export default function WorkerDashboard({ onLogout }) {
   const navigate = useNavigate();
@@ -34,6 +36,24 @@ export default function WorkerDashboard({ onLogout }) {
     getWallet()
       .then((wallet) => setWalletBalance(Number(wallet.balance)))
       .catch(() => {});
+  }, []);
+
+  // A brand-new invite is the one event a worker's own `projects` state
+  // can't already contain (they've never seen this project before), so it's
+  // handled here — mounted on every worker page — rather than inside
+  // WorkerWorkspace, which only reacts to projects it already loaded.
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return undefined;
+
+    const handleProjectEvent = (event) => {
+      if (event.type !== "PROJECT_CREATED") return;
+      setHasPendingInvites(true);
+      toast.info(`${event.businessName ?? "A business"} invited you to "${event.title}".`);
+    };
+
+    socket.on("project:event", handleProjectEvent);
+    return () => socket.off("project:event", handleProjectEvent);
   }, []);
 
   return (

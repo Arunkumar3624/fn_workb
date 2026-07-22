@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { BarChart3, Shield, AlertTriangle, ShieldAlert, UserCog, Receipt, Zap, LogOut, Image as ImageIcon } from "lucide-react";
+import { BarChart3, Shield, AlertTriangle, ShieldAlert, UserCog, Receipt, Zap, LogOut, Image as ImageIcon, Users } from "lucide-react";
 import AdminOverviewTab from "../components/admin/AdminOverviewTab";
+import AdminUsersTab from "../components/admin/AdminUsersTab";
 import AdminVerificationsTab from "../components/admin/AdminVerificationsTab";
 import AdminDisputesTab from "../components/admin/AdminDisputesTab";
 import AdminSecurityTab from "../components/admin/AdminSecurityTab";
@@ -14,6 +15,7 @@ import { getInitials } from "../utils/formValidation";
 
 const NAV = [
   { id: "overview", label: "Master Dashboard", icon: BarChart3 },
+  { id: "users", label: "Users", icon: Users },
   { id: "verification", label: "Verification Center", icon: Shield, badgeKey: "verifications" },
   { id: "content", label: "Content Review", icon: ImageIcon },
   { id: "disputes", label: "Dispute Resolution", icon: AlertTriangle, badgeKey: "disputes" },
@@ -26,6 +28,7 @@ const NAV = [
 // add/remove tabs without touching the nav or layout markup below.
 const TAB_COMPONENTS = {
   overview: AdminOverviewTab,
+  users: AdminUsersTab,
   verification: AdminVerificationsTab,
   content: AdminContentReviewTab,
   disputes: AdminDisputesTab,

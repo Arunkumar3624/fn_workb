@@ -87,7 +87,7 @@ export default function AdminVerificationsTab() {
             <table className="w-full">
               <thead>
                 <tr className="bg-white/40 border-b border-slate-200">
-                  {["Name", "Role", "Title", "Requested", "Actions"].map((h) => (
+                  {["Name", "Role", "Title", "Phone", "Requested", "Actions"].map((h) => (
                     <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">{h}</th>
                   ))}
                 </tr>
@@ -109,6 +109,7 @@ export default function AdminVerificationsTab() {
                       </span>
                     </td>
                     <td className="px-5 py-4 text-sm text-slate-500">{item.title || "—"}</td>
+                    <td className="px-5 py-4 text-sm text-slate-500">{item.phone ? `+91 ${item.phone}` : "—"}</td>
                     <td className="px-5 py-4 text-sm text-slate-500">
                       {new Date(item.created_at).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}
                     </td>

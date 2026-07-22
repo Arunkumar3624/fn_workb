@@ -136,6 +136,11 @@ export default function WorkerWorkspace() {
             );
           }
           break;
+        case "REVIEW_SUBMITTED":
+          if (event.revieweeId === currentUser?.id) {
+            toast.success(`${project.business_name} left you a ${event.rating}★ review on "${project.title}".`);
+          }
+          break;
         default:
           break;
       }

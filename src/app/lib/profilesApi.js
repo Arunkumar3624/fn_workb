@@ -23,11 +23,11 @@ export function listWorkers() {
   return apiFetch("/api/profiles?role=worker");
 }
 
-// The caller's own profile edit — avatar upload, title, and a shallow
+// The caller's own profile edit — avatar upload, title, phone, and a shallow
 // profile-JSONB patch (skills/rate/bio). Guarded server-side to self only.
-export function updateOwnProfile({ avatarUrl, title, profilePatch }) {
+export function updateOwnProfile({ avatarUrl, title, phone, profilePatch }) {
   return apiFetch("/api/profiles/me", {
     method: "PATCH",
-    body: { avatarUrl, title, profilePatch },
+    body: { avatarUrl, title, phone, profilePatch },
   });
 }

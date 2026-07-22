@@ -57,20 +57,6 @@ function createDevBypassUser(role) {
   };
 }
 
-function otpPayload(values, role, mode) {
-  const email = values.email.trim().toLowerCase();
-  const phone = (values.phone ?? "").replace(/\D/g, "").slice(-10);
-  return {
-    identifier: email,
-    role,
-    mode,
-    email,
-    password: values.password,
-    ...(phone ? { phone } : {}),
-    ...(mode === "signup" ? { name: values.fullName.trim() } : {}),
-  };
-}
-
 export default function AuthPage({ userType, onSuccess, onBack }) {
   const isAdmin = userType === "admin";
   const cfg = USER_CONFIG[userType] ?? USER_CONFIG.worker;
@@ -143,41 +129,53 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
     reset({ fullName: "", email: "", phone: "", password: "" });
   };
 
-  const requestOtp = async (credentials, isResend = false) => {
+  // Sign-in is password-only now — no OTP step at all. Works identically
+  // for worker/business/admin; the server resolves the real role from the
+  // DB row regardless of which entry point was clicked.
+  const submitLogin = async ({ email, password }) => {
     setSendingOtp(true);
     setFormError("");
-    setOtpError("");
-    setInfoMessage("");
-
     try {
-      const result = await apiFetch("/api/auth/send-otp", {
+      const { token, user } = await apiFetch("/api/auth/login", {
         method: "POST",
-        body: credentials,
+        body: { email: email.trim().toLowerCase(), password },
       });
-      // The server resolves the real account role after the password check.
-      // This lets an admin use either public sign-in entry and still receive
-      // an admin-scoped OTP/JWT rather than trusting the selected UI role.
-      setPendingCredentials({
-        ...credentials,
-        role: result?.role ?? credentials.role,
+      authenticate(token, user);
+      onSuccess(user);
+    } catch (error) {
+      setFormError(error.message ?? "Could not sign in. Please try again.");
+    } finally {
+      setSendingOtp(false);
+    }
+  };
+
+  // Sign-up creates the account (email_verified: false) and sends the OTP
+  // in one call — the OTP step below is the only place it's ever used.
+  const submitRegister = async (values) => {
+    setSendingOtp(true);
+    setFormError("");
+    try {
+      const email = values.email.trim().toLowerCase();
+      const result = await apiFetch("/api/auth/register", {
+        method: "POST",
+        body: { role: userType, name: values.fullName.trim(), email, phone: values.phone, password: values.password },
       });
+      setPendingCredentials({ email });
       setOtp(Array(OTP_LENGTH).fill(""));
       setAuthStep("otp");
       setResendCountdown(result?.resendAfterSeconds ?? 60);
-      setInfoMessage(isResend ? "A fresh code has been sent." : "Your secure code is on its way.");
+      setInfoMessage("Your secure code is on its way.");
     } catch (error) {
-      const message = error.message ?? "Could not send the OTP. Please try again.";
-      if (isResend) setOtpError(message);
-      else setFormError(message);
+      setFormError(error.message ?? "Could not create your account. Please try again.");
     } finally {
       setSendingOtp(false);
     }
   };
 
   const onUserContinue = (values) => {
-    // DEV BYPASS: skip /api/auth/send-otp and inject a mock authenticated session.
-    // Disabled (DEV_BYPASS_AUTH = false) — kept only so it can be flipped back
-    // on if the real backend/OTP path is ever unavailable again.
+    // DEV BYPASS: skip the real auth calls and inject a mock authenticated
+    // session. Disabled (DEV_BYPASS_AUTH = false) — kept only so it can be
+    // flipped back on if the real backend is ever unavailable again.
     if (DEV_BYPASS_AUTH) {
       setFormError("");
       setOtpError("");
@@ -192,7 +190,11 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
       return;
     }
 
-    requestOtp(otpPayload(values, userType, authMode));
+    if (isAdmin || authMode === "signin") {
+      submitLogin(values);
+    } else {
+      submitRegister(values);
+    }
   };
 
   const verifyCode = async (code) => {
@@ -205,7 +207,7 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
     try {
       const { token, user } = await apiFetch("/api/auth/verify-otp", {
         method: "POST",
-        body: { ...pendingCredentials, otp: code },
+        body: { email: pendingCredentials.email, otp: code },
       });
       authenticate(token, user);
       onSuccess(user);
@@ -262,9 +264,23 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
     if (pasted.length === OTP_LENGTH) window.queueMicrotask(() => verifyCode(pasted));
   };
 
-  const handleResend = () => {
+  const handleResend = async () => {
     if (resendCountdown > 0 || sendingOtp || !pendingCredentials) return;
-    requestOtp(pendingCredentials, true);
+    setSendingOtp(true);
+    setOtpError("");
+    setInfoMessage("");
+    try {
+      const result = await apiFetch("/api/auth/resend-otp", {
+        method: "POST",
+        body: { email: pendingCredentials.email },
+      });
+      setResendCountdown(result?.resendAfterSeconds ?? 60);
+      setInfoMessage("A fresh code has been sent.");
+    } catch (error) {
+      setOtpError(error.message ?? "Could not resend the code. Please try again.");
+    } finally {
+      setSendingOtp(false);
+    }
   };
 
   const editDetails = () => {
@@ -457,13 +473,13 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
                           : "Resend Code"}
                     </button>
                   </div>
-                  <p className="mt-3 text-center text-xs text-slate-400">The code expires in 5 minutes.</p>
+                  <p className="mt-3 text-center text-xs text-slate-400">The code expires in 10 minutes.</p>
                 </div>
               ) : (
                 <>
                   <div className="mb-6 text-center">
                     <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.24em] text-[#1B3FAB]">
-                      {isAdmin ? "Protected area" : "Password + OTP security"}
+                      {isAdmin ? "Protected area" : authMode === "signup" ? "Secure email verification" : "Password sign-in"}
                     </p>
                     <h2 className="text-2xl font-black tracking-tight text-[#0A1128]">
                       {isAdmin ? "Admin sign in" : authMode === "signin" ? "Welcome back" : "Join WorkBridge"}
@@ -472,8 +488,8 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
                       {isAdmin
                         ? "Use your internally provisioned admin account."
                         : authMode === "signin"
-                          ? "Enter your details and we’ll verify your identity."
-                          : `Create your ${cfg.label.toLowerCase()} account securely.`}
+                          ? "Enter your email and password to continue."
+                          : `Create your ${cfg.label.toLowerCase()} account — we'll email you a code to verify it.`}
                     </p>
                   </div>
 
@@ -507,7 +523,13 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
                       />
                     </Field>
 
-                    <Field label={authMode === "signin" ? "Mobile number (optional)" : "Mobile number"} error={errors.phone?.message} Icon={Smartphone}>
+                    {/* Signup only — sign-in authenticates by email + password alone.
+                        Phone used to also be collected (as "optional") on sign-in, but
+                        the backend required it to match when present, so typing any
+                        phone number that wasn't the one on file broke login with a
+                        generic "invalid credentials" error. */}
+                    {!isAdmin && authMode === "signup" && (
+                      <Field label="Mobile number" error={errors.phone?.message} Icon={Smartphone}>
                         <div className="flex gap-2">
                           <span className="flex h-12 items-center rounded-xl border border-slate-200 bg-slate-100 px-3 text-sm font-semibold text-slate-600">+91</span>
                           <input
@@ -521,6 +543,7 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
                           />
                         </div>
                       </Field>
+                    )}
 
                     <Field label="Password" error={errors.password?.message} Icon={Lock}>
                       <div className="relative">
@@ -547,13 +570,17 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
                       disabled={sendingOtp}
                       className="mt-2 w-full rounded-xl bg-[#1B3FAB] py-3.5 text-sm font-bold text-white shadow-lg shadow-[#1B3FAB]/20 transition hover:bg-[#163596] disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      {sendingOtp ? "Please wait…" : isAdmin ? "Sign In" : "Continue securely"}
+                      {sendingOtp
+                        ? "Please wait…"
+                        : isAdmin || authMode === "signin"
+                          ? "Sign In"
+                          : "Create account"}
                     </button>
 
-                    {!isAdmin && (
+                    {!isAdmin && authMode === "signup" && (
                       <div className="flex items-center justify-center gap-2 pt-1 text-xs text-slate-400">
                         <Shield className="h-3.5 w-3.5 text-emerald-600" />
-                        Your password is verified before we send the OTP
+                        We'll email you a 6-digit code to verify your address
                       </div>
                     )}
 

@@ -4,6 +4,7 @@ import {
   Camera,
   MapPin,
   Pencil,
+  Phone,
   Save,
   ShieldCheck,
   Star,
@@ -94,6 +95,7 @@ export default function WorkerProfile() {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState({
     title: currentUser?.title ?? "",
+    phone: currentUser?.phone ?? "",
     bio: currentUser?.profile?.bio ?? "",
     location: currentUser?.profile?.location ?? "",
     hourlyRate: currentUser?.profile?.hourlyRate ?? "",
@@ -115,6 +117,7 @@ export default function WorkerProfile() {
   const startEdit = () => {
     setDraft({
       title: currentUser?.title ?? "",
+      phone: currentUser?.phone ?? "",
       bio: currentUser?.profile?.bio ?? "",
       location: currentUser?.profile?.location ?? "",
       hourlyRate: currentUser?.profile?.hourlyRate ?? "",
@@ -129,8 +132,15 @@ export default function WorkerProfile() {
     setSaveError("");
     try {
       const skills = draft.skillsText.split(",").map((s) => s.trim()).filter(Boolean);
+      const phone = draft.phone.replace(/\D/g, "");
+      if (phone && phone.length !== 10) {
+        setSaveError("Phone number must be exactly 10 digits.");
+        setSaving(false);
+        return;
+      }
       const updated = await updateOwnProfile({
         title: draft.title.trim() || undefined,
+        phone: phone || undefined,
         profilePatch: {
           bio: draft.bio.trim(),
           location: draft.location.trim(),
@@ -229,6 +239,12 @@ export default function WorkerProfile() {
                         <span className="inline-flex items-center gap-1.5">
                           <MapPin className="h-4 w-4 text-white/65" />
                           {profile.location}
+                        </span>
+                      )}
+                      {currentUser?.phone && (
+                        <span className="inline-flex items-center gap-1.5">
+                          <Phone className="h-4 w-4 text-white/65" />
+                          +91 {currentUser.phone}
                         </span>
                       )}
                       {currentUser?.rating != null && (
@@ -338,6 +354,22 @@ export default function WorkerProfile() {
                   placeholder="e.g. Full-Stack Developer"
                   className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
                 />
+              </label>
+              <label className="block">
+                <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Mobile Number</span>
+                <p className="mb-1 mt-1 text-xs text-slate-400">Kept up to date so the WorkBridge support team can reach you.</p>
+                <div className="flex gap-2">
+                  <span className="flex h-10 items-center rounded-xl border border-slate-200 bg-slate-100 px-3 text-sm font-semibold text-slate-600">+91</span>
+                  <input
+                    type="tel"
+                    inputMode="numeric"
+                    maxLength={10}
+                    value={draft.phone}
+                    onChange={(e) => setDraft((d) => ({ ...d, phone: e.target.value.replace(/\D/g, "") }))}
+                    placeholder="9876543210"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
+                  />
+                </div>
               </label>
               <label className="block">
                 <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Location</span>

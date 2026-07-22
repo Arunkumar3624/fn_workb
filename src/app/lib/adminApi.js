@@ -11,6 +11,10 @@ export function listVerifications() {
   return apiFetch("/api/admin/verify");
 }
 
+export function listAllUsers() {
+  return apiFetch("/api/admin/users");
+}
+
 export function reviewVerification(id, approved) {
   return apiFetch(`/api/admin/verify/${id}`, { method: "PATCH", body: { approved } });
 }

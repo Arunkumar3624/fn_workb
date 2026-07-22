@@ -51,18 +51,6 @@ export function AuthProvider({ children }) {
       });
   }, []);
 
-  const register = async ({ role, name, email, phone, password }) => {
-    const { token, user } = await apiFetch("/api/auth/register", {
-      method: "POST",
-      body: { role, name, email, phone, password },
-    });
-    setToken(token);
-    connectSocket(token);
-    setCurrentUser(user);
-    setStatus("authenticated");
-    return user;
-  };
-
   const authenticate = (token, user) => {
     setToken(token);
     // The dev-bypass token is never a real JWT — the real server (and
@@ -89,7 +77,7 @@ export function AuthProvider({ children }) {
   };
 
   const value = useMemo(
-    () => ({ currentUser, status, register, authenticate, logout, updateCurrentUser }),
+    () => ({ currentUser, status, authenticate, logout, updateCurrentUser }),
     [currentUser, status]
   );
 

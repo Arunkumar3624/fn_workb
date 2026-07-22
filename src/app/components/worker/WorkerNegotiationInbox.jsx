@@ -22,6 +22,7 @@ import { listProjects, updateProjectStatus } from "../../lib/projectsApi";
 import { getPublicProfile } from "../../lib/profilesApi";
 import { getInitials } from "../../utils/formValidation";
 import { ApiError } from "../../lib/apiClient";
+import { getSocket } from "../../lib/socketClient";
 
 const ACTIVE_THREAD_STATUSES = new Set(["INVITED", "ACCEPTED", "FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_SUBMITTED"]);
 
@@ -419,6 +420,24 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
       cancelled = true;
     };
   }, [initialProjectId]);
+
+  // A brand-new invite from a live socket event — silent refetch, no local
+  // toast (WorkerDashboard.jsx already shows one globally for this event;
+  // duplicating it here would double up since both are mounted together).
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return undefined;
+
+    const handleProjectEvent = (event) => {
+      if (event.type !== "PROJECT_CREATED") return;
+      listProjects({ role: "worker" })
+        .then((data) => setProjects(data.filter(isActiveThread)))
+        .catch(() => {});
+    };
+
+    socket.on("project:event", handleProjectEvent);
+    return () => socket.off("project:event", handleProjectEvent);
+  }, []);
 
   const selectedProject = useMemo(
     () => projects.find((project) => project.id === selectedThreadId) ?? null,

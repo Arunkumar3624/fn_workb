@@ -496,6 +496,11 @@ export default function BusinessProjects() {
         case "SUBMISSION_REVIEWED":
           toast.info(`A submission on "${project.title}" was ${event.status.toLowerCase()} by WorkBridge.`);
           break;
+        case "REVIEW_SUBMITTED":
+          if (event.revieweeId === currentUser?.id) {
+            toast.success(`${project.worker_name} left you a ${event.rating}★ review on "${project.title}".`);
+          }
+          break;
         default:
           break;
       }
