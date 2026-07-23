@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
   AlertCircle,
   Camera,
+  ExternalLink,
   Loader2,
   MapPin,
   Pencil,
@@ -9,6 +10,7 @@ import {
   Save,
   ShieldCheck,
   Star,
+  Trash2,
   X,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
@@ -102,6 +104,9 @@ export default function WorkerProfile() {
     location: currentUser?.profile?.location ?? "",
     hourlyRate: currentUser?.profile?.hourlyRate ?? "",
     skillsText: (currentUser?.profile?.skills ?? []).join(", "),
+    education: currentUser?.profile?.education ?? [],
+    certifications: currentUser?.profile?.certifications ?? [],
+    projects: currentUser?.profile?.projects ?? [],
   });
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
@@ -142,9 +147,27 @@ export default function WorkerProfile() {
       location: currentUser?.profile?.location ?? "",
       hourlyRate: currentUser?.profile?.hourlyRate ?? "",
       skillsText: (currentUser?.profile?.skills ?? []).join(", "),
+      education: currentUser?.profile?.education ?? [],
+      certifications: currentUser?.profile?.certifications ?? [],
+      projects: currentUser?.profile?.projects ?? [],
     });
     setSaveError("");
     setEditing(true);
+  };
+
+  // Shared by the Education/Certifications/Projects repeatable-list editors
+  // below — each is just an array of plain objects living on `draft[field]`.
+  const addDraftListItem = (field, blank) => {
+    setDraft((d) => ({ ...d, [field]: [...d[field], blank] }));
+  };
+  const updateDraftListItem = (field, index, patch) => {
+    setDraft((d) => ({
+      ...d,
+      [field]: d[field].map((item, i) => (i === index ? { ...item, ...patch } : item)),
+    }));
+  };
+  const removeDraftListItem = (field, index) => {
+    setDraft((d) => ({ ...d, [field]: d[field].filter((_, i) => i !== index) }));
   };
 
   const saveEdit = async () => {
@@ -166,6 +189,15 @@ export default function WorkerProfile() {
           location: draft.location.trim(),
           hourlyRate: draft.hourlyRate ? Number(draft.hourlyRate) : null,
           skills,
+          education: draft.education
+            .map((e) => ({ degree: e.degree?.trim() ?? "", school: e.school?.trim() ?? "", year: e.year?.trim() ?? "" }))
+            .filter((e) => e.degree || e.school),
+          certifications: draft.certifications
+            .map((c) => ({ name: c.name?.trim() ?? "", issuer: c.issuer?.trim() ?? "", year: c.year?.trim() ?? "" }))
+            .filter((c) => c.name),
+          projects: draft.projects
+            .map((p) => ({ title: p.title?.trim() ?? "", link: p.link?.trim() ?? "", description: p.description?.trim() ?? "" }))
+            .filter((p) => p.title),
         },
       });
       updateCurrentUser(updated);
@@ -203,8 +235,26 @@ export default function WorkerProfile() {
     reader.readAsDataURL(file);
   };
 
+  const handleRemoveAvatar = async (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setAvatarError("");
+    setAvatarUploading(true);
+    try {
+      const updated = await updateOwnProfile({ avatarUrl: null });
+      updateCurrentUser(updated);
+    } catch (err) {
+      setAvatarError(err instanceof ApiError ? err.message : "Could not remove photo.");
+    } finally {
+      setAvatarUploading(false);
+    }
+  };
+
   const profile = currentUser?.profile ?? {};
   const skills = profile.skills ?? [];
+  const education = profile.education ?? [];
+  const certifications = profile.certifications ?? [];
+  const projects = profile.projects ?? [];
 
   return (
     <div className="h-full overflow-y-auto bg-[#F8FAFC]">
@@ -250,6 +300,18 @@ export default function WorkerProfile() {
                         <Camera className="h-6 w-6 text-white" />
                       )}
                     </span>
+                    {currentUser?.avatar_url && (
+                      <button
+                        type="button"
+                        onClick={handleRemoveAvatar}
+                        disabled={avatarUploading}
+                        aria-label="Remove photo and reset to default"
+                        title="Remove photo"
+                        className="absolute -right-1 -top-1 z-10 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-rose-500 text-white shadow-md transition hover:bg-rose-600 disabled:opacity-60"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    )}
                   </label>
                   <div className="pb-1">
                     <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">{currentUser?.name}</h1>
@@ -303,6 +365,70 @@ export default function WorkerProfile() {
                 <p className="mt-4 max-w-4xl text-[15px] leading-7 text-slate-600">
                   {profile.bio || "No bio yet — click Edit Profile to add one."}
                 </p>
+              </ProfileCard>
+
+              <ProfileCard>
+                <h2 className="text-lg font-bold text-slate-900">Projects</h2>
+                {projects.length === 0 ? (
+                  <p className="mt-4 text-sm text-slate-400">No projects added yet — click Edit Profile to showcase your work.</p>
+                ) : (
+                  <div className="mt-5 grid gap-4 md:grid-cols-2">
+                    {projects.map((p, index) => (
+                      <article key={index} className="rounded-lg bg-slate-50 p-5 ring-1 ring-slate-100">
+                        <h3 className="text-sm font-bold text-slate-900">{p.title}</h3>
+                        {p.description && <p className="mt-2 text-sm leading-6 text-slate-500">{p.description}</p>}
+                        {p.link && (
+                          <a
+                            href={p.link}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-[#1B3FAB] hover:underline"
+                          >
+                            View project <ExternalLink className="h-3 w-3" />
+                          </a>
+                        )}
+                      </article>
+                    ))}
+                  </div>
+                )}
+              </ProfileCard>
+
+              <ProfileCard>
+                <h2 className="text-lg font-bold text-slate-900">Education</h2>
+                {education.length === 0 ? (
+                  <p className="mt-4 text-sm text-slate-400">No education added yet — click Edit Profile to add some.</p>
+                ) : (
+                  <div className="mt-4 space-y-4">
+                    {education.map((entry, index) => (
+                      <div
+                        key={index}
+                        className="flex items-start justify-between gap-3 border-b border-slate-100 pb-4 last:border-0 last:pb-0"
+                      >
+                        <div>
+                          <p className="text-sm font-bold text-slate-900">{entry.degree}</p>
+                          <p className="text-sm text-slate-500">{entry.school}</p>
+                        </div>
+                        {entry.year && <span className="flex-shrink-0 text-xs font-semibold text-slate-400">{entry.year}</span>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </ProfileCard>
+
+              <ProfileCard>
+                <h2 className="text-lg font-bold text-slate-900">Courses &amp; Certifications</h2>
+                {certifications.length === 0 ? (
+                  <p className="mt-4 text-sm text-slate-400">No certifications added yet — click Edit Profile to add some.</p>
+                ) : (
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    {certifications.map((c, index) => (
+                      <div key={index} className="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
+                        <p className="text-sm font-bold text-slate-900">{c.name}</p>
+                        <p className="text-xs text-slate-500">{[c.issuer, c.year].filter(Boolean).join(" · ")}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </ProfileCard>
 
               <ProfileCard>
@@ -420,6 +546,153 @@ export default function WorkerProfile() {
                   className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
                 />
               </label>
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Projects</span>
+                  <button
+                    type="button"
+                    onClick={() => addDraftListItem("projects", { title: "", link: "", description: "" })}
+                    className="text-xs font-bold text-[#1B3FAB] hover:underline"
+                  >
+                    + Add
+                  </button>
+                </div>
+                <div className="mt-2 space-y-2">
+                  {draft.projects.length === 0 && <p className="text-xs text-slate-400">No projects added yet.</p>}
+                  {draft.projects.map((entry, index) => (
+                    <div key={index} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                      <div className="flex items-start gap-2">
+                        <div className="grid flex-1 gap-2 sm:grid-cols-2">
+                          <input
+                            value={entry.title}
+                            onChange={(e) => updateDraftListItem("projects", index, { title: e.target.value })}
+                            placeholder="Project title"
+                            className="rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
+                          />
+                          <input
+                            value={entry.link}
+                            onChange={(e) => updateDraftListItem("projects", index, { link: e.target.value })}
+                            placeholder="Link (optional)"
+                            className="rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeDraftListItem("projects", index)}
+                          aria-label="Remove this project"
+                          className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-500"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                      <textarea
+                        rows={2}
+                        value={entry.description}
+                        onChange={(e) => updateDraftListItem("projects", index, { description: e.target.value })}
+                        placeholder="What did you build / your role"
+                        className="mt-2 w-full resize-none rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Education</span>
+                  <button
+                    type="button"
+                    onClick={() => addDraftListItem("education", { degree: "", school: "", year: "" })}
+                    className="text-xs font-bold text-[#1B3FAB] hover:underline"
+                  >
+                    + Add
+                  </button>
+                </div>
+                <div className="mt-2 space-y-2">
+                  {draft.education.length === 0 && <p className="text-xs text-slate-400">No education added yet.</p>}
+                  {draft.education.map((entry, index) => (
+                    <div key={index} className="flex items-start gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                      <div className="grid flex-1 gap-2 sm:grid-cols-[1fr_1fr_90px]">
+                        <input
+                          value={entry.degree}
+                          onChange={(e) => updateDraftListItem("education", index, { degree: e.target.value })}
+                          placeholder="Degree (e.g. B.Tech CSE)"
+                          className="rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
+                        />
+                        <input
+                          value={entry.school}
+                          onChange={(e) => updateDraftListItem("education", index, { school: e.target.value })}
+                          placeholder="School / University"
+                          className="rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
+                        />
+                        <input
+                          value={entry.year}
+                          onChange={(e) => updateDraftListItem("education", index, { year: e.target.value })}
+                          placeholder="Year"
+                          className="rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeDraftListItem("education", index)}
+                        aria-label="Remove this education entry"
+                        className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-500"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Courses &amp; Certifications</span>
+                  <button
+                    type="button"
+                    onClick={() => addDraftListItem("certifications", { name: "", issuer: "", year: "" })}
+                    className="text-xs font-bold text-[#1B3FAB] hover:underline"
+                  >
+                    + Add
+                  </button>
+                </div>
+                <div className="mt-2 space-y-2">
+                  {draft.certifications.length === 0 && <p className="text-xs text-slate-400">No certifications added yet.</p>}
+                  {draft.certifications.map((entry, index) => (
+                    <div key={index} className="flex items-start gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                      <div className="grid flex-1 gap-2 sm:grid-cols-[1fr_1fr_90px]">
+                        <input
+                          value={entry.name}
+                          onChange={(e) => updateDraftListItem("certifications", index, { name: e.target.value })}
+                          placeholder="Course / certification name"
+                          className="rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
+                        />
+                        <input
+                          value={entry.issuer}
+                          onChange={(e) => updateDraftListItem("certifications", index, { issuer: e.target.value })}
+                          placeholder="Issued by (e.g. Coursera)"
+                          className="rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
+                        />
+                        <input
+                          value={entry.year}
+                          onChange={(e) => updateDraftListItem("certifications", index, { year: e.target.value })}
+                          placeholder="Year"
+                          className="rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeDraftListItem("certifications", index)}
+                        aria-label="Remove this certification"
+                        className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-500"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               <label className="block">
                 <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">About Me</span>
                 <textarea

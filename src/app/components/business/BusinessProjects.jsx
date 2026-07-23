@@ -20,6 +20,7 @@ import Avatar from "../shared/Avatar";
 import TimelineTracker from "../shared/TimelineTracker";
 import ProjectCompletionHub from "../shared/ProjectCompletionHub";
 import DeliverablesPanel from "../shared/DeliverablesPanel";
+import ChatThread from "../shared/ChatThread";
 import { PROJECT_STATUS_META } from "../../utils/projectStatus";
 import {
   listBusinessProjects,
@@ -257,6 +258,17 @@ function WorkerDetailDrawer({ project, onClose }) {
                   </div>
 
                   <DeliverablesPanel projectId={project.id} />
+
+                  <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+                    <div className="border-b border-slate-100 px-5 py-4">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400" style={HEADING_FONT}>Chat</p>
+                      <p className="mt-1 text-sm font-bold text-[#0F172A]" style={DATA_FONT}>Message {project.worker_name}</p>
+                      <p className="mt-1 text-xs text-slate-400" style={DATA_FONT}>Keep contact details off WorkBridge — sharing phone numbers or emails isn't allowed.</p>
+                    </div>
+                    <div className="flex h-[420px] flex-col">
+                      <ChatThread projectId={project.id} />
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

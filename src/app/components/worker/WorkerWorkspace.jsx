@@ -6,6 +6,7 @@ import CelebrationOverlay from "../common/CelebrationOverlay";
 import TimelineTracker from "../shared/TimelineTracker";
 import ProjectCompletionHub from "../shared/ProjectCompletionHub";
 import DeliverablesPanel from "../shared/DeliverablesPanel";
+import ChatThread from "../shared/ChatThread";
 import { useAuth } from "../../context/AuthContext";
 import { listProjects, updateProjectStatus } from "../../lib/projectsApi";
 import { submitReview, listReviewsFor } from "../../lib/reviewsApi";
@@ -399,6 +400,19 @@ export default function WorkerWorkspace() {
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.08 }}>
                 <DeliverablesPanel projectId={selectedTask.id} readOnly={selectedTask.status === "CANCELLED"} />
               </motion.div>
+              {selectedTask.status !== "CANCELLED" && (
+              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.11 }}>
+                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                  <div className="border-b border-slate-100 px-5 py-4">
+                    <h3 className="text-sm font-bold text-slate-900">Chat with {selectedTask.business_name}</h3>
+                    <p className="mt-0.5 text-xs text-slate-500">Keep contact details off WorkBridge — sharing phone numbers or emails isn't allowed.</p>
+                  </div>
+                  <div className="flex h-[480px] flex-col">
+                    <ChatThread projectId={selectedTask.id} />
+                  </div>
+                </div>
+              </motion.div>
+              )}
               </div>
             </div>
             {(selectedTask.status === "FILES_SUBMITTED" || PROJECT_STATUS_META[selectedTask.status]?.actionBy === "worker") && (

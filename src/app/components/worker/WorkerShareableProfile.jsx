@@ -79,6 +79,9 @@ export default function WorkerShareableProfile({ worker }) {
 
   const profile = worker.profile ?? {};
   const skills = profile.skills ?? [];
+  const education = profile.education ?? [];
+  const certifications = profile.certifications ?? [];
+  const projects = profile.projects ?? [];
 
   return (
     <main className="min-h-full bg-[#F8FAFC] font-sans text-[#0F172A]">
@@ -134,6 +137,61 @@ export default function WorkerShareableProfile({ worker }) {
                 {profile.bio || "This worker hasn't added a bio yet."}
               </p>
             </ProfileSection>
+
+            {projects.length > 0 && (
+              <ProfileSection title="Projects">
+                <div className="grid gap-4 md:grid-cols-2">
+                  {projects.map((p, index) => (
+                    <article key={index} className="rounded-lg bg-slate-50 p-5 ring-1 ring-slate-100">
+                      <h3 className="text-sm font-bold text-[#0F172A]">{p.title}</h3>
+                      {p.description && <p className="mt-2 text-sm leading-6 text-slate-500">{p.description}</p>}
+                      {p.link && (
+                        <a
+                          href={p.link}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-[#1B3FAB] hover:underline"
+                        >
+                          View project
+                        </a>
+                      )}
+                    </article>
+                  ))}
+                </div>
+              </ProfileSection>
+            )}
+
+            {education.length > 0 && (
+              <ProfileSection title="Education">
+                <div className="space-y-4">
+                  {education.map((entry, index) => (
+                    <div
+                      key={index}
+                      className="flex items-start justify-between gap-3 border-b border-slate-100 pb-4 last:border-0 last:pb-0"
+                    >
+                      <div>
+                        <p className="text-sm font-bold text-[#0F172A]">{entry.degree}</p>
+                        <p className="text-sm text-slate-500">{entry.school}</p>
+                      </div>
+                      {entry.year && <span className="flex-shrink-0 text-xs font-semibold text-slate-400">{entry.year}</span>}
+                    </div>
+                  ))}
+                </div>
+              </ProfileSection>
+            )}
+
+            {certifications.length > 0 && (
+              <ProfileSection title="Courses & Certifications">
+                <div className="flex flex-wrap gap-3">
+                  {certifications.map((c, index) => (
+                    <div key={index} className="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
+                      <p className="text-sm font-bold text-[#0F172A]">{c.name}</p>
+                      <p className="text-xs text-slate-500">{[c.issuer, c.year].filter(Boolean).join(" · ")}</p>
+                    </div>
+                  ))}
+                </div>
+              </ProfileSection>
+            )}
 
             <ProfileSection title="Client Reviews">
               {reviewsLoading ? (

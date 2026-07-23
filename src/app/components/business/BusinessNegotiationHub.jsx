@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
   AlertCircle,
@@ -6,16 +6,14 @@ import {
   BadgeCheck,
   Clock3,
   FileText,
-  MessageCircle,
-  Paperclip,
   Search,
-  Send,
   ShieldCheck,
   Sparkles,
   Users,
 } from "lucide-react";
 import Avatar from "../shared/Avatar";
 import IdentityHeader from "../shared/IdentityHeader";
+import ChatThread from "../shared/ChatThread";
 import { listProjects } from "../../lib/projectsApi";
 import { getInitials } from "../../utils/formValidation";
 import { ApiError } from "../../lib/apiClient";
@@ -52,22 +50,6 @@ function formatDueDate(deadline) {
 
 function getThreadStatus(project) {
   return STATUS_META[project.status] ?? { label: project.status ?? "Active", tone: "blue" };
-}
-
-// There's no real persisted chat/messaging backend in this app (the worker
-// side's inbox makes the same simplification) — this seeds a single
-// business-authored opening line per thread rather than fabricating a
-// two-sided conversation and putting words in the real worker's mouth.
-// Replying appends to local-only state, same as the worker side.
-function seedMessages(project) {
-  return [
-    {
-      id: "business-brief",
-      sender: "business",
-      body: `Hi ${project.worker_name}, thanks for taking on "${project.title}". Let us know if you have any questions on scope or timeline.`,
-      time: "10:12 AM",
-    },
-  ];
 }
 
 function ThreadNavigator({ threads, selectedThreadId, onSelect }) {
@@ -217,99 +199,10 @@ function HubHeader({ thread, onViewContractTerms }) {
   );
 }
 
-function MessageBubble({ message }) {
-  const isBusiness = message.sender === "business";
-
-  return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
-      transition={{ duration: 0.2, ease: "easeOut" }}
-      className={`flex ${isBusiness ? "justify-end" : "justify-start"}`}
-    >
-      <div
-        className={`max-w-[68%] px-5 py-4 shadow-sm ${
-          isBusiness
-            ? "rounded-3xl rounded-br-none bg-[#FF6B35] text-white shadow-orange-200"
-            : "rounded-3xl rounded-bl-none border border-slate-200 bg-white text-slate-800"
-        }`}
-      >
-        <p className="text-sm font-medium leading-6">{message.body}</p>
-        <p className={`mt-2 text-[11px] font-bold ${isBusiness ? "text-white/75" : "text-slate-400"}`}>
-          {message.time}
-        </p>
-      </div>
-    </motion.div>
-  );
-}
-
-function ChatContent({ thread, messages }) {
-  const feedRef = useRef(null);
-
-  useEffect(() => {
-    feedRef.current?.scrollTo({
-      top: feedRef.current.scrollHeight,
-      behavior: "smooth",
-    });
-  }, [messages.length, thread.id]);
-
-  return (
-    <div ref={feedRef} className="min-h-0 flex-1 overflow-y-auto bg-slate-50 px-6 py-8">
-      <div className="mx-auto flex max-w-5xl flex-col gap-5">
-        <AnimatePresence initial={false}>
-          {messages.map((message) => (
-            <MessageBubble key={message.id} message={message} />
-          ))}
-        </AnimatePresence>
-      </div>
-    </div>
-  );
-}
-
-function ChatFooter({ draft, onDraftChange, onSend }) {
-  return (
-    <footer className="sticky bottom-0 z-20 border-t border-slate-200 bg-white/90 px-6 py-4 backdrop-blur-md">
-      <form
-        onSubmit={(event) => {
-          event.preventDefault();
-          onSend();
-        }}
-        className="mx-auto flex max-w-5xl items-center gap-3"
-      >
-        <button
-          type="button"
-          className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:border-orange-200 hover:text-[#FF6B35]"
-          aria-label="Attach file"
-        >
-          <Paperclip className="h-5 w-5" />
-        </button>
-
-        <label className="flex min-h-[52px] flex-1 items-center rounded-full border border-slate-200 bg-slate-100 px-5 transition focus-within:border-orange-200 focus-within:bg-white focus-within:ring-4 focus-within:ring-orange-100">
-          <MessageCircle className="mr-3 h-4 w-4 flex-shrink-0 text-slate-400" />
-          <input
-            value={draft}
-            onChange={(event) => onDraftChange(event.target.value)}
-            placeholder="Type a secure message..."
-            className="h-full flex-1 bg-transparent text-sm font-semibold text-slate-900 outline-none placeholder:text-slate-400"
-          />
-        </label>
-
-        <button
-          type="submit"
-          disabled={!draft.trim()}
-          className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-[#FF6B35] text-white shadow-md shadow-orange-200 transition hover:-translate-y-0.5 hover:bg-[#e85d27] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
-          aria-label="Send message"
-        >
-          <Send className="h-5 w-5" />
-        </button>
-      </form>
-    </footer>
-  );
-}
-
-function FocusHub({ thread, messages, draft, onDraftChange, onSend, onViewContractTerms }) {
+// The feed/composer are ChatThread (shared/ChatThread.jsx) — a real,
+// persisted, one-continuous-thread-per-project chat that replaced the fake
+// seeded conversation this used to render locally.
+function FocusHub({ thread, onViewContractTerms }) {
   return (
     <main className="flex h-screen min-w-0 flex-1 flex-col overflow-hidden bg-white">
       <AnimatePresence mode="wait" initial={false}>
@@ -322,8 +215,7 @@ function FocusHub({ thread, messages, draft, onDraftChange, onSend, onViewContra
           transition={{ duration: 0.18, ease: "easeInOut" }}
         >
           <HubHeader thread={thread} onViewContractTerms={onViewContractTerms} />
-          <ChatContent thread={thread} messages={messages} />
-          <ChatFooter draft={draft} onDraftChange={onDraftChange} onSend={onSend} />
+          <ChatThread projectId={thread.id} />
         </motion.div>
       </AnimatePresence>
     </main>
@@ -335,8 +227,6 @@ export default function BusinessNegotiationHub({ onFindTalent, onViewContractTer
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [selectedThreadId, setSelectedThreadId] = useState(null);
-  const [messageLedger, setMessageLedger] = useState({});
-  const [draft, setDraft] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -363,37 +253,6 @@ export default function BusinessNegotiationHub({ onFindTalent, onViewContractTer
     [projects, selectedThreadId]
   );
 
-  useEffect(() => {
-    if (!activeThread) return;
-    setMessageLedger((current) => {
-      if (current[activeThread.id]) return current;
-      return { ...current, [activeThread.id]: seedMessages(activeThread) };
-    });
-  }, [activeThread]);
-
-  const activeMessages = activeThread ? messageLedger[activeThread.id] ?? [] : [];
-
-  const handleSend = () => {
-    const body = draft.trim();
-    if (!body || !activeThread) return;
-
-    const nextMessage = {
-      id: `${activeThread.id}-${Date.now()}`,
-      sender: "business",
-      body,
-      time: new Intl.DateTimeFormat("en-IN", {
-        hour: "numeric",
-        minute: "2-digit",
-      }).format(new Date()),
-    };
-
-    setMessageLedger((current) => ({
-      ...current,
-      [activeThread.id]: [...(current[activeThread.id] ?? []), nextMessage],
-    }));
-    setDraft("");
-  };
-
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-slate-50">
@@ -418,21 +277,11 @@ export default function BusinessNegotiationHub({ onFindTalent, onViewContractTer
       <ThreadNavigator
         threads={projects}
         selectedThreadId={activeThread?.id}
-        onSelect={(threadId) => {
-          setSelectedThreadId(threadId);
-          setDraft("");
-        }}
+        onSelect={setSelectedThreadId}
       />
 
       {activeThread ? (
-        <FocusHub
-          thread={activeThread}
-          messages={activeMessages}
-          draft={draft}
-          onDraftChange={setDraft}
-          onSend={handleSend}
-          onViewContractTerms={onViewContractTerms}
-        />
+        <FocusHub thread={activeThread} onViewContractTerms={onViewContractTerms} />
       ) : (
         <NoThreadSelected hasThreads={projects.length > 0} onFindTalent={onFindTalent} />
       )}

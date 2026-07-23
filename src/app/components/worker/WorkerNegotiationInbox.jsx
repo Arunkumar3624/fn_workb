@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
 import {
@@ -12,12 +12,12 @@ import {
   Loader2,
   LockKeyhole,
   MessageSquare,
-  Send,
   ShieldCheck,
   X,
 } from "lucide-react";
 import Avatar from "../shared/Avatar";
 import DeliverablesPanel from "../shared/DeliverablesPanel";
+import ChatThread from "../shared/ChatThread";
 import { listProjects, updateProjectStatus } from "../../lib/projectsApi";
 import { getInitials } from "../../utils/formValidation";
 import { ApiError } from "../../lib/apiClient";
@@ -48,29 +48,6 @@ function getThreadStatus(project) {
   if (project.status === "FILES_SUBMITTED") return { label: "In Review", className: "bg-amber-50 text-amber-700 border-amber-100" };
   if (project.status === "COMPLETED") return { label: "Completed", className: "bg-emerald-50 text-emerald-700 border-emerald-100" };
   return { label: project.status ?? "Active", className: "bg-slate-100 text-slate-600 border-slate-200" };
-}
-
-function seedMessages(project) {
-  return [
-    {
-      id: "business-brief",
-      sender: "business",
-      text: `Hi, we'd like to invite you to work on "${project.title}". The budget and scope are ready for your review.`,
-      time: "10:12 AM",
-    },
-    {
-      id: "worker-question",
-      sender: "worker",
-      text: "Thanks for the invite. I am reviewing the scope and timeline now.",
-      time: "10:14 AM",
-    },
-    {
-      id: "business-confirm",
-      sender: "business",
-      text: "Perfect. The terms are ready to lock once you accept.",
-      time: "10:16 AM",
-    },
-  ];
 }
 
 function MotionPanel({ children, panelKey }) {
@@ -353,36 +330,12 @@ function JobDetailsModal({ project, onClose, onDecline, onAccept, actionBusy, ac
   );
 }
 
-function MessageBubble({ message }) {
-  const isWorker = message.sender === "worker";
-
-  return (
-    <div className={`flex ${isWorker ? "justify-end" : "justify-start"}`}>
-      <div className={`max-w-[72%] ${isWorker ? "items-end" : "items-start"} flex flex-col gap-1`}>
-        <div
-          className={`rounded-3xl px-4 py-3 text-sm leading-6 shadow-sm ${
-            isWorker
-              ? "rounded-br-lg bg-[#1B3FAB] text-white"
-              : "rounded-bl-lg border border-slate-200 bg-white text-slate-800"
-          }`}
-        >
-          {message.text}
-        </div>
-        <span className="px-1 text-[11px] font-semibold text-slate-400">{message.time}</span>
-      </div>
-    </div>
-  );
-}
-
 // The Right Pane — unconditionally flex-1, fills whatever width the (now
-// much narrower) thread list leaves behind.
-function ChatPanel({ project, messages, draft, onDraftChange, onSend }) {
-  const feedRef = useRef(null);
-
-  useEffect(() => {
-    feedRef.current?.scrollTo({ top: feedRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages.length, project?.id]);
-
+// much narrower) thread list leaves behind. The feed/composer themselves
+// are ChatThread (shared/ChatThread.jsx) — a real, persisted, one-
+// continuous-thread-per-project chat that replaced the fake seeded
+// conversation this used to render locally.
+function ChatPanel({ project }) {
   return (
     <section className="flex h-full min-h-0 flex-1 flex-col bg-slate-50">
       <header className="sticky top-0 z-10 flex min-h-[72px] flex-shrink-0 items-center justify-between border-b border-slate-200 bg-white/95 px-6 backdrop-blur-xl">
@@ -396,30 +349,7 @@ function ChatPanel({ project, messages, draft, onDraftChange, onSend }) {
         </span>
       </header>
 
-      <div ref={feedRef} className="flex-1 space-y-5 overflow-y-auto px-6 py-6 wb-scroll-clean">
-        {messages.map((message) => (
-          <MessageBubble key={message.id} message={message} />
-        ))}
-      </div>
-
-      <form onSubmit={onSend} className="flex-shrink-0 border-t border-slate-200 bg-white px-5 py-4">
-        <div className="flex items-center gap-3 rounded-full border border-slate-200 bg-slate-50 p-2 shadow-sm focus-within:border-[#1B3FAB] focus-within:ring-4 focus-within:ring-[#1B3FAB]/10">
-          <input
-            value={draft}
-            onChange={(event) => onDraftChange(event.target.value)}
-            placeholder="Write a message..."
-            className="min-h-[42px] flex-1 bg-transparent px-4 text-sm text-slate-900 outline-none placeholder:text-slate-400"
-          />
-          <button
-            type="submit"
-            className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-[#FF6B35] text-white shadow-sm shadow-orange-200 transition hover:bg-[#e85d27] disabled:cursor-not-allowed disabled:opacity-50"
-            disabled={!draft.trim()}
-            aria-label="Send message"
-          >
-            <Send className="h-4 w-4" />
-          </button>
-        </div>
-      </form>
+      <ChatThread projectId={project.id} />
     </section>
   );
 }
@@ -433,8 +363,6 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
   const [selectedJobDetails, setSelectedJobDetails] = useState(null);
   const [actionBusy, setActionBusy] = useState(false);
   const [toast, setToast] = useState("");
-  const [messagesByProject, setMessagesByProject] = useState({});
-  const [draft, setDraft] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -482,18 +410,6 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
     () => projects.find((project) => project.id === selectedThreadId) ?? null,
     [projects, selectedThreadId]
   );
-
-  useEffect(() => {
-    setDraft("");
-  }, [selectedThreadId]);
-
-  useEffect(() => {
-    if (!selectedProject) return;
-    setMessagesByProject((current) => {
-      if (current[selectedProject.id]) return current;
-      return { ...current, [selectedProject.id]: seedMessages(selectedProject) };
-    });
-  }, [selectedProject]);
 
   const patchProject = (updated) => {
     setProjects((current) => current.map((project) => (project.id === updated.id ? { ...project, ...updated } : project)));
@@ -565,22 +481,6 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
     }
   };
 
-  const handleSend = (event) => {
-    event.preventDefault();
-    if (!selectedProject || !draft.trim()) return;
-    const message = {
-      id: `worker-${Date.now()}`,
-      sender: "worker",
-      text: draft.trim(),
-      time: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }),
-    };
-    setMessagesByProject((current) => ({
-      ...current,
-      [selectedProject.id]: [...(current[selectedProject.id] ?? []), message],
-    }));
-    setDraft("");
-  };
-
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center bg-slate-50">
@@ -612,8 +512,6 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
     );
   }
 
-  const messages = messagesByProject[selectedProject.id] ?? [];
-
   return (
     <div className="relative flex h-full min-h-0 overflow-hidden bg-white" style={{ fontFamily: "'DM Sans', sans-serif" }}>
       <aside className="flex h-full min-h-0 w-[360px] flex-shrink-0 flex-col border-r border-slate-200 bg-white">
@@ -625,13 +523,7 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
         />
       </aside>
 
-      <ChatPanel
-        project={selectedProject}
-        messages={messages}
-        draft={draft}
-        onDraftChange={setDraft}
-        onSend={handleSend}
-      />
+      <ChatPanel project={selectedProject} />
 
       <JobDetailsModal
         project={selectedJobDetails}
