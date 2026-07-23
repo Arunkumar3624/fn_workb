@@ -808,6 +808,7 @@ export default function BusinessProjects() {
   const [respondingCandidateId, setRespondingCandidateId] = useState(null);
   const [confirmWithdrawId, setConfirmWithdrawId] = useState(null);
   const [withdrawingId, setWithdrawingId] = useState(null);
+  const [projectsTab, setProjectsTab] = useState("ongoing");
 
   const loadProjects = useCallback(async () => {
     setIsLoading(true);
@@ -872,6 +873,11 @@ export default function BusinessProjects() {
   // longer make sense once it's actually done.
   const liveProjects = projects.filter((p) => p.status !== "COMPLETED" && p.status !== "CANCELLED");
   const historyProjects = projects.filter((p) => p.status === "COMPLETED" || p.status === "CANCELLED");
+  // Posted (OPEN, no worker yet) and Ongoing (assigned, actually underway)
+  // used to render mixed together in one list — split into their own tabs,
+  // same pill-switcher pattern as WorkerWorkspace's Active Tasks/History.
+  const postedProjects = liveProjects.filter((p) => p.status === "OPEN");
+  const ongoingProjects = liveProjects.filter((p) => p.status !== "OPEN");
 
   // Kept in a ref (not read from `projects` directly) so the socket
   // subscription below — mounted once — never closes over a stale list.
@@ -1132,6 +1138,33 @@ export default function BusinessProjects() {
           </div>
         )}
 
+        {!isLoading && !loadError && (
+          <div className="mb-6 flex gap-1 rounded-2xl bg-slate-100 p-1">
+            {[
+              { id: "ongoing", label: "Ongoing", count: ongoingProjects.length, icon: RefreshCw },
+              { id: "posted", label: "Posted", count: postedProjects.length, icon: Briefcase },
+              { id: "history", label: "History", count: historyProjects.length, icon: CheckCircle2 },
+            ].map(({ id, label, count, icon: Icon }) => {
+              const active = projectsTab === id;
+              return (
+                <button
+                  key={id}
+                  onClick={() => setProjectsTab(id)}
+                  className={`flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition-all ${
+                    active ? "bg-white text-[#0F172A] shadow-sm" : "text-slate-500 hover:text-slate-700"
+                  }`}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  <span>{label}</span>
+                  <span className={`rounded-full px-2 py-0.5 text-[10px] ${active ? "bg-[#1B3FAB] text-white" : "bg-slate-200 text-slate-600"}`}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
         {isLoading && (
           <div className="space-y-5">
             {[0, 1, 2].map((i) => (
@@ -1140,79 +1173,96 @@ export default function BusinessProjects() {
           </div>
         )}
 
-        {!isLoading && !loadError && (
-          <div className="space-y-5">
+        {!isLoading && !loadError && projectsTab === "posted" && (
+          <motion.div
+            key="posted"
+            initial={{ opacity: 0, x: 16 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+            className="space-y-5"
+          >
             <AnimatePresence>
-              {liveProjects.map((p, i) => {
-                // An OPEN post has no worker yet (worker_name is null) — none
-                // of the assigned-project actions below apply to it, so it
-                // gets its own simple card instead of falling through to the
-                // normal one (which assumes a real worker exists).
-                if (p.status === "OPEN") {
-                  return (
-                    <motion.div
-                      key={p.id}
-                      layout
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.97 }}
-                      transition={{ duration: 0.25, delay: i * 0.05 }}
-                      className="overflow-hidden rounded-2xl border border-[#1B3FAB]/20 bg-white/90 p-4 backdrop-blur-sm sm:p-5"
+              {postedProjects.map((p, i) => (
+                <motion.div
+                  key={p.id}
+                  layout
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.97 }}
+                  transition={{ duration: 0.25, delay: i * 0.05 }}
+                  className="overflow-hidden rounded-2xl border border-[#1B3FAB]/20 bg-white/90 p-4 backdrop-blur-sm sm:p-5"
+                >
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-[#F4F6FF] px-2.5 py-1 text-[11px] font-bold text-[#1B3FAB]">
+                        <Briefcase className="h-3 w-3" />
+                        Live on Job Feed
+                      </span>
+                      <h3 className="mt-2 truncate text-[15px] font-extrabold text-[#0F172A]" style={HEADING_FONT}>
+                        {p.title}
+                      </h3>
+                      <p className="mt-0.5 text-sm text-slate-500">No worker assigned yet — anyone can apply, or invite someone directly.</p>
+                    </div>
+                    <div className="flex-shrink-0 sm:text-right">
+                      <div className="text-lg font-extrabold text-[#1B3FAB]">{formatINR(p.budget)}</div>
+                    </div>
+                  </div>
+                  <div className="mt-4 flex flex-wrap items-center gap-2.5">
+                    <button
+                      onClick={() => openApplicants(p)}
+                      className="flex min-h-[44px] items-center gap-1.5 rounded-xl bg-[#1B3FAB] px-4 py-2 text-xs font-bold text-white shadow-sm shadow-blue-500/25 transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#1635A0]"
                     >
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                        <div className="min-w-0">
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#F4F6FF] px-2.5 py-1 text-[11px] font-bold text-[#1B3FAB]">
-                            <Briefcase className="h-3 w-3" />
-                            Live on Job Feed
-                          </span>
-                          <h3 className="mt-2 truncate text-[15px] font-extrabold text-[#0F172A]" style={HEADING_FONT}>
-                            {p.title}
-                          </h3>
-                          <p className="mt-0.5 text-sm text-slate-500">No worker assigned yet — anyone can apply, or invite someone directly.</p>
-                        </div>
-                        <div className="flex-shrink-0 sm:text-right">
-                          <div className="text-lg font-extrabold text-[#1B3FAB]">{formatINR(p.budget)}</div>
-                        </div>
-                      </div>
-                      <div className="mt-4 flex flex-wrap items-center gap-2.5">
+                      <Users className="h-3.5 w-3.5" />
+                      View Applicants
+                    </button>
+                    {confirmWithdrawId === p.id ? (
+                      <div className="flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600">
+                        Withdraw this post?
                         <button
-                          onClick={() => openApplicants(p)}
-                          className="flex min-h-[44px] items-center gap-1.5 rounded-xl bg-[#1B3FAB] px-4 py-2 text-xs font-bold text-white shadow-sm shadow-blue-500/25 transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#1635A0]"
+                          onClick={() => handleWithdrawPost(p.id)}
+                          disabled={withdrawingId === p.id}
+                          className="rounded-lg bg-red-600 px-2.5 py-1 font-bold text-white hover:bg-red-700 disabled:opacity-60"
                         >
-                          <Users className="h-3.5 w-3.5" />
-                          View Applicants
+                          {withdrawingId === p.id ? <Loader2 className="h-3 w-3 animate-spin" /> : "Confirm"}
                         </button>
-                        {confirmWithdrawId === p.id ? (
-                          <div className="flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600">
-                            Withdraw this post?
-                            <button
-                              onClick={() => handleWithdrawPost(p.id)}
-                              disabled={withdrawingId === p.id}
-                              className="rounded-lg bg-red-600 px-2.5 py-1 font-bold text-white hover:bg-red-700 disabled:opacity-60"
-                            >
-                              {withdrawingId === p.id ? <Loader2 className="h-3 w-3 animate-spin" /> : "Confirm"}
-                            </button>
-                            <button
-                              onClick={() => setConfirmWithdrawId(null)}
-                              className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 font-semibold text-slate-600 hover:bg-slate-50"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => setConfirmWithdrawId(p.id)}
-                            className="flex min-h-[44px] items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50"
-                          >
-                            <X className="h-3.5 w-3.5" />
-                            Withdraw Post
-                          </button>
-                        )}
+                        <button
+                          onClick={() => setConfirmWithdrawId(null)}
+                          className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 font-semibold text-slate-600 hover:bg-slate-50"
+                        >
+                          Cancel
+                        </button>
                       </div>
-                    </motion.div>
-                  );
-                }
+                    ) : (
+                      <button
+                        onClick={() => setConfirmWithdrawId(p.id)}
+                        className="flex min-h-[44px] items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                        Withdraw Post
+                      </button>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+            {postedProjects.length === 0 && (
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-white/90 p-10 text-center text-sm text-slate-400">
+                No open posts right now — click "Post a Job" to put one live on the Job Feed.
+              </div>
+            )}
+          </motion.div>
+        )}
 
+        {!isLoading && !loadError && projectsTab === "ongoing" && (
+          <motion.div
+            key="ongoing"
+            initial={{ opacity: 0, x: 16 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+            className="space-y-5"
+          >
+            <AnimatePresence>
+              {ongoingProjects.map((p, i) => {
                 const isDisputed = p.status === "DISPUTED";
                 const meta = p.status ? PROJECT_STATUS_META[p.status] : null;
                 const badgeTone = STATUS_TONE_CLASSES[meta?.tone] ?? STATUS_TONE_CLASSES.blue;
@@ -1396,19 +1446,26 @@ export default function BusinessProjects() {
               })}
             </AnimatePresence>
 
-            {liveProjects.length === 0 && (
+            {ongoingProjects.length === 0 && (
               <div className="rounded-2xl border border-dashed border-slate-300 bg-white/90 p-10 text-center text-sm text-slate-400">
-                No active projects right now.
+                No ongoing projects right now.
               </div>
             )}
-          </div>
+          </motion.div>
         )}
 
-        {historyProjects.length > 0 && (
-          <div className="mt-10">
-            <h2 className="mb-4 text-sm font-black uppercase tracking-widest text-slate-400" style={HEADING_FONT}>
-              History
-            </h2>
+        {!isLoading && !loadError && projectsTab === "history" && (
+          <motion.div
+            key="history"
+            initial={{ opacity: 0, x: 16 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+          >
+            {historyProjects.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-white/90 p-10 text-center text-sm text-slate-400">
+                No completed or cancelled projects yet.
+              </div>
+            ) : (
             <div className="space-y-3">
               {historyProjects.map((p) => {
                 const myRating = ratingsByProject[p.id];
@@ -1488,7 +1545,8 @@ export default function BusinessProjects() {
                 );
               })}
             </div>
-          </div>
+            )}
+          </motion.div>
         )}
       </div>
 
