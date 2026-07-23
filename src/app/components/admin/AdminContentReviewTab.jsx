@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AlertCircle, CheckCircle2, Clock3, ExternalLink, Image as ImageIcon, Link2, XCircle } from "lucide-react";
+import { AlertCircle, CheckCircle2, Clock3, ExternalLink, Image as ImageIcon, Link2, Loader2, XCircle } from "lucide-react";
 import { listPendingSubmissions, listReviewedSubmissions, reviewSubmission } from "../../lib/submissionsApi";
 import { ApiError } from "../../lib/apiClient";
 import ImageLightbox from "../shared/ImageLightbox";
@@ -234,8 +234,9 @@ export default function AdminContentReviewTab() {
                         <button
                           onClick={() => handleReject(item.id)}
                           disabled={busyId === item.id}
-                          className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-red-700 disabled:opacity-60"
+                          className="flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-red-700 disabled:opacity-60"
                         >
+                          {busyId === item.id && <Loader2 className="h-3 w-3 animate-spin" />}
                           Confirm
                         </button>
                         <button
@@ -253,7 +254,7 @@ export default function AdminContentReviewTab() {
                           className="w-10 h-10 flex items-center justify-center bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg transition-transform hover:scale-105 active:scale-95 disabled:opacity-60"
                           title="Approve"
                         >
-                          <CheckCircle2 className="w-4 h-4" />
+                          {busyId === item.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
                         </button>
                         <button
                           onClick={() => setRejectingId(item.id)}

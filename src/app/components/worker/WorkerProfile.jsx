@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
   AlertCircle,
   Camera,
+  Loader2,
   MapPin,
   Pencil,
   Phone,
@@ -443,7 +444,7 @@ export default function WorkerProfile() {
                 disabled={saving}
                 className="inline-flex items-center gap-2 rounded-xl bg-[#1B3FAB] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#15338d] disabled:opacity-60"
               >
-                <Save className="h-4 w-4" />
+                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                 {saving ? "Saving…" : "Save Changes"}
               </button>
             </div>

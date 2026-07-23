@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AlertCircle, CheckCircle2, XCircle } from "lucide-react";
+import { AlertCircle, CheckCircle2, Loader2, XCircle } from "lucide-react";
 import { listVerifications, reviewVerification } from "../../lib/adminApi";
 import { getInitials } from "../../utils/formValidation";
 import { ApiError } from "../../lib/apiClient";
@@ -12,6 +12,7 @@ export default function AdminVerificationsTab() {
   const [decided, setDecided] = useState({});
   const [busyId, setBusyId] = useState(null);
   const [actionError, setActionError] = useState("");
+  const [confirmingRejectId, setConfirmingRejectId] = useState(null);
 
   useEffect(() => {
     listVerifications()
@@ -32,6 +33,7 @@ export default function AdminVerificationsTab() {
     try {
       await reviewVerification(id, approved);
       setDecided((prev) => ({ ...prev, [id]: approved ? "approved" : "rejected" }));
+      setConfirmingRejectId(null);
     } catch (err) {
       setActionError(err instanceof ApiError ? err.message : "Could not record this decision.");
     } finally {
@@ -118,6 +120,28 @@ export default function AdminVerificationsTab() {
                         <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${decided[item.id] === "approved" ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}>
                           {decided[item.id] === "approved" ? "✓ Approved" : "✗ Rejected"}
                         </span>
+                      ) : confirmingRejectId === item.id ? (
+                        // Rejecting locks this account out of verification —
+                        // one intentional extra click so a fat-finger next to
+                        // "Approve" can't silently reject someone.
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-semibold text-slate-500">Reject this account?</span>
+                          <button
+                            onClick={() => handleDecision(item.id, false)}
+                            disabled={busyId === item.id}
+                            className="flex items-center gap-1.5 rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-rose-700 disabled:opacity-60"
+                          >
+                            {busyId === item.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <XCircle className="w-3.5 h-3.5" />}
+                            Confirm
+                          </button>
+                          <button
+                            onClick={() => setConfirmingRejectId(null)}
+                            disabled={busyId === item.id}
+                            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-50 disabled:opacity-60"
+                          >
+                            Cancel
+                          </button>
+                        </div>
                       ) : (
                         <div className="flex gap-2">
                           <button
@@ -125,11 +149,11 @@ export default function AdminVerificationsTab() {
                             disabled={busyId === item.id}
                             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-700 hover:bg-emerald-50 transition-colors disabled:opacity-60"
                           >
-                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            {busyId === item.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
                             Approve
                           </button>
                           <button
-                            onClick={() => handleDecision(item.id, false)}
+                            onClick={() => setConfirmingRejectId(item.id)}
                             disabled={busyId === item.id}
                             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50 transition-colors disabled:opacity-60"
                           >

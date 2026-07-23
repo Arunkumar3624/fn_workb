@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AlertCircle, ArrowUpRight, CheckCircle2, Receipt } from "lucide-react";
+import { AlertCircle, ArrowUpRight, CheckCircle2, Loader2, Receipt } from "lucide-react";
 import { listDisputes, resolveDispute } from "../../lib/adminApi";
 import { PROJECT_STATUS_META } from "../../utils/projectStatus";
 
@@ -125,7 +125,7 @@ export default function AdminDisputesTab() {
                       disabled={busyId === d.id}
                       className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors disabled:opacity-60"
                     >
-                      <ArrowUpRight className="w-3.5 h-3.5" />
+                      {busyId === d.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ArrowUpRight className="w-3.5 h-3.5" />}
                       Refund Business
                     </button>
                     <button
@@ -133,7 +133,7 @@ export default function AdminDisputesTab() {
                       disabled={busyId === d.id}
                       className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors disabled:opacity-60"
                     >
-                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      {busyId === d.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
                       Release to Freelancer
                     </button>
                   </div>

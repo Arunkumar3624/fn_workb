@@ -8,6 +8,7 @@ import {
   AlertCircle,
   Briefcase,
   IndianRupee,
+  Loader2,
   Timer,
   Lock,
 } from "lucide-react";
@@ -46,8 +47,11 @@ function InviteModal({ worker, onClose, onSubmit, submitting, error }) {
   const [referenceLink, setReferenceLink] = useState("");
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-      <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
+    <div
+      className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4"
+      onClick={onClose}
+    >
+      <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl" onClick={(event) => event.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
           <h2 className="text-lg font-bold text-slate-900">Invite {worker.name}</h2>
           <button onClick={onClose} className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100">
@@ -76,6 +80,7 @@ function InviteModal({ worker, onClose, onSubmit, submitting, error }) {
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              placeholder="e.g., I need a 5-page Figma wireframe for a real estate app, including a homepage, listings grid, and contact form."
               className="mt-2 w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
             />
           </label>
@@ -125,7 +130,7 @@ function InviteModal({ worker, onClose, onSubmit, submitting, error }) {
             disabled={submitting || !title.trim() || !budget}
             className="inline-flex items-center gap-2 rounded-xl bg-[#FF6B35] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#E55E1F] disabled:opacity-60"
           >
-            <Send className="h-4 w-4" />
+            {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             {submitting ? "Sending…" : "Send Invite"}
           </button>
         </div>
@@ -385,7 +390,7 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
                       <button
                         onClick={() => handleInviteClick(w)}
                         disabled={submitting}
-                        className="flex items-center gap-1.5 bg-[#FF6B35] text-white hover:bg-orange-600 px-3 py-1.5 rounded-lg text-sm font-semibold shadow-sm transition-colors disabled:opacity-60"
+                        className="flex items-center gap-1.5 bg-[#FF6B35] text-white hover:bg-[#e55e1f] px-3 py-1.5 rounded-lg text-sm font-semibold shadow-sm transition-colors disabled:opacity-60"
                       >
                         <Send className="w-3.5 h-3.5" />
                         Invite
@@ -410,7 +415,10 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
     </div>
 
       {selectedWorker && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4"
+          onClick={() => setSelectedWorker(null)}
+        >
           <button
             onClick={() => setSelectedWorker(null)}
             aria-label="Close profile"
@@ -418,7 +426,10 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
           >
             <X className="w-5 h-5" />
           </button>
-          <div className="relative w-[95vw] h-[90vh] max-w-6xl bg-slate-50 rounded-2xl overflow-y-auto shadow-2xl wb-panel-enter">
+          <div
+            className="relative w-[95vw] h-[90vh] max-w-6xl bg-slate-50 rounded-2xl overflow-y-auto shadow-2xl wb-panel-enter"
+            onClick={(event) => event.stopPropagation()}
+          >
             <WorkerShareableProfile worker={selectedWorker} />
           </div>
         </div>

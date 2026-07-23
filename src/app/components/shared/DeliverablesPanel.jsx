@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   AlertCircle, Clock3, CheckCircle2, XCircle, Link2, Image as ImageIcon,
-  ExternalLink, Upload, Send,
+  ExternalLink, Loader2, Upload, Send,
 } from "lucide-react";
 import { listSubmissions, submitLink, submitImage } from "../../lib/submissionsApi";
 import { ApiError } from "../../lib/apiClient";
@@ -203,7 +203,7 @@ export default function DeliverablesPanel({ projectId }) {
             disabled={submitting}
             className="flex items-center gap-1.5 rounded-lg bg-[#FF6B35] px-4 py-2 text-sm font-bold text-white hover:bg-[#E55E1F] disabled:opacity-60 flex-shrink-0"
           >
-            <Send className="h-3.5 w-3.5" />
+            {submitting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
             {submitting ? "Sending…" : "Submit"}
           </button>
         </div>
@@ -261,10 +261,21 @@ export default function DeliverablesPanel({ projectId }) {
                         <p className="mt-1 text-[11px] font-semibold text-rose-500">Reason: {s.rejection_reason}</p>
                       )}
                     </div>
-                    <span className={`flex-shrink-0 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold ${TONE_CLASSES[meta.tone]}`}>
-                      <StatusIcon className="h-3 w-3" />
-                      {meta.label}
-                    </span>
+                    {/* An "Approved" badge is the one status either side
+                        can see on the SAME item — it would tell both
+                        participants their shared content passes through an
+                        admin review before becoming visible, which they
+                        haven't necessarily agreed to know about. Pending/
+                        Rejected badges stay: those are only ever shown to
+                        the person who submitted their own content, about
+                        its own status — not something being revealed about
+                        the other side. */}
+                    {s.status !== "APPROVED" && (
+                      <span className={`flex-shrink-0 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold ${TONE_CLASSES[meta.tone]}`}>
+                        <StatusIcon className="h-3 w-3" />
+                        {meta.label}
+                      </span>
+                    )}
                   </div>
                 </div>
               );

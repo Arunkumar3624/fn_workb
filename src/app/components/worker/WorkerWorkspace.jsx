@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { toast } from "sonner";
-import { AlertCircle, Briefcase, History, Send } from "lucide-react";
+import { AlertCircle, Briefcase, History, Loader2, Send } from "lucide-react";
 import CelebrationOverlay from "../common/CelebrationOverlay";
 import TimelineTracker from "../shared/TimelineTracker";
 import ProjectCompletionHub from "../shared/ProjectCompletionHub";
@@ -414,8 +414,17 @@ export default function WorkerWorkspace() {
                   disabled={advancing}
                   className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg bg-[#FF6B35] px-8 py-4 font-bold text-white shadow-md shadow-[#FF6B35]/20 transition-all hover:-translate-y-0.5 hover:bg-[#f05b24] sm:w-auto disabled:opacity-60 disabled:hover:translate-y-0"
                 >
-                  <Send className="h-4 w-4" />
-                  {advancing ? "Updating…" : PROJECT_STATUS_META[selectedTask.status].nextActionLabel}
+                  {advancing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Updating…
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4" />
+                      {PROJECT_STATUS_META[selectedTask.status].nextActionLabel}
+                    </>
+                  )}
                 </button>
               )}
             </div>

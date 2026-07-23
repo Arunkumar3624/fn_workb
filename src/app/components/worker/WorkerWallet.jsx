@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { TrendingUp, Lock, Wallet, Zap, Crown, ShieldCheck, Ticket, AlertCircle, Check } from "lucide-react";
+import { TrendingUp, Lock, Wallet, Zap, Crown, ShieldCheck, Ticket, AlertCircle, Check, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -194,7 +194,8 @@ export default function WorkerWallet() {
               disabled={submitting}
               className="w-full min-h-[44px] py-3 bg-[#1B3FAB] text-white rounded-xl text-sm font-bold hover:bg-[#1635A0] hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2 shadow-md shadow-[#1B3FAB]/20 hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0"
             >
-              <Zap className="w-4 h-4" />{submitting ? "Processing…" : "Withdraw in 60 Seconds"}
+              {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+              {submitting ? "Processing…" : "Withdraw in 60 Seconds"}
             </button>
             <p className="text-xs text-slate-400 text-center">7% platform commission already deducted from earnings</p>
           </form>

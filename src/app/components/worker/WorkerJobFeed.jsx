@@ -20,7 +20,7 @@ import {
 import { calculatePotentialPoints } from "../../utils/pointMatrix";
 import JobApplicationDrawer from "./JobApplicationDrawer";
 
-// Extracts the numeric rupee value out of strings like "Rs 15,000" so the
+// Extracts the numeric rupee value out of strings like "₹15,000" so the
 // Dynamic Point Matrix can run against real budget data.
 function parseBudget(budgetString) {
   return Number(String(budgetString).replace(/[^0-9]/g, "")) || 0;
@@ -32,7 +32,7 @@ const JOBS = [
     title: "React Dashboard Build",
     company: "FinEdge India",
     location: "Remote - India",
-    budget: "Rs 15,000",
+    budget: "₹15,000",
     duration: "2 weeks",
     type: "Fixed Price",
     posted: "2h ago",
@@ -57,7 +57,7 @@ const JOBS = [
     title: "SaaS Pricing Page Refresh",
     company: "Nova Studio",
     location: "Remote",
-    budget: "Rs 48,000",
+    budget: "₹48,000",
     duration: "3 weeks",
     type: "Milestone",
     posted: "1d ago",
@@ -82,7 +82,7 @@ const JOBS = [
     title: "Node API Cleanup",
     company: "OpsPilot",
     location: "Remote - IST overlap",
-    budget: "Rs 22,000",
+    budget: "₹22,000",
     duration: "10 days",
     type: "Fixed Price",
     posted: "4h ago",
@@ -107,7 +107,7 @@ const JOBS = [
     title: "E-Commerce Product Cards",
     company: "Nourish Co.",
     location: "Remote",
-    budget: "Rs 18,500",
+    budget: "₹18,500",
     duration: "1 week",
     type: "Fixed Price",
     posted: "8h ago",
@@ -132,7 +132,7 @@ const JOBS = [
     title: "Landing Page QA Pass",
     company: "Lumen Labs",
     location: "Remote",
-    budget: "Rs 12,000",
+    budget: "₹12,000",
     duration: "3 days",
     type: "Hourly",
     posted: "12h ago",
@@ -158,7 +158,7 @@ const JOBS = [
     title: "AI Workflow Builder UX",
     company: "ShiftWorks",
     location: "Remote - Global",
-    budget: "Rs 42,000",
+    budget: "₹42,000",
     duration: "2.5 weeks",
     type: "Milestone",
     posted: "5h ago",
@@ -460,7 +460,16 @@ export default function WorkerJobFeed() {
             return (
               <article
                 key={job.id}
-                className="rounded-2xl border border-white/70 bg-white/60 backdrop-blur-xl p-5 shadow-lg shadow-slate-200/40 transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl"
+                role="button"
+                tabIndex={0}
+                onClick={() => openJob(job)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    openJob(job);
+                  }
+                }}
+                className="cursor-pointer rounded-2xl border border-white/70 bg-white/60 backdrop-blur-xl p-5 shadow-lg shadow-slate-200/40 transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -543,7 +552,10 @@ export default function WorkerJobFeed() {
                 <div className="mt-5 flex gap-2">
                   <button
                     type="button"
-                    onClick={() => openJob(job)}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      openJob(job);
+                    }}
                     className="flex-1 rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-bold text-slate-700 transition-all duration-300 hover:bg-slate-200"
                   >
                     View Details
@@ -551,7 +563,10 @@ export default function WorkerJobFeed() {
                   <button
                     type="button"
                     disabled={alreadySubmitted}
-                    onClick={() => openApplyDrawer(job)}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      openApplyDrawer(job);
+                    }}
                     className={`flex-1 rounded-2xl px-4 py-3 text-sm font-bold shadow-md transition-all duration-300 ${
                       alreadySubmitted
                         ? "cursor-not-allowed bg-slate-200 text-slate-400 shadow-none"
