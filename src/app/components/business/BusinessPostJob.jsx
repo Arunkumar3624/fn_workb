@@ -21,6 +21,9 @@ import {
 import LockedCurrencyInput from "../common/LockedCurrencyInput";
 import { formatINR, postJobSchema } from "../../utils/formValidation";
 import { trackEvent } from "../../lib/analytics";
+import { createProject } from "../../lib/projectsApi";
+import { submitLink } from "../../lib/submissionsApi";
+import { ApiError } from "../../lib/apiClient";
 
 // ── Constants ─────────────────────────────────────────────────────────────
 
@@ -98,9 +101,11 @@ function SectionCard({ icon: Icon, title, sub, children }) {
 
 // ── Main Component ────────────────────────────────────────────────────────
 
-export default function BusinessPostJob({ onVerify, isVerified, onContinueToWorkers }) {
+export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
   const [urgent, setUrgent] = useState(false);
   const [refLinks, setRefLinks] = useState([""]);
+  const [posting, setPosting] = useState(false);
+  const [postError, setPostError] = useState("");
 
   const {
     register,
@@ -139,20 +144,39 @@ export default function BusinessPostJob({ onVerify, isVerified, onContinueToWork
 
   // Only title/description/budget/deadline map to the real `projects` table
   // (schema has no category/tier/skills/urgent columns) — skills are folded
-  // into the description text rather than silently dropped.
-  const onSubmit = (formData) => {
-    trackEvent("JobPosted", { tier: watchedTier, category: watchedCategory, budget: summaryBudget });
-    onContinueToWorkers({
-      title: formData.title,
-      description: formData.skills ? `${formData.brief}\n\nSkills: ${formData.skills}` : formData.brief,
-      budget: summaryBudget,
-      deadline: formData.deadline,
-      // Previously collected here and then silently discarded — never made
-      // it past this component. Now carried through to BusinessWorkers'
-      // submitInvite, which creates one reference-material submission per
-      // link once the project (and therefore a project_id) actually exists.
-      referenceLinks: refLinks.map((link) => link.trim()).filter(Boolean),
-    });
+  // into the description text rather than silently dropped. Posting
+  // (workerId omitted) creates a real OPEN project — it goes live on the
+  // public Job Feed immediately, no forced "pick a worker" step. A specific
+  // worker can still be brought in later, either through their own
+  // application or a direct "Invite to Job" from Find Workers.
+  const onSubmit = async (formData) => {
+    setPosting(true);
+    setPostError("");
+    try {
+      trackEvent("JobPosted", { tier: watchedTier, category: watchedCategory, budget: summaryBudget });
+
+      const project = await createProject({
+        title: formData.title,
+        description: formData.skills ? `${formData.brief}\n\nSkills: ${formData.skills}` : formData.brief,
+        budget: summaryBudget,
+        deadline: formData.deadline || undefined,
+      });
+
+      const referenceLinks = refLinks.map((link) => link.trim()).filter(Boolean);
+      if (referenceLinks.length > 0) {
+        await Promise.allSettled(
+          referenceLinks.map((url) =>
+            submitLink({ projectId: project.id, url, caption: "Reference material shared at posting time" })
+          )
+        );
+      }
+
+      onJobPosted?.(project);
+    } catch (err) {
+      setPostError(err instanceof ApiError ? err.message : "Could not post this job.");
+    } finally {
+      setPosting(false);
+    }
   };
 
   // Reference link helpers
@@ -389,7 +413,7 @@ export default function BusinessPostJob({ onVerify, isVerified, onContinueToWork
                     <p className="text-xs font-bold text-blue-800">Private by default</p>
                     <p className="text-xs text-blue-600 mt-0.5 leading-relaxed">
                       Workers will <strong>not</strong> see these links when browsing job listings.
-                      Once you select a worker, each link is sent for a quick WorkBridge review before
+                      Once someone is assigned to this job, each link is sent for a quick WorkBridge review before
                       it's shared with them — the same check every submitted file goes through.
                     </p>
                   </div>
@@ -578,17 +602,26 @@ export default function BusinessPostJob({ onVerify, isVerified, onContinueToWork
                   <div className="flex items-start gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100 mb-5">
                     <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" />
                     <p className="text-xs text-slate-500 leading-relaxed">
-                      Next you'll pick a worker to invite — funds are held securely once they accept,
-                      and released only after you approve the delivered work.
+                      Your job goes live on the Job Feed right away so any worker can apply — funds are only held once you
+                      accept someone, and released after you approve the delivered work. You can also invite a specific
+                      worker directly from Find Workers at any time while it's open.
                     </p>
                   </div>
 
+                  {postError && (
+                    <div className="mb-4 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+                      <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                      <span>{postError}</span>
+                    </div>
+                  )}
+
                   <button
                     type="submit"
-                    className="w-full py-4 bg-[#FF6B35] hover:bg-[#E55E1F] text-white rounded-xl font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-[#FF6B35]/30 hover:shadow-xl hover:-translate-y-0.5"
+                    disabled={posting}
+                    className="w-full py-4 bg-[#FF6B35] hover:bg-[#E55E1F] text-white rounded-xl font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-[#FF6B35]/30 hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-60 disabled:hover:translate-y-0"
                     style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
                   >
-                    Continue — Select a Worker
+                    {posting ? "Posting…" : "Post Job — Go Live"}
                     <ChevronRight className="w-4 h-4 opacity-70" />
                   </button>
                 </div>

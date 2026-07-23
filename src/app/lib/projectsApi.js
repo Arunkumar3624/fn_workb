@@ -21,9 +21,16 @@ export function getProject(id) {
   return apiFetch(`/api/projects/${id}`);
 }
 
-// Business creates a project by inviting a specific worker — the real
-// equivalent of BusinessWorkers.jsx's "Invite" and BusinessPostJob.jsx's
-// submit.
+// The Job Board feed — every OPEN, unassigned post, browsable by any
+// worker. Registered server-side before GET /:id so "open" is never
+// mistaken for a project id.
+export function listOpenProjects() {
+  return apiFetch("/api/projects/open");
+}
+
+// Business creates a project. Passing workerId keeps the original
+// direct-invite behavior (project starts INVITED); omitting it posts an
+// OPEN job board listing instead — see BusinessPostJob.jsx.
 export function createProject({ workerId, title, description, budget, deadline }) {
   return apiFetch("/api/projects", {
     method: "POST",

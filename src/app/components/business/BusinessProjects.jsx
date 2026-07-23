@@ -4,6 +4,8 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import {
   AlertTriangle,
+  Briefcase,
+  Check,
   CheckCircle2,
   Download,
   Loader2,
@@ -13,6 +15,7 @@ import {
   ShieldCheck,
   Star,
   UserCheck,
+  Users,
   Wallet,
   X,
 } from "lucide-react";
@@ -29,6 +32,7 @@ import {
   updateProjectStatus as apiUpdateProjectStatus,
   createProject,
 } from "../../lib/projectsApi";
+import { listCandidatesForProject, respondToCandidate } from "../../lib/candidatesApi";
 import { getPublicProfile } from "../../lib/profilesApi";
 import { listSubmissions } from "../../lib/submissionsApi";
 import { submitReview, listReviewsFor } from "../../lib/reviewsApi";
@@ -595,6 +599,121 @@ function DisputeConfirmModal({ project, isSubmitting, submitError, onClose, onCo
   );
 }
 
+// ─── Open Job Board — applicants + invites review ────────────────────────────
+// Every candidacy (source=APPLICATION or INVITE) against one of the
+// business's own OPEN posts — accepting one assigns the project for real
+// (OPEN -> ACCEPTED) and closes every sibling candidacy automatically on
+// the backend (see job_candidates.controller.js's respondToCandidate).
+function ApplicantsModal({ project, candidates, isLoading, respondingId, onClose, onRespond }) {
+  return createPortal(
+    <AnimatePresence>
+      {project && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            onClick={onClose}
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 16 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 16 }}
+            transition={{ type: "spring", stiffness: 320, damping: 26 }}
+            className="relative z-10 flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
+          >
+            <div className="flex flex-shrink-0 items-center justify-between border-b border-slate-100 px-6 py-4">
+              <div className="min-w-0">
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Applicants &amp; Invites</p>
+                <h3 className="truncate text-base font-extrabold text-[#0F172A]" style={HEADING_FONT}>
+                  {project.title}
+                </h3>
+              </div>
+              <button
+                onClick={onClose}
+                aria-label="Close"
+                className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="wb-scroll-clean min-h-0 flex-1 space-y-3 overflow-y-auto px-6 py-5">
+              {isLoading ? (
+                <div className="flex justify-center py-10">
+                  <Loader2 className="h-6 w-6 animate-spin text-slate-300" />
+                </div>
+              ) : candidates.length === 0 ? (
+                <p className="py-8 text-center text-sm text-slate-400">
+                  No applicants or invites yet — this post is still live on the Job Feed.
+                </p>
+              ) : (
+                candidates.map((c) => (
+                  <div key={c.id} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <div className="flex items-start gap-3">
+                      {c.avatar_url ? (
+                        <img src={c.avatar_url} alt={c.worker_name} className="h-10 w-10 flex-shrink-0 rounded-xl object-cover" />
+                      ) : (
+                        <Avatar initials={getInitials(c.worker_name)} bg="bg-[#1B3FAB]" size="w-10 h-10" text="text-xs" />
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <p className="text-sm font-bold text-[#0F172A]">{c.worker_name}</p>
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                              c.source === "INVITE" ? "bg-[#F4F6FF] text-[#1B3FAB]" : "bg-slate-200 text-slate-600"
+                            }`}
+                          >
+                            {c.source === "INVITE" ? "You invited" : "Applied"}
+                          </span>
+                          {c.status !== "PENDING" && (
+                            <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-500">
+                              {c.status}
+                            </span>
+                          )}
+                        </div>
+                        {c.worker_title && <p className="text-xs text-slate-500">{c.worker_title}</p>}
+                        {c.rating != null && (
+                          <div className="mt-1 flex items-center gap-1 text-xs text-slate-500">
+                            <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                            {c.rating} ({c.reviews_count ?? 0})
+                          </div>
+                        )}
+                        {c.message && <p className="mt-2 text-xs leading-5 text-slate-600">"{c.message}"</p>}
+                      </div>
+                      {c.status === "PENDING" && (
+                        <div className="flex flex-shrink-0 flex-col gap-1.5">
+                          <button
+                            onClick={() => onRespond(c.id, true)}
+                            disabled={respondingId === c.id}
+                            className="inline-flex items-center gap-1 rounded-lg bg-[#1B3FAB] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#15338d] disabled:opacity-60"
+                          >
+                            {respondingId === c.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                            Accept
+                          </button>
+                          <button
+                            onClick={() => onRespond(c.id, false)}
+                            disabled={respondingId === c.id}
+                            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-60"
+                          >
+                            Decline
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>,
+    document.body
+  );
+}
+
 // ─── Rating + Rehire modal (History rows) ────────────────────────────────────
 function RatingModal({ project, currentUserId, onClose, onRehire, onRated }) {
   const [existingReview, setExistingReview] = useState(undefined);
@@ -683,6 +802,12 @@ export default function BusinessProjects() {
   // projectId -> rating, so a History row can show the stars you already gave
   // without having to reopen the modal every time.
   const [ratingsByProject, setRatingsByProject] = useState({});
+  const [applicantsProject, setApplicantsProject] = useState(null);
+  const [applicants, setApplicants] = useState([]);
+  const [applicantsLoading, setApplicantsLoading] = useState(false);
+  const [respondingCandidateId, setRespondingCandidateId] = useState(null);
+  const [confirmWithdrawId, setConfirmWithdrawId] = useState(null);
+  const [withdrawingId, setWithdrawingId] = useState(null);
 
   const loadProjects = useCallback(async () => {
     setIsLoading(true);
@@ -700,6 +825,46 @@ export default function BusinessProjects() {
   useEffect(() => {
     loadProjects();
   }, [loadProjects]);
+
+  const openApplicants = (project) => {
+    setApplicantsProject(project);
+    setApplicantsLoading(true);
+    listCandidatesForProject(project.id)
+      .then(setApplicants)
+      .catch(() => setApplicants([]))
+      .finally(() => setApplicantsLoading(false));
+  };
+
+  const handleRespondToCandidate = async (candidateId, accept) => {
+    setRespondingCandidateId(candidateId);
+    try {
+      await respondToCandidate(candidateId, accept);
+      toast.success(accept ? "Candidate accepted — project is now underway." : "Application declined.");
+      if (accept) {
+        setApplicantsProject(null);
+        loadProjects();
+      } else if (applicantsProject) {
+        listCandidatesForProject(applicantsProject.id).then(setApplicants).catch(() => {});
+      }
+    } catch (err) {
+      toast.error(err.message || "Could not respond to this candidate.");
+    } finally {
+      setRespondingCandidateId(null);
+    }
+  };
+
+  const handleWithdrawPost = async (id) => {
+    setWithdrawingId(id);
+    try {
+      const updated = await apiUpdateProjectStatus(id, "CANCELLED");
+      setProjects((prev) => prev.map((p) => (p.id === id ? updated : p)));
+      setConfirmWithdrawId(null);
+    } catch (err) {
+      toast.error(err.message || "Could not withdraw this post.");
+    } finally {
+      setWithdrawingId(null);
+    }
+  };
 
   // CANCELLED used to only be excluded from history (still counted as
   // "live" here), so a declined/cancelled project sat in Active Projects
@@ -979,6 +1144,75 @@ export default function BusinessProjects() {
           <div className="space-y-5">
             <AnimatePresence>
               {liveProjects.map((p, i) => {
+                // An OPEN post has no worker yet (worker_name is null) — none
+                // of the assigned-project actions below apply to it, so it
+                // gets its own simple card instead of falling through to the
+                // normal one (which assumes a real worker exists).
+                if (p.status === "OPEN") {
+                  return (
+                    <motion.div
+                      key={p.id}
+                      layout
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.97 }}
+                      transition={{ duration: 0.25, delay: i * 0.05 }}
+                      className="overflow-hidden rounded-2xl border border-[#1B3FAB]/20 bg-white/90 p-4 backdrop-blur-sm sm:p-5"
+                    >
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="min-w-0">
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#F4F6FF] px-2.5 py-1 text-[11px] font-bold text-[#1B3FAB]">
+                            <Briefcase className="h-3 w-3" />
+                            Live on Job Feed
+                          </span>
+                          <h3 className="mt-2 truncate text-[15px] font-extrabold text-[#0F172A]" style={HEADING_FONT}>
+                            {p.title}
+                          </h3>
+                          <p className="mt-0.5 text-sm text-slate-500">No worker assigned yet — anyone can apply, or invite someone directly.</p>
+                        </div>
+                        <div className="flex-shrink-0 sm:text-right">
+                          <div className="text-lg font-extrabold text-[#1B3FAB]">{formatINR(p.budget)}</div>
+                        </div>
+                      </div>
+                      <div className="mt-4 flex flex-wrap items-center gap-2.5">
+                        <button
+                          onClick={() => openApplicants(p)}
+                          className="flex min-h-[44px] items-center gap-1.5 rounded-xl bg-[#1B3FAB] px-4 py-2 text-xs font-bold text-white shadow-sm shadow-blue-500/25 transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#1635A0]"
+                        >
+                          <Users className="h-3.5 w-3.5" />
+                          View Applicants
+                        </button>
+                        {confirmWithdrawId === p.id ? (
+                          <div className="flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600">
+                            Withdraw this post?
+                            <button
+                              onClick={() => handleWithdrawPost(p.id)}
+                              disabled={withdrawingId === p.id}
+                              className="rounded-lg bg-red-600 px-2.5 py-1 font-bold text-white hover:bg-red-700 disabled:opacity-60"
+                            >
+                              {withdrawingId === p.id ? <Loader2 className="h-3 w-3 animate-spin" /> : "Confirm"}
+                            </button>
+                            <button
+                              onClick={() => setConfirmWithdrawId(null)}
+                              className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 font-semibold text-slate-600 hover:bg-slate-50"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setConfirmWithdrawId(p.id)}
+                            className="flex min-h-[44px] items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                            Withdraw Post
+                          </button>
+                        )}
+                      </div>
+                    </motion.div>
+                  );
+                }
+
                 const isDisputed = p.status === "DISPUTED";
                 const meta = p.status ? PROJECT_STATUS_META[p.status] : null;
                 const badgeTone = STATUS_TONE_CLASSES[meta?.tone] ?? STATUS_TONE_CLASSES.blue;
@@ -1310,6 +1544,15 @@ export default function BusinessProjects() {
           setRatingProject(null);
         }}
         onRated={(projectId, rating) => setRatingsByProject((prev) => ({ ...prev, [projectId]: rating }))}
+      />
+
+      <ApplicantsModal
+        project={applicantsProject}
+        candidates={applicants}
+        isLoading={applicantsLoading}
+        respondingId={respondingCandidateId}
+        onClose={() => setApplicantsProject(null)}
+        onRespond={handleRespondToCandidate}
       />
 
       {rehireToast && (

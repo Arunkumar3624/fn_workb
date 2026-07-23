@@ -10,10 +10,6 @@ import BusinessCompany from "../components/business/BusinessCompany";
 
 export default function BusinessDashboard({ onLogout, onVerify, isVerified = false }) {
   const [tab, setTab] = useState("overview");
-  // Set by BusinessPostJob's step 1 submit, consumed by BusinessWorkers'
-  // "pick a worker to invite" step 2 — the real Post Job -> Get Matched ->
-  // Select Worker flow from the business plan.
-  const [pendingJob, setPendingJob] = useState(null);
 
   const handlePostJob = () => {
     if (!isVerified) {
@@ -23,13 +19,9 @@ export default function BusinessDashboard({ onLogout, onVerify, isVerified = fal
     }
   };
 
-  const handleContinueToWorkers = (draft) => {
-    setPendingJob(draft);
-    setTab("workers");
-  };
-
-  const handleInviteSent = () => {
-    setPendingJob(null);
+  // BusinessPostJob now posts an OPEN job directly (no forced worker
+  // selection) — land on Projects, where the new post shows up right away.
+  const handleJobPosted = () => {
     setTab("projects");
   };
 
@@ -55,12 +47,10 @@ export default function BusinessDashboard({ onLogout, onVerify, isVerified = fal
           />
         )}
         {tab === "post" && (
-          <BusinessPostJob onVerify={onVerify} isVerified={isVerified} onContinueToWorkers={handleContinueToWorkers} />
+          <BusinessPostJob onVerify={onVerify} isVerified={isVerified} onJobPosted={handleJobPosted} />
         )}
         {tab === "workers" && (
           <BusinessWorkers
-            pendingJob={pendingJob}
-            onInviteSent={pendingJob ? handleInviteSent : undefined}
             onViewProjects={() => setTab("projects")}
             isVerified={isVerified}
             onVerify={onVerify}

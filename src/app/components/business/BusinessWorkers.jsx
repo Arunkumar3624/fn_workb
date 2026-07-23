@@ -17,6 +17,7 @@ import WorkerShareableProfile from "../worker/WorkerShareableProfile";
 import { listWorkers } from "../../lib/profilesApi";
 import { listProjects, createProject } from "../../lib/projectsApi";
 import { submitLink } from "../../lib/submissionsApi";
+import { inviteWorkerToProject } from "../../lib/candidatesApi";
 import { getInitials } from "../../utils/formValidation";
 import { ApiError } from "../../lib/apiClient";
 
@@ -139,6 +140,93 @@ function InviteModal({ worker, onClose, onSubmit, submitting, error }) {
   );
 }
 
+// Invites a specific worker directly to one of the business's OWN already-
+// public OPEN job board posts — distinct from InviteModal above, which
+// creates a brand-new private project. This one creates a job_candidates
+// row (source=INVITE) against an EXISTING post instead; the post stays live
+// on the public feed in case the invited worker declines (see
+// job_candidates.controller.js).
+function InviteToJobModal({ worker, openJobs, onClose, onSubmit, submitting, error }) {
+  const [selectedProjectId, setSelectedProjectId] = useState(openJobs[0]?.id ?? "");
+  const [message, setMessage] = useState("");
+
+  return (
+    <div
+      className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4"
+      onClick={onClose}
+    >
+      <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl" onClick={(event) => event.stopPropagation()}>
+        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+          <h2 className="text-lg font-bold text-slate-900">Invite {worker.name} to a job</h2>
+          <button onClick={onClose} className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <div className="space-y-4 px-6 py-5">
+          {error && (
+            <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <span>{error}</span>
+            </div>
+          )}
+          {openJobs.length === 0 ? (
+            <p className="text-sm text-slate-500">
+              You don't have any open job posts right now. Post a job first — it'll go live on the public Job Feed, and you can
+              come back here to invite {worker.name} to it directly at any time while it's still open.
+            </p>
+          ) : (
+            <>
+              <label className="block">
+                <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Which open job?</span>
+                <select
+                  value={selectedProjectId}
+                  onChange={(e) => setSelectedProjectId(e.target.value)}
+                  className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
+                >
+                  {openJobs.map((job) => (
+                    <option key={job.id} value={job.id}>
+                      {job.title} — ₹{Number(job.budget).toLocaleString("en-IN")}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block">
+                <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Note (optional)</span>
+                <textarea
+                  rows={3}
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Why you think they'd be a great fit for this one"
+                  className="mt-2 w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
+                />
+              </label>
+              <p className="text-xs text-slate-400">
+                The job post stays live on the public feed in case {worker.name} says no — it only comes down once someone
+                actually accepts.
+              </p>
+            </>
+          )}
+        </div>
+        <div className="flex justify-end gap-2 border-t border-slate-100 px-6 py-4">
+          <button onClick={onClose} className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50">
+            Cancel
+          </button>
+          {openJobs.length > 0 && (
+            <button
+              onClick={() => onSubmit(selectedProjectId, message)}
+              disabled={submitting || !selectedProjectId}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#FF6B35] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#E55E1F] disabled:opacity-60"
+            >
+              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              {submitting ? "Sending…" : "Send Invite"}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjects, isVerified = false, onVerify }) {
   const [workers, setWorkers] = useState([]);
   const [invitedWorkerIds, setInvitedWorkerIds] = useState(new Set());
@@ -149,6 +237,10 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
   const [submitting, setSubmitting] = useState(false);
   const [inviteError, setInviteError] = useState("");
   const [toast, setToast] = useState("");
+  const [openJobs, setOpenJobs] = useState([]);
+  const [jobInviteTarget, setJobInviteTarget] = useState(null); // worker being invited to an existing open post
+  const [jobInviteSubmitting, setJobInviteSubmitting] = useState(false);
+  const [jobInviteError, setJobInviteError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -157,6 +249,7 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
         if (cancelled) return;
         setWorkers(workerRows);
         setInvitedWorkerIds(new Set(projects.filter((p) => p.status !== "CANCELLED").map((p) => p.worker_id)));
+        setOpenJobs(projects.filter((p) => p.status === "OPEN"));
       })
       .catch((err) => {
         if (!cancelled) setLoadError(err instanceof ApiError ? err.message : "Could not load workers.");
@@ -237,6 +330,31 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
     } else {
       setInviteError("");
       setInviteTarget(worker);
+    }
+  };
+
+  const handleInviteToJobClick = (worker) => {
+    if (!isVerified) {
+      onVerify?.();
+      return;
+    }
+    setJobInviteError("");
+    setJobInviteTarget(worker);
+  };
+
+  const submitJobInvite = async (projectId, message) => {
+    if (!jobInviteTarget) return;
+    setJobInviteSubmitting(true);
+    setJobInviteError("");
+    try {
+      await inviteWorkerToProject(projectId, jobInviteTarget.id, message.trim() || undefined);
+      setToast(`Invite sent to ${jobInviteTarget.name}.`);
+      window.setTimeout(() => setToast(""), 2600);
+      setJobInviteTarget(null);
+    } catch (err) {
+      setJobInviteError(err instanceof ApiError ? err.message : "Could not send this invite.");
+    } finally {
+      setJobInviteSubmitting(false);
     }
   };
 
@@ -378,6 +496,17 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
                       View Profile
                     </button>
 
+                    {isVerified && !pendingJob && (
+                      <button
+                        onClick={() => handleInviteToJobClick(w)}
+                        title="Invite to one of your open job posts"
+                        className="flex items-center gap-1.5 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors"
+                      >
+                        <Briefcase className="w-3.5 h-3.5" />
+                        Invite to Job
+                      </button>
+                    )}
+
                     {alreadyInvited ? (
                       <button
                         onClick={() => onViewProjects?.()}
@@ -427,7 +556,7 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
             <X className="w-5 h-5" />
           </button>
           <div
-            className="relative w-[95vw] h-[90vh] max-w-6xl bg-slate-50 rounded-2xl overflow-y-auto shadow-2xl wb-panel-enter"
+            className="wb-scroll-clean relative w-[95vw] h-[90vh] max-w-6xl bg-slate-50 rounded-2xl overflow-y-auto shadow-2xl wb-panel-enter"
             onClick={(event) => event.stopPropagation()}
           >
             <WorkerShareableProfile worker={selectedWorker} />
@@ -442,6 +571,17 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
           onSubmit={(details) => submitInvite(inviteTarget, details)}
           submitting={submitting}
           error={inviteError}
+        />
+      )}
+
+      {jobInviteTarget && (
+        <InviteToJobModal
+          worker={jobInviteTarget}
+          openJobs={openJobs}
+          onClose={() => setJobInviteTarget(null)}
+          onSubmit={submitJobInvite}
+          submitting={jobInviteSubmitting}
+          error={jobInviteError}
         />
       )}
 

@@ -15,6 +15,18 @@ export const PROJECT_STATUS_META = {
   // triggeredBy: who causes entry INTO this state.
   // actionBy/nextActionLabel: who clicks the Primary Action *while in* this
   // state, and what it's labeled — that click causes the next transition.
+  // OPEN is a pre-FSM state (see backend's projectStatus.js) — it never
+  // advances via the generic PATCH the other statuses use here, only via
+  // the Job Board's candidate-accept endpoint, so it has no actionBy/
+  // nextActionLabel of its own.
+  OPEN: {
+    label: "Open — Accepting Applications",
+    shortLabel: "Open",
+    tone: "amber",
+    triggeredBy: "business",
+    actionBy: null,
+    nextActionLabel: null,
+  },
   INVITED: {
     label: "Invitation Sent",
     shortLabel: "Invited",
