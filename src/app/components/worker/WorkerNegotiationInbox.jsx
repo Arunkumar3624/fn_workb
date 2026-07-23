@@ -273,35 +273,46 @@ function JobDetailsModal({ project, onClose, onDecline, onAccept, actionBusy, ac
         <AnimatePresence mode="wait" initial={false}>
           <MotionPanel panelKey={project.id}>
             <JobDetailsPanel project={project} />
-            <div className="mt-6 space-y-3">
-              <button
-                type="button"
-                onClick={onAccept}
-                disabled={actionBusy}
-                className="flex min-h-[58px] w-full items-center justify-center gap-2 rounded-2xl bg-[#FF6B35] px-5 py-4 text-sm font-bold text-white shadow-md shadow-orange-200 transition hover:-translate-y-0.5 hover:bg-[#e85d27] hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
-              >
-                {actionBusy ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Locking terms…
-                  </>
-                ) : (
-                  <>
-                    <LockKeyhole className="h-4 w-4" />
-                    Accept Invitation & Lock Terms
-                  </>
-                )}
-              </button>
-              <button
-                type="button"
-                onClick={onDecline}
-                disabled={actionBusy}
-                className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <X className="h-4 w-4" />
-                Decline
-              </button>
-            </div>
+            {project.status === "INVITED" ? (
+              <div className="mt-6 space-y-3">
+                <button
+                  type="button"
+                  onClick={onAccept}
+                  disabled={actionBusy}
+                  className="flex min-h-[58px] w-full items-center justify-center gap-2 rounded-2xl bg-[#FF6B35] px-5 py-4 text-sm font-bold text-white shadow-md shadow-orange-200 transition hover:-translate-y-0.5 hover:bg-[#e85d27] hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+                >
+                  {actionBusy ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Locking terms…
+                    </>
+                  ) : (
+                    <>
+                      <LockKeyhole className="h-4 w-4" />
+                      Accept Invitation & Lock Terms
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={onDecline}
+                  disabled={actionBusy}
+                  className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <X className="h-4 w-4" />
+                  Decline
+                </button>
+              </div>
+            ) : (
+              // Already acted on — Accept/Decline only ever make sense once,
+              // on a still-INVITED project. Re-opening "View Details" on a
+              // thread you've already accepted used to show the exact same
+              // Accept button again, as if nothing had happened.
+              <div className="mt-6 flex items-center gap-2 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700">
+                <Check className="h-4 w-4 flex-shrink-0" />
+                You've already accepted this invitation — track it in Active Workspace.
+              </div>
+            )}
           </MotionPanel>
         </AnimatePresence>
       </div>
@@ -456,6 +467,17 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
     setProjects((current) => current.map((project) => (project.id === updated.id ? { ...project, ...updated } : project)));
   };
 
+  // This list is already pre-filtered to "active" statuses (see the fetch
+  // effect above), so a project that moves to CANCELLED doesn't belong in
+  // it anymore — patching its status in place would leave a stale CANCELLED
+  // card sitting in Negotiations until the next full reload. Removing it
+  // here is what actually makes it "fade" immediately.
+  const removeProject = (id) => {
+    const remaining = projects.filter((project) => project.id !== id);
+    setProjects(remaining);
+    setSelectedThreadId((current) => (current === id ? remaining[0]?.id ?? null : current));
+  };
+
   const openDetails = (project) => {
     setSelectedJobDetails(project);
     setActionError("");
@@ -488,10 +510,27 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
     }
   };
 
-  const handleDecline = () => {
-    closeDetails();
-    setToast("Invitation declined for now.");
-    window.setTimeout(() => setToast(""), 2200);
+  // Previously purely cosmetic — closed the modal and showed a toast, but
+  // never touched the project's real status, so a "declined" invitation
+  // stayed sitting in INVITED forever and never actually disappeared on
+  // reload. Now a real CANCELLED transition (already an allowed FSM move
+  // from INVITED for either participant — see backend's canTransition).
+  const handleDecline = async () => {
+    if (!selectedJobDetails) return;
+    const declinedId = selectedJobDetails.id;
+    setActionBusy(true);
+    setActionError("");
+    try {
+      await updateProjectStatus(declinedId, "CANCELLED");
+      removeProject(declinedId);
+      closeDetails();
+      setToast("Invitation declined.");
+      window.setTimeout(() => setToast(""), 2200);
+    } catch (err) {
+      setActionError(err instanceof ApiError ? err.message : "Could not decline this invitation.");
+    } finally {
+      setActionBusy(false);
+    }
   };
 
   const handleSend = (event) => {

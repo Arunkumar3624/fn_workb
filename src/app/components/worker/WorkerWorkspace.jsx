@@ -51,7 +51,11 @@ export default function WorkerWorkspace() {
   }, []);
 
   const tasks = projects.filter((p) => ACTIVE_STATUSES.has(p.status));
-  const historyTasks = projects.filter((p) => p.status === "COMPLETED");
+  // Declining an invite (or any other cancellation) used to just vanish —
+  // not "active" (excluded from ACTIVE_STATUSES) and not "history" (this
+  // filter used to be COMPLETED-only), so there was nowhere it could ever
+  // be seen again after the fact.
+  const historyTasks = projects.filter((p) => p.status === "COMPLETED" || p.status === "CANCELLED");
   const activeList = pipelineTab === "tasks" ? tasks : historyTasks;
   const selectedTask = activeList.find((task) => task.id === selectedTaskId) ?? null;
 

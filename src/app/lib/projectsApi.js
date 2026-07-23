@@ -3,10 +3,11 @@
 // PlatformContext mock state.
 import { apiFetch } from "./apiClient";
 
-export function listProjects({ role, status } = {}) {
+export function listProjects({ role, status, pageSize } = {}) {
   const params = new URLSearchParams();
   if (role) params.set("role", role);
   if (status) params.set("status", status);
+  if (pageSize) params.set("pageSize", String(pageSize));
   const qs = params.toString();
   return apiFetch(`/api/projects${qs ? `?${qs}` : ""}`);
 }

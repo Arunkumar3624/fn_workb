@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { BarChart3, Shield, AlertTriangle, ShieldAlert, UserCog, Receipt, Zap, LogOut, Image as ImageIcon, Users } from "lucide-react";
+import { BarChart3, Shield, AlertTriangle, ShieldAlert, UserCog, Receipt, Send, Zap, LogOut, Image as ImageIcon, Users } from "lucide-react";
 import AdminOverviewTab from "../components/admin/AdminOverviewTab";
 import AdminUsersTab from "../components/admin/AdminUsersTab";
 import AdminVerificationsTab from "../components/admin/AdminVerificationsTab";
+import AdminInvitationsTab from "../components/admin/AdminInvitationsTab";
 import AdminDisputesTab from "../components/admin/AdminDisputesTab";
 import AdminSecurityTab from "../components/admin/AdminSecurityTab";
 import AdminTeamTab from "../components/admin/AdminTeamTab";
@@ -17,6 +18,7 @@ const NAV = [
   { id: "overview", label: "Master Dashboard", icon: BarChart3 },
   { id: "users", label: "Users", icon: Users },
   { id: "verification", label: "Verification Center", icon: Shield, badgeKey: "verifications" },
+  { id: "invitations", label: "Invitations", icon: Send },
   { id: "content", label: "Content Review", icon: ImageIcon },
   { id: "disputes", label: "Dispute Resolution", icon: AlertTriangle, badgeKey: "disputes" },
   { id: "transactions", label: "Transaction History", icon: Receipt },
@@ -30,6 +32,7 @@ const TAB_COMPONENTS = {
   overview: AdminOverviewTab,
   users: AdminUsersTab,
   verification: AdminVerificationsTab,
+  invitations: AdminInvitationsTab,
   content: AdminContentReviewTab,
   disputes: AdminDisputesTab,
   transactions: AdminTransactionsTab,

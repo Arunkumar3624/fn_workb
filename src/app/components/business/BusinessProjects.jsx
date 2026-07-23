@@ -683,8 +683,12 @@ export default function BusinessProjects() {
     loadProjects();
   }, [loadProjects]);
 
-  const liveProjects = projects.filter((p) => p.status !== "COMPLETED");
-  const historyProjects = projects.filter((p) => p.status === "COMPLETED");
+  // CANCELLED used to only be excluded from history (still counted as
+  // "live" here), so a declined/cancelled project sat in Active Projects
+  // forever showing action buttons (Raise Dispute, Download Files) that no
+  // longer make sense once it's actually done.
+  const liveProjects = projects.filter((p) => p.status !== "COMPLETED" && p.status !== "CANCELLED");
+  const historyProjects = projects.filter((p) => p.status === "COMPLETED" || p.status === "CANCELLED");
 
   // Kept in a ref (not read from `projects` directly) so the socket
   // subscription below — mounted once — never closes over a stale list.
@@ -1156,10 +1160,13 @@ export default function BusinessProjects() {
             <div className="space-y-3">
               {historyProjects.map((p) => {
                 const myRating = ratingsByProject[p.id];
+                const isCancelled = p.status === "CANCELLED";
                 return (
                   <div
                     key={p.id}
-                    className="flex flex-col gap-3 rounded-xl border border-emerald-100 bg-emerald-50/50 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-5"
+                    className={`flex flex-col gap-3 rounded-xl border px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-5 ${
+                      isCancelled ? "border-slate-200 bg-slate-50" : "border-emerald-100 bg-emerald-50/50"
+                    }`}
                   >
                     <div className="flex min-w-0 items-center gap-3">
                       <Avatar initials={getInitials(p.worker_name)} bg="bg-[#1B3FAB]" size="w-10 h-10" text="text-xs" />
@@ -1168,44 +1175,63 @@ export default function BusinessProjects() {
                         <p className="text-xs text-slate-500">with {p.worker_name || "a freelancer"}</p>
                       </div>
                     </div>
-                    <div className="flex flex-shrink-0 flex-wrap items-center gap-3">
-                      <span className="font-mono text-sm font-bold text-emerald-700">{formatINR(p.budget)}</span>
-
-                      {myRating ? (
-                        <span className="flex items-center gap-0.5" title={`You rated this ${myRating}/5`}>
-                          {[1, 2, 3, 4, 5].map((n) => (
-                            <Star
-                              key={n}
-                              className={`h-3.5 w-3.5 ${n <= myRating ? "fill-amber-400 text-amber-400" : "fill-slate-200 text-slate-200"}`}
-                            />
-                          ))}
+                    {/* Cancelled projects never had funds secured or a
+                        completed deliverable — no invoice/rating/receipt
+                        actions make sense here, only a status badge and the
+                        option to invite the same worker again. */}
+                    {isCancelled ? (
+                      <div className="flex flex-shrink-0 flex-wrap items-center gap-3">
+                        <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-500">
+                          Cancelled
                         </span>
-                      ) : (
                         <button
-                          onClick={() => setRatingProject(p)}
-                          className="flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-600 hover:bg-slate-50"
+                          onClick={() => handleRehire(p)}
+                          className="flex items-center gap-1 rounded-full border border-[#FF6B35]/30 bg-[#FF6B35]/10 px-2.5 py-1 text-xs font-bold text-[#FF6B35] hover:bg-[#FF6B35]/20"
                         >
-                          <Star className="h-3 w-3" />
-                          Rate
+                          <RefreshCw className="h-3 w-3" />
+                          Rehire
                         </button>
-                      )}
+                      </div>
+                    ) : (
+                      <div className="flex flex-shrink-0 flex-wrap items-center gap-3">
+                        <span className="font-mono text-sm font-bold text-emerald-700">{formatINR(p.budget)}</span>
 
-                      <button
-                        onClick={() => handleRehire(p)}
-                        className="flex items-center gap-1 rounded-full border border-[#FF6B35]/30 bg-[#FF6B35]/10 px-2.5 py-1 text-xs font-bold text-[#FF6B35] hover:bg-[#FF6B35]/20"
-                      >
-                        <RefreshCw className="h-3 w-3" />
-                        Rehire
-                      </button>
+                        {myRating ? (
+                          <span className="flex items-center gap-0.5" title={`You rated this ${myRating}/5`}>
+                            {[1, 2, 3, 4, 5].map((n) => (
+                              <Star
+                                key={n}
+                                className={`h-3.5 w-3.5 ${n <= myRating ? "fill-amber-400 text-amber-400" : "fill-slate-200 text-slate-200"}`}
+                              />
+                            ))}
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => setRatingProject(p)}
+                            className="flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-600 hover:bg-slate-50"
+                          >
+                            <Star className="h-3 w-3" />
+                            Rate
+                          </button>
+                        )}
 
-                      <Link
-                        to={`/invoice?id=${p.id}`}
-                        className="flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700 hover:bg-emerald-200"
-                      >
-                        <CheckCircle2 className="h-3 w-3" />
-                        View Invoice
-                      </Link>
-                    </div>
+                        <button
+                          onClick={() => handleRehire(p)}
+                          className="flex items-center gap-1 rounded-full border border-[#FF6B35]/30 bg-[#FF6B35]/10 px-2.5 py-1 text-xs font-bold text-[#FF6B35] hover:bg-[#FF6B35]/20"
+                        >
+                          <RefreshCw className="h-3 w-3" />
+                          Rehire
+                        </button>
+
+                        <Link
+                          to={`/invoice?id=${p.id}`}
+                          className="flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700 hover:bg-emerald-200"
+                        >
+                          <CheckCircle2 className="h-3 w-3" />
+                          View Invoice
+                        </Link>
+                      </div>
+                    )}
                   </div>
                 );
               })}
