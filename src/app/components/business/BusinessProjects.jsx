@@ -847,14 +847,18 @@ export default function BusinessProjects() {
       const submissions = await listSubmissions(project.id);
       const approved = submissions.filter((s) => s.status === "APPROVED");
       if (approved.length === 0) {
-        toast.info("No approved deliverables to download yet.");
+        toast.info("No approved deliverables yet — check back once the worker submits and it clears review.");
         return;
       }
+
+      let hasLinks = false;
       approved.forEach((submission, index) => {
         if (submission.type === "link") {
-          window.open(submission.url, "_blank", "noopener,noreferrer");
+          hasLinks = true;
           return;
         }
+        // A real download only for images — a synchronous-looking anchor
+        // click still works reliably here even after the await above.
         const anchor = document.createElement("a");
         anchor.href = submission.image_data;
         anchor.download = `${project.title}-deliverable-${index + 1}.png`;
@@ -862,6 +866,18 @@ export default function BusinessProjects() {
         anchor.click();
         anchor.remove();
       });
+
+      if (hasLinks) {
+        // window.open() called after an `await` is silently blocked by the
+        // popup blocker in most browsers — it's no longer treated as a
+        // direct result of the click that triggered this handler. That's
+        // exactly why "Download Files" could look like it did nothing:
+        // nothing was actually broken server-side, the new tab just never
+        // opened. Real <a href target="_blank"> clicks inside the worker
+        // drawer don't have this problem, so route link submissions there
+        // instead of trying to window.open() them from here.
+        setWorkerDrawerProject(project);
+      }
     } catch (err) {
       toast.error(err.message || "Could not load this project's deliverables.");
     } finally {

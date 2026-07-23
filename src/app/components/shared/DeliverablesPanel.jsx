@@ -6,6 +6,7 @@ import {
 import { listSubmissions, submitLink, submitImage } from "../../lib/submissionsApi";
 import { ApiError } from "../../lib/apiClient";
 import { getSocket } from "../../lib/socketClient";
+import ImageLightbox from "./ImageLightbox";
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024; // matches the backend's ~8MB cap
 
@@ -49,6 +50,7 @@ export default function DeliverablesPanel({ projectId }) {
   const [imageFile, setImageFile] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [previewSrc, setPreviewSrc] = useState(null);
 
   const load = () => {
     setLoading(true);
@@ -230,7 +232,14 @@ export default function DeliverablesPanel({ projectId }) {
                           <ExternalLink className="h-3 w-3 flex-shrink-0" />
                         </a>
                       ) : (
-                        <img src={s.image_data} alt={s.caption ?? "Submitted image"} className="h-20 w-20 rounded-lg object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setPreviewSrc(s.image_data)}
+                          aria-label="View full image"
+                          className="h-20 w-20 overflow-hidden rounded-lg transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/40"
+                        >
+                          <img src={s.image_data} alt={s.caption ?? "Submitted image"} className="h-full w-full object-cover" />
+                        </button>
                       )}
                       {s.caption && <p className="mt-1 text-xs text-slate-600">{s.caption}</p>}
                       <p className="mt-1 text-[11px] text-slate-400">
@@ -251,6 +260,8 @@ export default function DeliverablesPanel({ projectId }) {
           </div>
         )}
       </div>
+
+      <ImageLightbox src={previewSrc} onClose={() => setPreviewSrc(null)} />
     </div>
   );
 }

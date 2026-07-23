@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { AlertCircle, CheckCircle2, Clock3, ExternalLink, Image as ImageIcon, Link2, XCircle } from "lucide-react";
 import { listPendingSubmissions, listReviewedSubmissions, reviewSubmission } from "../../lib/submissionsApi";
 import { ApiError } from "../../lib/apiClient";
+import ImageLightbox from "../shared/ImageLightbox";
 
 function detectProvider(url) {
   try {
@@ -16,13 +17,20 @@ function detectProvider(url) {
   }
 }
 
-function SubmissionThumb({ item }) {
+function SubmissionThumb({ item, onPreview }) {
   return item.type === "link" ? (
     <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#1B3FAB]">
       <Link2 className="h-5 w-5" />
     </div>
   ) : (
-    <img src={item.image_data} alt={item.caption ?? "Submitted image"} className="h-14 w-14 flex-shrink-0 rounded-xl object-cover" />
+    <button
+      type="button"
+      onClick={() => onPreview(item.image_data)}
+      aria-label="View full image"
+      className="h-14 w-14 flex-shrink-0 overflow-hidden rounded-xl transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/40"
+    >
+      <img src={item.image_data} alt={item.caption ?? "Submitted image"} className="h-full w-full object-cover" />
+    </button>
   );
 }
 
@@ -71,6 +79,7 @@ export default function AdminContentReviewTab() {
   const [rejectionReason, setRejectionReason] = useState("");
   const [actionError, setActionError] = useState("");
   const [busyId, setBusyId] = useState(null);
+  const [previewSrc, setPreviewSrc] = useState(null);
 
   const load = () => {
     setLoading(true);
@@ -178,7 +187,7 @@ export default function AdminContentReviewTab() {
               <div key={item.id} className="p-5">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-4 min-w-0 flex-1">
-                    <SubmissionThumb item={item} />
+                    <SubmissionThumb item={item} onPreview={setPreviewSrc} />
                     <SubmissionDetails item={item} />
                   </div>
 
@@ -252,6 +261,8 @@ export default function AdminContentReviewTab() {
           </div>
         </div>
       )}
+
+      <ImageLightbox src={previewSrc} onClose={() => setPreviewSrc(null)} />
     </div>
   );
 }

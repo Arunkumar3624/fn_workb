@@ -147,6 +147,11 @@ export default function BusinessPostJob({ onVerify, isVerified, onContinueToWork
       description: formData.skills ? `${formData.brief}\n\nSkills: ${formData.skills}` : formData.brief,
       budget: summaryBudget,
       deadline: formData.deadline,
+      // Previously collected here and then silently discarded — never made
+      // it past this component. Now carried through to BusinessWorkers'
+      // submitInvite, which creates one reference-material submission per
+      // link once the project (and therefore a project_id) actually exists.
+      referenceLinks: refLinks.map((link) => link.trim()).filter(Boolean),
     });
   };
 
@@ -384,7 +389,8 @@ export default function BusinessPostJob({ onVerify, isVerified, onContinueToWork
                     <p className="text-xs font-bold text-blue-800">Private by default</p>
                     <p className="text-xs text-blue-600 mt-0.5 leading-relaxed">
                       Workers will <strong>not</strong> see these links when browsing job listings.
-                      They are revealed only after you select a worker for this project.
+                      Once you select a worker, each link is sent for a quick WorkBridge review before
+                      it's shared with them — the same check every submitted file goes through.
                     </p>
                   </div>
                 </div>

@@ -15,6 +15,7 @@ import Avatar from "../shared/Avatar";
 import WorkerShareableProfile from "../worker/WorkerShareableProfile";
 import { listWorkers } from "../../lib/profilesApi";
 import { listProjects, createProject } from "../../lib/projectsApi";
+import { submitLink } from "../../lib/submissionsApi";
 import { getInitials } from "../../utils/formValidation";
 import { ApiError } from "../../lib/apiClient";
 
@@ -42,6 +43,7 @@ function InviteModal({ worker, onClose, onSubmit, submitting, error }) {
   const [description, setDescription] = useState("");
   const [budget, setBudget] = useState("");
   const [deadline, setDeadline] = useState("");
+  const [referenceLink, setReferenceLink] = useState("");
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
@@ -100,13 +102,26 @@ function InviteModal({ worker, onClose, onSubmit, submitting, error }) {
               />
             </label>
           </div>
+          <label className="block">
+            <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Reference Link (optional)</span>
+            <input
+              type="url"
+              value={referenceLink}
+              onChange={(e) => setReferenceLink(e.target.value)}
+              placeholder="https://drive.google.com/… or a video/doc link for context"
+              className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
+            />
+            <span className="mt-1.5 block text-xs text-slate-400">
+              Sent for a quick WorkBridge review before {worker.name} can see it.
+            </span>
+          </label>
         </div>
         <div className="flex justify-end gap-2 border-t border-slate-100 px-6 py-4">
           <button onClick={onClose} className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50">
             Cancel
           </button>
           <button
-            onClick={() => onSubmit({ title, description, budget, deadline })}
+            onClick={() => onSubmit({ title, description, budget, deadline, referenceLinks: referenceLink.trim() ? [referenceLink.trim()] : [] })}
             disabled={submitting || !title.trim() || !budget}
             className="inline-flex items-center gap-2 rounded-xl bg-[#FF6B35] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#E55E1F] disabled:opacity-60"
           >
@@ -167,13 +182,28 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
     setSubmitting(true);
     setInviteError("");
     try {
-      await createProject({
+      const project = await createProject({
         workerId: worker.id,
         title: jobDetails.title,
         description: jobDetails.description,
         budget: Number(jobDetails.budget),
         deadline: jobDetails.deadline || undefined,
       });
+
+      // Reference material attached at invite time (BusinessPostJob's
+      // "Reference Materials" card, or InviteModal's link field below) —
+      // goes through the exact same moderation queue as a worker's finished
+      // work, per the existing Trust Checker rule. A failure here shouldn't
+      // undo the invite that already succeeded, so these are best-effort.
+      const referenceLinks = (jobDetails.referenceLinks ?? []).filter(Boolean);
+      if (referenceLinks.length > 0) {
+        await Promise.allSettled(
+          referenceLinks.map((url) =>
+            submitLink({ projectId: project.id, url, caption: "Reference material shared at invite time" })
+          )
+        );
+      }
+
       setInvitedWorkerIds((prev) => new Set(prev).add(worker.id));
       setInviteTarget(null);
       if (onInviteSent) {
