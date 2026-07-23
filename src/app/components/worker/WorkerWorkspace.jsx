@@ -397,10 +397,11 @@ export default function WorkerWorkspace() {
 
               <div className="grid gap-5">
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.08 }}>
-                <DeliverablesPanel projectId={selectedTask.id} />
+                <DeliverablesPanel projectId={selectedTask.id} readOnly={selectedTask.status === "CANCELLED"} />
               </motion.div>
               </div>
             </div>
+            {(selectedTask.status === "FILES_SUBMITTED" || PROJECT_STATUS_META[selectedTask.status]?.actionBy === "worker") && (
             <div className="absolute bottom-3 left-3 right-3 z-20 flex flex-wrap items-center justify-end gap-3 rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-[0_16px_40px_rgba(15,23,42,0.12)] backdrop-blur sm:bottom-5 sm:left-8 sm:right-8 sm:gap-4 sm:p-4">
               {selectedTask.status === "FILES_SUBMITTED" && (
                 <span className="flex min-h-[44px] items-center gap-2 text-sm font-semibold text-amber-600 sm:mr-auto">
@@ -428,6 +429,7 @@ export default function WorkerWorkspace() {
                 </button>
               )}
             </div>
+            )}
           </>
         ) : (
           <WorkspaceEmptyState />

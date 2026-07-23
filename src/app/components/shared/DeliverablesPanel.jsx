@@ -48,7 +48,7 @@ function isInternalLink(url) {
 // moderation first; the API itself hides PENDING_REVIEW/REJECTED items from
 // whichever participant didn't submit them, so this component never has to
 // implement that rule client-side.
-export default function DeliverablesPanel({ projectId }) {
+export default function DeliverablesPanel({ projectId, readOnly = false }) {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -144,11 +144,17 @@ export default function DeliverablesPanel({ projectId }) {
       <div className="mb-4">
         <h3 className="text-sm font-bold text-slate-900">Deliverables</h3>
         <p className="mt-0.5 text-xs text-slate-500">
-          Share a link (Google Drive, Dropbox, etc.) or a small image — every submission is reviewed by WorkBridge before the other side can see it.
+          {readOnly
+            ? "This project is closed — shown here for the record only."
+            : "Share a link (Google Drive, Dropbox, etc.) or a small image — every submission is reviewed by WorkBridge before the other side can see it."}
         </p>
       </div>
 
-      {/* ── Submit form ── */}
+      {/* ── Submit form — hidden once the project is closed. There's no
+          legitimate reason to keep sharing files on a cancelled project;
+          the list below still shows whatever was already shared before it
+          closed. */}
+      {!readOnly && (
       <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
         <div className="mb-3 flex gap-1 rounded-lg bg-white p-1 w-fit border border-slate-200">
           {[
@@ -208,6 +214,7 @@ export default function DeliverablesPanel({ projectId }) {
           </button>
         </div>
       </div>
+      )}
 
       {/* ── List ── */}
       <div className="mt-4">
