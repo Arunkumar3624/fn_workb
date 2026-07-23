@@ -3,6 +3,7 @@ import { AlertCircle, CheckCircle2, Clock3, ExternalLink, Image as ImageIcon, Li
 import { listPendingSubmissions, listReviewedSubmissions, reviewSubmission } from "../../lib/submissionsApi";
 import { ApiError } from "../../lib/apiClient";
 import ImageLightbox from "../shared/ImageLightbox";
+import brandLogo from "../../assets/logo.png";
 
 function detectProvider(url) {
   try {
@@ -17,10 +18,20 @@ function detectProvider(url) {
   }
 }
 
+// A link back to WorkBridge itself gets our own mark instead of the generic
+// link glyph — every other host keeps the plain Link2 icon.
+function isInternalLink(url) {
+  return url.toLowerCase().includes("workbridge");
+}
+
 function SubmissionThumb({ item, onPreview }) {
   return item.type === "link" ? (
     <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#1B3FAB]">
-      <Link2 className="h-5 w-5" />
+      {isInternalLink(item.url) ? (
+        <img src={brandLogo} alt="WorkBridge" className="h-5 w-5 object-contain" />
+      ) : (
+        <Link2 className="h-5 w-5" />
+      )}
     </div>
   ) : (
     <button

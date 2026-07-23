@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
 import {
   AlertCircle,
@@ -7,6 +8,7 @@ import {
   Briefcase,
   Check,
   Clock3,
+  FileText,
   IndianRupee,
   LockKeyhole,
   MessageSquare,
@@ -17,9 +19,8 @@ import {
   Zap,
 } from "lucide-react";
 import Avatar from "../shared/Avatar";
-import IdentityHeader from "../shared/IdentityHeader";
+import DeliverablesPanel from "../shared/DeliverablesPanel";
 import { listProjects, updateProjectStatus } from "../../lib/projectsApi";
-import { getPublicProfile } from "../../lib/profilesApi";
 import { getInitials } from "../../utils/formValidation";
 import { ApiError } from "../../lib/apiClient";
 import { getSocket } from "../../lib/socketClient";
@@ -78,11 +79,10 @@ function MotionPanel({ children, panelKey }) {
   return (
     <motion.div
       key={panelKey}
-      initial={{ opacity: 0, x: 34 }}
+      initial={{ opacity: 0, x: 24 }}
       animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -34 }}
-      transition={{ duration: 0.34, ease: "easeInOut" }}
-      className="h-full min-h-0"
+      exit={{ opacity: 0, x: -24 }}
+      transition={{ duration: 0.28, ease: "easeInOut" }}
     >
       {children}
     </motion.div>
@@ -109,51 +109,78 @@ function FieldPill({ icon: Icon, label, value, dark = false }) {
   );
 }
 
-function ThreadNavigator({ threads, selectedThreadId, onSelect }) {
+// The Inbox List — strictly the scrollable thread list now. Each card is a
+// non-button div (a real <button> can't legally nest the "View Details"
+// button inside it) that selects the thread on click; "View Details" stops
+// propagation so it opens the modal without also switching the active chat.
+function ThreadNavigator({ threads, selectedThreadId, onSelect, onViewDetails }) {
   return (
-    <section className="flex h-[22%] min-h-[158px] flex-shrink-0 flex-col border-b border-slate-200 bg-white">
-      <div className="flex items-center justify-between px-5 py-3">
-        <div>
-          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Active Threads</p>
-          <h2 className="text-base font-black text-slate-900">{threads.length} invitation{threads.length === 1 ? "" : "s"}</h2>
+    <section className="flex h-full min-h-0 flex-col bg-white">
+      <div className="flex-shrink-0 border-b border-slate-200 px-5 py-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Active Threads</p>
+            <h2 className="text-base font-black text-slate-900">{threads.length} invitation{threads.length === 1 ? "" : "s"}</h2>
+          </div>
+          <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-black text-slate-500">
+            Live
+          </span>
         </div>
-        <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-black text-slate-500">
-          Live
-        </span>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-3">
+      <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
         {threads.map((thread) => {
           const selected = thread.id === selectedThreadId;
           const status = getThreadStatus(thread);
           return (
-            <button
+            <div
               key={thread.id}
-              type="button"
+              role="button"
+              tabIndex={0}
               onClick={() => onSelect(thread.id)}
-              className={`mb-2 flex w-full items-center gap-3 rounded-2xl border py-3 pl-3 pr-3 text-left shadow-sm transition ${
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  onSelect(thread.id);
+                }
+              }}
+              className={`mb-2 flex w-full cursor-pointer flex-col gap-2.5 rounded-2xl border p-3 text-left shadow-sm transition ${
                 selected
                   ? "border-slate-200 border-l-4 border-l-[#FF6B35] bg-slate-100"
                   : "border-transparent border-l-4 border-l-transparent bg-white hover:border-slate-200 hover:bg-slate-50"
               }`}
             >
-              {thread.business_avatar_url ? (
-                <img
-                  src={thread.business_avatar_url}
-                  alt={thread.business_name}
-                  className="h-10 w-10 flex-shrink-0 rounded-2xl object-cover"
-                />
-              ) : (
-                <Avatar initials={getInitials(thread.business_name)} bg="bg-[#1B3FAB]" size="w-10 h-10" text="text-xs" />
-              )}
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-black text-slate-900">{thread.business_name}</p>
-                <p className="mt-0.5 truncate text-xs font-semibold text-slate-500">{thread.title}</p>
+              <div className="flex w-full items-center gap-3">
+                {thread.business_avatar_url ? (
+                  <img
+                    src={thread.business_avatar_url}
+                    alt={thread.business_name}
+                    className="h-10 w-10 flex-shrink-0 rounded-2xl object-cover"
+                  />
+                ) : (
+                  <Avatar initials={getInitials(thread.business_name)} bg="bg-[#1B3FAB]" size="w-10 h-10" text="text-xs" />
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-xs font-black text-slate-900">{thread.business_name}</p>
+                  <p className="mt-0.5 truncate text-xs font-semibold text-slate-500">{thread.title}</p>
+                </div>
+                <span className={`flex-shrink-0 rounded-full border px-2 py-1 text-[10px] font-black ${status.className}`}>
+                  {status.label}
+                </span>
               </div>
-              <span className={`flex-shrink-0 rounded-full border px-2 py-1 text-[10px] font-black ${status.className}`}>
-                {status.label}
-              </span>
-            </button>
+
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onViewDetails(thread);
+                }}
+                className="ml-[52px] inline-flex w-fit items-center gap-1.5 rounded-lg bg-slate-100 px-2.5 py-1.5 text-[11px] font-bold text-slate-600 transition hover:bg-slate-200"
+              >
+                <FileText className="h-3 w-3" />
+                View Details
+              </button>
+            </div>
           );
         })}
       </div>
@@ -161,67 +188,49 @@ function ThreadNavigator({ threads, selectedThreadId, onSelect }) {
   );
 }
 
-function JobDetailsPanel({ project, onAccept, onDecline, actionBusy }) {
+function JobDetailsPanel({ project }) {
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      <div className="flex-1 overflow-hidden">
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">Job invitation</p>
-              <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-900">
-                {project.title}
-              </h2>
-            </div>
-            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-orange-50 text-[#FF6B35] ring-1 ring-orange-100">
-              <Briefcase className="h-5 w-5" />
-            </div>
-          </div>
+    <div>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">Job invitation</p>
+          <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-900">
+            {project.title}
+          </h2>
+        </div>
+        <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-orange-50 text-[#FF6B35] ring-1 ring-orange-100">
+          <Briefcase className="h-5 w-5" />
+        </div>
+      </div>
 
-          <div className="mt-5 grid grid-cols-2 gap-3">
-            <FieldPill icon={IndianRupee} label="Budget" value={formatINR(project.budget)} dark />
-            <FieldPill icon={Clock3} label="Duration" value={formatDuration(project.deadline)} />
-          </div>
+      <div className="mt-5 grid grid-cols-2 gap-3">
+        <FieldPill icon={IndianRupee} label="Budget" value={formatINR(project.budget)} dark />
+        <FieldPill icon={Clock3} label="Duration" value={formatDuration(project.deadline)} />
+      </div>
 
-          <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">Description</p>
-            <p className="mt-2 max-h-44 overflow-y-auto pr-1 text-sm leading-6 text-slate-600">
-              {project.description || "No additional description was provided by the business."}
+      <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">Description</p>
+        <p className="mt-2 max-h-44 overflow-y-auto pr-1 text-sm leading-6 text-slate-600">
+          {project.description || "No additional description was provided by the business."}
+        </p>
+      </div>
+
+      <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/70 p-4">
+        <div className="flex items-start gap-3">
+          <ShieldCheck className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#1B3FAB]" />
+          <div>
+            <p className="text-sm font-black text-slate-900">Terms stay protected</p>
+            <p className="mt-1 text-xs leading-5 text-slate-500">
+              Acceptance locks this scope, budget, and timeline into your WorkBridge workspace.
             </p>
-          </div>
-
-          <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/70 p-4">
-            <div className="flex items-start gap-3">
-              <ShieldCheck className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#1B3FAB]" />
-              <div>
-                <p className="text-sm font-black text-slate-900">Terms stay protected</p>
-                <p className="mt-1 text-xs leading-5 text-slate-500">
-                  Acceptance locks this scope, budget, and timeline into your WorkBridge workspace.
-                </p>
-              </div>
-            </div>
           </div>
         </div>
       </div>
 
-      <div className="mt-5 flex-shrink-0 space-y-3">
-        <button
-          type="button"
-          onClick={onAccept}
-          disabled={actionBusy}
-          className="flex min-h-[58px] w-full items-center justify-center gap-2 rounded-2xl bg-[#FF6B35] px-5 py-4 text-sm font-black text-white shadow-md shadow-orange-200 transition hover:-translate-y-0.5 hover:bg-[#e85d27] hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
-        >
-          <LockKeyhole className="h-4 w-4" />
-          Accept Invitation & Lock Terms
-        </button>
-        <button
-          type="button"
-          onClick={onDecline}
-          className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-slate-900"
-        >
-          <X className="h-4 w-4" />
-          Decline
-        </button>
+      {/* Reference material the business attached at invite time (Post a Job
+          / Find Workers) — same admin-approval rule as any other submission. */}
+      <div className="mt-5">
+        <DeliverablesPanel projectId={project.id} />
       </div>
     </div>
   );
@@ -255,7 +264,7 @@ function WizardStep({ index, title, description, state }) {
 
 function AcceptWizardPanel({ project, onBack, onStart, actionBusy }) {
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div>
       <button
         type="button"
         onClick={onBack}
@@ -265,53 +274,120 @@ function AcceptWizardPanel({ project, onBack, onStart, actionBusy }) {
         Back to invitation
       </button>
 
-      <div className="flex-1 overflow-hidden rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="mb-5 flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0A1128] text-white">
-            <Sparkles className="h-5 w-5 text-[#FF6B35]" />
-          </div>
-          <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.22em] text-[#1B3FAB]">Lock terms</p>
-            <h2 className="text-xl font-black text-slate-900">Acceptance wizard</h2>
-          </div>
+      <div className="mb-5 flex items-center gap-3">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0A1128] text-white">
+          <Sparkles className="h-5 w-5 text-[#FF6B35]" />
         </div>
+        <div>
+          <p className="text-[11px] font-black uppercase tracking-[0.22em] text-[#1B3FAB]">Lock terms</p>
+          <h2 className="text-xl font-black text-slate-900">Acceptance wizard</h2>
+        </div>
+      </div>
 
-        <div className="space-y-4">
-          <WizardStep
-            index={1}
-            title="Review Scope"
-            description={`Scope reviewed for "${project.title}". Budget, timeline, and deliverables are attached to this invite.`}
-            state="done"
-          />
-          <WizardStep
-            index={2}
-            title="Confirm Escrow Lock"
-            description="The funded terms are protected in WorkBridge escrow before work moves into the active workspace."
-            state="active"
-          />
-          <div className="relative flex gap-4">
-            <div className="z-10 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-sm font-black text-slate-500 shadow-sm">
-              3
-            </div>
-            <div className="flex-1 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <p className="text-sm font-black text-slate-900">Start Project</p>
-              <p className="mt-1 text-xs leading-5 text-slate-500">
-                Finalize acceptance and move this project into your active workspace.
-              </p>
-              <button
-                type="button"
-                onClick={onStart}
-                disabled={actionBusy}
-                className="mt-4 flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl bg-[#1B3FAB] px-5 py-3 text-sm font-black text-white shadow-md shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-[#173795] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
-              >
-                <Zap className="h-4 w-4" />
-                {actionBusy ? "Finalizing..." : "Start Project ⚡"}
-              </button>
-            </div>
+      <div className="space-y-4">
+        <WizardStep
+          index={1}
+          title="Review Scope"
+          description={`Scope reviewed for "${project.title}". Budget, timeline, and deliverables are attached to this invite.`}
+          state="done"
+        />
+        <WizardStep
+          index={2}
+          title="Confirm Escrow Lock"
+          description="The funded terms are protected in WorkBridge escrow before work moves into the active workspace."
+          state="active"
+        />
+        <div className="relative flex gap-4">
+          <div className="z-10 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-sm font-black text-slate-500 shadow-sm">
+            3
+          </div>
+          <div className="flex-1 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <p className="text-sm font-black text-slate-900">Start Project</p>
+            <p className="mt-1 text-xs leading-5 text-slate-500">
+              Finalize acceptance and move this project into your active workspace.
+            </p>
+            <button
+              type="button"
+              onClick={onStart}
+              disabled={actionBusy}
+              className="mt-4 flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl bg-[#1B3FAB] px-5 py-3 text-sm font-black text-white shadow-md shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-[#173795] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+            >
+              <Zap className="h-4 w-4" />
+              {actionBusy ? "Finalizing..." : "Start Project ⚡"}
+            </button>
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+// The Details Modal — portaled to document.body so it's never at risk of
+// the "ancestor with a lingering CSS transform becomes the containing block
+// for position:fixed" trap other overlays in this app hit when nested
+// inside a tab's own .wb-tab-enter root (see BusinessProjects.jsx's modals
+// for the full writeup of that bug).
+function JobDetailsModal({ project, view, onShowWizard, onBackToDetails, onClose, onDecline, onStart, actionBusy, actionError }) {
+  if (!project) return null;
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4"
+      onClick={onClose}
+    >
+      <div
+        className="relative max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+        >
+          <X className="h-4 w-4" />
+        </button>
+
+        {actionError && (
+          <div className="mb-4 flex items-start gap-2 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+            <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+            <span>{actionError}</span>
+          </div>
+        )}
+
+        <AnimatePresence mode="wait" initial={false}>
+          {view === "details" ? (
+            <MotionPanel panelKey={`details-${project.id}`}>
+              <JobDetailsPanel project={project} />
+              <div className="mt-6 space-y-3">
+                <button
+                  type="button"
+                  onClick={onShowWizard}
+                  disabled={actionBusy}
+                  className="flex min-h-[58px] w-full items-center justify-center gap-2 rounded-2xl bg-[#FF6B35] px-5 py-4 text-sm font-black text-white shadow-md shadow-orange-200 transition hover:-translate-y-0.5 hover:bg-[#e85d27] hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+                >
+                  <LockKeyhole className="h-4 w-4" />
+                  Accept Invitation & Lock Terms
+                </button>
+                <button
+                  type="button"
+                  onClick={onDecline}
+                  className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-slate-900"
+                >
+                  <X className="h-4 w-4" />
+                  Decline
+                </button>
+              </div>
+            </MotionPanel>
+          ) : (
+            <MotionPanel panelKey={`wizard-${project.id}`}>
+              <AcceptWizardPanel project={project} onBack={onBackToDetails} onStart={onStart} actionBusy={actionBusy} />
+            </MotionPanel>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>,
+    document.body
   );
 }
 
@@ -336,6 +412,8 @@ function MessageBubble({ message }) {
   );
 }
 
+// The Right Pane — unconditionally flex-1, fills whatever width the (now
+// much narrower) thread list leaves behind.
 function ChatPanel({ project, messages, draft, onDraftChange, onSend }) {
   const feedRef = useRef(null);
 
@@ -344,7 +422,7 @@ function ChatPanel({ project, messages, draft, onDraftChange, onSend }) {
   }, [messages.length, project?.id]);
 
   return (
-    <section className="flex h-full min-h-0 w-[60%] flex-col bg-slate-50">
+    <section className="flex h-full min-h-0 flex-1 flex-col bg-slate-50">
       <header className="sticky top-0 z-10 flex min-h-[72px] flex-shrink-0 items-center justify-between border-b border-slate-200 bg-white/95 px-6 backdrop-blur-xl">
         <div>
           <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Negotiation Chat</p>
@@ -390,10 +468,10 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
   const [loadError, setLoadError] = useState("");
   const [actionError, setActionError] = useState("");
   const [selectedThreadId, setSelectedThreadId] = useState(initialProjectId ?? null);
-  const [panelMode, setPanelMode] = useState("details");
+  const [selectedJobDetails, setSelectedJobDetails] = useState(null);
+  const [modalView, setModalView] = useState("details");
   const [actionBusy, setActionBusy] = useState(false);
   const [toast, setToast] = useState("");
-  const [businessProfile, setBusinessProfile] = useState(null);
   const [messagesByProject, setMessagesByProject] = useState({});
   const [draft, setDraft] = useState("");
 
@@ -445,8 +523,6 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
   );
 
   useEffect(() => {
-    setPanelMode("details");
-    setActionError("");
     setDraft("");
   }, [selectedThreadId]);
 
@@ -458,36 +534,33 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
     });
   }, [selectedProject]);
 
-  useEffect(() => {
-    if (!selectedProject?.business_id) return;
-    let cancelled = false;
-    setBusinessProfile(null);
-    getPublicProfile(selectedProject.business_id)
-      .then((profile) => {
-        if (!cancelled) setBusinessProfile(profile);
-      })
-      .catch(() => {
-        if (!cancelled) setBusinessProfile(null);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedProject?.business_id]);
-
   const patchProject = (updated) => {
     setProjects((current) => current.map((project) => (project.id === updated.id ? { ...project, ...updated } : project)));
   };
 
+  const openDetails = (project) => {
+    setSelectedJobDetails(project);
+    setModalView("details");
+    setActionError("");
+  };
+
+  const closeDetails = () => {
+    setSelectedJobDetails(null);
+    setModalView("details");
+  };
+
   const handleStartProject = async () => {
-    if (!selectedProject) return;
+    if (!selectedJobDetails) return;
     setActionBusy(true);
     setActionError("");
     try {
-      if (selectedProject.status === "INVITED") {
-        const updated = await updateProjectStatus(selectedProject.id, "ACCEPTED");
+      if (selectedJobDetails.status === "INVITED") {
+        const updated = await updateProjectStatus(selectedJobDetails.id, "ACCEPTED");
         patchProject(updated);
       }
-      setPanelMode("details");
+      // Bring the just-accepted thread into focus in the chat pane too.
+      setSelectedThreadId(selectedJobDetails.id);
+      closeDetails();
       setToast("Terms locked. Project moved into your workspace.");
       window.setTimeout(() => setToast(""), 2600);
     } catch (err) {
@@ -498,6 +571,7 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
   };
 
   const handleDecline = () => {
+    closeDetails();
     setToast("Invitation declined for now.");
     window.setTimeout(() => setToast(""), 2200);
   };
@@ -553,55 +627,13 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
 
   return (
     <div className="relative flex h-full min-h-0 overflow-hidden bg-white" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-      <aside className="flex h-full min-h-0 w-[40%] min-w-[380px] flex-col border-r border-slate-200 bg-white">
+      <aside className="flex h-full min-h-0 w-[360px] flex-shrink-0 flex-col border-r border-slate-200 bg-white">
         <ThreadNavigator
           threads={projects}
           selectedThreadId={selectedThreadId}
           onSelect={setSelectedThreadId}
+          onViewDetails={openDetails}
         />
-
-        <section className="flex min-h-0 flex-1 flex-col bg-white">
-          <IdentityHeader
-            name={selectedProject.business_name}
-            subtitle={selectedProject.title}
-            initials={getInitials(selectedProject.business_name)}
-            avatarUrl={selectedProject.business_avatar_url}
-            verified={businessProfile?.verified ?? true}
-            rating={businessProfile?.rating}
-            reviews={businessProfile?.reviews_count}
-          />
-
-          {actionError && (
-            <div className="mx-5 mt-4 flex flex-shrink-0 items-start gap-2 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
-              <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
-              <span>{actionError}</span>
-            </div>
-          )}
-
-          <div className="min-h-0 flex-1 overflow-hidden p-5">
-            <AnimatePresence mode="wait" initial={false}>
-              {panelMode === "details" ? (
-                <MotionPanel panelKey={`details-${selectedProject.id}`}>
-                  <JobDetailsPanel
-                    project={selectedProject}
-                    onAccept={() => setPanelMode("wizard")}
-                    onDecline={handleDecline}
-                    actionBusy={actionBusy}
-                  />
-                </MotionPanel>
-              ) : (
-                <MotionPanel panelKey={`wizard-${selectedProject.id}`}>
-                  <AcceptWizardPanel
-                    project={selectedProject}
-                    onBack={() => setPanelMode("details")}
-                    onStart={handleStartProject}
-                    actionBusy={actionBusy}
-                  />
-                </MotionPanel>
-              )}
-            </AnimatePresence>
-          </div>
-        </section>
       </aside>
 
       <ChatPanel
@@ -610,6 +642,18 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
         draft={draft}
         onDraftChange={setDraft}
         onSend={handleSend}
+      />
+
+      <JobDetailsModal
+        project={selectedJobDetails}
+        view={modalView}
+        onShowWizard={() => setModalView("wizard")}
+        onBackToDetails={() => setModalView("details")}
+        onClose={closeDetails}
+        onDecline={handleDecline}
+        onStart={handleStartProject}
+        actionBusy={actionBusy}
+        actionError={actionError}
       />
 
       {toast && (

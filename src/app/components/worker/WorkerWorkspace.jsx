@@ -280,6 +280,15 @@ export default function WorkerWorkspace() {
                     <p className="truncate text-sm font-semibold text-slate-900">{task.title}</p>
                     <p className="mt-1 text-xs text-slate-500">{task.business_name}</p>
                   </div>
+                  {task.new_deliverables_count > 0 && (
+                    <span
+                      className="flex h-5 min-w-5 flex-shrink-0 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white shadow-sm"
+                      aria-label={`${task.new_deliverables_count} new deliverable${task.new_deliverables_count === 1 ? "" : "s"} from ${task.business_name}`}
+                      title="New approved deliverable"
+                    >
+                      {task.new_deliverables_count}
+                    </span>
+                  )}
                 </div>
                 <div className="mt-3 flex items-center justify-between gap-2">
                   <span

@@ -7,6 +7,7 @@ import { listSubmissions, submitLink, submitImage } from "../../lib/submissionsA
 import { ApiError } from "../../lib/apiClient";
 import { getSocket } from "../../lib/socketClient";
 import ImageLightbox from "./ImageLightbox";
+import brandLogo from "../../assets/logo.png";
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024; // matches the backend's ~8MB cap
 
@@ -33,6 +34,13 @@ function detectProvider(url) {
   } catch {
     return "Link";
   }
+}
+
+// A link back to WorkBridge itself (e.g. an invoice or profile URL shared as
+// reference material) gets our own mark instead of a generic link glyph —
+// every other host keeps the plain Link2 icon.
+function isInternalLink(url) {
+  return url.toLowerCase().includes("workbridge");
 }
 
 // Used on both sides of a project — worker sharing finished work, business
@@ -227,7 +235,11 @@ export default function DeliverablesPanel({ projectId }) {
                           rel="noreferrer"
                           className="flex items-center gap-1.5 text-sm font-semibold text-[#1B3FAB] hover:underline"
                         >
-                          <Link2 className="h-3.5 w-3.5 flex-shrink-0" />
+                          {isInternalLink(s.url) ? (
+                            <img src={brandLogo} alt="WorkBridge" className="h-3.5 w-3.5 flex-shrink-0 object-contain" />
+                          ) : (
+                            <Link2 className="h-3.5 w-3.5 flex-shrink-0" />
+                          )}
                           {detectProvider(s.url)}
                           <ExternalLink className="h-3 w-3 flex-shrink-0" />
                         </a>
