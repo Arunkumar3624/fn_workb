@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import {
   AlertCircle,
   Camera,
@@ -500,9 +501,22 @@ export default function WorkerProfile() {
         </div>
       </main>
 
-      {editing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
-          <div className="flex max-h-[85vh] w-full max-w-3xl flex-col rounded-2xl bg-white shadow-2xl">
+      <AnimatePresence>
+        {editing && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+          >
+          <motion.div
+            className="flex max-h-[85vh] w-full max-w-3xl flex-col rounded-2xl bg-white shadow-2xl"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+          >
             <div className="flex flex-shrink-0 items-center justify-between border-b border-slate-100 px-6 py-4">
               <h2 className="text-lg font-bold text-slate-900">Edit Profile</h2>
               <button
@@ -590,18 +604,18 @@ export default function WorkerProfile() {
                   {draft.projects.map((entry, index) => (
                     <div key={index} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
                       <div className="flex items-start gap-2">
-                        <div className="grid min-w-0 flex-1 gap-2 sm:grid-cols-2">
+                        <div className="grid min-w-0 flex-1 grid-cols-1 gap-2 md:grid-cols-2">
                           <input
                             value={entry.title}
                             onChange={(e) => updateDraftListItem("projects", index, { title: e.target.value })}
                             placeholder="Project title"
-                            className="min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
+                            className="w-full min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
                           />
                           <input
                             value={entry.link}
                             onChange={(e) => updateDraftListItem("projects", index, { link: e.target.value })}
                             placeholder="Link (optional)"
-                            className="min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
+                            className="w-full min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
                           />
                         </div>
                         <button
@@ -640,24 +654,24 @@ export default function WorkerProfile() {
                   {draft.education.length === 0 && <p className="text-xs text-slate-400">No education added yet.</p>}
                   {draft.education.map((entry, index) => (
                     <div key={index} className="flex items-start gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
-                      <div className="grid min-w-0 flex-1 gap-2 sm:grid-cols-[1fr_1fr_90px]">
+                      <div className="grid min-w-0 flex-1 grid-cols-1 gap-2 md:grid-cols-[1fr_1fr_90px]">
                         <input
                           value={entry.degree}
                           onChange={(e) => updateDraftListItem("education", index, { degree: e.target.value })}
                           placeholder="Degree (e.g. B.Tech CSE)"
-                          className="min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
+                          className="w-full min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
                         />
                         <input
                           value={entry.school}
                           onChange={(e) => updateDraftListItem("education", index, { school: e.target.value })}
                           placeholder="School / University"
-                          className="min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
+                          className="w-full min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
                         />
                         <input
                           value={entry.year}
                           onChange={(e) => updateDraftListItem("education", index, { year: e.target.value })}
                           placeholder="Year"
-                          className="min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
+                          className="w-full min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
                         />
                       </div>
                       <button
@@ -688,24 +702,24 @@ export default function WorkerProfile() {
                   {draft.certifications.length === 0 && <p className="text-xs text-slate-400">No certifications added yet.</p>}
                   {draft.certifications.map((entry, index) => (
                     <div key={index} className="flex items-start gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
-                      <div className="grid min-w-0 flex-1 gap-2 sm:grid-cols-[1fr_1fr_90px]">
+                      <div className="grid min-w-0 flex-1 grid-cols-1 gap-2 md:grid-cols-[1fr_1fr_90px]">
                         <input
                           value={entry.name}
                           onChange={(e) => updateDraftListItem("certifications", index, { name: e.target.value })}
                           placeholder="Course / certification name"
-                          className="min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
+                          className="w-full min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
                         />
                         <input
                           value={entry.issuer}
                           onChange={(e) => updateDraftListItem("certifications", index, { issuer: e.target.value })}
                           placeholder="Issued by (e.g. Coursera)"
-                          className="min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
+                          className="w-full min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
                         />
                         <input
                           value={entry.year}
                           onChange={(e) => updateDraftListItem("certifications", index, { year: e.target.value })}
                           placeholder="Year"
-                          className="min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
+                          className="w-full min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
                         />
                       </div>
                       <button
@@ -749,9 +763,10 @@ export default function WorkerProfile() {
                 {saving ? "Saving…" : "Save Changes"}
               </button>
             </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
