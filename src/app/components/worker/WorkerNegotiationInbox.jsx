@@ -3,20 +3,18 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
 import {
   AlertCircle,
-  ArrowLeftRight,
   BadgeCheck,
   Briefcase,
   Check,
   Clock3,
   FileText,
   IndianRupee,
+  Loader2,
   LockKeyhole,
   MessageSquare,
   Send,
   ShieldCheck,
-  Sparkles,
   X,
-  Zap,
 } from "lucide-react";
 import Avatar from "../shared/Avatar";
 import DeliverablesPanel from "../shared/DeliverablesPanel";
@@ -104,7 +102,7 @@ function FieldPill({ icon: Icon, label, value, dark = false }) {
           {label}
         </p>
       </div>
-      <p className={`mt-1 text-sm font-black ${dark ? "text-emerald-100" : "text-slate-900"}`}>{value}</p>
+      <p className={`mt-1 text-sm font-bold ${dark ? "text-emerald-100" : "text-slate-900"}`}>{value}</p>
     </div>
   );
 }
@@ -119,10 +117,10 @@ function ThreadNavigator({ threads, selectedThreadId, onSelect, onViewDetails })
       <div className="flex-shrink-0 border-b border-slate-200 px-5 py-3">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Active Threads</p>
-            <h2 className="text-base font-black text-slate-900">{threads.length} invitation{threads.length === 1 ? "" : "s"}</h2>
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Active Threads</p>
+            <h2 className="text-base font-bold text-slate-900">{threads.length} invitation{threads.length === 1 ? "" : "s"}</h2>
           </div>
-          <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-black text-slate-500">
+          <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-slate-500">
             Live
           </span>
         </div>
@@ -161,10 +159,10 @@ function ThreadNavigator({ threads, selectedThreadId, onSelect, onViewDetails })
                   <Avatar initials={getInitials(thread.business_name)} bg="bg-[#1B3FAB]" size="w-10 h-10" text="text-xs" />
                 )}
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-black text-slate-900">{thread.business_name}</p>
+                  <p className="truncate text-xs font-bold text-slate-900">{thread.business_name}</p>
                   <p className="mt-0.5 truncate text-xs font-semibold text-slate-500">{thread.title}</p>
                 </div>
-                <span className={`flex-shrink-0 rounded-full border px-2 py-1 text-[10px] font-black ${status.className}`}>
+                <span className={`flex-shrink-0 rounded-full border px-2 py-1 text-[10px] font-bold ${status.className}`}>
                   {status.label}
                 </span>
               </div>
@@ -193,8 +191,8 @@ function JobDetailsPanel({ project }) {
     <div>
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">Job invitation</p>
-          <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-900">
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-400">Job invitation</p>
+          <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-slate-900">
             {project.title}
           </h2>
         </div>
@@ -209,8 +207,8 @@ function JobDetailsPanel({ project }) {
       </div>
 
       <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">Description</p>
-        <p className="mt-2 max-h-44 overflow-y-auto pr-1 text-sm leading-6 text-slate-600">
+        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Description</p>
+        <p className="mt-2 max-h-44 overflow-y-auto pr-1 text-sm leading-6 text-slate-600 wb-scroll-clean">
           {project.description || "No additional description was provided by the business."}
         </p>
       </div>
@@ -219,7 +217,7 @@ function JobDetailsPanel({ project }) {
         <div className="flex items-start gap-3">
           <ShieldCheck className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#1B3FAB]" />
           <div>
-            <p className="text-sm font-black text-slate-900">Terms stay protected</p>
+            <p className="text-sm font-bold text-slate-900">Terms stay protected</p>
             <p className="mt-1 text-xs leading-5 text-slate-500">
               Acceptance locks this scope, budget, and timeline into your WorkBridge workspace.
             </p>
@@ -236,98 +234,15 @@ function JobDetailsPanel({ project }) {
   );
 }
 
-function WizardStep({ index, title, description, state }) {
-  const isDone = state === "done";
-  const isActive = state === "active";
-
-  return (
-    <div className="relative flex gap-4">
-      {index < 3 && <div className="absolute left-5 top-11 h-[calc(100%-1.25rem)] w-px bg-slate-200" />}
-      <div
-        className={`z-10 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl border text-sm font-black shadow-sm ${
-          isDone
-            ? "border-emerald-200 bg-emerald-500 text-white"
-            : isActive
-              ? "border-orange-200 bg-orange-50 text-[#FF6B35]"
-              : "border-slate-200 bg-white text-slate-400"
-        }`}
-      >
-        {isDone ? <Check className="h-5 w-5" /> : index}
-      </div>
-      <div className={`rounded-2xl border p-4 shadow-sm ${isActive ? "border-orange-200 bg-orange-50/70" : "border-slate-200 bg-white"}`}>
-        <p className="text-sm font-black text-slate-900">{title}</p>
-        <p className="mt-1 text-xs leading-5 text-slate-500">{description}</p>
-      </div>
-    </div>
-  );
-}
-
-function AcceptWizardPanel({ project, onBack, onStart, actionBusy }) {
-  return (
-    <div>
-      <button
-        type="button"
-        onClick={onBack}
-        className="mb-4 flex w-fit items-center gap-2 rounded-xl px-2 py-1 text-xs font-bold text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
-      >
-        <ArrowLeftRight className="h-3.5 w-3.5" />
-        Back to invitation
-      </button>
-
-      <div className="mb-5 flex items-center gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0A1128] text-white">
-          <Sparkles className="h-5 w-5 text-[#FF6B35]" />
-        </div>
-        <div>
-          <p className="text-[11px] font-black uppercase tracking-[0.22em] text-[#1B3FAB]">Lock terms</p>
-          <h2 className="text-xl font-black text-slate-900">Acceptance wizard</h2>
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        <WizardStep
-          index={1}
-          title="Review Scope"
-          description={`Scope reviewed for "${project.title}". Budget, timeline, and deliverables are attached to this invite.`}
-          state="done"
-        />
-        <WizardStep
-          index={2}
-          title="Confirm Escrow Lock"
-          description="The funded terms are protected in WorkBridge escrow before work moves into the active workspace."
-          state="active"
-        />
-        <div className="relative flex gap-4">
-          <div className="z-10 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-sm font-black text-slate-500 shadow-sm">
-            3
-          </div>
-          <div className="flex-1 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <p className="text-sm font-black text-slate-900">Start Project</p>
-            <p className="mt-1 text-xs leading-5 text-slate-500">
-              Finalize acceptance and move this project into your active workspace.
-            </p>
-            <button
-              type="button"
-              onClick={onStart}
-              disabled={actionBusy}
-              className="mt-4 flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl bg-[#1B3FAB] px-5 py-3 text-sm font-black text-white shadow-md shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-[#173795] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
-            >
-              <Zap className="h-4 w-4" />
-              {actionBusy ? "Finalizing..." : "Start Project ⚡"}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // The Details Modal — portaled to document.body so it's never at risk of
 // the "ancestor with a lingering CSS transform becomes the containing block
 // for position:fixed" trap other overlays in this app hit when nested
 // inside a tab's own .wb-tab-enter root (see BusinessProjects.jsx's modals
-// for the full writeup of that bug).
-function JobDetailsModal({ project, view, onShowWizard, onBackToDetails, onClose, onDecline, onStart, actionBusy, actionError }) {
+// for the full writeup of that bug). The close button floats over the
+// backdrop rather than sitting inside the card, so it never collides with
+// the card's own header content. The card's own scroll keeps working via
+// wheel/touch/keyboard — .wb-scroll-clean only hides the visible track.
+function JobDetailsModal({ project, onClose, onDecline, onAccept, actionBusy, actionError }) {
   if (!project) return null;
 
   return createPortal(
@@ -335,19 +250,19 @@ function JobDetailsModal({ project, view, onShowWizard, onBackToDetails, onClose
       className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4"
       onClick={onClose}
     >
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label="Close"
+        className="fixed right-6 top-6 z-[110] flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-sm transition hover:bg-white/20"
+      >
+        <X className="h-5 w-5" />
+      </button>
+
       <div
-        className="relative max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl"
+        className="relative max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl wb-scroll-clean"
         onClick={(event) => event.stopPropagation()}
       >
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close"
-          className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
-        >
-          <X className="h-4 w-4" />
-        </button>
-
         {actionError && (
           <div className="mb-4 flex items-start gap-2 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
             <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
@@ -356,34 +271,38 @@ function JobDetailsModal({ project, view, onShowWizard, onBackToDetails, onClose
         )}
 
         <AnimatePresence mode="wait" initial={false}>
-          {view === "details" ? (
-            <MotionPanel panelKey={`details-${project.id}`}>
-              <JobDetailsPanel project={project} />
-              <div className="mt-6 space-y-3">
-                <button
-                  type="button"
-                  onClick={onShowWizard}
-                  disabled={actionBusy}
-                  className="flex min-h-[58px] w-full items-center justify-center gap-2 rounded-2xl bg-[#FF6B35] px-5 py-4 text-sm font-black text-white shadow-md shadow-orange-200 transition hover:-translate-y-0.5 hover:bg-[#e85d27] hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
-                >
-                  <LockKeyhole className="h-4 w-4" />
-                  Accept Invitation & Lock Terms
-                </button>
-                <button
-                  type="button"
-                  onClick={onDecline}
-                  className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-slate-900"
-                >
-                  <X className="h-4 w-4" />
-                  Decline
-                </button>
-              </div>
-            </MotionPanel>
-          ) : (
-            <MotionPanel panelKey={`wizard-${project.id}`}>
-              <AcceptWizardPanel project={project} onBack={onBackToDetails} onStart={onStart} actionBusy={actionBusy} />
-            </MotionPanel>
-          )}
+          <MotionPanel panelKey={project.id}>
+            <JobDetailsPanel project={project} />
+            <div className="mt-6 space-y-3">
+              <button
+                type="button"
+                onClick={onAccept}
+                disabled={actionBusy}
+                className="flex min-h-[58px] w-full items-center justify-center gap-2 rounded-2xl bg-[#FF6B35] px-5 py-4 text-sm font-bold text-white shadow-md shadow-orange-200 transition hover:-translate-y-0.5 hover:bg-[#e85d27] hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+              >
+                {actionBusy ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Locking terms…
+                  </>
+                ) : (
+                  <>
+                    <LockKeyhole className="h-4 w-4" />
+                    Accept Invitation & Lock Terms
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={onDecline}
+                disabled={actionBusy}
+                className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <X className="h-4 w-4" />
+                Decline
+              </button>
+            </div>
+          </MotionPanel>
         </AnimatePresence>
       </div>
     </div>,
@@ -425,16 +344,16 @@ function ChatPanel({ project, messages, draft, onDraftChange, onSend }) {
     <section className="flex h-full min-h-0 flex-1 flex-col bg-slate-50">
       <header className="sticky top-0 z-10 flex min-h-[72px] flex-shrink-0 items-center justify-between border-b border-slate-200 bg-white/95 px-6 backdrop-blur-xl">
         <div>
-          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Negotiation Chat</p>
-          <h2 className="mt-1 text-lg font-black text-slate-900">Chat with {project.business_name}</h2>
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Negotiation Chat</p>
+          <h2 className="mt-1 text-lg font-bold text-slate-900">Chat with {project.business_name}</h2>
         </div>
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
           <BadgeCheck className="h-3.5 w-3.5" />
           Verified client
         </span>
       </header>
 
-      <div ref={feedRef} className="flex-1 space-y-5 overflow-y-auto px-6 py-6">
+      <div ref={feedRef} className="flex-1 space-y-5 overflow-y-auto px-6 py-6 wb-scroll-clean">
         {messages.map((message) => (
           <MessageBubble key={message.id} message={message} />
         ))}
@@ -469,7 +388,6 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
   const [actionError, setActionError] = useState("");
   const [selectedThreadId, setSelectedThreadId] = useState(initialProjectId ?? null);
   const [selectedJobDetails, setSelectedJobDetails] = useState(null);
-  const [modalView, setModalView] = useState("details");
   const [actionBusy, setActionBusy] = useState(false);
   const [toast, setToast] = useState("");
   const [messagesByProject, setMessagesByProject] = useState({});
@@ -540,16 +458,16 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
 
   const openDetails = (project) => {
     setSelectedJobDetails(project);
-    setModalView("details");
     setActionError("");
   };
 
   const closeDetails = () => {
     setSelectedJobDetails(null);
-    setModalView("details");
   };
 
-  const handleStartProject = async () => {
+  // One click, one action — no separate "wizard" screen in between. Confirm
+  // once, and it's accepted.
+  const handleAccept = async () => {
     if (!selectedJobDetails) return;
     setActionBusy(true);
     setActionError("");
@@ -616,7 +534,7 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
       <div className="flex h-full items-center justify-center bg-slate-50 p-7">
         <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
           <MessageSquare className="mx-auto h-10 w-10 text-slate-300" />
-          <h2 className="mt-4 text-lg font-black text-slate-900">No active invitations yet</h2>
+          <h2 className="mt-4 text-lg font-bold text-slate-900">No active invitations yet</h2>
           <p className="mt-1 text-sm text-slate-500">New business invites will appear here.</p>
         </div>
       </div>
@@ -646,18 +564,15 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
 
       <JobDetailsModal
         project={selectedJobDetails}
-        view={modalView}
-        onShowWizard={() => setModalView("wizard")}
-        onBackToDetails={() => setModalView("details")}
         onClose={closeDetails}
         onDecline={handleDecline}
-        onStart={handleStartProject}
+        onAccept={handleAccept}
         actionBusy={actionBusy}
         actionError={actionError}
       />
 
       {toast && (
-        <div className="absolute bottom-6 left-1/2 z-20 -translate-x-1/2 rounded-2xl border border-emerald-200 bg-white px-5 py-3 text-sm font-black text-emerald-700 shadow-md">
+        <div className="absolute bottom-6 left-1/2 z-20 -translate-x-1/2 rounded-2xl border border-emerald-200 bg-white px-5 py-3 text-sm font-bold text-emerald-700 shadow-md">
           <span className="flex items-center gap-2">
             <Check className="h-4 w-4" />
             {toast}
