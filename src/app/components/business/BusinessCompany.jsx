@@ -23,8 +23,8 @@ import ShareProfileButton from "../shared/ShareProfileButton";
 // ── Static data ───────────────────────────────────────────────────────────────
 
 const INITIAL_PROFILE = {
-  name: "RetailX Pvt Ltd",
-  initials: "RX",
+  name: "Markantan K",
+  initials: "MK",
   coverImage: "",
   tagline: "India's fastest-growing D2C e-commerce enabler",
   industry: "E-Commerce Technology",
