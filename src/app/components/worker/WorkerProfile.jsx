@@ -19,6 +19,8 @@ import { listReviewsFor } from "../../lib/reviewsApi";
 import { getInitials } from "../../utils/formValidation";
 import { ApiError } from "../../lib/apiClient";
 import { getSocket } from "../../lib/socketClient";
+import EditableCoverPhoto from "../shared/EditableCoverPhoto";
+import ShareProfileButton from "../shared/ShareProfileButton";
 
 const MAX_AVATAR_BYTES = 1.5 * 1024 * 1024; // 1.5MB — stored as a data URL in avatar_url (TEXT), no file-storage backend exists yet.
 
@@ -112,6 +114,8 @@ export default function WorkerProfile() {
   const [saveError, setSaveError] = useState("");
   const [avatarError, setAvatarError] = useState("");
   const [avatarUploading, setAvatarUploading] = useState(false);
+  const [coverError, setCoverError] = useState("");
+  const [coverUploading, setCoverUploading] = useState(false);
 
   useEffect(() => {
     if (!currentUser?.id) return;
@@ -250,6 +254,21 @@ export default function WorkerProfile() {
     }
   };
 
+  const handleCoverUpload = async (dataUrl) => {
+    setCoverError("");
+    setCoverUploading(true);
+    try {
+      const updated = await updateOwnProfile({ profilePatch: { coverUrl: dataUrl } });
+      updateCurrentUser(updated);
+    } catch (err) {
+      setCoverError(err instanceof ApiError ? err.message : "Could not upload cover photo.");
+    } finally {
+      setCoverUploading(false);
+    }
+  };
+
+  const shareUrl = currentUser?.id ? `${window.location.origin}/profiles/${currentUser.id}` : undefined;
+
   const profile = currentUser?.profile ?? {};
   const skills = profile.skills ?? [];
   const education = profile.education ?? [];
@@ -260,11 +279,16 @@ export default function WorkerProfile() {
     <div className="h-full overflow-y-auto bg-[#F8FAFC]">
       <main className="min-h-screen bg-[#F8FAFC] pb-20 text-slate-900">
         <div className="mx-auto max-w-5xl px-4 pt-8">
-          <section className="overflow-hidden rounded-lg bg-white shadow-[0_20px_55px_rgba(15,23,42,0.08)]">
-            <div className="h-32 bg-[radial-gradient(circle_at_18%_30%,rgba(255,107,53,0.28),transparent_28%),linear-gradient(120deg,#0F172A_0%,#334155_50%,#FF6B35_100%)] sm:h-40" />
+          <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_20px_55px_rgba(15,23,42,0.06)]">
+            <EditableCoverPhoto
+              coverUrl={profile.coverUrl}
+              onUpload={handleCoverUpload}
+              uploading={coverUploading}
+              onError={setCoverError}
+            />
             <div className="px-6 pb-7 sm:px-8">
-              <div className="-mt-16 flex flex-col gap-5 rounded-lg bg-slate-950/55 p-5 text-white shadow-[0_18px_45px_rgba(15,23,42,0.18)] backdrop-blur-xl lg:flex-row lg:items-end lg:justify-between">
-                <div className="flex flex-col gap-5 sm:flex-row sm:items-end">
+              <div className="-mt-14 flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_18px_45px_rgba(15,23,42,0.08)] lg:flex-row lg:items-start lg:justify-between">
+                <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
                   <input
                     type="file"
                     accept="image/*"
@@ -283,13 +307,13 @@ export default function WorkerProfile() {
                       <img
                         src={currentUser.avatar_url}
                         alt={`${currentUser.name} profile`}
-                        className="h-28 w-28 rounded-full border-4 border-white object-cover shadow-lg"
+                        className="h-28 w-28 rounded-full border-4 border-white object-cover shadow-lg ring-1 ring-slate-200"
                       />
                     ) : (
                       <img
                         src={defaultAvatarUrl}
                         alt="Default profile"
-                        className="h-28 w-28 rounded-full border-4 border-white object-cover shadow-lg"
+                        className="h-28 w-28 rounded-full border-4 border-white object-cover shadow-lg ring-1 ring-slate-200"
                       />
                     )}
                     <span className="absolute bottom-2 right-2 h-5 w-5 rounded-full border-4 border-white bg-emerald-500 shadow-[0_0_0_5px_rgba(16,185,129,0.16)]" />
@@ -314,43 +338,54 @@ export default function WorkerProfile() {
                     )}
                   </label>
                   <div className="pb-1">
-                    <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">{currentUser?.name}</h1>
-                    <p className="mt-2 text-lg font-medium text-white/85">{currentUser?.title || "Freelancer"}</p>
-                    <div className="mt-4 flex flex-wrap items-center gap-3 text-sm font-medium text-white/75">
+                    <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">{currentUser?.name}</h1>
+                    <p className="mt-1 text-lg font-medium text-slate-500">{currentUser?.title || "Freelancer"}</p>
+                    <div className="mt-3 flex flex-wrap items-center gap-3 text-sm font-medium text-slate-500">
                       {profile.location && (
                         <span className="inline-flex items-center gap-1.5">
-                          <MapPin className="h-4 w-4 text-white/65" />
+                          <MapPin className="h-4 w-4 text-slate-400" />
                           {profile.location}
                         </span>
                       )}
                       {currentUser?.phone && (
                         <span className="inline-flex items-center gap-1.5">
-                          <Phone className="h-4 w-4 text-white/65" />
+                          <Phone className="h-4 w-4 text-slate-400" />
                           +91 {currentUser.phone}
                         </span>
                       )}
                       {currentUser?.rating != null && (
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 font-bold text-white ring-1 ring-white/20">
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1.5 font-bold text-amber-700 ring-1 ring-amber-100">
                           <Star className="h-3.5 w-3.5 fill-current" />
                           {currentUser.rating} ({currentUser.reviews_count} reviews)
                         </span>
                       )}
                     </div>
+                    <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600">
+                      {profile.bio || "No bio yet — click Edit Profile to add a professional introduction."}
+                    </p>
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={startEdit}
-                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/20 bg-white/10 px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-white/20"
-                >
-                  <Pencil className="h-4 w-4" />
-                  Edit Profile
-                </button>
+                <div className="flex flex-shrink-0 items-center gap-2">
+                  <ShareProfileButton
+                    url={shareUrl}
+                    title={currentUser?.name}
+                    text={`Check out ${currentUser?.name}'s profile on WorkBridge`}
+                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 transition hover:-translate-y-0.5 hover:bg-slate-50"
+                  />
+                  <button
+                    type="button"
+                    onClick={startEdit}
+                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#1B3FAB] px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-[#15338d]"
+                  >
+                    <Pencil className="h-4 w-4" />
+                    Edit Profile
+                  </button>
+                </div>
               </div>
-              {avatarError && (
+              {(avatarError || coverError) && (
                 <p className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-red-500">
                   <AlertCircle className="h-3.5 w-3.5" />
-                  {avatarError}
+                  {avatarError || coverError}
                 </p>
               )}
             </div>
@@ -360,13 +395,6 @@ export default function WorkerProfile() {
 
           <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(280px,3fr)]">
             <div className="space-y-8">
-              <ProfileCard>
-                <h2 className="text-lg font-bold text-slate-900">About Me</h2>
-                <p className="mt-4 max-w-4xl text-[15px] leading-7 text-slate-600">
-                  {profile.bio || "No bio yet — click Edit Profile to add one."}
-                </p>
-              </ProfileCard>
-
               <ProfileCard>
                 <h2 className="text-lg font-bold text-slate-900">Projects</h2>
                 {projects.length === 0 ? (

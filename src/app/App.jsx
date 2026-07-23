@@ -20,6 +20,7 @@ const BusinessDashboard = lazy(() => import("./pages/BusinessDashboard"));
 const BusinessVerification = lazy(() => import("./pages/BusinessVerification"));
 const BusinessVerificationDrawer = lazy(() => import("./pages/BusinessVerificationDrawer"));
 const AdminPanel = lazy(() => import("./pages/AdminPanel"));
+const PublicProfilePage = lazy(() => import("./pages/PublicProfilePage"));
 
 function RouteFallback() {
   return (
@@ -246,6 +247,7 @@ function AppRoutes() {
         }
       />
       <Route path="/invoice" element={<InvoicePage />} />
+      <Route path="/profiles/:id" element={<PublicProfilePage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
     </Suspense>

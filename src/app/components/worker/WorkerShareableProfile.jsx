@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import { listReviewsFor } from "../../lib/reviewsApi";
 import { getInitials } from "../../utils/formValidation";
+import EditableCoverPhoto from "../shared/EditableCoverPhoto";
+import ShareProfileButton from "../shared/ShareProfileButton";
 
 function ProfileSection({ title, children }) {
   return (
@@ -87,12 +89,10 @@ export default function WorkerShareableProfile({ worker }) {
     <main className="min-h-full bg-[#F8FAFC] font-sans text-[#0F172A]">
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <section className="rounded-xl bg-white shadow-[0_24px_70px_rgba(15,23,42,0.10)]">
-          <div className="relative h-52 rounded-t-xl bg-[radial-gradient(circle_at_18%_30%,rgba(255,107,53,0.26),transparent_28%),linear-gradient(120deg,#0F172A_0%,#334155_52%,#FF6B35_100%)] sm:h-60">
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,23,42,0)_0%,rgba(15,23,42,0.28)_100%)]" />
-          </div>
+          <EditableCoverPhoto coverUrl={profile.coverUrl} editable={false} heightClass="h-52 rounded-t-xl sm:h-60" />
           <div className="px-5 pb-7 sm:px-8">
-            <div className="relative z-10 -mt-12 grid gap-6 rounded-xl border border-slate-200 bg-white p-5 shadow-[0_24px_60px_rgba(15,23,42,0.14)] lg:grid-cols-[1fr_auto] lg:items-center">
-              <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+            <div className="relative z-10 -mt-12 grid gap-6 rounded-xl border border-slate-200 bg-white p-5 shadow-[0_24px_60px_rgba(15,23,42,0.14)] lg:grid-cols-[1fr_auto] lg:items-start">
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
                 <div className="relative h-32 w-32 flex-none">
                   {worker.avatar_url ? (
                     <img
@@ -124,7 +124,17 @@ export default function WorkerShareableProfile({ worker }) {
                       </span>
                     )}
                   </div>
+                  <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600">
+                    {profile.bio || "This worker hasn't added a bio yet."}
+                  </p>
                 </div>
+              </div>
+              <div className="flex flex-shrink-0 items-start justify-end">
+                <ShareProfileButton
+                  url={typeof window !== "undefined" ? `${window.location.origin}/profiles/${worker.id}` : undefined}
+                  title={worker.name}
+                  text={`Check out ${worker.name}'s profile on WorkBridge`}
+                />
               </div>
             </div>
           </div>
@@ -132,12 +142,6 @@ export default function WorkerShareableProfile({ worker }) {
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(320px,3fr)]">
           <div className="space-y-8">
-            <ProfileSection title="About Me">
-              <p className="max-w-4xl text-[15px] leading-7 text-slate-600">
-                {profile.bio || "This worker hasn't added a bio yet."}
-              </p>
-            </ProfileSection>
-
             {projects.length > 0 && (
               <ProfileSection title="Projects">
                 <div className="grid gap-4 md:grid-cols-2">

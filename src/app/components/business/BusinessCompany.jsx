@@ -17,6 +17,8 @@ import {
   Users,
 } from "lucide-react";
 import Avatar from "../shared/Avatar";
+import EditableCoverPhoto from "../shared/EditableCoverPhoto";
+import ShareProfileButton from "../shared/ShareProfileButton";
 
 // ── Static data ───────────────────────────────────────────────────────────────
 
@@ -97,100 +99,99 @@ function RatingBar({ label, value, total = 28 }) {
 
 // ── Profile view ─────────────────────────────────────────────────────────────
 
-function ProfileView({ profile, onEdit }) {
+function ProfileView({ profile, onEdit, onCoverUpload, coverUploading }) {
+  const shareUrl = typeof window !== "undefined" ? window.location.href : undefined;
+
   return (
     <div className="bg-slate-50 wb-tab-enter">
 
-      {/* ── Hero – NO overflow-hidden on this outer wrapper ───────────────── */}
+      {/* ── Hero ───────────────────────────────────────────────────────── */}
       <div className="border-b border-slate-200 bg-slate-50 p-1">
+        <EditableCoverPhoto
+          coverUrl={profile.coverImage}
+          onUpload={onCoverUpload}
+          uploading={coverUploading}
+          heightClass="h-[clamp(200px,24vh,260px)] rounded-[20px]"
+        />
 
-        {/* Cover banner – overflow-hidden HERE clips the decorative blobs only */}
-        <div
-          className="relative h-[clamp(270px,31vh,340px)] max-h-[340px] min-h-[270px] overflow-hidden rounded-[20px] bg-[#0F172A] bg-cover bg-center shadow-sm"
-          style={
-            profile.coverImage
-              ? { backgroundImage: `url(${profile.coverImage})` }
-              : undefined
-          }
-        >
-          {!profile.coverImage && (
-            <>
-              <div className="absolute -top-16 -right-16 w-72 h-72 bg-[#1B3FAB] rounded-full blur-3xl opacity-50" />
-              <div className="absolute -bottom-20 -left-10 w-64 h-64 bg-[#FF6B35] rounded-full blur-3xl opacity-15" />
-            </>
-          )}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0F172A]/80 via-[#0F172A]/35 to-[#1B3FAB]/50" />
-
-          {/* Edit Profile button inside cover */}
-          <button
-            onClick={onEdit}
-            className="absolute top-4 right-5 flex items-center gap-1.5 px-3 py-1.5 bg-white/12 hover:bg-white/22 backdrop-blur-md border border-white/25 text-white text-xs font-semibold rounded-xl transition-colors"
-          >
-            <Edit3 className="w-3 h-3" />
-            Edit Profile
-          </button>
-
-          {/* Identity card sits inside the cover so the whole area reads as one header */}
-          <div className="absolute inset-x-1 bottom-1 z-10">
-            <div className="flex flex-col gap-5 rounded-2xl border border-white/80 bg-white/95 p-5 shadow-xl backdrop-blur-md sm:flex-row sm:items-center">
-            {/* Company logo – z-10 ensures it sits above the cover */}
-            <div className="w-[84px] h-[84px] rounded-2xl bg-white p-[4px] shadow-xl ring-1 ring-slate-200 flex-shrink-0">
-              <div
-                className="w-full h-full bg-[#1B3FAB] rounded-xl flex items-center justify-center text-white font-extrabold text-xl"
-                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-              >
-                {profile.initials}
-              </div>
-            </div>
-
-            {/* Company info */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap mb-1">
-                <h1
-                  className="font-extrabold text-[#0F172A] text-xl leading-tight"
+        {/* Identity card overlaps the bottom of the cover, light theme —
+            replacing the old dark-glassmorphism card that sat inside it. */}
+        <div className="relative -mt-14 px-1">
+          <div className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-xl sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
+              {/* Company logo */}
+              <div className="w-[84px] h-[84px] rounded-2xl bg-white p-[4px] shadow-xl ring-1 ring-slate-200 flex-shrink-0">
+                <div
+                  className="w-full h-full bg-[#1B3FAB] rounded-xl flex items-center justify-center text-white font-extrabold text-xl"
                   style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
                 >
-                  {profile.name}
-                </h1>
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-700 text-[11px] font-bold rounded-full border border-amber-200 flex-shrink-0">
-                  <Award className="w-3 h-3" /> Premium
-                </span>
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-700 text-[11px] font-bold rounded-full border border-emerald-200 flex-shrink-0">
-                  <ShieldCheck className="w-3 h-3" /> GST Verified
-                </span>
+                  {profile.initials}
+                </div>
               </div>
 
-              <p className="text-slate-500 text-sm italic mb-2">{profile.tagline}</p>
-
-              {/* Meta chips */}
-              <div className="flex items-center gap-x-3 gap-y-1 flex-wrap">
-                {[
-                  { Icon: Building2, val: profile.industry },
-                  { Icon: MapPin,    val: profile.location  },
-                  { Icon: Users,     val: profile.size      },
-                  { Icon: Calendar,  val: `Est. ${profile.founded}` },
-                ].map(({ Icon, val }) => (
-                  <span key={val} className="flex items-center gap-1 text-xs text-slate-500">
-                    <Icon className="w-3 h-3 flex-shrink-0" />
-                    {val}
-                  </span>
-                ))}
-                {profile.website && (
-                  <a
-                    href={profile.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-xs text-[#1B3FAB] font-semibold hover:underline"
+              {/* Company info */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap mb-1">
+                  <h1
+                    className="font-extrabold text-[#0F172A] text-xl leading-tight"
+                    style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
                   >
-                    <Globe className="w-3 h-3 flex-shrink-0" />
-                    {profile.website.replace("https://", "")}
-                    <ExternalLink className="w-2.5 h-2.5" />
-                  </a>
-                )}
+                    {profile.name}
+                  </h1>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-700 text-[11px] font-bold rounded-full border border-amber-200 flex-shrink-0">
+                    <Award className="w-3 h-3" /> Premium
+                  </span>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-700 text-[11px] font-bold rounded-full border border-emerald-200 flex-shrink-0">
+                    <ShieldCheck className="w-3 h-3" /> GST Verified
+                  </span>
+                </div>
+
+                <p className="text-slate-500 text-sm italic mb-2">{profile.tagline}</p>
+
+                {/* Meta chips */}
+                <div className="flex items-center gap-x-3 gap-y-1 flex-wrap">
+                  {[
+                    { Icon: Building2, val: profile.industry },
+                    { Icon: MapPin,    val: profile.location  },
+                    { Icon: Users,     val: profile.size      },
+                    { Icon: Calendar,  val: `Est. ${profile.founded}` },
+                  ].map(({ Icon, val }) => (
+                    <span key={val} className="flex items-center gap-1 text-xs text-slate-500">
+                      <Icon className="w-3 h-3 flex-shrink-0" />
+                      {val}
+                    </span>
+                  ))}
+                  {profile.website && (
+                    <a
+                      href={profile.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-xs text-[#1B3FAB] font-semibold hover:underline"
+                    >
+                      <Globe className="w-3 h-3 flex-shrink-0" />
+                      {profile.website.replace("https://", "")}
+                      <ExternalLink className="w-2.5 h-2.5" />
+                    </a>
+                  )}
+                </div>
+
+                {/* Bio, merged into the header — no separate "About" card
+                    further down the page for HR visitors to hunt for. */}
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">{profile.bio}</p>
               </div>
             </div>
+
+            <div className="flex flex-shrink-0 items-center gap-2">
+              <ShareProfileButton url={shareUrl} title={profile.name} text={`Check out ${profile.name} on WorkBridge`} />
+              <button
+                onClick={onEdit}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-[#1B3FAB] px-4 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-[#1635A0]"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+                Edit Profile
+              </button>
+            </div>
           </div>
-        </div>
         </div>
       </div>
 
@@ -226,13 +227,6 @@ function ProfileView({ profile, onEdit }) {
 
           {/* LEFT – main content (2/3) */}
           <div className="lg:col-span-2 space-y-5">
-
-            {/* About */}
-            <div className="bg-white rounded-2xl border border-slate-200 p-6">
-              <h2 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3"
-                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>About</h2>
-              <p className="text-slate-600 text-sm leading-relaxed">{profile.bio}</p>
-            </div>
 
             {/* Culture */}
             <div className="bg-white rounded-2xl border border-slate-200 p-6">
@@ -459,14 +453,6 @@ function ProfileView({ profile, onEdit }) {
 // ── Edit form ─────────────────────────────────────────────────────────────────
 
 function EditForm({ draft, onChange, onSave, onCancel }) {
-  const handleCoverUpload = (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    onChange("coverImage", URL.createObjectURL(file));
-    event.target.value = "";
-  };
-
   return (
     <div className="h-full min-h-0 overflow-y-auto bg-slate-50 p-7 pb-12 wb-tab-enter">
       <div className="max-w-2xl mx-auto">
@@ -498,38 +484,12 @@ function EditForm({ draft, onChange, onSave, onCancel }) {
           </Field>
 
           <Field label="Header Image">
-            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-[#0F172A] shadow-sm">
-              <div
-                className="relative h-[clamp(180px,22vh,260px)] max-h-64 min-h-[180px] bg-cover bg-center"
-                style={
-                  draft.coverImage
-                    ? { backgroundImage: `url(${draft.coverImage})` }
-                    : undefined
-                }
-              >
-                {!draft.coverImage && (
-                  <>
-                    <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[#1B3FAB] opacity-60 blur-3xl" />
-                    <div className="absolute -bottom-12 left-4 h-28 w-28 rounded-full bg-[#FF6B35] opacity-30 blur-3xl" />
-                  </>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-r from-[#0F172A]/80 via-[#0F172A]/35 to-[#1B3FAB]/40" />
-                <label
-                  htmlFor="company-cover-upload"
-                  className="absolute inset-0 flex cursor-pointer items-center justify-center"
-                >
-                  <span className="rounded-xl border border-white/30 bg-white/15 px-4 py-2 text-sm font-bold text-white shadow-lg backdrop-blur-md transition hover:bg-white/25">
-                    {draft.coverImage ? "Change header image" : "Upload header image"}
-                  </span>
-                  <input
-                    id="company-cover-upload"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleCoverUpload}
-                  />
-                </label>
-              </div>
+            <div className="overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
+              <EditableCoverPhoto
+                coverUrl={draft.coverImage}
+                onUpload={(dataUrl) => onChange("coverImage", dataUrl)}
+                heightClass="h-[clamp(180px,22vh,260px)]"
+              />
             </div>
           </Field>
 
@@ -600,12 +560,31 @@ export default function BusinessCompany() {
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState(INITIAL_PROFILE);
   const [draft, setDraft]     = useState(INITIAL_PROFILE);
+  const [coverUploading, setCoverUploading] = useState(false);
 
   const handleChange  = (key, val) => setDraft((p) => ({ ...p, [key]: val }));
   const handleSave    = () => { setProfile(draft); setIsEditing(false); };
   const handleCancel  = () => { setDraft(profile); setIsEditing(false); };
 
+  // This whole page is still local-only mock state (no company-profile
+  // backend exists yet — see the file-level note this session left about
+  // BusinessCompany never having been wired up), so there's no real upload
+  // round-trip here; the loading state exists for when that lands.
+  const handleCoverUpload = (dataUrl) => {
+    setCoverUploading(true);
+    setProfile((p) => ({ ...p, coverImage: dataUrl }));
+    setDraft((p) => ({ ...p, coverImage: dataUrl }));
+    setCoverUploading(false);
+  };
+
   return isEditing
     ? <EditForm draft={draft} onChange={handleChange} onSave={handleSave} onCancel={handleCancel} />
-    : <ProfileView profile={profile} onEdit={() => setIsEditing(true)} />;
+    : (
+      <ProfileView
+        profile={profile}
+        onEdit={() => setIsEditing(true)}
+        onCoverUpload={handleCoverUpload}
+        coverUploading={coverUploading}
+      />
+    );
 }
