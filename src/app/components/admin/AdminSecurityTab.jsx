@@ -14,7 +14,7 @@ import {
   ShieldAlert,
   Sparkles,
 } from "lucide-react";
-import { listBlockedAttempts, resolveBlockedAttempt, searchMessages } from "../../lib/adminApi";
+import { listBlockedAttempts, resolveBlockedAttempt, searchMessages, banUserFromMessage } from "../../lib/adminApi";
 import { ApiError } from "../../lib/apiClient";
 
 function formatTime(iso) {
@@ -30,6 +30,24 @@ function MessageMonitor() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [banningId, setBanningId] = useState(null);
+  const [bannedIds, setBannedIds] = useState(new Set());
+  const [banError, setBanError] = useState("");
+
+  const handleBan = async (message) => {
+    if (banningId) return;
+    if (!window.confirm(`Ban ${message.sender_name} (${message.sender_role}) for sharing contact info?`)) return;
+    setBanningId(message.id);
+    setBanError("");
+    try {
+      await banUserFromMessage(message.id);
+      setBannedIds((prev) => new Set(prev).add(message.id));
+    } catch (err) {
+      setBanError(err instanceof ApiError ? err.message : "Could not ban this user.");
+    } finally {
+      setBanningId(null);
+    }
+  };
 
   useEffect(() => {
     const handle = setTimeout(() => {
@@ -73,6 +91,13 @@ function MessageMonitor() {
         </div>
       )}
 
+      {banError && (
+        <div className="mb-4 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+          <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+          <span>{banError}</span>
+        </div>
+      )}
+
       {loading ? (
         <div className="flex justify-center py-10">
           <Loader2 className="h-6 w-6 animate-spin text-slate-300" />
@@ -83,23 +108,41 @@ function MessageMonitor() {
         </div>
       ) : (
         <div className="space-y-3">
-          {messages.map((m) => (
-            <div key={m.id} className="rounded-xl border border-slate-100 bg-white/70 p-4">
-              <div className="flex items-start justify-between gap-2 mb-1.5">
-                <p className="font-bold text-[#0A1128] text-sm">
-                  {m.sender_name} <span className="font-normal text-slate-400 text-xs uppercase">{m.sender_role}</span>
+          {messages.map((m) => {
+            const isBanned = bannedIds.has(m.id);
+            return (
+              <div key={m.id} className="rounded-xl border border-slate-100 bg-white/70 p-4">
+                <div className="flex items-start justify-between gap-2 mb-1.5">
+                  <p className="font-bold text-[#0A1128] text-sm">
+                    {m.sender_name} <span className="font-normal text-slate-400 text-xs uppercase">{m.sender_role}</span>
+                  </p>
+                  <p className="flex-shrink-0 flex items-center gap-1 text-[11px] text-slate-400">
+                    <Clock className="w-2.5 h-2.5" />
+                    {formatTime(m.created_at)}
+                  </p>
+                </div>
+                <p className="text-xs text-slate-500 mb-2">
+                  {m.business_name} · {m.worker_name} · {m.project_title}
                 </p>
-                <p className="flex-shrink-0 flex items-center gap-1 text-[11px] text-slate-400">
-                  <Clock className="w-2.5 h-2.5" />
-                  {formatTime(m.created_at)}
-                </p>
+                <p className="text-sm text-slate-800 break-words mb-3">{m.body}</p>
+                {isBanned ? (
+                  <p className="flex items-center gap-1.5 text-xs font-bold text-red-600">
+                    <Ban className="w-3.5 h-3.5" />
+                    Banned
+                  </p>
+                ) : (
+                  <button
+                    onClick={() => handleBan(m)}
+                    disabled={banningId === m.id}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition-all duration-200 disabled:opacity-60"
+                  >
+                    {banningId === m.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Ban className="w-3.5 h-3.5" />}
+                    Ban User
+                  </button>
+                )}
               </div>
-              <p className="text-xs text-slate-500 mb-2">
-                {m.business_name} · {m.worker_name} · {m.project_title}
-              </p>
-              <p className="text-sm text-slate-800 break-words">{m.body}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

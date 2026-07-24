@@ -53,3 +53,10 @@ export function searchMessages(search) {
   const params = search && search.trim() ? `?search=${encodeURIComponent(search.trim())}` : "";
   return apiFetch(`/api/admin/messages${params}`);
 }
+
+// Bans the sender of a specific message found via Message Monitor — the
+// manual counterpart to resolveBlockedAttempt(id, "ban") for messages that
+// slipped past the automated contact-info filter.
+export function banUserFromMessage(messageId) {
+  return apiFetch(`/api/admin/messages/${messageId}/ban`, { method: "PATCH" });
+}
