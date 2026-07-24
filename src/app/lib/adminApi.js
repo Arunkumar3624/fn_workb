@@ -30,3 +30,18 @@ export function resolveDispute(id, resolution) {
 export function listTransactions() {
   return apiFetch("/api/admin/transactions");
 }
+
+// Security Monitor — blocked_message_attempts is the only record of a
+// contact-info send that got hard-blocked (see backend's
+// messages.controller.js); the message itself is never stored elsewhere.
+export function listBlockedAttempts() {
+  return apiFetch("/api/admin/blocked-attempts");
+}
+
+// action: "redact_and_send" (editedBody required) | "ban" | "warn" | "dismiss"
+export function resolveBlockedAttempt(id, action, { editedBody, note } = {}) {
+  return apiFetch(`/api/admin/blocked-attempts/${id}`, {
+    method: "PATCH",
+    body: { action, editedBody, note },
+  });
+}
