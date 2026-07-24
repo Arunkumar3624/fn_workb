@@ -64,3 +64,22 @@ export function moderateMessageSender(messageId, action, { points } = {}) {
     body: { action, points },
   });
 }
+
+// Message Monitor's "Cascading Workspace" — left/middle column data.
+export function listMonitoredBusinesses() {
+  return apiFetch("/api/admin/messages/businesses");
+}
+
+export function listWorkersForBusiness(businessId) {
+  return apiFetch(`/api/admin/messages/businesses/${businessId}/workers`);
+}
+
+// Top-bar moderation actions in the Cascading Workspace, targeting a user
+// directly rather than a specific message.
+// action: "ban" | "unban" | "warn" | "deduct_points"
+export function moderateUser(userId, action, { points, projectId, note } = {}) {
+  return apiFetch(`/api/admin/users/${userId}/moderate`, {
+    method: "PATCH",
+    body: { action, points, projectId, note },
+  });
+}

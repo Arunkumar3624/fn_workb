@@ -9,237 +9,357 @@ import {
   Loader2,
   MessagesSquare,
   PhoneOff,
-  Search,
   Send,
   ShieldAlert,
   Sparkles,
 } from "lucide-react";
-import { listBlockedAttempts, resolveBlockedAttempt, searchMessages, moderateMessageSender } from "../../lib/adminApi";
+import {
+  listBlockedAttempts,
+  resolveBlockedAttempt,
+  listMonitoredBusinesses,
+  listWorkersForBusiness,
+  moderateUser,
+} from "../../lib/adminApi";
+import { listMessages } from "../../lib/messagesApi";
 import { ApiError } from "../../lib/apiClient";
 
 function formatTime(iso) {
   return new Date(iso).toLocaleString("en-IN", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 }
 
-// View 2: Message Monitor — full-text search over every real chat message,
-// the manual complement to the blocked-attempts queue (which only shows
-// what the filter's regex actually caught). Support uses this to spot-check
-// conversations for anything that slipped past the automated block.
-function MessageMonitor() {
-  const [search, setSearch] = useState("");
-  const [messages, setMessages] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [actingId, setActingId] = useState(null);
-  // messageId -> "banned" | "unbanned" | "warned" | "points_deducted" — the
-  // last action taken on that row, since a sender can be banned then later
-  // unbanned, unlike blocked-attempts' one-shot resolution.
-  const [statusById, setStatusById] = useState({});
-  const [actionError, setActionError] = useState("");
-  const [pointsInputId, setPointsInputId] = useState(null);
-  const [pointsValue, setPointsValue] = useState("50");
+function initials(name) {
+  return (name || "?")
+    .split(" ")
+    .map((p) => p[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
 
-  const runAction = async (message, action, extra) => {
-    if (actingId) return;
-    setActingId(message.id);
+function Avatar({ name, tone = "slate" }) {
+  const tones = {
+    slate: "bg-slate-700",
+    blue: "bg-[#1B3FAB]",
+  };
+  return (
+    <div className={`flex-shrink-0 flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-white ${tones[tone]}`}>
+      {initials(name)}
+    </div>
+  );
+}
+
+// View 2: Message Monitor — the "Cascading Workspace." Business -> Worker ->
+// read-only chat thread + moderation actions, three columns deep, so support
+// can drill into exactly one conversation and act on it without a search box
+// standing between them and the transcript.
+function MessageMonitor() {
+  const [businesses, setBusinesses] = useState([]);
+  const [businessesLoading, setBusinessesLoading] = useState(true);
+  const [businessesError, setBusinessesError] = useState("");
+  const [selectedBusinessId, setSelectedBusinessId] = useState(null);
+
+  const [workers, setWorkers] = useState([]);
+  const [workersLoading, setWorkersLoading] = useState(false);
+  const [workersError, setWorkersError] = useState("");
+  const [selectedProjectId, setSelectedProjectId] = useState(null);
+
+  const [thread, setThread] = useState([]);
+  const [threadLoading, setThreadLoading] = useState(false);
+  const [threadError, setThreadError] = useState("");
+
+  const [acting, setActing] = useState(false);
+  const [actionError, setActionError] = useState("");
+  const [lastAction, setLastAction] = useState(null); // "banned" | "unbanned" | "warned" | "points_deducted"
+
+  const selectedBusiness = businesses.find((b) => b.id === selectedBusinessId) ?? null;
+  const selectedWorker = workers.find((w) => w.project_id === selectedProjectId) ?? null;
+
+  useEffect(() => {
+    listMonitoredBusinesses()
+      .then(setBusinesses)
+      .catch((err) => setBusinessesError(err instanceof ApiError ? err.message : "Could not load businesses."))
+      .finally(() => setBusinessesLoading(false));
+  }, []);
+
+  useEffect(() => {
+    if (!selectedBusinessId) {
+      setWorkers([]);
+      setSelectedProjectId(null);
+      return;
+    }
+    setWorkersLoading(true);
+    setWorkersError("");
+    setSelectedProjectId(null);
+    listWorkersForBusiness(selectedBusinessId)
+      .then(setWorkers)
+      .catch((err) => setWorkersError(err instanceof ApiError ? err.message : "Could not load workers."))
+      .finally(() => setWorkersLoading(false));
+  }, [selectedBusinessId]);
+
+  useEffect(() => {
+    if (!selectedProjectId) {
+      setThread([]);
+      return;
+    }
+    setThreadLoading(true);
+    setThreadError("");
+    setLastAction(null);
+    listMessages(selectedProjectId)
+      .then(setThread)
+      .catch((err) => setThreadError(err instanceof ApiError ? err.message : "Could not load this conversation."))
+      .finally(() => setThreadLoading(false));
+  }, [selectedProjectId]);
+
+  const runAction = async (action, extra) => {
+    if (!selectedWorker || acting) return;
+    setActing(true);
     setActionError("");
     try {
-      await moderateMessageSender(message.id, action, extra);
-      const label = { ban: "banned", unban: "unbanned", warn: "warned", deduct_points: "points_deducted" }[action];
-      setStatusById((prev) => ({ ...prev, [message.id]: label }));
-      setPointsInputId(null);
+      await moderateUser(selectedWorker.worker_id, action, { ...extra, projectId: selectedProjectId });
+      setLastAction({ ban: "banned", unban: "unbanned", warn: "warned", deduct_points: "points_deducted" }[action]);
     } catch (err) {
       setActionError(err instanceof ApiError ? err.message : "Could not complete that action.");
     } finally {
-      setActingId(null);
+      setActing(false);
     }
   };
 
-  const handleBan = (message) => {
-    if (!window.confirm(`Ban ${message.sender_name} (${message.sender_role})?`)) return;
-    runAction(message, "ban");
+  const handleWarn = () => {
+    if (!window.confirm(`Send a formal warning to ${selectedWorker.worker_name}?`)) return;
+    runAction("warn");
   };
 
-  const handleUnban = (message) => {
-    if (!window.confirm(`Unban ${message.sender_name} (${message.sender_role})?`)) return;
-    runAction(message, "unban");
-  };
-
-  const handleWarn = (message) => {
-    if (!window.confirm(`Send a formal warning to ${message.sender_name}?`)) return;
-    runAction(message, "warn");
-  };
-
-  const handleDeductPoints = (message) => {
-    const amount = Number(pointsValue);
+  const handleDeduct = () => {
+    const input = window.prompt(`Deduct how many behavior score points from ${selectedWorker.worker_name}?`, "50");
+    if (input === null) return;
+    const amount = Number(input);
     if (!Number.isFinite(amount) || amount <= 0) {
       setActionError("Enter a positive number of points to deduct.");
       return;
     }
-    if (!window.confirm(`Deduct ${amount} behavior score points from ${message.sender_name}?`)) return;
-    runAction(message, "deduct_points", { points: amount });
+    runAction("deduct_points", { points: amount });
   };
 
-  useEffect(() => {
-    const handle = setTimeout(() => {
-      setLoading(true);
-      setError("");
-      searchMessages(search)
-        .then(setMessages)
-        .catch((err) => setError(err instanceof ApiError ? err.message : "Could not load messages."))
-        .finally(() => setLoading(false));
-    }, 300);
-    return () => clearTimeout(handle);
-  }, [search]);
+  const handleBan = () => {
+    if (!window.confirm(`Ban ${selectedWorker.worker_name}? They will be signed out immediately.`)) return;
+    runAction("ban");
+  };
+
+  const handleUnban = () => {
+    if (!window.confirm(`Unban ${selectedWorker.worker_name}?`)) return;
+    runAction("unban");
+  };
 
   return (
-    <div className="p-6">
-      <div className="flex items-center gap-1.5 mb-1">
-        <MessagesSquare className="w-3.5 h-3.5 text-slate-400" />
-        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Trust &amp; Safety</span>
+    <div className="flex h-full w-full overflow-hidden" style={{ height: "calc(100vh - 220px)" }}>
+      {/* ── Column 1: Monitored Businesses (25%) ──────────────────────── */}
+      <div className="w-1/4 h-full border-r border-slate-100 bg-white/50 flex flex-col">
+        <div className="p-5 border-b border-slate-100 flex-shrink-0">
+          <div className="flex items-center gap-1.5 mb-1">
+            <MessagesSquare className="w-3.5 h-3.5 text-slate-400" />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Trust &amp; Safety</span>
+          </div>
+          <h2 className="text-base font-extrabold text-[#0A1128]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            Monitored Businesses
+          </h2>
+        </div>
+        <div className="flex-1 overflow-y-auto">
+          {businessesLoading ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-5 w-5 animate-spin text-slate-300" />
+            </div>
+          ) : businessesError ? (
+            <div className="p-4 text-xs text-red-600">{businessesError}</div>
+          ) : businesses.length === 0 ? (
+            <div className="p-5 text-center text-xs text-slate-400">No businesses with hires yet.</div>
+          ) : (
+            businesses.map((b) => {
+              const isSelected = b.id === selectedBusinessId;
+              return (
+                <button
+                  key={b.id}
+                  onClick={() => setSelectedBusinessId(b.id)}
+                  className={`w-full text-left flex items-center gap-3 px-4 py-3.5 border-b border-slate-50 transition-colors ${
+                    isSelected ? "border-l-4 border-l-blue-500 bg-slate-100 pl-3" : "hover:bg-slate-50"
+                  }`}
+                >
+                  <Avatar name={b.business_name} tone="blue" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold text-[#0A1128] truncate">{b.business_name}</p>
+                    <span className="inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500">
+                      {b.hires} Hire{b.hires === 1 ? "" : "s"}
+                    </span>
+                  </div>
+                </button>
+              );
+            })
+          )}
+        </div>
       </div>
-      <h1 className="text-lg font-extrabold text-[#0A1128]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-        Message Monitor
-      </h1>
-      <p className="mt-2.5 text-xs font-semibold text-slate-500">
-        Every real chat message, most recent first — search to spot-check anything the auto-filter missed.
-      </p>
 
-      <div className="relative mt-4 mb-5">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search message text..."
-          className="w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
-        />
+      {/* ── Column 2: Hired Workers (25%) ──────────────────────────────── */}
+      <div className="w-1/4 h-full border-r border-slate-100 bg-white/30 flex flex-col">
+        <div className="p-5 border-b border-slate-100 flex-shrink-0">
+          <h2 className="text-base font-extrabold text-[#0A1128]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            Hired Workers
+          </h2>
+          {selectedBusiness && <p className="mt-1 text-xs font-semibold text-slate-400 truncate">{selectedBusiness.business_name}</p>}
+        </div>
+        <div className="flex-1 overflow-y-auto">
+          {!selectedBusinessId ? (
+            <div className="p-5 text-center text-xs text-slate-400">Select a business to see who they've hired.</div>
+          ) : workersLoading ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-5 w-5 animate-spin text-slate-300" />
+            </div>
+          ) : workersError ? (
+            <div className="p-4 text-xs text-red-600">{workersError}</div>
+          ) : workers.length === 0 ? (
+            <div className="p-5 text-center text-xs text-slate-400">No hires for this business yet.</div>
+          ) : (
+            workers.map((w) => {
+              const isSelected = w.project_id === selectedProjectId;
+              return (
+                <button
+                  key={w.project_id}
+                  onClick={() => setSelectedProjectId(w.project_id)}
+                  className={`w-full text-left flex items-center gap-3 px-4 py-3.5 border-b border-slate-50 transition-colors ${
+                    isSelected ? "border-l-4 border-l-blue-500 bg-slate-100 pl-3" : "hover:bg-slate-50"
+                  }`}
+                >
+                  <Avatar name={w.worker_name} />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold text-[#0A1128] truncate">{w.worker_name}</p>
+                    <p className="text-xs text-slate-400 truncate">{w.project_title}</p>
+                  </div>
+                </button>
+              );
+            })
+          )}
+        </div>
       </div>
 
-      {error && (
-        <div className="mb-4 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
-          <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-          <span>{error}</span>
-        </div>
-      )}
-
-      {actionError && (
-        <div className="mb-4 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
-          <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-          <span>{actionError}</span>
-        </div>
-      )}
-
-      {loading ? (
-        <div className="flex justify-center py-10">
-          <Loader2 className="h-6 w-6 animate-spin text-slate-300" />
-        </div>
-      ) : messages.length === 0 ? (
-        <div className="py-10 text-center text-sm text-slate-400">
-          {search ? "No messages match that search." : "No messages yet."}
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {messages.map((m) => {
-            const status = statusById[m.id];
-            const isActing = actingId === m.id;
-            const enteringPoints = pointsInputId === m.id;
-            return (
-              <div key={m.id} className="rounded-xl border border-slate-100 bg-white/70 p-4">
-                <div className="flex items-start justify-between gap-2 mb-1.5">
-                  <p className="font-bold text-[#0A1128] text-sm">
-                    {m.sender_name} <span className="font-normal text-slate-400 text-xs uppercase">{m.sender_role}</span>
-                  </p>
-                  <p className="flex-shrink-0 flex items-center gap-1 text-[11px] text-slate-400">
-                    <Clock className="w-2.5 h-2.5" />
-                    {formatTime(m.created_at)}
-                  </p>
+      {/* ── Column 3: Moderation Terminal (50%) ─────────────────────────── */}
+      <div className="w-1/2 h-full flex flex-col bg-slate-50">
+        {!selectedWorker ? (
+          <div className="flex flex-1 items-center justify-center">
+            <div className="text-center">
+              <ShieldAlert className="mx-auto mb-3 h-8 w-8 text-slate-300" />
+              <p className="text-sm font-semibold text-slate-400">Select a conversation to monitor</p>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Sticky top bar */}
+            <div className="flex-shrink-0 flex items-center justify-between gap-3 px-6 py-4 bg-white border-b border-slate-200 shadow-sm">
+              <div className="flex items-center gap-3 min-w-0">
+                <Avatar name={selectedWorker.worker_name} />
+                <div className="min-w-0">
+                  <p className="text-sm font-extrabold text-[#0A1128] truncate">{selectedWorker.worker_name}</p>
+                  <p className="text-xs text-slate-400 truncate">{selectedWorker.project_title}</p>
                 </div>
-                <p className="text-xs text-slate-500 mb-2">
-                  {m.business_name} · {m.worker_name} · {m.project_title}
-                </p>
-                <p className="text-sm text-slate-800 break-words mb-3">{m.body}</p>
+              </div>
+              <div className="flex flex-shrink-0 items-center gap-2">
+                <button
+                  onClick={handleWarn}
+                  disabled={acting}
+                  title="Warn"
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors disabled:opacity-60"
+                >
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  Warn
+                </button>
+                <button
+                  onClick={handleDeduct}
+                  disabled={acting}
+                  title="Deduct points"
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 transition-colors disabled:opacity-60"
+                >
+                  <ShieldAlert className="w-3.5 h-3.5" />
+                  Deduct
+                </button>
+                <button
+                  onClick={handleBan}
+                  disabled={acting}
+                  title="Ban"
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-60"
+                >
+                  <Ban className="w-3.5 h-3.5" />
+                  Ban
+                </button>
+                <button
+                  onClick={handleUnban}
+                  disabled={acting}
+                  title="Unban"
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 transition-colors disabled:opacity-60"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  Unban
+                </button>
+              </div>
+            </div>
 
-                {status && (
-                  <p className="mb-2 flex items-center gap-1.5 text-xs font-bold text-emerald-600">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
+            {(actionError || lastAction) && (
+              <div className="flex-shrink-0 px-6 pt-3">
+                {actionError && (
+                  <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-2.5 text-sm text-red-600">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <span>{actionError}</span>
+                  </div>
+                )}
+                {!actionError && lastAction && (
+                  <div className="flex items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700">
+                    <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
                     {
                       {
-                        banned: "Banned",
-                        unbanned: "Unbanned",
-                        warned: "Warning sent",
-                        points_deducted: "Points deducted",
-                      }[status]
+                        banned: "User banned — signed out immediately.",
+                        unbanned: "User unbanned.",
+                        warned: "Warning logged.",
+                        points_deducted: "Behavior score points deducted.",
+                      }[lastAction]
                     }
-                  </p>
-                )}
-
-                {enteringPoints ? (
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      min="1"
-                      value={pointsValue}
-                      onChange={(e) => setPointsValue(e.target.value)}
-                      className="w-24 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
-                    />
-                    <button
-                      onClick={() => handleDeductPoints(m)}
-                      disabled={isActing}
-                      className="px-3 py-1.5 rounded-full text-xs font-bold bg-amber-600 text-white hover:bg-amber-700 transition-colors disabled:opacity-60"
-                    >
-                      {isActing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Confirm"}
-                    </button>
-                    <button
-                      onClick={() => setPointsInputId(null)}
-                      className="px-3 py-1.5 rounded-full text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex flex-wrap items-center gap-2">
-                    <button
-                      onClick={() => handleBan(m)}
-                      disabled={isActing}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition-all duration-200 disabled:opacity-60"
-                    >
-                      <Ban className="w-3.5 h-3.5" />
-                      Ban User
-                    </button>
-                    <button
-                      onClick={() => handleUnban(m)}
-                      disabled={isActing}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border-2 border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all duration-200 disabled:opacity-60"
-                    >
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      Unban User
-                    </button>
-                    <button
-                      onClick={() => handleWarn(m)}
-                      disabled={isActing}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border border-slate-200 text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-60"
-                    >
-                      <AlertTriangle className="w-3.5 h-3.5" />
-                      Send Warning
-                    </button>
-                    <button
-                      onClick={() => {
-                        setPointsInputId(m.id);
-                        setPointsValue("50");
-                      }}
-                      disabled={isActing}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border border-amber-300 text-amber-700 hover:bg-amber-50 transition-colors disabled:opacity-60"
-                    >
-                      {isActing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ShieldAlert className="w-3.5 h-3.5" />}
-                      Deduct Points
-                    </button>
                   </div>
                 )}
               </div>
-            );
-          })}
-        </div>
-      )}
+            )}
+
+            {/* Read-only chat feed — a vault, not a composer */}
+            <div className="flex-1 overflow-y-auto px-6 py-5 shadow-[inset_0_2px_8px_rgba(0,0,0,0.04)]">
+              {threadLoading ? (
+                <div className="flex justify-center py-10">
+                  <Loader2 className="h-6 w-6 animate-spin text-slate-300" />
+                </div>
+              ) : threadError ? (
+                <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <span>{threadError}</span>
+                </div>
+              ) : thread.length === 0 ? (
+                <div className="py-10 text-center text-sm text-slate-400">No messages on this project yet.</div>
+              ) : (
+                <div className="space-y-3">
+                  {thread.map((m) => {
+                    const isWorker = m.sender_id === selectedWorker.worker_id;
+                    return (
+                      <div key={m.id} className={`flex ${isWorker ? "justify-end" : "justify-start"}`}>
+                        <div
+                          className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${
+                            isWorker ? "bg-blue-100 text-[#0A1128]" : "bg-white text-[#0A1128] border border-slate-100"
+                          }`}
+                        >
+                          <p className="text-sm break-words">{m.body}</p>
+                          <p className="mt-1 text-[10px] text-slate-400">{formatTime(m.created_at)}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
