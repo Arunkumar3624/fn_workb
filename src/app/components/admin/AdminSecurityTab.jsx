@@ -7,16 +7,103 @@ import {
   ChevronLeft,
   Clock,
   Loader2,
+  MessagesSquare,
   PhoneOff,
+  Search,
   Send,
   ShieldAlert,
   Sparkles,
 } from "lucide-react";
-import { listBlockedAttempts, resolveBlockedAttempt } from "../../lib/adminApi";
+import { listBlockedAttempts, resolveBlockedAttempt, searchMessages } from "../../lib/adminApi";
 import { ApiError } from "../../lib/apiClient";
 
 function formatTime(iso) {
   return new Date(iso).toLocaleString("en-IN", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+}
+
+// View 2: Message Monitor — full-text search over every real chat message,
+// the manual complement to the blocked-attempts queue (which only shows
+// what the filter's regex actually caught). Support uses this to spot-check
+// conversations for anything that slipped past the automated block.
+function MessageMonitor() {
+  const [search, setSearch] = useState("");
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      setLoading(true);
+      setError("");
+      searchMessages(search)
+        .then(setMessages)
+        .catch((err) => setError(err instanceof ApiError ? err.message : "Could not load messages."))
+        .finally(() => setLoading(false));
+    }, 300);
+    return () => clearTimeout(handle);
+  }, [search]);
+
+  return (
+    <div className="p-6">
+      <div className="flex items-center gap-1.5 mb-1">
+        <MessagesSquare className="w-3.5 h-3.5 text-slate-400" />
+        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Trust &amp; Safety</span>
+      </div>
+      <h1 className="text-lg font-extrabold text-[#0A1128]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+        Message Monitor
+      </h1>
+      <p className="mt-2.5 text-xs font-semibold text-slate-500">
+        Every real chat message, most recent first — search to spot-check anything the auto-filter missed.
+      </p>
+
+      <div className="relative mt-4 mb-5">
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search message text..."
+          className="w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
+        />
+      </div>
+
+      {error && (
+        <div className="mb-4 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+          <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {loading ? (
+        <div className="flex justify-center py-10">
+          <Loader2 className="h-6 w-6 animate-spin text-slate-300" />
+        </div>
+      ) : messages.length === 0 ? (
+        <div className="py-10 text-center text-sm text-slate-400">
+          {search ? "No messages match that search." : "No messages yet."}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {messages.map((m) => (
+            <div key={m.id} className="rounded-xl border border-slate-100 bg-white/70 p-4">
+              <div className="flex items-start justify-between gap-2 mb-1.5">
+                <p className="font-bold text-[#0A1128] text-sm">
+                  {m.sender_name} <span className="font-normal text-slate-400 text-xs uppercase">{m.sender_role}</span>
+                </p>
+                <p className="flex-shrink-0 flex items-center gap-1 text-[11px] text-slate-400">
+                  <Clock className="w-2.5 h-2.5" />
+                  {formatTime(m.created_at)}
+                </p>
+              </div>
+              <p className="text-xs text-slate-500 mb-2">
+                {m.business_name} · {m.worker_name} · {m.project_title}
+              </p>
+              <p className="text-sm text-slate-800 break-words">{m.body}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 // Real Security Monitor — every row is a blocked_message_attempts row (the
@@ -25,6 +112,7 @@ function formatTime(iso) {
 // was decorative in the mock version and there's no real signal to compute
 // it from yet, so this is a flat pending queue.
 export default function AdminSecurityTab() {
+  const [view, setView] = useState("attempts"); // "attempts" | "messages"
   const [attempts, setAttempts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -68,9 +156,40 @@ export default function AdminSecurityTab() {
     }
   };
 
+  const toggleBar = (
+    <div className="absolute top-4 right-6 z-20 flex items-center gap-1 rounded-full border border-slate-200 bg-white/80 p-1 backdrop-blur-xl">
+      <button
+        onClick={() => setView("attempts")}
+        className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-colors ${
+          view === "attempts" ? "bg-[#0A1128] text-white" : "text-slate-500 hover:text-slate-800"
+        }`}
+      >
+        Blocked Attempts
+      </button>
+      <button
+        onClick={() => setView("messages")}
+        className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-colors ${
+          view === "messages" ? "bg-[#0A1128] text-white" : "text-slate-500 hover:text-slate-800"
+        }`}
+      >
+        Message Monitor
+      </button>
+    </div>
+  );
+
+  if (view === "messages") {
+    return (
+      <div className="relative overflow-y-auto w-full h-full">
+        {toggleBar}
+        <MessageMonitor />
+      </div>
+    );
+  }
+
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center">
+      <div className="relative flex h-full items-center justify-center">
+        {toggleBar}
         <Loader2 className="h-6 w-6 animate-spin text-slate-300" />
       </div>
     );
@@ -78,7 +197,8 @@ export default function AdminSecurityTab() {
 
   if (loadError) {
     return (
-      <div className="flex h-full items-center justify-center p-7">
+      <div className="relative flex h-full items-center justify-center p-7">
+        {toggleBar}
         <div className="flex max-w-md items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
           <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
           <span>{loadError}</span>
@@ -89,6 +209,7 @@ export default function AdminSecurityTab() {
 
   return (
     <div className="relative overflow-hidden w-full h-full flex">
+      {toggleBar}
       {/* ── View 1: Case Queue ───────────────────────────────────────── */}
       <div className="w-full md:w-1/2 lg:w-1/3 h-full absolute left-0 top-0 border-r border-white/60 bg-white/60 backdrop-blur-xl overflow-y-auto">
         <div className="p-6 border-b border-slate-100">

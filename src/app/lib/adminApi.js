@@ -45,3 +45,11 @@ export function resolveBlockedAttempt(id, action, { editedBody, note } = {}) {
     body: { action, editedBody, note },
   });
 }
+
+// Message Monitor — full-text search over every real chat message, the
+// manual complement to blocked-attempts (which only shows what the
+// contact-info filter auto-caught).
+export function searchMessages(search) {
+  const params = search && search.trim() ? `?search=${encodeURIComponent(search.trim())}` : "";
+  return apiFetch(`/api/admin/messages${params}`);
+}
