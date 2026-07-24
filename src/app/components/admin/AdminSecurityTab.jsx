@@ -152,7 +152,7 @@ function MessageMonitor() {
   };
 
   return (
-    <div className="flex h-full w-full overflow-hidden" style={{ height: "calc(100vh - 220px)" }}>
+    <div className="flex h-full w-full overflow-hidden">
       {/* ── Column 1: Monitored Businesses (25%) ──────────────────────── */}
       <div className="w-1/4 h-full border-r border-slate-100 bg-white/50 flex flex-col">
         <div className="p-5 border-b border-slate-100 flex-shrink-0">
@@ -414,8 +414,8 @@ export default function AdminSecurityTab() {
     }
   };
 
-  const toggleBar = (
-    <div className="absolute top-4 right-6 z-20 flex items-center gap-1 rounded-full border border-slate-200 bg-white/80 p-1 backdrop-blur-xl">
+  const viewToggle = (
+    <div className="flex items-center gap-1 rounded-full border border-slate-200 bg-white/80 p-1 backdrop-blur-xl">
       <button
         onClick={() => setView("attempts")}
         className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-colors ${
@@ -435,11 +435,22 @@ export default function AdminSecurityTab() {
     </div>
   );
 
+  // Only the Blocked Attempts layout (below) has empty top-right space for
+  // an absolutely-positioned toggle — the Message Monitor's own sticky
+  // moderation bar lives there instead, so that view gets the toggle in a
+  // normal-flow header row instead, never overlapping its Warn/Deduct/Ban/
+  // Unban buttons.
+  const toggleBar = <div className="absolute top-4 right-6 z-20">{viewToggle}</div>;
+
   if (view === "messages") {
     return (
-      <div className="relative overflow-y-auto w-full h-full">
-        {toggleBar}
-        <MessageMonitor />
+      <div className="flex flex-col w-full h-full overflow-hidden">
+        <div className="flex-shrink-0 flex items-center justify-end px-6 py-3 border-b border-slate-100 bg-white">
+          {viewToggle}
+        </div>
+        <div className="flex-1 min-h-0">
+          <MessageMonitor />
+        </div>
       </div>
     );
   }
