@@ -97,8 +97,28 @@ function AttachmentBubble({ message, isMine, onPreview }) {
   );
 }
 
+// An admin warning (Security Monitor's "Warn" action) — a real, permanent
+// message, but rendered as a centered system banner rather than a bubble
+// attributed to either participant, since neither side "sent" it.
+function SystemNoticeRow({ message }) {
+  const time = new Date(message.created_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+  return (
+    <div className="flex justify-center">
+      <div className="flex max-w-[85%] items-start gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-center">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wide text-red-600">Admin Notice</p>
+          <p className="mt-1 text-sm text-red-800">{message.body}</p>
+          <span className="mt-1.5 block text-[11px] font-semibold text-red-400">{time}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function MessageRow({ message, isMine, onPreview }) {
   const time = new Date(message.created_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+
+  if (message.is_system_notice) return <SystemNoticeRow message={message} />;
 
   return (
     <div className={`flex ${isMine ? "justify-end" : "justify-start"}`}>

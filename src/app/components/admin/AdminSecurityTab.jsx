@@ -126,6 +126,9 @@ function MessageMonitor() {
         const nowActive = action === "unban";
         setWorkers((prev) => prev.map((w) => (w.worker_id === selectedWorker.worker_id ? { ...w, worker_is_active: nowActive } : w)));
       }
+      if (action === "warn") {
+        listMessages(selectedProjectId).then(setThread).catch(() => {});
+      }
     } catch (err) {
       setActionError(err instanceof ApiError ? err.message : "Could not complete that action.");
     } finally {
@@ -335,7 +338,7 @@ function MessageMonitor() {
                       {
                         banned: "User banned — signed out immediately.",
                         unbanned: "User unbanned.",
-                        warned: "Warning logged.",
+                        warned: "Warning posted — both sides will see it in this project's chat.",
                         points_deducted: "Behavior score points deducted.",
                       }[lastAction]
                     }
