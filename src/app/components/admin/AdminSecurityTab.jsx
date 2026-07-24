@@ -14,7 +14,7 @@ import {
   ShieldAlert,
   Sparkles,
 } from "lucide-react";
-import { listBlockedAttempts, resolveBlockedAttempt, searchMessages, banUserFromMessage } from "../../lib/adminApi";
+import { listBlockedAttempts, resolveBlockedAttempt, searchMessages, moderateMessageSender } from "../../lib/adminApi";
 import { ApiError } from "../../lib/apiClient";
 
 function formatTime(iso) {
@@ -30,23 +30,54 @@ function MessageMonitor() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [banningId, setBanningId] = useState(null);
-  const [bannedIds, setBannedIds] = useState(new Set());
-  const [banError, setBanError] = useState("");
+  const [actingId, setActingId] = useState(null);
+  // messageId -> "banned" | "unbanned" | "warned" | "points_deducted" — the
+  // last action taken on that row, since a sender can be banned then later
+  // unbanned, unlike blocked-attempts' one-shot resolution.
+  const [statusById, setStatusById] = useState({});
+  const [actionError, setActionError] = useState("");
+  const [pointsInputId, setPointsInputId] = useState(null);
+  const [pointsValue, setPointsValue] = useState("50");
 
-  const handleBan = async (message) => {
-    if (banningId) return;
-    if (!window.confirm(`Ban ${message.sender_name} (${message.sender_role}) for sharing contact info?`)) return;
-    setBanningId(message.id);
-    setBanError("");
+  const runAction = async (message, action, extra) => {
+    if (actingId) return;
+    setActingId(message.id);
+    setActionError("");
     try {
-      await banUserFromMessage(message.id);
-      setBannedIds((prev) => new Set(prev).add(message.id));
+      await moderateMessageSender(message.id, action, extra);
+      const label = { ban: "banned", unban: "unbanned", warn: "warned", deduct_points: "points_deducted" }[action];
+      setStatusById((prev) => ({ ...prev, [message.id]: label }));
+      setPointsInputId(null);
     } catch (err) {
-      setBanError(err instanceof ApiError ? err.message : "Could not ban this user.");
+      setActionError(err instanceof ApiError ? err.message : "Could not complete that action.");
     } finally {
-      setBanningId(null);
+      setActingId(null);
     }
+  };
+
+  const handleBan = (message) => {
+    if (!window.confirm(`Ban ${message.sender_name} (${message.sender_role})?`)) return;
+    runAction(message, "ban");
+  };
+
+  const handleUnban = (message) => {
+    if (!window.confirm(`Unban ${message.sender_name} (${message.sender_role})?`)) return;
+    runAction(message, "unban");
+  };
+
+  const handleWarn = (message) => {
+    if (!window.confirm(`Send a formal warning to ${message.sender_name}?`)) return;
+    runAction(message, "warn");
+  };
+
+  const handleDeductPoints = (message) => {
+    const amount = Number(pointsValue);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      setActionError("Enter a positive number of points to deduct.");
+      return;
+    }
+    if (!window.confirm(`Deduct ${amount} behavior score points from ${message.sender_name}?`)) return;
+    runAction(message, "deduct_points", { points: amount });
   };
 
   useEffect(() => {
@@ -91,10 +122,10 @@ function MessageMonitor() {
         </div>
       )}
 
-      {banError && (
+      {actionError && (
         <div className="mb-4 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
           <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-          <span>{banError}</span>
+          <span>{actionError}</span>
         </div>
       )}
 
@@ -109,7 +140,9 @@ function MessageMonitor() {
       ) : (
         <div className="space-y-3">
           {messages.map((m) => {
-            const isBanned = bannedIds.has(m.id);
+            const status = statusById[m.id];
+            const isActing = actingId === m.id;
+            const enteringPoints = pointsInputId === m.id;
             return (
               <div key={m.id} className="rounded-xl border border-slate-100 bg-white/70 p-4">
                 <div className="flex items-start justify-between gap-2 mb-1.5">
@@ -125,20 +158,82 @@ function MessageMonitor() {
                   {m.business_name} · {m.worker_name} · {m.project_title}
                 </p>
                 <p className="text-sm text-slate-800 break-words mb-3">{m.body}</p>
-                {isBanned ? (
-                  <p className="flex items-center gap-1.5 text-xs font-bold text-red-600">
-                    <Ban className="w-3.5 h-3.5" />
-                    Banned
+
+                {status && (
+                  <p className="mb-2 flex items-center gap-1.5 text-xs font-bold text-emerald-600">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    {
+                      {
+                        banned: "Banned",
+                        unbanned: "Unbanned",
+                        warned: "Warning sent",
+                        points_deducted: "Points deducted",
+                      }[status]
+                    }
                   </p>
+                )}
+
+                {enteringPoints ? (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min="1"
+                      value={pointsValue}
+                      onChange={(e) => setPointsValue(e.target.value)}
+                      className="w-24 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
+                    />
+                    <button
+                      onClick={() => handleDeductPoints(m)}
+                      disabled={isActing}
+                      className="px-3 py-1.5 rounded-full text-xs font-bold bg-amber-600 text-white hover:bg-amber-700 transition-colors disabled:opacity-60"
+                    >
+                      {isActing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Confirm"}
+                    </button>
+                    <button
+                      onClick={() => setPointsInputId(null)}
+                      className="px-3 py-1.5 rounded-full text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 ) : (
-                  <button
-                    onClick={() => handleBan(m)}
-                    disabled={banningId === m.id}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition-all duration-200 disabled:opacity-60"
-                  >
-                    {banningId === m.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Ban className="w-3.5 h-3.5" />}
-                    Ban User
-                  </button>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      onClick={() => handleBan(m)}
+                      disabled={isActing}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition-all duration-200 disabled:opacity-60"
+                    >
+                      <Ban className="w-3.5 h-3.5" />
+                      Ban User
+                    </button>
+                    <button
+                      onClick={() => handleUnban(m)}
+                      disabled={isActing}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border-2 border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all duration-200 disabled:opacity-60"
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      Unban User
+                    </button>
+                    <button
+                      onClick={() => handleWarn(m)}
+                      disabled={isActing}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border border-slate-200 text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-60"
+                    >
+                      <AlertTriangle className="w-3.5 h-3.5" />
+                      Send Warning
+                    </button>
+                    <button
+                      onClick={() => {
+                        setPointsInputId(m.id);
+                        setPointsValue("50");
+                      }}
+                      disabled={isActing}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border border-amber-300 text-amber-700 hover:bg-amber-50 transition-colors disabled:opacity-60"
+                    >
+                      {isActing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ShieldAlert className="w-3.5 h-3.5" />}
+                      Deduct Points
+                    </button>
+                  </div>
                 )}
               </div>
             );

@@ -54,9 +54,13 @@ export function searchMessages(search) {
   return apiFetch(`/api/admin/messages${params}`);
 }
 
-// Bans the sender of a specific message found via Message Monitor — the
-// manual counterpart to resolveBlockedAttempt(id, "ban") for messages that
-// slipped past the automated contact-info filter.
-export function banUserFromMessage(messageId) {
-  return apiFetch(`/api/admin/messages/${messageId}/ban`, { method: "PATCH" });
+// Moderates the sender of a specific message found via Message Monitor —
+// the manual counterpart to resolveBlockedAttempt's actions, for anything
+// that slipped past the automated contact-info filter.
+// action: "ban" | "unban" | "warn" | "deduct_points" (points required for deduct_points)
+export function moderateMessageSender(messageId, action, { points } = {}) {
+  return apiFetch(`/api/admin/messages/${messageId}/moderate`, {
+    method: "PATCH",
+    body: { action, points },
+  });
 }
