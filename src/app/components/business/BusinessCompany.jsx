@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {
+  AlertCircle,
   Award,
   Briefcase,
   Building2,
@@ -8,6 +9,7 @@ import {
   Edit3,
   ExternalLink,
   Globe,
+  Loader2,
   Mail,
   MapPin,
   Send,
@@ -19,12 +21,19 @@ import {
 import Avatar from "../shared/Avatar";
 import EditableCoverPhoto from "../shared/EditableCoverPhoto";
 import ShareProfileButton from "../shared/ShareProfileButton";
+import { useAuth } from "../../context/AuthContext";
+import { updateOwnProfile } from "../../lib/profilesApi";
+import { getInitials } from "../../utils/formValidation";
 
 // ── Static data ───────────────────────────────────────────────────────────────
+// name/initials here are only the fallback for a business that hasn't set a
+// real company name yet (see updateOwnProfile's profilePatch.companyName
+// below) — everything else on this page (tagline/industry/bio/culture/etc.)
+// is still local-only mock content, unconnected to any real account.
 
 const INITIAL_PROFILE = {
-  name: "Markantan K",
-  initials: "MK",
+  name: "RetailX Pvt Ltd",
+  initials: "RX",
   coverImage: "",
   tagline: "India's fastest-growing D2C e-commerce enabler",
   industry: "E-Commerce Technology",
@@ -105,19 +114,26 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading }) {
   return (
     <div className="bg-slate-50 wb-tab-enter">
 
-      {/* ── Hero ───────────────────────────────────────────────────────── */}
-      <div className="border-b border-slate-200 bg-slate-50 p-1">
+      {/* ── Hero ── same structure as WorkerProfile.jsx: one section clips
+          the cover photo's top corners via overflow-hidden (full-bleed, no
+          inset gap), the identity card overlaps its bottom edge from inside
+          a padded content div below it. */}
+      <section className="mx-1 mt-1 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_20px_55px_rgba(15,23,42,0.06)]">
         <EditableCoverPhoto
           coverUrl={profile.coverImage}
           onUpload={onCoverUpload}
           uploading={coverUploading}
-          heightClass="h-[clamp(200px,24vh,260px)] rounded-[20px]"
+          heightClass="h-40 sm:h-52"
         />
 
-        {/* Identity card overlaps the bottom of the cover, light theme —
-            replacing the old dark-glassmorphism card that sat inside it. */}
-        <div className="relative -mt-14 px-1">
-          <div className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-xl sm:flex-row sm:items-start sm:justify-between">
+        <div className="px-6 pb-7 sm:px-8">
+          {/* Identity card overlaps the bottom of the cover, light theme —
+              replacing the old dark-glassmorphism card that sat inside it.
+              relative z-10 keeps it painting above the cover photo (a
+              positioned element) despite the negative margin pulling it up
+              into the same space — see WorkerProfile.jsx for the identical
+              stacking-order fix. */}
+          <div className="relative z-10 -mt-14 flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-xl sm:flex-row sm:items-start sm:justify-between">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
               {/* Company logo */}
               <div className="w-[84px] h-[84px] rounded-2xl bg-white p-[4px] shadow-xl ring-1 ring-slate-200 flex-shrink-0">
@@ -193,7 +209,7 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading }) {
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* ── Body ──────────────────────────────────────────────────────────── */}
       <div className="px-7 py-6 max-w-[1200px] mx-auto">
@@ -452,7 +468,7 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading }) {
 
 // ── Edit form ─────────────────────────────────────────────────────────────────
 
-function EditForm({ draft, onChange, onSave, onCancel }) {
+function EditForm({ draft, onChange, onSave, onCancel, saving, saveError }) {
   return (
     <div className="h-full min-h-0 overflow-y-auto bg-slate-50 p-7 pb-12 wb-tab-enter">
       <div className="max-w-2xl mx-auto">
@@ -465,21 +481,32 @@ function EditForm({ draft, onChange, onSave, onCancel }) {
             <p className="text-sm text-slate-400 mt-0.5">Changes visible to workers on your public profile</p>
           </div>
           <div className="flex gap-2">
-            <button onClick={onCancel}
-              className="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-colors">
+            <button onClick={onCancel} disabled={saving}
+              className="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-colors disabled:opacity-60">
               Cancel
             </button>
-            <button onClick={onSave}
-              className="flex items-center gap-1.5 px-5 py-2 bg-[#1B3FAB] text-white rounded-xl text-sm font-bold hover:bg-[#1635A0] transition-colors shadow-md shadow-[#1B3FAB]/20">
-              <Send className="w-3.5 h-3.5" />
-              Save Changes
+            <button onClick={onSave} disabled={saving}
+              className="flex items-center gap-1.5 px-5 py-2 bg-[#1B3FAB] text-white rounded-xl text-sm font-bold hover:bg-[#1635A0] transition-colors shadow-md shadow-[#1B3FAB]/20 disabled:opacity-60">
+              {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+              {saving ? "Saving…" : "Save Changes"}
             </button>
           </div>
         </div>
 
+        {saveError && (
+          <div className="mb-5 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            <span>{saveError}</span>
+          </div>
+        )}
+
         <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-5">
           <Field label="Company Name">
+            <p className="mb-1.5 -mt-1 text-xs text-slate-400">
+              Shown to workers everywhere your job posts appear — separate from your own account name.
+            </p>
             <input value={draft.name ?? ""} onChange={(e) => onChange("name", e.target.value)}
+              placeholder="e.g. RetailX Pvt Ltd"
               className="w-full px-4 py-2.5 bg-[#F4F6FF] border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB]" />
           </Field>
 
@@ -557,19 +584,48 @@ function Field({ label, children }) {
 // ── Main export ───────────────────────────────────────────────────────────────
 
 export default function BusinessCompany() {
+  const { currentUser, updateCurrentUser } = useAuth();
+  // Only name/initials are real — everything else in INITIAL_PROFILE stays
+  // local mock content. A business that hasn't set a company name yet falls
+  // back to the mock default rather than showing their personal account
+  // name, which is exactly the mix-up this was built to avoid.
+  const seedProfile = () => {
+    const companyName = currentUser?.profile?.companyName;
+    return companyName
+      ? { ...INITIAL_PROFILE, name: companyName, initials: getInitials(companyName) }
+      : INITIAL_PROFILE;
+  };
+
   const [isEditing, setIsEditing] = useState(false);
-  const [profile, setProfile] = useState(INITIAL_PROFILE);
-  const [draft, setDraft]     = useState(INITIAL_PROFILE);
+  const [profile, setProfile] = useState(seedProfile);
+  const [draft, setDraft]     = useState(seedProfile);
   const [coverUploading, setCoverUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
   const handleChange  = (key, val) => setDraft((p) => ({ ...p, [key]: val }));
-  const handleSave    = () => { setProfile(draft); setIsEditing(false); };
+
+  const handleSave = async () => {
+    setSaving(true);
+    setSaveError("");
+    try {
+      const updatedUser = await updateOwnProfile({ profilePatch: { companyName: draft.name.trim() } });
+      updateCurrentUser(updatedUser);
+      setProfile(draft);
+      setIsEditing(false);
+    } catch (err) {
+      setSaveError(err.message || "Could not save your company name — everything else here still isn't persisted yet.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleCancel  = () => { setDraft(profile); setIsEditing(false); };
 
-  // This whole page is still local-only mock state (no company-profile
-  // backend exists yet — see the file-level note this session left about
-  // BusinessCompany never having been wired up), so there's no real upload
-  // round-trip here; the loading state exists for when that lands.
+  // Unlike company name (handleSave, above), the cover photo still has no
+  // real backend round-trip — everything else on this page besides the
+  // name remains local-only mock content. The loading state here exists
+  // for when that lands.
   const handleCoverUpload = (dataUrl) => {
     setCoverUploading(true);
     setProfile((p) => ({ ...p, coverImage: dataUrl }));
@@ -578,7 +634,7 @@ export default function BusinessCompany() {
   };
 
   return isEditing
-    ? <EditForm draft={draft} onChange={handleChange} onSave={handleSave} onCancel={handleCancel} />
+    ? <EditForm draft={draft} onChange={handleChange} onSave={handleSave} onCancel={handleCancel} saving={saving} saveError={saveError} />
     : (
       <ProfileView
         profile={profile}
