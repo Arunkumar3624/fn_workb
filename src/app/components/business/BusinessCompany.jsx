@@ -586,11 +586,13 @@ function Field({ label, children }) {
 export default function BusinessCompany() {
   const { currentUser, updateCurrentUser } = useAuth();
   // Only name/initials are real — everything else in INITIAL_PROFILE stays
-  // local mock content. A business that hasn't set a company name yet falls
-  // back to the mock default rather than showing their personal account
-  // name, which is exactly the mix-up this was built to avoid.
+  // local mock content. Falls back to the account's own name (same rule
+  // BusinessPostJob.jsx's preview and the real business_name the backend
+  // returns everywhere else already use) rather than the mock "RetailX Pvt
+  // Ltd" default — otherwise this one page shows a different name for the
+  // same business than every other page does.
   const seedProfile = () => {
-    const companyName = currentUser?.profile?.companyName;
+    const companyName = currentUser?.profile?.companyName || currentUser?.name;
     return companyName
       ? { ...INITIAL_PROFILE, name: companyName, initials: getInitials(companyName) }
       : INITIAL_PROFILE;
