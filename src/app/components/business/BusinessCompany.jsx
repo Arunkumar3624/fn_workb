@@ -117,13 +117,18 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading }) {
       {/* ── Hero ── same structure as WorkerProfile.jsx: one section clips
           the cover photo's top corners via overflow-hidden (full-bleed, no
           inset gap), the identity card overlaps its bottom edge from inside
-          a padded content div below it. */}
-      <section className="mx-1 mt-1 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_20px_55px_rgba(15,23,42,0.06)]">
+          a padded content div below it. Capped at max-w-[1200px], same as
+          the Body section further down — otherwise the cover spans the
+          full page width while everything below it is centered/narrower. */}
+      <div className="max-w-[1200px] mx-auto px-1 pt-1">
+      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_20px_55px_rgba(15,23,42,0.06)]">
+        {/* No heightClass override — same default as WorkerProfile.jsx's
+            cover (h-40 sm:h-48), so the two pages' banners always match
+            instead of drifting out of sync from independent height picks. */}
         <EditableCoverPhoto
           coverUrl={profile.coverImage}
           onUpload={onCoverUpload}
           uploading={coverUploading}
-          heightClass="h-52 sm:h-64"
         />
 
         <div className="px-6 pb-7 sm:px-8">
@@ -210,6 +215,7 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading }) {
           </div>
         </div>
       </section>
+      </div>
 
       {/* ── Body ──────────────────────────────────────────────────────────── */}
       <div className="px-7 py-6 max-w-[1200px] mx-auto">
