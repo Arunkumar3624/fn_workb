@@ -101,8 +101,8 @@ export default function AdminSecurityTab() {
 
       {/* ── View 2: Case File ────────────────────────────────────────── */}
       <div
-        className={`absolute top-0 right-0 z-10 w-full md:w-1/2 lg:w-2/3 h-full bg-white/70 backdrop-blur-xl rounded-l-3xl border-l border-white/70 shadow-[-20px_0_40px_-15px_rgba(0,0,0,0.1)] overflow-y-auto transition-transform duration-500 ease-in-out ${
-          selectedThread ? "translate-x-0" : "translate-x-full"
+        className={`absolute top-0 right-0 z-10 w-full md:w-1/2 lg:w-2/3 h-full bg-white/70 backdrop-blur-xl rounded-l-3xl border-l border-white/70 shadow-[-20px_0_40px_-15px_rgba(0,0,0,0.1)] overflow-y-auto transition-opacity duration-200 ease-in-out ${
+          selectedThread ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
       >
         {displayThread && (
