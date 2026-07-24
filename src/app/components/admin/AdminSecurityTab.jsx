@@ -111,6 +111,10 @@ function MessageMonitor() {
       .finally(() => setThreadLoading(false));
   }, [selectedProjectId]);
 
+  // is_active defaults to true at the DB level, so a null/undefined value
+  // here (e.g. an older row before that column existed) reads as active.
+  const workerIsBanned = selectedWorker?.worker_is_active === false;
+
   const runAction = async (action, extra) => {
     if (!selectedWorker || acting) return;
     setActing(true);
@@ -118,6 +122,10 @@ function MessageMonitor() {
     try {
       await moderateUser(selectedWorker.worker_id, action, { ...extra, projectId: selectedProjectId });
       setLastAction({ ban: "banned", unban: "unbanned", warn: "warned", deduct_points: "points_deducted" }[action]);
+      if (action === "ban" || action === "unban") {
+        const nowActive = action === "unban";
+        setWorkers((prev) => prev.map((w) => (w.worker_id === selectedWorker.worker_id ? { ...w, worker_is_active: nowActive } : w)));
+      }
     } catch (err) {
       setActionError(err instanceof ApiError ? err.message : "Could not complete that action.");
     } finally {
@@ -142,11 +150,13 @@ function MessageMonitor() {
   };
 
   const handleBan = () => {
+    if (workerIsBanned || acting) return;
     if (!window.confirm(`Ban ${selectedWorker.worker_name}? They will be signed out immediately.`)) return;
     runAction("ban");
   };
 
   const handleUnban = () => {
+    if (!workerIsBanned || acting) return;
     if (!window.confirm(`Unban ${selectedWorker.worker_name}?`)) return;
     runAction("unban");
   };
@@ -230,7 +240,12 @@ function MessageMonitor() {
                 >
                   <Avatar name={w.worker_name} />
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-bold text-[#0A1128] truncate">{w.worker_name}</p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-sm font-bold text-[#0A1128] truncate">{w.worker_name}</p>
+                      {w.worker_is_active === false && (
+                        <span className="flex-shrink-0 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-red-100 text-red-700">BANNED</span>
+                      )}
+                    </div>
                     <p className="text-xs text-slate-400 truncate">{w.project_title}</p>
                   </div>
                 </button>
@@ -256,7 +271,12 @@ function MessageMonitor() {
               <div className="flex items-center gap-3 min-w-0">
                 <Avatar name={selectedWorker.worker_name} />
                 <div className="min-w-0">
-                  <p className="text-sm font-extrabold text-[#0A1128] truncate">{selectedWorker.worker_name}</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-sm font-extrabold text-[#0A1128] truncate">{selectedWorker.worker_name}</p>
+                    {workerIsBanned && (
+                      <span className="flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700">BANNED</span>
+                    )}
+                  </div>
                   <p className="text-xs text-slate-400 truncate">{selectedWorker.project_title}</p>
                 </div>
               </div>
@@ -281,18 +301,18 @@ function MessageMonitor() {
                 </button>
                 <button
                   onClick={handleBan}
-                  disabled={acting}
-                  title="Ban"
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-60"
+                  disabled={acting || workerIsBanned}
+                  title={workerIsBanned ? "Already banned" : "Ban"}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-40 disabled:hover:bg-red-600"
                 >
                   <Ban className="w-3.5 h-3.5" />
                   Ban
                 </button>
                 <button
                   onClick={handleUnban}
-                  disabled={acting}
-                  title="Unban"
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 transition-colors disabled:opacity-60"
+                  disabled={acting || !workerIsBanned}
+                  title={!workerIsBanned ? "Not banned" : "Unban"}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 transition-colors disabled:opacity-40 disabled:hover:bg-slate-100 disabled:hover:text-slate-600"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   Unban
