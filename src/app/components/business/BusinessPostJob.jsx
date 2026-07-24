@@ -9,9 +9,9 @@ import {
   Clock,
   Eye,
   FileText,
+  IndianRupee,
   Link2,
   Lock,
-  MapPin,
   Plus,
   ShieldCheck,
   Star,
@@ -24,6 +24,7 @@ import { trackEvent } from "../../lib/analytics";
 import { createProject } from "../../lib/projectsApi";
 import { submitLink } from "../../lib/submissionsApi";
 import { ApiError } from "../../lib/apiClient";
+import { useAuth } from "../../context/AuthContext";
 
 // ── Constants ─────────────────────────────────────────────────────────────
 
@@ -102,6 +103,7 @@ function SectionCard({ icon: Icon, title, sub, children }) {
 // ── Main Component ────────────────────────────────────────────────────────
 
 export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
+  const { currentUser } = useAuth();
   const [urgent, setUrgent] = useState(false);
   const [refLinks, setRefLinks] = useState([""]);
   const [posting, setPosting] = useState(false);
@@ -460,15 +462,17 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                       </span>
                     </div>
 
-                    {/* Company + Location chips */}
+                    {/* Business + Budget chips — real data, not a placeholder
+                        company name, since this is a preview of what the
+                        current logged-in business's own post looks like. */}
                     <div className="mt-3 flex flex-wrap gap-1.5 text-[11px] font-semibold text-slate-500">
                       <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1">
                         <Briefcase className="h-3 w-3" />
-                        RetailX Pvt Ltd
+                        {currentUser?.name || "Your business"}
                       </span>
                       <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1">
-                        <MapPin className="h-3 w-3" />
-                        Remote - India
+                        <IndianRupee className="h-3 w-3" />
+                        {summaryBudget > 0 ? `₹${summaryBudget.toLocaleString("en-IN")}` : "Budget"}
                       </span>
                     </div>
 
@@ -479,15 +483,15 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                       )}
                     </p>
 
-                    {/* Stats: Budget | Type | Tier */}
+                    {/* Stats: Applicants | Type | Rating — budget already
+                        shown in the chip row above, so this slot shows
+                        something a real posted listing will actually have:
+                        how many people have applied. Always 0 here since
+                        this is an unposted draft. */}
                     <div className="mt-3 grid grid-cols-3 gap-0 rounded-xl border border-slate-200 bg-slate-50 text-center text-[11px] overflow-hidden">
                       <div className="py-2.5 px-1">
-                        <p className="text-slate-400">Budget</p>
-                        <p className="mt-0.5 font-black text-slate-900">
-                          {summaryBudget > 0
-                            ? `₹${summaryBudget.toLocaleString("en-IN")}`
-                            : "–"}
-                        </p>
+                        <p className="text-slate-400">Applicants</p>
+                        <p className="mt-0.5 font-black text-slate-900">0</p>
                       </div>
                       <div className="py-2.5 px-1 border-x border-slate-200">
                         <p className="text-slate-400">Type</p>

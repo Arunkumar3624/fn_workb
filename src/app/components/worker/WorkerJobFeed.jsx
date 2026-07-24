@@ -12,6 +12,7 @@ import {
   Send,
   ShieldCheck,
   Sparkles,
+  Users,
   X,
 } from "lucide-react";
 import { listOpenProjects } from "../../lib/projectsApi";
@@ -57,12 +58,16 @@ function JobDetailModal({ job, onClose, onApply, applying, applyError, alreadyAp
         </div>
 
         <div className="wb-scroll-clean min-h-0 flex-1 overflow-y-auto px-6 py-5">
-          <div className="grid grid-cols-3 gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-center">
+          <div className="grid grid-cols-4 gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-center">
             <div>
               <p className="text-xs text-slate-500">Budget</p>
               <p className="mt-1 text-sm font-black text-slate-900">{formatINR(job.budget)}</p>
             </div>
             <div className="border-x border-slate-200">
+              <p className="text-xs text-slate-500">Applicants</p>
+              <p className="mt-1 text-sm font-black text-slate-900">{job.applicant_count ?? 0}</p>
+            </div>
+            <div className="border-r border-slate-200">
               <p className="text-xs text-slate-500">Posted</p>
               <p className="mt-1 text-sm font-black text-slate-900">{timeAgo(job.created_at)}</p>
             </div>
@@ -314,10 +319,16 @@ export default function WorkerJobFeed() {
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="flex items-center gap-1 text-xs font-bold uppercase tracking-[0.18em] text-slate-400">
-                        <Briefcase className="h-3 w-3" />
-                        {job.business_name}
-                      </p>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <p className="flex items-center gap-1 text-xs font-bold uppercase tracking-[0.18em] text-slate-400">
+                          <Briefcase className="h-3 w-3" />
+                          {job.business_name}
+                        </p>
+                        <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-600">
+                          <IndianRupee className="h-3 w-3" />
+                          {Number(job.budget).toLocaleString("en-IN")}
+                        </span>
+                      </div>
                       <h2 className="mt-2 text-lg font-black leading-snug text-slate-900">{job.title}</h2>
                     </div>
                     <span className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
@@ -331,10 +342,10 @@ export default function WorkerJobFeed() {
 
                   <div className="mt-4 grid grid-cols-2 gap-2 rounded-2xl border border-white/20 bg-white/40 backdrop-blur-md p-3 text-center">
                     <div>
-                      <p className="text-xs text-slate-500">Budget</p>
-                      <p className="mt-1 flex items-center justify-center gap-0.5 text-sm font-black text-slate-900">
-                        <IndianRupee className="h-3.5 w-3.5" />
-                        {Number(job.budget).toLocaleString("en-IN")}
+                      <p className="text-xs text-slate-500">Applicants</p>
+                      <p className="mt-1 flex items-center justify-center gap-1 text-sm font-black text-slate-900">
+                        <Users className="h-3.5 w-3.5" />
+                        {job.applicant_count ?? 0}
                       </p>
                     </div>
                     <div className="border-l border-slate-200">
