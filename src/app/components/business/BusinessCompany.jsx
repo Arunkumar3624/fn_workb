@@ -123,7 +123,7 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading }) {
           coverUrl={profile.coverImage}
           onUpload={onCoverUpload}
           uploading={coverUploading}
-          heightClass="h-40 sm:h-52"
+          heightClass="h-52 sm:h-64"
         />
 
         <div className="px-6 pb-7 sm:px-8">
