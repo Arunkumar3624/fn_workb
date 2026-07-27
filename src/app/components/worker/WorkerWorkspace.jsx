@@ -26,6 +26,24 @@ export default function WorkerWorkspace() {
   const [pipelineTab, setPipelineTab] = useState("tasks");
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [celebration, setCelebration] = useState(null);
+  // CelebrationOverlay shows one moment at a time — a level-up arriving in
+  // the same COMPLETED event as a payment is queued here and shown right
+  // after the payment celebration is dismissed, rather than trying to
+  // stack two overlays at once.
+  const [pendingLevelUp, setPendingLevelUp] = useState(null);
+
+  const dismissCelebration = () => {
+    if (pendingLevelUp) {
+      setCelebration({
+        variant: "milestone",
+        title: `Rank Up! You've reached Level ${pendingLevelUp}!`,
+        message: "Keep completing projects on time to climb the next tier.",
+      });
+      setPendingLevelUp(null);
+    } else {
+      setCelebration(null);
+    }
+  };
   const [advancing, setAdvancing] = useState(false);
   const [actionError, setActionError] = useState("");
   const [existingReview, setExistingReview] = useState(undefined);
@@ -131,6 +149,7 @@ export default function WorkerWorkspace() {
             message: `${project.business_name} approved "${project.title}" — the funds are in your wallet.`,
             amount: event.earnings,
           });
+          if (event.leveledUp) setPendingLevelUp(event.newLevel);
           break;
         case "STATUS_CHANGED":
           patchProject({ id: event.projectId, status: event.status });
@@ -457,8 +476,8 @@ export default function WorkerWorkspace() {
           message={celebration.message}
           amount={celebration.amount}
           primaryLabel="Keep Working"
-          onPrimary={() => setCelebration(null)}
-          onClose={() => setCelebration(null)}
+          onPrimary={() => dismissCelebration()}
+          onClose={() => dismissCelebration()}
         />
       )}
     </div>

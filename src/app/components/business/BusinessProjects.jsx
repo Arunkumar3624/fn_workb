@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import {
   AlertTriangle,
+  Award,
   Briefcase,
   Check,
   CheckCircle2,
@@ -13,6 +14,7 @@ import {
   RefreshCw,
   RotateCcw,
   ShieldCheck,
+  Sparkles,
   Star,
   UserCheck,
   Users,
@@ -24,6 +26,7 @@ import TimelineTracker from "../shared/TimelineTracker";
 import ProjectCompletionHub from "../shared/ProjectCompletionHub";
 import DeliverablesPanel from "../shared/DeliverablesPanel";
 import ChatThread from "../shared/ChatThread";
+import { getTierData } from "../../utils/gamification";
 import { PROJECT_STATUS_META } from "../../utils/projectStatus";
 import {
   listBusinessProjects,
@@ -604,6 +607,40 @@ function DisputeConfirmModal({ project, isSubmitting, submitError, onClose, onCo
 // business's own OPEN posts — accepting one assigns the project for real
 // (OPEN -> ACCEPTED) and closes every sibling candidacy automatically on
 // the backend (see job_candidates.controller.js's respondToCandidate).
+// MASTER_ECONOMY_PLAN.md Part 3 — the Two-Door Reveal. 'hidden' means a
+// worker hasn't reached Door A (first completed job) or Door B (5
+// rejections) yet — new profiles stay completely clean, judged only on
+// skills/questionnaire answers, exactly as intended. Tier colors only
+// matter once standing_door === 'win'.
+const TIER_CARD_STYLES = {
+  slate: "border-slate-200",
+  gray: "border-slate-300 shadow-[0_0_15px_rgba(148,163,184,0.25)]",
+  yellow: "border-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.25)]",
+  teal: "border-teal-300 shadow-[0_0_15px_rgba(20,184,166,0.25)]",
+  blue: "border-[#FF6B35] shadow-[0_0_15px_rgba(255,107,53,0.25)]",
+};
+
+function StandingBadge({ standingDoor, currentLevel }) {
+  if (standingDoor === "span") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-600">
+        <Sparkles className="h-2.5 w-2.5" />
+        Rising — On the Bridge
+      </span>
+    );
+  }
+  if (standingDoor === "win") {
+    const { tier } = getTierData(currentLevel);
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-[#FFF3EC] px-2 py-0.5 text-[10px] font-bold text-[#FF6B35]">
+        <Award className="h-2.5 w-2.5" />
+        {tier}
+      </span>
+    );
+  }
+  return null;
+}
+
 function ApplicantsModal({ project, candidates, isLoading, respondingId, onClose, onRespond }) {
   return createPortal(
     <AnimatePresence>
@@ -649,8 +686,11 @@ function ApplicantsModal({ project, candidates, isLoading, respondingId, onClose
                   No applicants or invites yet — this post is still live on the Job Feed.
                 </p>
               ) : (
-                candidates.map((c) => (
-                  <div key={c.id} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                candidates.map((c) => {
+                  const tierStyle =
+                    c.standing_door === "win" ? TIER_CARD_STYLES[getTierData(c.current_level).colorTheme] : "border-slate-200";
+                  return (
+                  <div key={c.id} className={`rounded-xl border bg-slate-50 p-4 ${tierStyle}`}>
                     <div className="flex items-start gap-3">
                       {c.avatar_url ? (
                         <img src={c.avatar_url} alt={c.worker_name} className="h-10 w-10 flex-shrink-0 rounded-xl object-cover" />
@@ -660,6 +700,7 @@ function ApplicantsModal({ project, candidates, isLoading, respondingId, onClose
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-1.5">
                           <p className="text-sm font-bold text-[#0F172A]">{c.worker_name}</p>
+                          <StandingBadge standingDoor={c.standing_door} currentLevel={c.current_level} />
                           <span
                             className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
                               c.source === "INVITE" ? "bg-[#F4F6FF] text-[#1B3FAB]" : "bg-slate-200 text-slate-600"
@@ -703,7 +744,8 @@ function ApplicantsModal({ project, candidates, isLoading, respondingId, onClose
                       )}
                     </div>
                   </div>
-                ))
+                  );
+                })
               )}
             </div>
           </motion.div>

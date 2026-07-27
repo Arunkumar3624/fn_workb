@@ -262,6 +262,7 @@ function SecurityTab() {
 
 function BillingTab() {
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const isBusiness = currentUser?.role === "business";
   const tiers = isBusiness
     ? [
@@ -270,7 +271,7 @@ function BillingTab() {
       ]
     : [
         { name: "Free", price: "Free", perks: ["Standard job matching", "10 proposals/week"] },
-        { name: "Pro", price: "₹299/mo", perks: ["Priority in applicant lists", "Profile analytics", "8% commission (from 10%)"] },
+        { name: "Pro", price: "₹299/mo", perks: ["Priority in applicant lists", "Profile analytics", "Reduced platform commission"] },
         { name: "Elite", price: "₹599/mo", perks: ["Top placement in Find Workers", "Priority badge verification", "Zero commission on first ₹10,000/mo"] },
       ];
 
@@ -306,6 +307,14 @@ function BillingTab() {
       <p className="text-center text-[11px] text-slate-400">
         Paid plans aren't live yet — this is a preview of what's coming.
       </p>
+      {!isBusiness && (
+        <button
+          onClick={() => navigate("/worker/subscriptions")}
+          className="mx-auto block text-xs font-bold text-[#1B3FAB] hover:underline"
+        >
+          View full plan comparison →
+        </button>
+      )}
     </div>
   );
 }

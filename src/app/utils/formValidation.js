@@ -79,4 +79,6 @@ export const postJobSchema = z.object({
   skills: cleanLongText,
   deadline: z.string().min(1, "Deadline is required"),
   budget: positiveCurrencySchema,
+  applicationWindow: z.enum(["24h", "48h", "7d"]).optional(),
+  estimatedDuration: z.string().max(50, "Keep it short, e.g. \"3 Days\"").optional(),
 });

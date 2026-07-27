@@ -3,8 +3,10 @@ import { toast } from "sonner";
 import {
   AlertCircle,
   Briefcase,
+  Calendar,
   Check,
   CheckCircle2,
+  Clock,
   Clock3,
   IndianRupee,
   Loader2,
@@ -31,6 +33,19 @@ function timeAgo(dateString) {
   if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
   return `${days}d ago`;
+}
+
+// Feature #1 — Job Timelines & Availability Windows. application_deadline
+// is a real future timestamp set at posting time (see
+// projects.controller.js's resolveApplicationDeadline); this only formats
+// it, it doesn't invent one.
+function formatApplicationWindow(applicationDeadline) {
+  if (!applicationDeadline) return null;
+  const ms = new Date(applicationDeadline).getTime() - Date.now();
+  if (ms <= 0) return "Closed";
+  const hours = Math.ceil(ms / (60 * 60 * 1000));
+  if (hours < 24) return `Closes in ${hours}h`;
+  return `Closes in ${Math.ceil(hours / 24)}d`;
 }
 
 // The real apply flow — a proposal note + submit, straight to
@@ -330,6 +345,20 @@ export default function WorkerJobFeed() {
                         </span>
                       </div>
                       <h2 className="mt-2 text-lg font-black leading-snug text-slate-900">{job.title}</h2>
+                      <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                        {formatApplicationWindow(job.application_deadline) && (
+                          <span className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs text-slate-700">
+                            <Clock className="h-3 w-3" />
+                            {formatApplicationWindow(job.application_deadline)}
+                          </span>
+                        )}
+                        {job.estimated_duration && (
+                          <span className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs text-slate-700">
+                            <Calendar className="h-3 w-3" />
+                            Est. {job.estimated_duration}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <span className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
                       <ShieldCheck className="h-4 w-4" />

@@ -125,6 +125,8 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
       skills: "",
       deadline: "",
       budget: 30000,
+      applicationWindow: "7d",
+      estimatedDuration: "",
     },
   });
 
@@ -162,6 +164,8 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
         description: formData.skills ? `${formData.brief}\n\nSkills: ${formData.skills}` : formData.brief,
         budget: summaryBudget,
         deadline: formData.deadline || undefined,
+        applicationWindow: formData.applicationWindow || undefined,
+        estimatedDuration: formData.estimatedDuration || undefined,
       });
 
       const referenceLinks = refLinks.map((link) => link.trim()).filter(Boolean);
@@ -336,6 +340,28 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                       </p>
                     )}
                     <FieldError message={errors.budget?.message} />
+                  </div>
+                </div>
+
+                <div className="mt-4 grid grid-cols-2 gap-4">
+                  <div>
+                    <FieldLabel>Application Window</FieldLabel>
+                    <select {...register("applicationWindow")} defaultValue="7d" className={inputCls}>
+                      <option value="24h">Closes in 24h</option>
+                      <option value="48h">Closes in 48h</option>
+                      <option value="7d">Closes in 7 Days</option>
+                    </select>
+                    <FieldError message={errors.applicationWindow?.message} />
+                  </div>
+                  <div>
+                    <FieldLabel>Estimated Project Duration</FieldLabel>
+                    <input
+                      type="text"
+                      placeholder='e.g. "3 Days" or "2 Weeks"'
+                      {...register("estimatedDuration")}
+                      className={inputCls}
+                    />
+                    <FieldError message={errors.estimatedDuration?.message} />
                   </div>
                 </div>
 
