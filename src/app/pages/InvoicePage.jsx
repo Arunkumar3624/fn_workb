@@ -178,20 +178,20 @@ export default function InvoicePage() {
 
           {/* ── Breakdown ──────────────────────────────────────────────── */}
           <div className="p-6 sm:p-10">
-            <div className="divide-y divide-slate-100">
-              <div className="flex items-center justify-between gap-4 py-3">
+            <div className="overflow-hidden rounded-xl border border-slate-100">
+              <div className="flex items-center justify-between gap-4 bg-white px-4 py-3.5">
                 <span className="text-sm text-slate-600">Project Budget</span>
                 <span className="whitespace-nowrap font-mono text-sm font-semibold text-slate-900">
                   {formatINR(budget)}
                 </span>
               </div>
-              <div className="flex items-center justify-between gap-4 py-3">
+              <div className="flex items-center justify-between gap-4 bg-slate-50/70 px-4 py-3.5">
                 <span className="text-sm text-slate-600">Platform Fee ({feePct}%) — deducted from worker payout</span>
                 <span className="whitespace-nowrap font-mono text-sm text-slate-500">
                   –{formatINR(platformFee)}
                 </span>
               </div>
-              <div className="flex items-center justify-between gap-4 py-3">
+              <div className="flex items-center justify-between gap-4 bg-white px-4 py-3.5">
                 <span className="text-sm text-slate-600">Worker Receives</span>
                 <span className="whitespace-nowrap font-mono text-sm font-semibold text-slate-900">
                   {formatINR(workerReceives)}
@@ -224,9 +224,9 @@ export default function InvoicePage() {
             </div>
           </div>
 
-          <div className="mx-6 mb-6 flex items-center gap-2.5 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 sm:mx-10 sm:mb-10 print:border-slate-200 print:bg-white">
+          <div className="mx-6 mb-6 flex items-center gap-2.5 rounded-xl border border-emerald-200/80 bg-emerald-50/60 px-4 py-3 sm:mx-10 sm:mb-10 print:border-slate-200 print:bg-white">
             <ShieldCheck className="h-4 w-4 flex-shrink-0 text-[#10B981]" />
-            <p className="text-xs font-semibold leading-relaxed text-emerald-700">
+            <p className="text-xs font-semibold leading-relaxed text-emerald-800">
               Funds held securely until work is approved.
             </p>
           </div>
@@ -278,11 +278,11 @@ export default function InvoicePage() {
 
           {(isSettled && (isBusinessViewer || isWorkerViewer)) && (
             <div className="border-t border-slate-100 bg-slate-50 p-6 sm:p-10">
-              <div className="flex items-center justify-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4">
+              <div className="flex items-center justify-center gap-3 rounded-xl border border-emerald-200/80 bg-emerald-50/60 px-5 py-4">
                 <ShieldCheck className="h-5 w-5 flex-shrink-0 text-emerald-600" />
                 <div className="text-center">
                   <p className="text-sm font-bold text-emerald-800">{isPaid ? "Payment Released" : "Funds Secured"}</p>
-                  <p className="text-xs text-emerald-600">
+                  <p className="text-xs text-emerald-700">
                     {isPaid
                       ? `${formatINR(workerReceives)} has been released to ${project.worker_name}.`
                       : `${formatINR(budget)} is held and protected until work is approved.`}

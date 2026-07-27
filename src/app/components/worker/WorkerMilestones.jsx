@@ -57,7 +57,11 @@ function MilestoneNode({ milestone, achieved, isNext, align, index }) {
         )}
         <div
           className={`relative z-10 flex h-11 w-11 items-center justify-center rounded-full border-4 border-white shadow-sm ${
-            achieved ? "bg-[#FF6B35] text-white" : isNext ? "bg-white text-[#FF6B35] ring-2 ring-[#FF6B35]" : "bg-slate-100 text-slate-400"
+            achieved
+              ? "bg-gradient-to-br from-[#FF6B35] to-[#e8551e] text-white"
+              : isNext
+              ? "bg-white text-[#FF6B35] ring-2 ring-[#FF6B35]"
+              : "bg-slate-100 text-slate-400"
           }`}
         >
           {achieved ? <CheckCircle2 className="h-5 w-5" /> : <Lock className="h-4 w-4" />}
@@ -65,19 +69,25 @@ function MilestoneNode({ milestone, achieved, isNext, align, index }) {
       </div>
 
       <div
-        className={`min-w-0 flex-1 rounded-2xl border p-4 transition-colors ${
+        className={`min-w-0 flex-1 rounded-2xl border p-4 transition-all ${
           achieved
-            ? "border-[#FF6B35]/25 bg-[#FFF7F3]"
+            ? "border-[#FF6B35]/20 bg-[#FFF7F3]"
             : isNext
-            ? "border-[#FF6B35]/40 bg-white shadow-[0_8px_24px_-8px_rgba(255,107,53,0.25)]"
-            : "border-slate-200 bg-slate-50/80 opacity-80"
+            ? "border-[#FF6B35]/40 bg-gradient-to-r from-white via-orange-50/30 to-white shadow-xl shadow-orange-500/5"
+            : "border-slate-200/60 bg-white/70 text-slate-500 backdrop-blur-sm"
         } ${milestone.major ? "ring-1 ring-inset ring-slate-100" : ""}`}
       >
-        <p className={`text-sm font-bold ${achieved || isNext ? "text-[#0A1128]" : "text-slate-500"}`}>
-          Level {milestone.level}
-          {isNext && <span className="ml-2 rounded-full bg-[#FF6B35]/10 px-2 py-0.5 text-[10px] font-bold text-[#FF6B35]">NEXT</span>}
-        </p>
-        <p className={`mt-1 text-xs leading-5 ${achieved || isNext ? "text-slate-600" : "text-slate-400"}`}>{milestone.reward}</p>
+        <div className="flex items-center gap-2">
+          <span
+            className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-bold ${
+              achieved || isNext ? "bg-[#0A1128] text-white" : "bg-slate-200/70 text-slate-500"
+            }`}
+          >
+            Level {milestone.level}
+          </span>
+          {isNext && <span className="rounded-full bg-[#FF6B35]/10 px-2 py-0.5 text-[10px] font-bold text-[#FF6B35]">NEXT</span>}
+        </div>
+        <p className={`mt-2 text-xs leading-5 ${achieved || isNext ? "text-slate-600" : "text-slate-400"}`}>{milestone.reward}</p>
       </div>
     </motion.div>
   );
@@ -136,7 +146,9 @@ export default function WorkerMilestones() {
         </h1>
         <p className="mt-1 text-sm text-slate-500">
           You're Level {currentLevel} ({ledger.tier}).
-          {nextMilestone ? ` ${nextMilestone.level - currentLevel} levels to your next milestone.` : " You've reached every milestone."}
+          {nextMilestone
+            ? ` ${nextMilestone.level - currentLevel} level${nextMilestone.level - currentLevel === 1 ? "" : "s"} to your next milestone.`
+            : " You've reached every milestone."}
         </p>
       </div>
 
@@ -149,7 +161,7 @@ export default function WorkerMilestones() {
       </div>
 
       <div className="relative">
-        <div className="absolute left-[22px] top-2 bottom-2 w-px bg-gradient-to-b from-[#FF6B35]/30 via-slate-200 to-slate-200 sm:left-1/2 sm:-translate-x-1/2" />
+        <div className="absolute left-[22px] top-2 bottom-2 w-px bg-gradient-to-b from-[#FF6B35]/50 via-slate-200/80 to-slate-200/40 sm:left-1/2 sm:-translate-x-1/2" />
         <div className="space-y-6">
           {MILESTONES.map((milestone, index) => (
             <MilestoneNode
