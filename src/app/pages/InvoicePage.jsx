@@ -96,7 +96,20 @@ export default function InvoicePage() {
       <div className="mx-auto w-full max-w-4xl">
 
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => {
+            // navigate(-1) is unreliable here — a deep link, a page reload,
+            // or arriving from a notification can all leave browser history
+            // with no real "previous page" (or the wrong one, e.g. the
+            // marketing landing page from earlier in the tab's history). A
+            // fixed, role-aware destination is deterministic regardless of
+            // how this page was actually reached.
+            if (currentUser?.role === "worker") navigate("/worker/invoices");
+            // BusinessDashboard's tabs are local state, not URL routes — the
+            // "/business" landing always opens on Overview, so that's the
+            // most specific real destination available.
+            else if (currentUser?.role === "business") navigate("/business");
+            else navigate("/admin");
+          }}
           className="mb-4 flex min-h-[44px] items-center gap-1.5 text-xs font-bold text-slate-500 transition-colors hover:text-[#0F172A] print:hidden"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
@@ -150,9 +163,14 @@ export default function InvoicePage() {
             <div className="sm:text-right">
               <p className="mb-2 text-xs font-bold uppercase tracking-widest text-slate-400">Provider</p>
               <p className="text-lg font-bold text-[#0F172A]">{project.worker_name}</p>
-              {project.deadline && (
+              {/* This is the WORK deadline, not a payment ETA — release is
+                  instant the moment a business approves it (no real payment
+                  gateway/settlement delay exists yet). Hidden once paid so
+                  it can't read as "money still pending" on a finished,
+                  already-paid invoice. */}
+              {project.deadline && !isPaid && (
                 <p className="mt-1 text-sm text-slate-500">
-                  Due: {new Date(project.deadline).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}
+                  Delivery due: {new Date(project.deadline).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}
                 </p>
               )}
             </div>
