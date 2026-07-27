@@ -125,7 +125,7 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
       skills: "",
       deadline: "",
       budget: 30000,
-      applicationWindow: "7d",
+      applicationWindow: 7,
       estimatedDuration: "",
     },
   });
@@ -345,12 +345,16 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
 
                 <div className="mt-4 grid grid-cols-2 gap-4">
                   <div>
-                    <FieldLabel>Application Window</FieldLabel>
-                    <select {...register("applicationWindow")} defaultValue="7d" className={inputCls}>
-                      <option value="24h">Closes in 24h</option>
-                      <option value="48h">Closes in 48h</option>
-                      <option value="7d">Closes in 7 Days</option>
-                    </select>
+                    <FieldLabel>Application Window (Days)</FieldLabel>
+                    <input
+                      type="number"
+                      min="1"
+                      max="90"
+                      step="1"
+                      placeholder="e.g. 7"
+                      {...register("applicationWindow")}
+                      className={inputCls}
+                    />
                     <FieldError message={errors.applicationWindow?.message} />
                   </div>
                   <div>

@@ -79,6 +79,11 @@ export const postJobSchema = z.object({
   skills: cleanLongText,
   deadline: z.string().min(1, "Deadline is required"),
   budget: positiveCurrencySchema,
-  applicationWindow: z.enum(["24h", "48h", "7d"]).optional(),
+  applicationWindow: z.coerce
+    .number()
+    .int("Enter a whole number of days")
+    .min(1, "Must be at least 1 day")
+    .max(90, "Keep it to 90 days or fewer")
+    .optional(),
   estimatedDuration: z.string().max(50, "Keep it short, e.g. \"3 Days\"").optional(),
 });

@@ -23,6 +23,7 @@ import EditableCoverPhoto from "../shared/EditableCoverPhoto";
 import ShareProfileButton from "../shared/ShareProfileButton";
 import { useAuth } from "../../context/AuthContext";
 import { updateOwnProfile } from "../../lib/profilesApi";
+import { ApiError } from "../../lib/apiClient";
 import { getInitials } from "../../utils/formValidation";
 
 // ── Static data ───────────────────────────────────────────────────────────────
@@ -108,7 +109,7 @@ function RatingBar({ label, value, total = 28 }) {
 
 // ── Profile view ─────────────────────────────────────────────────────────────
 
-function ProfileView({ profile, onEdit, onCoverUpload, coverUploading }) {
+function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverError }) {
   const shareUrl = typeof window !== "undefined" ? window.location.href : undefined;
 
   return (
@@ -130,6 +131,12 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading }) {
           onUpload={onCoverUpload}
           uploading={coverUploading}
         />
+        {coverError && (
+          <p className="flex items-center gap-1.5 px-6 pt-3 text-xs font-semibold text-red-500 sm:px-8">
+            <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+            {coverError}
+          </p>
+        )}
 
         <div className="px-6 pb-7 sm:px-8">
           {/* Identity card overlaps the bottom of the cover, light theme —
@@ -599,15 +606,19 @@ export default function BusinessCompany() {
   // same business than every other page does.
   const seedProfile = () => {
     const companyName = currentUser?.profile?.companyName || currentUser?.name;
+    // coverImage is the one other real, persisted field here — the rest of
+    // INITIAL_PROFILE stays local mock content until a real save exists.
+    const coverImage = currentUser?.profile?.coverUrl || INITIAL_PROFILE.coverImage;
     return companyName
-      ? { ...INITIAL_PROFILE, name: companyName, initials: getInitials(companyName) }
-      : INITIAL_PROFILE;
+      ? { ...INITIAL_PROFILE, name: companyName, initials: getInitials(companyName), coverImage }
+      : { ...INITIAL_PROFILE, coverImage };
   };
 
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState(seedProfile);
   const [draft, setDraft]     = useState(seedProfile);
   const [coverUploading, setCoverUploading] = useState(false);
+  const [coverError, setCoverError] = useState("");
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
 
@@ -630,15 +641,23 @@ export default function BusinessCompany() {
 
   const handleCancel  = () => { setDraft(profile); setIsEditing(false); };
 
-  // Unlike company name (handleSave, above), the cover photo still has no
-  // real backend round-trip — everything else on this page besides the
-  // name remains local-only mock content. The loading state here exists
-  // for when that lands.
-  const handleCoverUpload = (dataUrl) => {
+  // Same real profile.coverUrl field WorkerProfile.jsx's cover upload
+  // already persists to — previously this only ever set local component
+  // state, so the image looked like it saved but silently reverted on the
+  // next reload/navigation (never actually reached the backend).
+  const handleCoverUpload = async (dataUrl) => {
+    setCoverError("");
     setCoverUploading(true);
-    setProfile((p) => ({ ...p, coverImage: dataUrl }));
-    setDraft((p) => ({ ...p, coverImage: dataUrl }));
-    setCoverUploading(false);
+    try {
+      const updated = await updateOwnProfile({ profilePatch: { coverUrl: dataUrl } });
+      updateCurrentUser(updated);
+      setProfile((p) => ({ ...p, coverImage: dataUrl }));
+      setDraft((p) => ({ ...p, coverImage: dataUrl }));
+    } catch (err) {
+      setCoverError(err instanceof ApiError ? err.message : "Could not upload cover photo.");
+    } finally {
+      setCoverUploading(false);
+    }
   };
 
   return isEditing
@@ -649,6 +668,7 @@ export default function BusinessCompany() {
         onEdit={() => setIsEditing(true)}
         onCoverUpload={handleCoverUpload}
         coverUploading={coverUploading}
+        coverError={coverError}
       />
     );
 }

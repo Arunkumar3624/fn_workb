@@ -8,6 +8,7 @@ import {
   Plus,
   Settings,
   ShieldCheck,
+  Store,
   Users,
   Zap,
 } from "lucide-react";
@@ -21,6 +22,7 @@ const NAV = [
   { id: "projects", label: "Active Projects", icon: Briefcase },
   { id: "negotiations", label: "Negotiations", icon: MessageSquare },
   { id: "company", label: "Company Page", icon: Building2 },
+  { id: "perks", label: "Perks Shop", icon: Store },
   { id: "settings", label: "Settings", icon: Settings },
 ];
 

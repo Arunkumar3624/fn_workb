@@ -11,6 +11,7 @@ import WorkerWallet from "../components/worker/WorkerWallet";
 import WorkerInvoices from "../components/worker/WorkerInvoices";
 import WorkerLedger from "../components/worker/WorkerLedger";
 import WorkerTokenShop from "../components/worker/WorkerTokenShop";
+import WorkerMilestones from "../components/worker/WorkerMilestones";
 import WorkerProfile from "../components/worker/WorkerProfile";
 import SettingsPage from "./SettingsPage";
 import { useAuth } from "../context/AuthContext";
@@ -132,6 +133,7 @@ export default function WorkerDashboard({ onLogout }) {
           {tab === "invoices" && <WorkerInvoices />}
           {tab === "ledger" && <WorkerLedger />}
           {tab === "shop" && <WorkerTokenShop />}
+          {tab === "milestones" && <WorkerMilestones />}
           {tab === "profile" && <WorkerProfile />}
           {tab === "settings" && <SettingsPage />}
         </div>
