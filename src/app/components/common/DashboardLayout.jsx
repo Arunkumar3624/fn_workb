@@ -12,7 +12,7 @@ export default function DashboardLayout({ sidebar, children }) {
     >
       {sidebar}
 
-      <div className="flex h-screen flex-1 flex-col overflow-y-auto bg-white">
+      <div className="wb-scroll-clean flex h-screen flex-1 flex-col overflow-y-auto bg-white">
         {children}
       </div>
     </div>

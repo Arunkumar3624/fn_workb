@@ -27,6 +27,7 @@ import TimelineTracker from "../shared/TimelineTracker";
 import ProjectCompletionHub from "../shared/ProjectCompletionHub";
 import DeliverablesPanel from "../shared/DeliverablesPanel";
 import ChatThread from "../shared/ChatThread";
+import DeadlineCountdown from "../shared/DeadlineCountdown";
 import { getTierData } from "../../utils/gamification";
 import { PROJECT_STATUS_META } from "../../utils/projectStatus";
 import {
@@ -248,6 +249,9 @@ function WorkerDetailDrawer({ project, onClose }) {
                       <span className="text-base font-extrabold text-[#1B3FAB]" style={DATA_FONT}>
                         {formatINR(project.budget)}
                       </span>
+                    </div>
+                    <div className="mt-2">
+                      <DeadlineCountdown deadline={project.deadline} status={project.status} />
                     </div>
                   </div>
 

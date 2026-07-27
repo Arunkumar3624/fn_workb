@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { motion } from "motion/react";
 import { AlertCircle, AlertTriangle, Award, Coins, Loader2, ShieldCheck, Sparkles } from "lucide-react";
 import { getLedger } from "../../lib/gamificationApi";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
@@ -52,14 +53,20 @@ const COLOR_STYLES = {
   slate: "bg-slate-100 text-slate-600",
 };
 
-function PerkCard({ perk, balance, onPurchase }) {
+function PerkCard({ perk, balance, onPurchase, index }) {
   const [tierIndex, setTierIndex] = useState(0);
   const Icon = perk.icon;
   const tier = perk.tiers[tierIndex];
   const canAfford = balance >= tier.cost;
 
   return (
-    <div className="flex flex-col rounded-2xl border border-slate-200 bg-white p-5">
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: index * 0.06 }}
+      whileHover={{ y: -4 }}
+      className="flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-lg"
+    >
       <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${COLOR_STYLES[perk.color]}`}>
         <Icon className="h-5 w-5" />
       </div>
@@ -97,11 +104,11 @@ function PerkCard({ perk, balance, onPurchase }) {
 
       <button
         onClick={() => onPurchase(perk, tier, canAfford)}
-        className="mt-4 w-full rounded-lg border border-slate-200 py-2 text-xs font-bold text-slate-500 transition-colors hover:bg-slate-50"
+        className="mt-4 w-full rounded-lg border border-slate-200 py-2 text-xs font-bold text-slate-500 transition-colors hover:bg-slate-50 active:scale-95"
       >
         Purchase
       </button>
-    </div>
+    </motion.div>
   );
 }
 
@@ -178,8 +185,8 @@ export default function WorkerTokenShop() {
       )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {PERKS.map((perk) => (
-          <PerkCard key={perk.id} perk={perk} balance={balance} onPurchase={handlePurchase} />
+        {PERKS.map((perk, index) => (
+          <PerkCard key={perk.id} perk={perk} balance={balance} onPurchase={handlePurchase} index={index} />
         ))}
       </div>
       <p className="mt-6 text-center text-[11px] text-slate-400">

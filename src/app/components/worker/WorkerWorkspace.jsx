@@ -7,6 +7,7 @@ import TimelineTracker from "../shared/TimelineTracker";
 import ProjectCompletionHub from "../shared/ProjectCompletionHub";
 import DeliverablesPanel from "../shared/DeliverablesPanel";
 import ChatThread from "../shared/ChatThread";
+import DeadlineCountdown from "../shared/DeadlineCountdown";
 import { useAuth } from "../../context/AuthContext";
 import { listProjects, updateProjectStatus } from "../../lib/projectsApi";
 import { submitReview, listReviewsFor } from "../../lib/reviewsApi";
@@ -379,6 +380,9 @@ export default function WorkerWorkspace() {
                     {selectedTask.business_name}
                     {selectedTask.deadline && ` / Due ${new Date(selectedTask.deadline).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}`}
                   </p>
+                  <div className="mt-2">
+                    <DeadlineCountdown deadline={selectedTask.deadline} status={selectedTask.status} />
+                  </div>
                 </div>
                 <div className="flex flex-col items-start gap-3 md:items-end">
                   <div className="md:text-right">

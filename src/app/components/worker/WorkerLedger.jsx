@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { motion } from "motion/react";
 import { AlertCircle, Coins, Loader2, Receipt, Zap } from "lucide-react";
 import { getLedger } from "../../lib/gamificationApi";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
@@ -82,26 +83,40 @@ export default function WorkerLedger() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="rounded-2xl border border-slate-200 bg-white p-6">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          whileHover={{ y: -3 }}
+          className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+        >
           <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-slate-400">
             <Coins className="h-3.5 w-3.5 text-amber-500" />
             Bridge Tokens
           </p>
           <p className="mt-1 text-3xl font-black text-[#0A1128]">{ledger.bridgeTokens}</p>
           <p className="mt-1 text-xs text-slate-400">+{earnedThisWeek} earned this week</p>
-        </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-6">
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.05 }}
+          whileHover={{ y: -3 }}
+          className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+        >
           <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-slate-400">
             <Zap className="h-3.5 w-3.5 text-[#FF6B35]" />
             {ledger.tier} Tier · Level {ledger.currentLevel}
           </p>
           <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-[#FF6B35] to-yellow-500 transition-all duration-1000 ease-out"
-              style={{ width: `${ledger.progressPct}%` }}
+            <motion.div
+              className="h-full rounded-full bg-gradient-to-r from-[#FF6B35] to-yellow-500"
+              initial={{ width: 0 }}
+              animate={{ width: `${ledger.progressPct}%` }}
+              transition={{ duration: 1, ease: "easeOut" }}
             />
           </div>
-        </div>
+        </motion.div>
       </div>
 
       <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6">
@@ -115,8 +130,14 @@ export default function WorkerLedger() {
           </div>
         ) : (
           <div className="divide-y divide-slate-100">
-            {ledger.events.map((event) => (
-              <div key={event.id} className="flex items-center justify-between gap-4 py-3">
+            {ledger.events.map((event, index) => (
+              <motion.div
+                key={event.id}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.25, delay: Math.min(index * 0.03, 0.3) }}
+                className="flex items-center justify-between gap-4 py-3 transition-colors hover:bg-slate-50"
+              >
                 <div>
                   <p className="text-sm font-semibold text-[#0A1128]">{formatEventLabel(event.event_type)}</p>
                   <p className="text-xs text-slate-400">{timeAgo(event.created_at)}</p>
@@ -125,7 +146,7 @@ export default function WorkerLedger() {
                   {event.xp_delta > 0 && <span className="text-[#FF6B35]">+{event.xp_delta} XP</span>}
                   {event.token_delta > 0 && <span className="text-amber-600">+{event.token_delta} 🪙</span>}
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         )}
