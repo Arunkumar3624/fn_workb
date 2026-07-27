@@ -21,9 +21,9 @@ const PERKS = [
     icon: Award,
     color: "amber",
     tiers: [
-      { label: "24-Hour Express", cost: 10 },
-      { label: "3-Day Featured", cost: 25 },
-      { label: "7-Day Dominance", cost: 50 },
+      { label: "24-Hour Express", cost: 15 },
+      { label: "3-Day Featured", cost: 35 },
+      { label: "7-Day Dominance", cost: 70 },
     ],
   },
   {
@@ -61,26 +61,34 @@ function PerkCard({ perk, balance, onPurchase, index }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.06 }}
-      whileHover={{ y: -4 }}
-      className="flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-lg"
+      transition={{ duration: 0.35, delay: index * 0.08, ease: "easeOut" }}
+      whileHover={{ y: -8 }}
+      className="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-300 ease-out hover:shadow-2xl hover:shadow-slate-300/40"
     >
-      <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${COLOR_STYLES[perk.color]}`}>
+      {/* Sweeping light reflection — a single diagonal highlight that
+          travels across the card on hover, not a permanent shine or a
+          cartoon sparkle burst. */}
+      <div
+        className="pointer-events-none absolute inset-0 -translate-x-full skew-x-12 bg-gradient-to-r from-transparent via-white/60 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full"
+        aria-hidden="true"
+      />
+
+      <div className={`relative flex h-10 w-10 items-center justify-center rounded-xl ${COLOR_STYLES[perk.color]}`}>
         <Icon className="h-5 w-5" />
       </div>
-      <p className="mt-3 text-sm font-bold text-[#0A1128]">{perk.name}</p>
-      <p className="mt-1 flex-1 text-xs leading-5 text-slate-500">{perk.description}</p>
+      <p className="relative mt-3 text-sm font-bold text-[#0A1128]">{perk.name}</p>
+      <p className="relative mt-1 flex-1 text-xs leading-5 text-slate-500">{perk.description}</p>
 
       {perk.tiers.length > 1 && (
-        <div className="mt-3 flex flex-wrap gap-1.5">
+        <div className="relative mt-3 flex flex-wrap gap-1.5">
           {perk.tiers.map((t, i) => (
             <button
               key={t.label}
               onClick={() => setTierIndex(i)}
-              className={`rounded-full px-2.5 py-1 text-[11px] font-bold transition-colors ${
-                i === tierIndex ? "bg-[#0A1128] text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+              className={`rounded-full px-2.5 py-1 text-[11px] font-bold transition-all duration-200 ${
+                i === tierIndex ? "bg-[#0A1128] text-white shadow-sm" : "bg-slate-100 text-slate-500 hover:bg-slate-200"
               }`}
             >
               {t.label}
@@ -89,14 +97,20 @@ function PerkCard({ perk, balance, onPurchase, index }) {
         </div>
       )}
 
-      <p className="mt-3 flex items-center gap-1 text-sm font-black text-[#0A1128]">
+      <motion.p
+        key={tier.cost}
+        initial={{ opacity: 0, y: -4 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2 }}
+        className="relative mt-3 flex items-center gap-1 text-sm font-black text-[#0A1128]"
+      >
         <Coins className="h-3.5 w-3.5 text-amber-500" />
         {tier.cost}
         {perk.tiers.length === 1 && <span className="ml-1 text-xs font-semibold text-slate-400">{tier.label}</span>}
-      </p>
+      </motion.p>
 
       {!canAfford && (
-        <p className="mt-2 flex items-center gap-1 text-[11px] font-semibold text-red-500">
+        <p className="relative mt-2 flex items-center gap-1 text-[11px] font-semibold text-red-500">
           <AlertTriangle className="h-3 w-3 flex-shrink-0" />
           Not enough tokens for this tier
         </p>
@@ -104,7 +118,11 @@ function PerkCard({ perk, balance, onPurchase, index }) {
 
       <button
         onClick={() => onPurchase(perk, tier, canAfford)}
-        className="mt-4 w-full rounded-lg border border-slate-200 py-2 text-xs font-bold text-slate-500 transition-colors hover:bg-slate-50 active:scale-95"
+        className={`relative mt-4 w-full rounded-lg border py-2 text-xs font-bold transition-all duration-200 active:scale-95 ${
+          canAfford
+            ? "border-slate-200 text-slate-500 hover:bg-slate-50"
+            : "border-slate-100 text-slate-300 opacity-50 hover:bg-transparent"
+        }`}
       >
         Purchase
       </button>

@@ -56,12 +56,12 @@ function MilestoneNode({ milestone, achieved, isNext, align, index }) {
           />
         )}
         <div
-          className={`relative z-10 flex h-11 w-11 items-center justify-center rounded-full border-4 border-white shadow-sm ${
+          className={`relative z-10 flex h-11 w-11 items-center justify-center rounded-full border-4 border-white transition-shadow duration-500 ${
             achieved
-              ? "bg-gradient-to-br from-[#FF6B35] to-[#e8551e] text-white"
+              ? "bg-gradient-to-br from-[#FF6B35] to-[#e8551e] text-white shadow-sm"
               : isNext
-              ? "bg-white text-[#FF6B35] ring-2 ring-[#FF6B35]"
-              : "bg-slate-100 text-slate-400"
+              ? "bg-white text-[#FF6B35] ring-2 ring-[#FF6B35] shadow-[0_0_20px_-2px_rgba(255,107,53,0.55)]"
+              : "bg-slate-100 text-slate-400 shadow-sm"
           }`}
         >
           {achieved ? <CheckCircle2 className="h-5 w-5" /> : <Lock className="h-4 w-4" />}

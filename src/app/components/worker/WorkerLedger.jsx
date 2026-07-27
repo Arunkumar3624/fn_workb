@@ -1,21 +1,60 @@
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
-import { AlertCircle, Coins, Loader2, Receipt, Zap } from "lucide-react";
+import { AlertCircle, Coins, Gift, Loader2, Receipt, ShieldCheck, TrendingUp, Zap } from "lucide-react";
 import { getLedger } from "../../lib/gamificationApi";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { ApiError } from "../../lib/apiClient";
 
 // Real event_type values written by ledger_events.repository.js's create()
-// callers (currently just projects.controller.js's completeProject) mapped
-// to display copy. An unrecognized type falls back to a readable version
-// of the raw string rather than breaking, so this never has to be updated
-// in lockstep with every future trigger.
-const EVENT_LABELS = {
-  PROJECT_COMPLETED: "Project Completed",
+// callers (currently projects.controller.js's completeProject and
+// scripts/grant-test-gamification-credits.js) mapped to display copy +
+// icon. An unrecognized type falls back to a readable version of the raw
+// string and a neutral icon rather than breaking, so this never has to be
+// updated in lockstep with every future trigger — RESILIENCE_BONUS (Idea.md's
+// Span mechanic) isn't wired into any real code path yet, but is mapped
+// here already so the day it is, this list needs zero changes.
+const EVENT_META = {
+  PROJECT_COMPLETED: { label: "Project Completed", icon: TrendingUp, tone: "text-emerald-600 bg-emerald-50" },
+  PROJECT_COMPLETED_NO_DISPUTE: { label: "Project Completed (No Dispute)", icon: TrendingUp, tone: "text-emerald-600 bg-emerald-50" },
+  RESILIENCE_BONUS: { label: "Resilience Bonus", icon: ShieldCheck, tone: "text-[#FF6B35] bg-orange-50" },
+  TEST_GRANT: { label: "Test Grant", icon: Gift, tone: "text-slate-500 bg-slate-100" },
 };
 
-function formatEventLabel(eventType) {
-  return EVENT_LABELS[eventType] ?? eventType.replaceAll("_", " ").toLowerCase().replace(/^\w/, (c) => c.toUpperCase());
+function getEventMeta(eventType) {
+  return (
+    EVENT_META[eventType] ?? {
+      label: eventType.replaceAll("_", " ").toLowerCase().replace(/^\w/, (c) => c.toUpperCase()),
+      icon: Receipt,
+      tone: "text-slate-500 bg-slate-100",
+    }
+  );
+}
+
+// A restrained count-up — the Shadow Accumulator's balance animating in on
+// load, not a slot-machine reel. Skips animation entirely for
+// prefers-reduced-motion, matching CelebrationOverlay.jsx's own convention.
+function useCountUp(target, duration = 900) {
+  const [value, setValue] = useState(0);
+
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setValue(target);
+      return undefined;
+    }
+
+    let frameId;
+    const start = performance.now();
+    const tick = (now) => {
+      const progress = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setValue(Math.round(target * eased));
+      if (progress < 1) frameId = requestAnimationFrame(tick);
+    };
+    frameId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frameId);
+  }, [target, duration]);
+
+  return value;
 }
 
 function timeAgo(dateString) {
@@ -49,6 +88,12 @@ export default function WorkerLedger() {
       cancelled = true;
     };
   }, []);
+
+  // Called unconditionally, before the early loading/error returns below,
+  // so hook order never changes between renders — 0 is a safe target while
+  // ledger hasn't loaded yet, since these values aren't rendered until it has.
+  const displayedTokens = useCountUp(ledger?.bridgeTokens ?? 0);
+  const displayedXp = useCountUp(ledger?.xp ?? 0);
 
   if (loading) {
     return (
@@ -94,7 +139,7 @@ export default function WorkerLedger() {
             <Coins className="h-3.5 w-3.5 text-amber-500" />
             Bridge Tokens
           </p>
-          <p className="mt-1 text-3xl font-black text-[#0A1128]">{ledger.bridgeTokens}</p>
+          <p className="mt-1 text-3xl font-black text-[#0A1128]">{displayedTokens}</p>
           <p className="mt-1 text-xs text-slate-400">+{earnedThisWeek} earned this week</p>
         </motion.div>
         <motion.div
@@ -107,6 +152,9 @@ export default function WorkerLedger() {
           <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-slate-400">
             <Zap className="h-3.5 w-3.5 text-[#FF6B35]" />
             {ledger.tier} Tier · Level {ledger.currentLevel}
+          </p>
+          <p className="mt-1 text-3xl font-black text-[#0A1128]">
+            {displayedXp} <span className="text-sm font-bold text-slate-400">XP</span>
           </p>
           <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
             <motion.div
@@ -130,24 +178,33 @@ export default function WorkerLedger() {
           </div>
         ) : (
           <div className="divide-y divide-slate-100">
-            {ledger.events.map((event, index) => (
-              <motion.div
-                key={event.id}
-                initial={{ opacity: 0, x: -8 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.25, delay: Math.min(index * 0.03, 0.3) }}
-                className="flex items-center justify-between gap-4 py-3 transition-colors hover:bg-slate-50"
-              >
-                <div>
-                  <p className="text-sm font-semibold text-[#0A1128]">{formatEventLabel(event.event_type)}</p>
-                  <p className="text-xs text-slate-400">{timeAgo(event.created_at)}</p>
-                </div>
-                <div className="flex flex-shrink-0 items-center gap-3 text-sm font-bold">
-                  {event.xp_delta > 0 && <span className="text-[#FF6B35]">+{event.xp_delta} XP</span>}
-                  {event.token_delta > 0 && <span className="text-amber-600">+{event.token_delta} 🪙</span>}
-                </div>
-              </motion.div>
-            ))}
+            {ledger.events.map((event, index) => {
+              const meta = getEventMeta(event.event_type);
+              const Icon = meta.icon;
+              return (
+                <motion.div
+                  key={event.id}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.25, delay: Math.min(index * 0.03, 0.3) }}
+                  className="flex items-center justify-between gap-4 py-3 transition-colors hover:bg-slate-50"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${meta.tone}`}>
+                      <Icon className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-[#0A1128]">{meta.label}</p>
+                      <p className="text-xs text-slate-400">{timeAgo(event.created_at)}</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-shrink-0 items-center gap-3 text-sm font-bold">
+                    {event.xp_delta > 0 && <span className="text-[#FF6B35]">+{event.xp_delta} XP</span>}
+                    {event.token_delta > 0 && <span className="text-amber-600">+{event.token_delta} 🪙</span>}
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         )}
       </div>
