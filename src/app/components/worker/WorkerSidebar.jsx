@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Briefcase, Search, Wallet, User, LogOut, ShieldCheck, Zap, Handshake } from "lucide-react";
+import { Briefcase, Search, Wallet, User, LogOut, ShieldCheck, Zap, Handshake, Receipt, Settings } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { listProjects } from "../../lib/projectsApi";
 import { getInitials } from "../../utils/formValidation";
@@ -14,7 +14,9 @@ const NAV = [
   { id: "negotiations", label: "Negotiations", icon: Handshake },
   { id: "workspace", label: "Active Workspace", icon: Briefcase },
   { id: "wallet", label: "Wallet", icon: Wallet },
+  { id: "invoices", label: "Invoices", icon: Receipt },
   { id: "profile", label: "My Profile", icon: User },
+  { id: "settings", label: "Settings", icon: Settings },
 ];
 
 export default function WorkerSidebar({ tab, onTabChange, onLogout }) {

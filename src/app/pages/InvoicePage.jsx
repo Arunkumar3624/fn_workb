@@ -67,10 +67,14 @@ export default function InvoicePage() {
   // been paid out, which only happens at COMPLETED.
   const isSettled = FUNDS_SECURED_STATUSES.has(project.status);
   const isPaid = project.status === "COMPLETED";
+  // round2 (paise precision), matching projects.controller.js's
+  // completeProject exactly — the old Math.round (whole-rupee) here could
+  // show a fee/net that didn't quite match the real ledger amount.
+  const round2 = (n) => Math.round(n * 100) / 100;
   const budget = Number(project.budget);
   const feePct = Number(project.platform_fee_pct ?? 8);
-  const platformFee = Math.round(budget * (feePct / 100));
-  const workerReceives = budget - platformFee;
+  const platformFee = round2(budget * (feePct / 100));
+  const workerReceives = round2(budget - platformFee);
 
   const handlePayment = async () => {
     if (securing || project.status !== "ACCEPTED") return;

@@ -6,6 +6,7 @@ import {
   LogOut,
   MessageSquare,
   Plus,
+  Settings,
   ShieldCheck,
   Users,
   Zap,
@@ -20,6 +21,7 @@ const NAV = [
   { id: "projects", label: "Active Projects", icon: Briefcase },
   { id: "negotiations", label: "Negotiations", icon: MessageSquare },
   { id: "company", label: "Company Page", icon: Building2 },
+  { id: "settings", label: "Settings", icon: Settings },
 ];
 
 export default function BusinessSidebar({

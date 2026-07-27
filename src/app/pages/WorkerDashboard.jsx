@@ -8,7 +8,9 @@ import WorkerJobFeed from "../components/worker/WorkerJobFeed";
 import NegotiationInbox from "../components/worker/WorkerNegotiationInbox";
 import WorkerWorkspace from "../components/worker/WorkerWorkspace";
 import WorkerWallet from "../components/worker/WorkerWallet";
+import WorkerInvoices from "../components/worker/WorkerInvoices";
 import WorkerProfile from "../components/worker/WorkerProfile";
+import SettingsPage from "./SettingsPage";
 import { useAuth } from "../context/AuthContext";
 import { listProjects } from "../lib/projectsApi";
 import { getWallet } from "../lib/walletApi";
@@ -106,7 +108,9 @@ export default function WorkerDashboard({ onLogout }) {
           {tab === "negotiations" && <NegotiationInbox initialProjectId={projectIdFromUrl} />}
           {tab === "workspace" && <WorkerWorkspace />}
           {tab === "wallet" && <WorkerWallet />}
+          {tab === "invoices" && <WorkerInvoices />}
           {tab === "profile" && <WorkerProfile />}
+          {tab === "settings" && <SettingsPage />}
         </div>
       </div>
     </DashboardLayout>

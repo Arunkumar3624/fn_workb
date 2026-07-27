@@ -197,7 +197,7 @@ export default function WorkerWallet() {
               {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
               {submitting ? "Processing…" : "Withdraw in 60 Seconds"}
             </button>
-            <p className="text-xs text-slate-400 text-center">7% platform commission already deducted from earnings</p>
+            <p className="text-xs text-slate-400 text-center"> platform commission already deducted from earnings</p>
           </form>
         </div>
 

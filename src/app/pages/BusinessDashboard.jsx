@@ -7,6 +7,7 @@ import BusinessWorkers from "../components/business/BusinessWorkers";
 import BusinessProjects from "../components/business/BusinessProjects";
 import BusinessNegotiationHub from "../components/business/BusinessNegotiationHub";
 import BusinessCompany from "../components/business/BusinessCompany";
+import SettingsPage from "./SettingsPage";
 
 export default function BusinessDashboard({ onLogout, onVerify, isVerified = false }) {
   const [tab, setTab] = useState("overview");
@@ -64,6 +65,7 @@ export default function BusinessDashboard({ onLogout, onVerify, isVerified = fal
           />
         )}
         {tab === "company" && <BusinessCompany />}
+        {tab === "settings" && <SettingsPage />}
       </div>
     </DashboardLayout>
   );
