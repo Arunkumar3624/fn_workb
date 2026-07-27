@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Bell, Sparkles } from "lucide-react";
+import { Bell, Coins, Flame, Sparkles } from "lucide-react";
 import DashboardLayout from "../components/common/DashboardLayout";
 import WorkerSidebar from "../components/worker/WorkerSidebar";
 import WorkerJobFeed from "../components/worker/WorkerJobFeed";
@@ -76,6 +76,25 @@ export default function WorkerDashboard({ onLogout }) {
             </div>
 
             <div className="flex items-center gap-3">
+              {/* MASTER_ECONOMY_PLAN.md's Dashboard HUD. This header is
+                  bg-white/90 (light), so a literal bg-white/10 glass pill
+                  from the design brief would be invisible — using a navy
+                  tint instead so it still reads as glass, just against a
+                  light backdrop, and pops as a distinct "status" pill next
+                  to the plain white balance card beside it. */}
+              <div className="hidden items-center gap-3 rounded-2xl border border-white/20 bg-[#0F172A]/90 px-4 py-2 shadow-sm backdrop-blur-md sm:flex">
+                <span className="flex items-center gap-1.5 text-sm font-bold text-white">
+                  <Flame className="h-4 w-4 text-[#FF6B35]" />
+                  {currentUser?.current_streak ?? 0}
+                  <span className="hidden font-normal text-slate-300 md:inline">Day Streak</span>
+                </span>
+                <span className="h-4 w-px bg-white/20" />
+                <span className="flex items-center gap-1.5 text-sm font-bold text-white">
+                  <Coins className="h-4 w-4 text-amber-400" />
+                  {currentUser?.bridge_tokens ?? 0}
+                  <span className="hidden font-normal text-slate-300 md:inline">Tokens</span>
+                </span>
+              </div>
               {/* Clicking a pending "Job Invite" notification pushes straight to Negotiations */}
               <button
                 onClick={() => navigate("/worker/negotiations")}

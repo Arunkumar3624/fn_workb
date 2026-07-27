@@ -18,6 +18,7 @@ import { useAuth } from "../../context/AuthContext";
 import { updateOwnProfile } from "../../lib/profilesApi";
 import { listReviewsFor } from "../../lib/reviewsApi";
 import { getInitials } from "../../utils/formValidation";
+import { calculateLevel, calculateProgressBar, getNextTier, getTierData } from "../../utils/gamification";
 import { ApiError } from "../../lib/apiClient";
 import { getSocket } from "../../lib/socketClient";
 import EditableCoverPhoto from "../shared/EditableCoverPhoto";
@@ -270,6 +271,13 @@ export default function WorkerProfile() {
 
   const shareUrl = currentUser?.id ? `${window.location.origin}/profiles/${currentUser.id}` : undefined;
 
+  // MASTER_ECONOMY_PLAN.md Part 5a — tier NAME and progress % only, never
+  // a raw XP number or fee percentage in the UI copy.
+  const { currentLevel } = calculateLevel(currentUser?.xp ?? 0);
+  const { tier } = getTierData(currentLevel);
+  const progressPct = calculateProgressBar(currentUser?.xp ?? 0);
+  const nextTier = getNextTier(currentLevel);
+
   const profile = currentUser?.profile ?? {};
   const skills = profile.skills ?? [];
   const education = profile.education ?? [];
@@ -364,6 +372,22 @@ export default function WorkerProfile() {
                     <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600">
                       {profile.bio || "No bio yet — click Edit Profile to add a professional introduction."}
                     </p>
+
+                    {/* MASTER_ECONOMY_PLAN.md Part 5a — a thin, understated
+                        line (not a chunky game-style bar), tier name only,
+                        never a raw XP count or fee percentage. */}
+                    <div className="mt-5 max-w-md">
+                      <div className="h-1 w-full overflow-hidden rounded-full bg-slate-100">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-[#FF6B35] to-yellow-500 transition-all duration-1000 ease-out"
+                          style={{ width: `${progressPct}%` }}
+                        />
+                      </div>
+                      <p className="mt-1.5 text-xs font-semibold text-slate-500">
+                        Current Tier: <span className="text-slate-700">{tier}</span>
+                        {nextTier && ` · Progress to ${nextTier.tier}-Tier Fee Discount`}
+                      </p>
+                    </div>
                   </div>
                 </div>
                 <div className="flex flex-shrink-0 items-center gap-2">
