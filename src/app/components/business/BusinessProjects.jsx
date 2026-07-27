@@ -11,6 +11,7 @@ import {
   Download,
   Loader2,
   Lock,
+  MessageSquare,
   RefreshCw,
   RotateCcw,
   ShieldCheck,
@@ -273,7 +274,10 @@ function WorkerDetailDrawer({ project, onClose }) {
                       <p className="mt-1 text-xs text-slate-400" style={DATA_FONT}>Keep contact details off WorkBridge — sharing phone numbers or emails isn't allowed.</p>
                     </div>
                     <div className="flex h-[420px] flex-col">
-                      <ChatThread projectId={project.id} />
+                      <ChatThread
+                        projectId={project.id}
+                        readOnly={project.status === "COMPLETED" || project.status === "CANCELLED"}
+                      />
                     </div>
                   </div>
                 </div>
@@ -1536,6 +1540,13 @@ export default function BusinessProjects() {
                           Cancelled
                         </span>
                         <button
+                          onClick={() => setWorkerDrawerProject(p)}
+                          className="flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-600 hover:bg-slate-50"
+                        >
+                          <MessageSquare className="h-3 w-3" />
+                          View Chat
+                        </button>
+                        <button
                           onClick={() => handleRehire(p)}
                           className="flex items-center gap-1 rounded-full border border-[#FF6B35]/30 bg-[#FF6B35]/10 px-2.5 py-1 text-xs font-bold text-[#FF6B35] hover:bg-[#FF6B35]/20"
                         >
@@ -1546,6 +1557,14 @@ export default function BusinessProjects() {
                     ) : (
                       <div className="flex flex-shrink-0 flex-wrap items-center gap-3">
                         <span className="font-mono text-sm font-bold text-emerald-700">{formatINR(p.budget)}</span>
+
+                        <button
+                          onClick={() => setWorkerDrawerProject(p)}
+                          className="flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-600 hover:bg-slate-50"
+                        >
+                          <MessageSquare className="h-3 w-3" />
+                          View Chat
+                        </button>
 
                         {myRating ? (
                           <span className="flex items-center gap-0.5" title={`You rated this ${myRating}/5`}>

@@ -427,7 +427,10 @@ export default function WorkerWorkspace() {
                     <p className="mt-0.5 text-xs text-slate-500">Keep contact details off WorkBridge — sharing phone numbers or emails isn't allowed.</p>
                   </div>
                   <div className="flex h-[480px] flex-col">
-                    <ChatThread projectId={selectedTask.id} />
+                    <ChatThread
+                      projectId={selectedTask.id}
+                      readOnly={selectedTask.status === "COMPLETED" || selectedTask.status === "CANCELLED"}
+                    />
                   </div>
                 </div>
               </motion.div>

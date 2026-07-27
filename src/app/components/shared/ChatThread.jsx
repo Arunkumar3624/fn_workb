@@ -146,7 +146,7 @@ function MessageRow({ message, isMine, onPreview }) {
 // BusinessNegotiationHub.jsx. Deliberately headerless — call sites keep
 // their own existing header (job details / contract-terms button etc.) and
 // just render this for the feed + composer.
-export default function ChatThread({ projectId }) {
+export default function ChatThread({ projectId, readOnly = false }) {
   const { currentUser } = useAuth();
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -364,34 +364,40 @@ export default function ChatThread({ projectId }) {
         </div>
       )}
 
-      <form onSubmit={handleSend} className="flex-shrink-0 border-t border-slate-200 bg-white px-5 py-4">
-        <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 p-2 shadow-sm focus-within:border-[#1B3FAB] focus-within:ring-4 focus-within:ring-[#1B3FAB]/10">
-          <button
-            type="button"
-            onClick={() => setAttachOpen((open) => !open)}
-            aria-label="Attach a file"
-            className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full transition ${
-              attachOpen ? "bg-[#1B3FAB] text-white" : "text-slate-400 hover:bg-white hover:text-slate-600"
-            }`}
-          >
-            <Paperclip className="h-4 w-4" />
-          </button>
-          <input
-            value={draft}
-            onChange={(event) => { setDraft(event.target.value); setSendError(""); }}
-            placeholder="Write a message..."
-            className="min-h-[42px] flex-1 bg-transparent px-2 text-sm text-slate-900 outline-none placeholder:text-slate-400"
-          />
-          <button
-            type="submit"
-            className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-[#FF6B35] text-white shadow-sm shadow-orange-200 transition hover:bg-[#e85d27] disabled:cursor-not-allowed disabled:opacity-50"
-            disabled={!draft.trim() || sending}
-            aria-label="Send message"
-          >
-            {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-          </button>
+      {readOnly ? (
+        <div className="flex-shrink-0 border-t border-slate-200 bg-slate-50 px-5 py-4 text-center text-xs font-semibold text-slate-400">
+          This project is closed — the chat is preserved but read-only.
         </div>
-      </form>
+      ) : (
+        <form onSubmit={handleSend} className="flex-shrink-0 border-t border-slate-200 bg-white px-5 py-4">
+          <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 p-2 shadow-sm focus-within:border-[#1B3FAB] focus-within:ring-4 focus-within:ring-[#1B3FAB]/10">
+            <button
+              type="button"
+              onClick={() => setAttachOpen((open) => !open)}
+              aria-label="Attach a file"
+              className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full transition ${
+                attachOpen ? "bg-[#1B3FAB] text-white" : "text-slate-400 hover:bg-white hover:text-slate-600"
+              }`}
+            >
+              <Paperclip className="h-4 w-4" />
+            </button>
+            <input
+              value={draft}
+              onChange={(event) => { setDraft(event.target.value); setSendError(""); }}
+              placeholder="Write a message..."
+              className="min-h-[42px] flex-1 bg-transparent px-2 text-sm text-slate-900 outline-none placeholder:text-slate-400"
+            />
+            <button
+              type="submit"
+              className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-[#FF6B35] text-white shadow-sm shadow-orange-200 transition hover:bg-[#e85d27] disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={!draft.trim() || sending}
+              aria-label="Send message"
+            >
+              {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            </button>
+          </div>
+        </form>
+      )}
 
       <ImageLightbox src={previewSrc} onClose={() => setPreviewSrc(null)} />
     </div>
