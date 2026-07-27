@@ -1,39 +1,47 @@
 import { useEffect, useState } from "react";
-import { AlertCircle, Coins, Loader2, Radar, Search, Zap } from "lucide-react";
+import { AlertCircle, AlertTriangle, Coins, Loader2, Radar, Search, Zap } from "lucide-react";
 import { getLedger } from "../../lib/gamificationApi";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { ApiError } from "../../lib/apiClient";
 
 // Corporate Credits balance shown here is real (earned on completing a
-// project with no dispute — see projects.controller.js's completeProject).
-// The perks themselves are a visual preview, same precedent as
+// project with no dispute — see projects.controller.js's completeProject),
+// and the insufficient-balance check against a selected tier is real too.
+// The perks themselves stay a visual preview, same precedent as
 // WorkerTokenShop.jsx — none of these have a real effect wired into the
 // job-feed ranking or worker-matching logic yet, so "Purchase" resolves to
-// an honest "Coming soon" rather than faking one.
+// an honest "Coming soon" (when affordable) rather than faking one.
 const PERKS = [
   {
     id: "flash-post",
     name: "Flash Post",
     description: "Boost your next job post's visibility in the Job Feed.",
-    cost: 30,
     icon: Zap,
     color: "teal",
+    tiers: [
+      { label: "24-Hour Express", cost: 10 },
+      { label: "3-Day Featured", cost: 25 },
+      { label: "7-Day Dominance", cost: 50 },
+    ],
   },
   {
     id: "ai-shortlist",
     name: "AI Shortlist",
     description: "Curated top-3 worker recommendations for your post.",
-    cost: 60,
     icon: Search,
     color: "slate",
+    tiers: [
+      { label: "Single-Use Pass", cost: 35 },
+      { label: "7-Day Active", cost: 90 },
+    ],
   },
   {
     id: "enterprise-broadcast",
     name: "Enterprise Broadcast",
     description: "Direct notification to elite, top-tier talent.",
-    cost: 120,
     icon: Radar,
     color: "amber",
+    tiers: [{ label: "One-Time Broadcast", cost: 120 }],
   },
 ];
 
@@ -42,6 +50,59 @@ const COLOR_STYLES = {
   slate: "bg-slate-100 text-slate-600",
   amber: "bg-amber-50 text-amber-600",
 };
+
+function PerkCard({ perk, balance, onPurchase }) {
+  const [tierIndex, setTierIndex] = useState(0);
+  const Icon = perk.icon;
+  const tier = perk.tiers[tierIndex];
+  const canAfford = balance >= tier.cost;
+
+  return (
+    <div className="flex flex-col rounded-2xl border border-slate-200 bg-white p-5">
+      <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${COLOR_STYLES[perk.color]}`}>
+        <Icon className="h-5 w-5" />
+      </div>
+      <p className="mt-3 text-sm font-bold text-[#0A1128]">{perk.name}</p>
+      <p className="mt-1 flex-1 text-xs leading-5 text-slate-500">{perk.description}</p>
+
+      {perk.tiers.length > 1 && (
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {perk.tiers.map((t, i) => (
+            <button
+              key={t.label}
+              onClick={() => setTierIndex(i)}
+              className={`rounded-full px-2.5 py-1 text-[11px] font-bold transition-colors ${
+                i === tierIndex ? "bg-[#0A1128] text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <p className="mt-3 flex items-center gap-1 text-sm font-black text-[#0A1128]">
+        <Coins className="h-3.5 w-3.5 text-amber-500" />
+        {tier.cost}
+        {perk.tiers.length === 1 && <span className="ml-1 text-xs font-semibold text-slate-400">{tier.label}</span>}
+      </p>
+
+      {!canAfford && (
+        <p className="mt-2 flex items-center gap-1 text-[11px] font-semibold text-red-500">
+          <AlertTriangle className="h-3 w-3 flex-shrink-0" />
+          Not enough credits for this tier
+        </p>
+      )}
+
+      <button
+        onClick={() => onPurchase(perk, tier, canAfford)}
+        className="mt-4 w-full rounded-lg border border-slate-200 py-2 text-xs font-bold text-slate-500 transition-colors hover:bg-slate-50"
+      >
+        Purchase
+      </button>
+    </div>
+  );
+}
 
 export default function BusinessPerksShop() {
   useDocumentTitle("Business Perks — WorkBridge");
@@ -86,6 +147,14 @@ export default function BusinessPerksShop() {
     );
   }
 
+  const handlePurchase = (perk, tier, canAfford) => {
+    if (!canAfford) {
+      setNotice(`You need ${tier.cost} credits for ${perk.name} (${tier.label}) — you have ${balance}.`);
+      return;
+    }
+    setNotice(`${perk.name} (${tier.label}) isn't redeemable yet — coming soon.`);
+  };
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10">
       <div className="mb-6 flex items-center justify-between">
@@ -108,28 +177,9 @@ export default function BusinessPerksShop() {
       )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {PERKS.map((perk) => {
-          const Icon = perk.icon;
-          return (
-            <div key={perk.id} className="flex flex-col rounded-2xl border border-slate-200 bg-white p-5">
-              <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${COLOR_STYLES[perk.color]}`}>
-                <Icon className="h-5 w-5" />
-              </div>
-              <p className="mt-3 text-sm font-bold text-[#0A1128]">{perk.name}</p>
-              <p className="mt-1 flex-1 text-xs leading-5 text-slate-500">{perk.description}</p>
-              <p className="mt-3 flex items-center gap-1 text-sm font-black text-[#0A1128]">
-                <Coins className="h-3.5 w-3.5 text-amber-500" />
-                {perk.cost}
-              </p>
-              <button
-                onClick={() => setNotice(`${perk.name} isn't redeemable yet — coming soon.`)}
-                className="mt-4 w-full rounded-lg border border-slate-200 py-2 text-xs font-bold text-slate-500 transition-colors hover:bg-slate-50"
-              >
-                Purchase
-              </button>
-            </div>
-          );
-        })}
+        {PERKS.map((perk) => (
+          <PerkCard key={perk.id} perk={perk} balance={balance} onPurchase={handlePurchase} />
+        ))}
       </div>
       <p className="mt-6 text-center text-[11px] text-slate-400">
         Your credit balance is real (earned when a project closes with no dispute) — these perks aren't

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { motion } from "motion/react";
 import { AlertCircle, CheckCircle2, Lock, Loader2 } from "lucide-react";
 import { getLedger } from "../../lib/gamificationApi";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
@@ -28,6 +29,59 @@ const MILESTONES = [
   { level: 175, reward: "Custom vanity profile URL slug" },
   { level: 200, reward: '"Legend of WorkBridge" permanent hall-of-fame badge; annual platform-wide spotlight; Diamond-Tier Fee Discount locked in for life', major: true },
 ];
+
+// A connected path with restraint, not a game board — MASTER_ECONOMY_PLAN.md
+// Part 10 is explicit that this system must read as a premium SaaS trust
+// signal, not a mobile-game mechanic ("no cheap mobile game aesthetics").
+// So: one subtle pulse ring, reserved only for the single next milestone
+// (not every unlocked node), reusing the exact ripple pattern
+// CelebrationOverlay.jsx already established — not a new "radar ping"
+// language, and no animated dashed SVG track.
+function MilestoneNode({ milestone, achieved, isNext, align, index }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.35, delay: Math.min(index * 0.04, 0.4) }}
+      className={`relative flex items-center gap-5 ${align === "right" ? "sm:flex-row-reverse" : ""}`}
+    >
+      <div className="relative flex-shrink-0">
+        {isNext && (
+          <motion.span
+            className="absolute inset-0 rounded-full border-2 border-[#FF6B35]"
+            initial={{ scale: 1, opacity: 0.45 }}
+            animate={{ scale: 1.6, opacity: 0 }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: "easeOut" }}
+          />
+        )}
+        <div
+          className={`relative z-10 flex h-11 w-11 items-center justify-center rounded-full border-4 border-white shadow-sm ${
+            achieved ? "bg-[#FF6B35] text-white" : isNext ? "bg-white text-[#FF6B35] ring-2 ring-[#FF6B35]" : "bg-slate-100 text-slate-400"
+          }`}
+        >
+          {achieved ? <CheckCircle2 className="h-5 w-5" /> : <Lock className="h-4 w-4" />}
+        </div>
+      </div>
+
+      <div
+        className={`min-w-0 flex-1 rounded-2xl border p-4 transition-colors ${
+          achieved
+            ? "border-[#FF6B35]/25 bg-[#FFF7F3]"
+            : isNext
+            ? "border-[#FF6B35]/40 bg-white shadow-[0_8px_24px_-8px_rgba(255,107,53,0.25)]"
+            : "border-slate-200 bg-slate-50/80 opacity-80"
+        } ${milestone.major ? "ring-1 ring-inset ring-slate-100" : ""}`}
+      >
+        <p className={`text-sm font-bold ${achieved || isNext ? "text-[#0A1128]" : "text-slate-500"}`}>
+          Level {milestone.level}
+          {isNext && <span className="ml-2 rounded-full bg-[#FF6B35]/10 px-2 py-0.5 text-[10px] font-bold text-[#FF6B35]">NEXT</span>}
+        </p>
+        <p className={`mt-1 text-xs leading-5 ${achieved || isNext ? "text-slate-600" : "text-slate-400"}`}>{milestone.reward}</p>
+      </div>
+    </motion.div>
+  );
+}
 
 export default function WorkerMilestones() {
   useDocumentTitle("Milestones — WorkBridge");
@@ -86,7 +140,7 @@ export default function WorkerMilestones() {
         </p>
       </div>
 
-      <div className="mb-6 flex items-start gap-2 rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-700">
+      <div className="mb-8 flex items-start gap-2 rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-700">
         <AlertCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
         <span>
           Your level is real. Most rewards below are still the platform's documented plan, not fully wired up
@@ -94,34 +148,20 @@ export default function WorkerMilestones() {
         </span>
       </div>
 
-      <div className="space-y-3">
-        {MILESTONES.map((milestone) => {
-          const achieved = currentLevel >= milestone.level;
-          return (
-            <div
+      <div className="relative">
+        <div className="absolute left-[22px] top-2 bottom-2 w-px bg-gradient-to-b from-[#FF6B35]/30 via-slate-200 to-slate-200 sm:left-1/2 sm:-translate-x-1/2" />
+        <div className="space-y-6">
+          {MILESTONES.map((milestone, index) => (
+            <MilestoneNode
               key={milestone.level}
-              className={`flex items-start gap-3 rounded-2xl border p-4 ${
-                achieved ? "border-[#FF6B35]/30 bg-[#FFF7F3]" : "border-slate-200 bg-white"
-              } ${milestone.major ? "ring-1 ring-inset ring-slate-100" : ""}`}
-            >
-              <div
-                className={`mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full ${
-                  achieved ? "bg-[#FF6B35] text-white" : "bg-slate-100 text-slate-400"
-                }`}
-              >
-                {achieved ? <CheckCircle2 className="h-4 w-4" /> : <Lock className="h-3.5 w-3.5" />}
-              </div>
-              <div className="min-w-0">
-                <p className={`text-sm font-bold ${achieved ? "text-[#0A1128]" : "text-slate-500"}`}>
-                  Level {milestone.level}
-                </p>
-                <p className={`mt-0.5 text-xs leading-5 ${achieved ? "text-slate-600" : "text-slate-400"}`}>
-                  {milestone.reward}
-                </p>
-              </div>
-            </div>
-          );
-        })}
+              milestone={milestone}
+              achieved={currentLevel >= milestone.level}
+              isNext={milestone.level === nextMilestone?.level}
+              align={index % 2 === 0 ? "left" : "right"}
+              index={index}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
