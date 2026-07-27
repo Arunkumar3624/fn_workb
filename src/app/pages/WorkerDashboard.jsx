@@ -9,6 +9,8 @@ import NegotiationInbox from "../components/worker/WorkerNegotiationInbox";
 import WorkerWorkspace from "../components/worker/WorkerWorkspace";
 import WorkerWallet from "../components/worker/WorkerWallet";
 import WorkerInvoices from "../components/worker/WorkerInvoices";
+import WorkerLedger from "../components/worker/WorkerLedger";
+import WorkerTokenShop from "../components/worker/WorkerTokenShop";
 import WorkerProfile from "../components/worker/WorkerProfile";
 import SettingsPage from "./SettingsPage";
 import { useAuth } from "../context/AuthContext";
@@ -128,6 +130,8 @@ export default function WorkerDashboard({ onLogout }) {
           {tab === "workspace" && <WorkerWorkspace />}
           {tab === "wallet" && <WorkerWallet />}
           {tab === "invoices" && <WorkerInvoices />}
+          {tab === "ledger" && <WorkerLedger />}
+          {tab === "shop" && <WorkerTokenShop />}
           {tab === "profile" && <WorkerProfile />}
           {tab === "settings" && <SettingsPage />}
         </div>
