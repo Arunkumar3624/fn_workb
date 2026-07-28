@@ -1056,8 +1056,11 @@ export default function BusinessProjects() {
       const result = await apiCompleteProject(id);
       setProjects((prev) => prev.map((p) => (p.id === id ? result.project : p)));
       setPaymentProject(null);
+      toast.success(`Funds released — ${paymentProject.worker_name ?? "the worker"} has been paid.`);
     } catch (err) {
-      setCompleteError(err.message || "Couldn't release payment — try again.");
+      const message = err.message || "Release failed — the project may not be in Files Submitted status yet.";
+      setCompleteError(message);
+      toast.error(message);
     } finally {
       setCompletingId(null);
     }
