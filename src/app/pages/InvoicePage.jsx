@@ -12,7 +12,7 @@ function formatINR(amount) {
   return `₹${Number(amount || 0).toLocaleString("en-IN")}`;
 }
 
-const FUNDS_SECURED_STATUSES = new Set(["FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_SUBMITTED", "COMPLETED"]);
+const FUNDS_SECURED_STATUSES = new Set(["FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_SUBMITTED", "PENDING_RELEASE", "COMPLETED"]);
 
 export default function InvoicePage() {
   useDocumentTitle("Invoice — WorkBridge");
@@ -67,6 +67,7 @@ export default function InvoicePage() {
   // been paid out, which only happens at COMPLETED.
   const isSettled = FUNDS_SECURED_STATUSES.has(project.status);
   const isPaid = project.status === "COMPLETED";
+  const isPendingRelease = project.status === "PENDING_RELEASE";
   // round2 (paise precision), matching projects.controller.js's
   // completeProject exactly — the old Math.round (whole-rupee) here could
   // show a fee/net that didn't quite match the real ledger amount.
@@ -292,14 +293,22 @@ export default function InvoicePage() {
 
           {(isSettled && (isBusinessViewer || isWorkerViewer)) && (
             <div className="border-t border-slate-100 bg-slate-50 p-6 sm:p-10">
-              <div className="flex items-center justify-center gap-3 rounded-xl border border-emerald-200/80 bg-emerald-50/60 px-5 py-4">
-                <ShieldCheck className="h-5 w-5 flex-shrink-0 text-emerald-600" />
+              <div
+                className={`flex items-center justify-center gap-3 rounded-xl border px-5 py-4 ${
+                  isPendingRelease ? "border-amber-200/80 bg-amber-50/60" : "border-emerald-200/80 bg-emerald-50/60"
+                }`}
+              >
+                <ShieldCheck className={`h-5 w-5 flex-shrink-0 ${isPendingRelease ? "text-amber-600" : "text-emerald-600"}`} />
                 <div className="text-center">
-                  <p className="text-sm font-bold text-emerald-800">{isPaid ? "Payment Released" : "Funds Secured"}</p>
-                  <p className="text-xs text-emerald-700">
+                  <p className={`text-sm font-bold ${isPendingRelease ? "text-amber-800" : "text-emerald-800"}`}>
+                    {isPaid ? "Payment Released" : isPendingRelease ? "Release Requested" : "Funds Secured"}
+                  </p>
+                  <p className={`text-xs ${isPendingRelease ? "text-amber-700" : "text-emerald-700"}`}>
                     {isPaid
                       ? `${formatINR(workerReceives)} was automatically released to ${project.worker_name}'s wallet — payment successfully cleared.`
-                      : `${formatINR(budget)} is secured in WorkBridge Escrow until work is approved.`}
+                      : isPendingRelease
+                        ? `${project.business_name} has requested this release — WorkBridge staff will pay ${project.worker_name} out of escrow shortly.`
+                        : `${formatINR(budget)} is secured in WorkBridge Escrow until work is approved.`}
                   </p>
                 </div>
               </div>

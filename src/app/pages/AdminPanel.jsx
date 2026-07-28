@@ -1,17 +1,18 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { BarChart3, Shield, AlertTriangle, ShieldAlert, UserCog, Receipt, Send, Zap, LogOut, Image as ImageIcon, Users } from "lucide-react";
+import { BarChart3, Shield, AlertTriangle, ShieldAlert, UserCog, Receipt, Banknote, Send, Zap, LogOut, Image as ImageIcon, Users } from "lucide-react";
 import AdminOverviewTab from "../components/admin/AdminOverviewTab";
 import AdminUsersTab from "../components/admin/AdminUsersTab";
 import AdminVerificationsTab from "../components/admin/AdminVerificationsTab";
 import AdminInvitationsTab from "../components/admin/AdminInvitationsTab";
 import AdminDisputesTab from "../components/admin/AdminDisputesTab";
+import AdminFundReleasesTab from "../components/admin/AdminFundReleasesTab";
 import AdminSecurityTab from "../components/admin/AdminSecurityTab";
 import AdminTeamTab from "../components/admin/AdminTeamTab";
 import AdminTransactionsTab from "../components/admin/AdminTransactionsTab";
 import AdminContentReviewTab from "../components/admin/AdminContentReviewTab";
 import { useAuth } from "../context/AuthContext";
-import { listVerifications, listDisputes } from "../lib/adminApi";
+import { listVerifications, listDisputes, listPendingReleases } from "../lib/adminApi";
 import { getInitials } from "../utils/formValidation";
 
 const NAV = [
@@ -20,6 +21,7 @@ const NAV = [
   { id: "verification", label: "Verification Center", icon: Shield, badgeKey: "verifications" },
   { id: "invitations", label: "Invitations", icon: Send },
   { id: "content", label: "Content Review", icon: ImageIcon },
+  { id: "releases", label: "Fund Releases", icon: Banknote, badgeKey: "releases" },
   { id: "disputes", label: "Dispute Resolution", icon: AlertTriangle, badgeKey: "disputes" },
   { id: "transactions", label: "Transaction History", icon: Receipt },
   { id: "security", label: "Security Monitor", icon: ShieldAlert },
@@ -34,6 +36,7 @@ const TAB_COMPONENTS = {
   verification: AdminVerificationsTab,
   invitations: AdminInvitationsTab,
   content: AdminContentReviewTab,
+  releases: AdminFundReleasesTab,
   disputes: AdminDisputesTab,
   transactions: AdminTransactionsTab,
   security: AdminSecurityTab,
@@ -46,12 +49,12 @@ export default function AdminPanel({ onLogout }) {
   // Real pending counts for the nav badges — fetched once here rather than
   // duplicated inside AdminVerificationsTab/AdminDisputesTab, which fetch
   // their own full lists independently for their actual content.
-  const [badgeCounts, setBadgeCounts] = useState({ verifications: 0, disputes: 0 });
+  const [badgeCounts, setBadgeCounts] = useState({ verifications: 0, disputes: 0, releases: 0 });
 
   useEffect(() => {
-    Promise.all([listVerifications(), listDisputes()])
-      .then(([verifications, disputes]) => {
-        setBadgeCounts({ verifications: verifications.length, disputes: disputes.length });
+    Promise.all([listVerifications(), listDisputes(), listPendingReleases()])
+      .then(([verifications, disputes, releases]) => {
+        setBadgeCounts({ verifications: verifications.length, disputes: disputes.length, releases: releases.length });
       })
       .catch(() => {
         // Non-critical — badges just stay at 0 if this fails.

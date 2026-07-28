@@ -49,6 +49,14 @@ export function secureFunds(id) {
   return apiFetch(`/api/projects/${id}/secure-funds`, { method: "POST" });
 }
 
+// Business's "Approve & Release" click — only requests the release
+// (FILES_SUBMITTED -> PENDING_RELEASE), no money moves yet. WorkBridge
+// staff complete the actual payout from the Admin Panel (see below).
+export function requestRelease(id) {
+  return apiFetch(`/api/projects/${id}/request-release`, { method: "POST" });
+}
+
+// Admin-only — the real payout (PENDING_RELEASE -> COMPLETED).
 export function completeProject(id) {
   return apiFetch(`/api/projects/${id}/complete`, { method: "POST" });
 }

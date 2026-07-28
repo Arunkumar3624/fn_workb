@@ -16,7 +16,7 @@ import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { ApiError } from "../../lib/apiClient";
 import { getSocket } from "../../lib/socketClient";
 
-const ACTIVE_STATUSES = new Set(["ACCEPTED", "FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_SUBMITTED"]);
+const ACTIVE_STATUSES = new Set(["ACCEPTED", "FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_SUBMITTED", "PENDING_RELEASE"]);
 
 export default function WorkerWorkspace() {
   useDocumentTitle("Active Workspace — WorkBridge");
@@ -436,7 +436,7 @@ export default function WorkerWorkspace() {
               </motion.div>
               </div>
             </div>
-            {(selectedTask.status === "FILES_SUBMITTED" || PROJECT_STATUS_META[selectedTask.status]?.actionBy === "worker") && (
+            {(selectedTask.status === "FILES_SUBMITTED" || selectedTask.status === "PENDING_RELEASE" || PROJECT_STATUS_META[selectedTask.status]?.actionBy === "worker") && (
             /* Sized to its own content (not left-3/right-3 full-width) — a
                full-width bar here would sit on top of whatever's scrolled
                underneath it (e.g. the "Open Chat in Negotiations" button),
@@ -447,6 +447,12 @@ export default function WorkerWorkspace() {
                 <span className="flex min-h-[36px] items-center gap-2 whitespace-nowrap text-xs font-semibold text-amber-600">
                   <span className="h-2 w-2 flex-shrink-0 animate-pulse rounded-full bg-amber-500" />
                   Awaiting business approval &amp; fund release
+                </span>
+              )}
+              {selectedTask.status === "PENDING_RELEASE" && (
+                <span className="flex min-h-[36px] items-center gap-2 whitespace-nowrap text-xs font-semibold text-amber-600">
+                  <span className="h-2 w-2 flex-shrink-0 animate-pulse rounded-full bg-amber-500" />
+                  Release requested — WorkBridge is processing your payout
                 </span>
               )}
               {PROJECT_STATUS_META[selectedTask.status]?.actionBy === "worker" && (

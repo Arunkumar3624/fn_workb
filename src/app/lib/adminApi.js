@@ -31,6 +31,12 @@ export function listTransactions() {
   return apiFetch("/api/admin/transactions");
 }
 
+// Fund Releases — projects a business has requested release for
+// (PENDING_RELEASE), waiting on staff to actually complete the payout.
+export function listPendingReleases() {
+  return apiFetch("/api/admin/pending-releases");
+}
+
 // Security Monitor — blocked_message_attempts is the only record of a
 // contact-info send that got hard-blocked (see backend's
 // messages.controller.js); the message itself is never stored elsewhere.

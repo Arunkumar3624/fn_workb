@@ -8,6 +8,7 @@ export const PROJECT_STATUS_FLOW = [
   "FUNDS_SECURED",
   "WORK_IN_PROGRESS",
   "FILES_SUBMITTED",
+  "PENDING_RELEASE",
   "COMPLETED",
 ];
 
@@ -66,6 +67,18 @@ export const PROJECT_STATUS_META = {
     triggeredBy: "worker",
     actionBy: "business",
     nextActionLabel: "Approve & Release",
+  },
+  // The business already clicked "Approve & Release" — that only requested
+  // the release (see requestRelease in projects.controller.js). Nothing
+  // further for the business or worker to click; WorkBridge staff complete
+  // the real payout from the Admin Panel's Fund Releases tab.
+  PENDING_RELEASE: {
+    label: "Release Requested — WorkBridge Review",
+    shortLabel: "Release Pending",
+    tone: "amber",
+    triggeredBy: "business",
+    actionBy: "admin",
+    nextActionLabel: null,
   },
   COMPLETED: {
     label: "Completed",

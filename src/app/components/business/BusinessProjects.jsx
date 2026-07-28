@@ -32,7 +32,7 @@ import { getTierData } from "../../utils/gamification";
 import { PROJECT_STATUS_META } from "../../utils/projectStatus";
 import {
   listBusinessProjects,
-  completeProject as apiCompleteProject,
+  requestRelease as apiRequestRelease,
   secureFunds as apiSecureFunds,
   updateProjectStatus as apiUpdateProjectStatus,
   createProject,
@@ -334,7 +334,7 @@ function PaymentApprovalModal({ project, isSubmitting, submitError, onClose, onC
                 </div>
                 <div className="min-w-0 flex-1">
                   <h3 className="text-base font-extrabold text-[#0F172A]" style={HEADING_FONT}>
-                    Approve &amp; Release Payment
+                    Request Release from Escrow
                   </h3>
                   <p className="mt-0.5 truncate text-xs text-slate-400" style={DATA_FONT}>
                     {project.title}
@@ -363,15 +363,15 @@ function PaymentApprovalModal({ project, isSubmitting, submitError, onClose, onC
                 <div className="h-px bg-slate-200" />
                 <div className="flex items-center justify-between">
                   <span className="text-slate-500">Processing</span>
-                  <span className="font-bold text-emerald-600">Immediate</span>
+                  <span className="font-bold text-amber-600">WorkBridge Review</span>
                 </div>
               </div>
 
               <div className="mb-5 flex items-start gap-2.5 rounded-xl border border-blue-100 bg-blue-50 p-3.5">
                 <ShieldCheck className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-blue-500" />
                 <p className="text-xs leading-relaxed text-blue-700" style={DATA_FONT}>
-                  This runs as a single atomic transaction — the project status, the ledger
-                  entry, and the worker's wallet all update together, or none of them do.
+                  This tells WorkBridge to pay {project.worker_name} out of the funds you already
+                  secured in escrow — our team completes the transfer shortly after you confirm.
                 </p>
               </div>
 
@@ -400,10 +400,10 @@ function PaymentApprovalModal({ project, isSubmitting, submitError, onClose, onC
                   {isSubmitting ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Processing…
+                      Sending…
                     </>
                   ) : (
-                    "Confirm Release"
+                    "Request Release"
                   )}
                 </button>
               </div>
@@ -1053,12 +1053,12 @@ export default function BusinessProjects() {
     setCompletingId(id);
     setCompleteError(null);
     try {
-      const result = await apiCompleteProject(id);
-      setProjects((prev) => prev.map((p) => (p.id === id ? result.project : p)));
+      const updated = await apiRequestRelease(id);
+      setProjects((prev) => prev.map((p) => (p.id === id ? updated : p)));
       setPaymentProject(null);
-      toast.success(`Funds released — ${paymentProject.worker_name ?? "the worker"} has been paid.`);
+      toast.success("Release requested — WorkBridge will pay the worker out of escrow shortly.");
     } catch (err) {
-      const message = err.message || "Release failed — the project may not be in Files Submitted status yet.";
+      const message = err.message || "Release request failed — the project may not be in Files Submitted status yet.";
       setCompleteError(message);
       toast.error(message);
     } finally {
@@ -1478,10 +1478,17 @@ export default function BusinessProjects() {
                             ) : (
                               <>
                                 <CheckCircle2 className="h-3.5 w-3.5" />
-                                Approve &amp; Release Payment
+                                Approve &amp; Request Release
                               </>
                             )}
                           </button>
+                        )}
+
+                        {p.status === "PENDING_RELEASE" && (
+                          <span className="flex min-h-[44px] items-center gap-1.5 rounded-xl border border-amber-100 bg-amber-50 px-4 py-2 text-xs font-semibold text-amber-700 sm:ml-auto">
+                            <Loader2 className="h-3.5 w-3.5" />
+                            Release requested — WorkBridge is processing this payout
+                          </span>
                         )}
 
                         {p.status === "COMPLETED" && (
