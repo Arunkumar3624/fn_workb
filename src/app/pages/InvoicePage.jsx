@@ -103,7 +103,7 @@ export default function InvoicePage() {
             // marketing landing page from earlier in the tab's history). A
             // fixed, role-aware destination is deterministic regardless of
             // how this page was actually reached.
-            if (currentUser?.role === "worker") navigate("/worker/invoices");
+            if (currentUser?.role === "worker") navigate("/worker/wallet");
             // BusinessDashboard's tabs are local state, not URL routes — the
             // "/business" landing always opens on Overview, so that's the
             // most specific real destination available.

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Briefcase, Search, Wallet, User, LogOut, ShieldCheck, Zap, Handshake, Receipt, Settings, Coins, Store, Trophy } from "lucide-react";
+import { Briefcase, Search, Wallet, User, LogOut, ShieldCheck, Zap, Handshake, Settings, Sparkles } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { listProjects } from "../../lib/projectsApi";
 import { getInitials } from "../../utils/formValidation";
@@ -14,10 +14,7 @@ const NAV = [
   { id: "negotiations", label: "Negotiations", icon: Handshake },
   { id: "workspace", label: "Active Workspace", icon: Briefcase },
   { id: "wallet", label: "Wallet", icon: Wallet },
-  { id: "invoices", label: "Invoices", icon: Receipt },
-  { id: "ledger", label: "Ledger", icon: Coins },
-  { id: "shop", label: "Token Shop", icon: Store },
-  { id: "milestones", label: "Milestones", icon: Trophy },
+  { id: "economy", label: "Economy Hub", icon: Sparkles },
   { id: "profile", label: "My Profile", icon: User },
   { id: "settings", label: "Settings", icon: Settings },
 ];

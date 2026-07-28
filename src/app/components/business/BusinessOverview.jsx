@@ -4,6 +4,7 @@ import {
   Plus, Receipt, Shield, TrendingUp, UserCheck,
 } from "lucide-react";
 import Avatar from "../shared/Avatar";
+import EnterprisePartnerTierCard from "./EnterprisePartnerTierCard";
 import { listProjects } from "../../lib/projectsApi";
 import { getInitials } from "../../utils/formValidation";
 import { PROJECT_STATUS_FLOW } from "../../utils/projectStatus";
@@ -323,6 +324,8 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
             </div>
           ))}
         </div>
+
+        <EnterprisePartnerTierCard />
 
         {/* ── Middle: Projects + Fund Flow ───────────────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">

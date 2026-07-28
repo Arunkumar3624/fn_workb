@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import { toast } from "sonner";
-import { AlertCircle, Briefcase, History, Loader2, Send } from "lucide-react";
+import { AlertCircle, Briefcase, History, Loader2, MessageSquare, Send } from "lucide-react";
 import CelebrationOverlay from "../common/CelebrationOverlay";
 import TimelineTracker from "../shared/TimelineTracker";
 import ProjectCompletionHub from "../shared/ProjectCompletionHub";
 import DeliverablesPanel from "../shared/DeliverablesPanel";
-import ChatThread from "../shared/ChatThread";
 import DeadlineCountdown from "../shared/DeadlineCountdown";
 import { useAuth } from "../../context/AuthContext";
 import { listProjects, updateProjectStatus } from "../../lib/projectsApi";
@@ -20,6 +20,7 @@ const ACTIVE_STATUSES = new Set(["ACCEPTED", "FUNDS_SECURED", "WORK_IN_PROGRESS"
 
 export default function WorkerWorkspace() {
   useDocumentTitle("Active Workspace — WorkBridge");
+  const navigate = useNavigate();
   const { currentUser } = useAuth();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -423,22 +424,16 @@ export default function WorkerWorkspace() {
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.08 }}>
                 <DeliverablesPanel projectId={selectedTask.id} readOnly={selectedTask.status === "CANCELLED"} />
               </motion.div>
-              {selectedTask.status !== "CANCELLED" && (
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.11 }}>
-                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                  <div className="border-b border-slate-100 px-5 py-4">
-                    <h3 className="text-sm font-bold text-slate-900">Chat with {selectedTask.business_name}</h3>
-                    <p className="mt-0.5 text-xs text-slate-500">Keep contact details off WorkBridge — sharing phone numbers or emails isn't allowed.</p>
-                  </div>
-                  <div className="flex h-[480px] flex-col">
-                    <ChatThread
-                      projectId={selectedTask.id}
-                      readOnly={selectedTask.status === "COMPLETED" || selectedTask.status === "CANCELLED"}
-                    />
-                  </div>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate(`/worker/negotiations?invite=${selectedTask.id}`)}
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#1B3FAB] px-5 py-4 text-sm font-bold text-white shadow-md shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-[#15338d] hover:shadow-lg"
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  Open Chat in Negotiations
+                </button>
               </motion.div>
-              )}
               </div>
             </div>
             {(selectedTask.status === "FILES_SUBMITTED" || PROJECT_STATUS_META[selectedTask.status]?.actionBy === "worker") && (

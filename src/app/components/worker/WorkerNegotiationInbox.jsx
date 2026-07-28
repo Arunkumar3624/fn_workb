@@ -23,7 +23,20 @@ import { getInitials } from "../../utils/formValidation";
 import { ApiError } from "../../lib/apiClient";
 import { getSocket } from "../../lib/socketClient";
 
-const ACTIVE_THREAD_STATUSES = new Set(["INVITED", "ACCEPTED", "FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_SUBMITTED"]);
+// Extended to include COMPLETED/CANCELLED — Negotiations is now the single
+// unified chat inbox across every project stage (Active Workspace's own
+// embedded chat was removed in favor of redirecting here), not just the
+// pre-acceptance stage the name originally implied.
+const ACTIVE_THREAD_STATUSES = new Set([
+  "INVITED",
+  "ACCEPTED",
+  "FUNDS_SECURED",
+  "WORK_IN_PROGRESS",
+  "FILES_SUBMITTED",
+  "COMPLETED",
+  "CANCELLED",
+]);
+const CLOSED_STATUSES = new Set(["COMPLETED", "CANCELLED"]);
 
 function formatINR(amount) {
   return `INR ${Number(amount || 0).toLocaleString("en-IN")}`;
@@ -47,6 +60,7 @@ function getThreadStatus(project) {
   if (project.status === "WORK_IN_PROGRESS") return { label: "In Progress", className: "bg-slate-100 text-slate-700 border-slate-200" };
   if (project.status === "FILES_SUBMITTED") return { label: "In Review", className: "bg-amber-50 text-amber-700 border-amber-100" };
   if (project.status === "COMPLETED") return { label: "Completed", className: "bg-emerald-50 text-emerald-700 border-emerald-100" };
+  if (project.status === "CANCELLED") return { label: "Cancelled", className: "bg-slate-100 text-slate-500 border-slate-200" };
   return { label: project.status ?? "Active", className: "bg-slate-100 text-slate-600 border-slate-200" };
 }
 
@@ -94,8 +108,8 @@ function ThreadNavigator({ threads, selectedThreadId, onSelect, onViewDetails })
       <div className="flex-shrink-0 border-b border-slate-200 px-5 py-3">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Active Threads</p>
-            <h2 className="text-base font-bold text-slate-900">{threads.length} invitation{threads.length === 1 ? "" : "s"}</h2>
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">All Conversations</p>
+            <h2 className="text-base font-bold text-slate-900">{threads.length} conversation{threads.length === 1 ? "" : "s"}</h2>
           </div>
           <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-slate-500">
             Live
@@ -336,11 +350,14 @@ function JobDetailsModal({ project, onClose, onDecline, onAccept, actionBusy, ac
 // continuous-thread-per-project chat that replaced the fake seeded
 // conversation this used to render locally.
 function ChatPanel({ project }) {
+  const isClosed = CLOSED_STATUSES.has(project.status);
   return (
     <section className="flex h-full min-h-0 flex-1 flex-col bg-slate-50">
       <header className="sticky top-0 z-10 flex min-h-[72px] flex-shrink-0 items-center justify-between border-b border-slate-200 bg-white/95 px-6 backdrop-blur-xl">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Negotiation Chat</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">
+            {isClosed ? "Chat History" : "Negotiation Chat"}
+          </p>
           <h2 className="mt-1 text-lg font-bold text-slate-900">Chat with {project.business_name}</h2>
         </div>
         <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
@@ -349,7 +366,7 @@ function ChatPanel({ project }) {
         </span>
       </header>
 
-      <ChatThread projectId={project.id} />
+      <ChatThread projectId={project.id} readOnly={isClosed} />
     </section>
   );
 }
@@ -505,8 +522,8 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
       <div className="flex h-full items-center justify-center bg-slate-50 p-7">
         <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
           <MessageSquare className="mx-auto h-10 w-10 text-slate-300" />
-          <h2 className="mt-4 text-lg font-bold text-slate-900">No active invitations yet</h2>
-          <p className="mt-1 text-sm text-slate-500">New business invites will appear here.</p>
+          <h2 className="mt-4 text-lg font-bold text-slate-900">No conversations yet</h2>
+          <p className="mt-1 text-sm text-slate-500">Invites, active projects, and past project chats all show up here.</p>
         </div>
       </div>
     );

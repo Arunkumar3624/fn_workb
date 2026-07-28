@@ -130,7 +130,7 @@ function PerkCard({ perk, balance, onPurchase, index }) {
   );
 }
 
-export default function WorkerTokenShop() {
+export default function WorkerTokenShop({ embedded = false }) {
   useDocumentTitle("Token Shop — WorkBridge");
   const [balance, setBalance] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -182,13 +182,17 @@ export default function WorkerTokenShop() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10">
+    <div className={embedded ? "" : "mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10"}>
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-extrabold text-[#0A1128]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-            Token Shop
-          </h1>
-          <p className="mt-1 text-sm text-slate-500">Spend Bridge Tokens on visibility perks.</p>
+          {!embedded && (
+            <h1 className="text-xl font-extrabold text-[#0A1128]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              Token Shop
+            </h1>
+          )}
+          <p className={embedded ? "text-sm text-slate-500" : "mt-1 text-sm text-slate-500"}>
+            Spend Bridge Tokens on visibility perks.
+          </p>
         </div>
         <div className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-[#0A1128]">
           <Coins className="h-4 w-4 text-amber-500" />

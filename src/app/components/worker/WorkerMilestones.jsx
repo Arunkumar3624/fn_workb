@@ -93,7 +93,7 @@ function MilestoneNode({ milestone, achieved, isNext, align, index }) {
   );
 }
 
-export default function WorkerMilestones() {
+export default function WorkerMilestones({ embedded = false }) {
   useDocumentTitle("Milestones — WorkBridge");
   const [ledger, setLedger] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -139,12 +139,14 @@ export default function WorkerMilestones() {
   const nextMilestone = MILESTONES.find((m) => m.level > currentLevel);
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 sm:py-10">
+    <div className={embedded ? "" : "mx-auto max-w-2xl px-4 py-8 sm:px-6 sm:py-10"}>
       <div className="mb-6">
-        <h1 className="text-xl font-extrabold text-[#0A1128]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-          Milestones
-        </h1>
-        <p className="mt-1 text-sm text-slate-500">
+        {!embedded && (
+          <h1 className="text-xl font-extrabold text-[#0A1128]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            Milestones
+          </h1>
+        )}
+        <p className={embedded ? "text-sm text-slate-500" : "mt-1 text-sm text-slate-500"}>
           You're Level {currentLevel} ({ledger.tier}).
           {nextMilestone
             ? ` ${nextMilestone.level - currentLevel} level${nextMilestone.level - currentLevel === 1 ? "" : "s"} to your next milestone.`

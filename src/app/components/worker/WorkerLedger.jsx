@@ -66,7 +66,7 @@ function timeAgo(dateString) {
   return `${days}d ago`;
 }
 
-export default function WorkerLedger() {
+export default function WorkerLedger({ embedded = false }) {
   useDocumentTitle("Ledger — WorkBridge");
   const [ledger, setLedger] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -119,12 +119,16 @@ export default function WorkerLedger() {
     .reduce((sum, e) => sum + e.token_delta, 0);
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
+    <div className={embedded ? "" : "mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10"}>
       <div className="mb-6">
-        <h1 className="text-xl font-extrabold text-[#0A1128]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-          Ledger
-        </h1>
-        <p className="mt-1 text-sm text-slate-500">Your real Bridge Token balance and earn history.</p>
+        {!embedded && (
+          <h1 className="text-xl font-extrabold text-[#0A1128]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            Ledger
+          </h1>
+        )}
+        <p className={embedded ? "text-sm text-slate-500" : "mt-1 text-sm text-slate-500"}>
+          Your real Bridge Token balance and earn history.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

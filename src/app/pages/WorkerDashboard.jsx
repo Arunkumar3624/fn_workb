@@ -8,10 +8,7 @@ import WorkerJobFeed from "../components/worker/WorkerJobFeed";
 import NegotiationInbox from "../components/worker/WorkerNegotiationInbox";
 import WorkerWorkspace from "../components/worker/WorkerWorkspace";
 import WorkerWallet from "../components/worker/WorkerWallet";
-import WorkerInvoices from "../components/worker/WorkerInvoices";
-import WorkerLedger from "../components/worker/WorkerLedger";
-import WorkerTokenShop from "../components/worker/WorkerTokenShop";
-import WorkerMilestones from "../components/worker/WorkerMilestones";
+import EconomyHub from "./EconomyHub";
 import WorkerProfile from "../components/worker/WorkerProfile";
 import SettingsPage from "./SettingsPage";
 import { useAuth } from "../context/AuthContext";
@@ -130,10 +127,7 @@ export default function WorkerDashboard({ onLogout }) {
           {tab === "negotiations" && <NegotiationInbox initialProjectId={projectIdFromUrl} />}
           {tab === "workspace" && <WorkerWorkspace />}
           {tab === "wallet" && <WorkerWallet />}
-          {tab === "invoices" && <WorkerInvoices />}
-          {tab === "ledger" && <WorkerLedger />}
-          {tab === "shop" && <WorkerTokenShop />}
-          {tab === "milestones" && <WorkerMilestones />}
+          {tab === "economy" && <EconomyHub />}
           {tab === "profile" && <WorkerProfile />}
           {tab === "settings" && <SettingsPage />}
         </div>

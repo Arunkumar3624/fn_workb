@@ -116,7 +116,7 @@ function GeneralProfileTab() {
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
+            className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-[#FF6B35] focus:ring-2 focus:ring-orange-500/30"
           />
         </div>
         <div>
@@ -125,7 +125,7 @@ function GeneralProfileTab() {
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder="10-digit number"
-            className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
+            className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-[#FF6B35] focus:ring-2 focus:ring-orange-500/30"
           />
         </div>
 
@@ -217,21 +217,21 @@ function SecurityTab() {
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
             placeholder="Current password"
-            className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
+            className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-[#FF6B35] focus:ring-2 focus:ring-orange-500/30"
           />
           <input
             type="password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             placeholder="New password (min. 8 characters)"
-            className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
+            className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-[#FF6B35] focus:ring-2 focus:ring-orange-500/30"
           />
           <input
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             placeholder="Confirm new password"
-            className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
+            className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-[#FF6B35] focus:ring-2 focus:ring-orange-500/30"
           />
 
           {error && (
@@ -380,32 +380,40 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("general");
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
       <div className="mb-6">
         <h1 className="text-xl font-extrabold text-[#0A1128]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
           Settings
         </h1>
       </div>
 
-      <div className="mb-6 flex flex-wrap gap-1 rounded-full border border-slate-200 bg-white p-1 w-fit">
-        {TABS.map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            onClick={() => setActiveTab(id)}
-            className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold transition-colors ${
-              activeTab === id ? "bg-[#0A1128] text-white" : "text-slate-500 hover:text-slate-800"
-            }`}
-          >
-            <Icon className="h-3.5 w-3.5" />
-            {label}
-          </button>
-        ))}
-      </div>
+      <div className="flex flex-col gap-6 md:flex-row">
+        <aside className="flex-shrink-0 md:w-1/4">
+          <nav className="flex gap-1.5 overflow-x-auto md:flex-col md:gap-1 md:overflow-visible">
+            {TABS.map(({ id, label, icon: Icon }) => (
+              <button
+                key={id}
+                onClick={() => setActiveTab(id)}
+                className={`flex flex-shrink-0 items-center gap-2.5 rounded-xl px-4 py-3 text-left text-sm font-bold transition-colors md:w-full ${
+                  activeTab === id
+                    ? "bg-[#0A1128] text-white shadow-sm"
+                    : "text-slate-500 hover:bg-white hover:text-slate-800"
+                }`}
+              >
+                <Icon className="h-4 w-4 flex-shrink-0" />
+                <span className="whitespace-nowrap">{label}</span>
+              </button>
+            ))}
+          </nav>
+        </aside>
 
-      {activeTab === "general" && <GeneralProfileTab />}
-      {activeTab === "security" && <SecurityTab />}
-      {activeTab === "billing" && <BillingTab />}
-      {activeTab === "danger" && <DangerZoneTab />}
+        <div className="min-w-0 flex-1 rounded-2xl border border-slate-200 bg-white/70 p-6 backdrop-blur-xl sm:p-8">
+          {activeTab === "general" && <GeneralProfileTab />}
+          {activeTab === "security" && <SecurityTab />}
+          {activeTab === "billing" && <BillingTab />}
+          {activeTab === "danger" && <DangerZoneTab />}
+        </div>
+      </div>
     </div>
   );
 }

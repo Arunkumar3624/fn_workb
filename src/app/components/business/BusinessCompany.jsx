@@ -628,7 +628,16 @@ export default function BusinessCompany() {
     setSaving(true);
     setSaveError("");
     try {
-      const updatedUser = await updateOwnProfile({ profilePatch: { companyName: draft.name.trim() } });
+      // draft.coverImage was previously dropped here — the Edit Profile
+      // modal's own cover upload (onChange("coverImage", dataUrl)) only
+      // ever touched local draft state; Save never included it in the
+      // profilePatch, so a cover changed inside the modal silently
+      // reverted to the old one on the next reload. Same real
+      // profile.coverUrl field the standalone cover-upload button
+      // (handleCoverUpload below) already persists correctly.
+      const updatedUser = await updateOwnProfile({
+        profilePatch: { companyName: draft.name.trim(), coverUrl: draft.coverImage },
+      });
       updateCurrentUser(updatedUser);
       setProfile(draft);
       setIsEditing(false);
