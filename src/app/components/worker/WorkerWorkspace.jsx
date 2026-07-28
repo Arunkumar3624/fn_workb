@@ -437,9 +437,9 @@ export default function WorkerWorkspace() {
               </div>
             </div>
             {(selectedTask.status === "FILES_SUBMITTED" || PROJECT_STATUS_META[selectedTask.status]?.actionBy === "worker") && (
-            <div className="absolute bottom-3 left-3 right-3 z-20 flex flex-wrap items-center justify-end gap-3 rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-[0_16px_40px_rgba(15,23,42,0.12)] backdrop-blur sm:bottom-5 sm:left-8 sm:right-8 sm:gap-4 sm:p-4">
+            <div className="absolute bottom-3 left-3 right-3 z-20 flex flex-wrap items-center justify-end gap-2 rounded-xl border border-slate-200 bg-white/95 p-2 shadow-[0_16px_40px_rgba(15,23,42,0.12)] backdrop-blur sm:bottom-5 sm:left-8 sm:right-8 sm:gap-3 sm:p-2.5">
               {selectedTask.status === "FILES_SUBMITTED" && (
-                <span className="flex min-h-[44px] items-center gap-2 text-sm font-semibold text-amber-600 sm:mr-auto">
+                <span className="flex min-h-[36px] items-center gap-2 text-xs font-semibold text-amber-600 sm:mr-auto">
                   <span className="h-2 w-2 flex-shrink-0 animate-pulse rounded-full bg-amber-500" />
                   Awaiting business approval &amp; fund release
                 </span>
@@ -448,7 +448,7 @@ export default function WorkerWorkspace() {
                 <button
                   onClick={handleAdvance}
                   disabled={advancing}
-                  className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg bg-[#FF6B35] px-8 py-4 font-bold text-white shadow-md shadow-[#FF6B35]/20 transition-all hover:-translate-y-0.5 hover:bg-[#f05b24] sm:w-auto disabled:opacity-60 disabled:hover:translate-y-0"
+                  className="flex min-h-[36px] w-full items-center justify-center gap-2 rounded-lg bg-[#FF6B35] px-5 py-2 text-sm font-bold text-white shadow-md shadow-[#FF6B35]/20 transition-all hover:-translate-y-0.5 hover:bg-[#f05b24] sm:w-auto disabled:opacity-60 disabled:hover:translate-y-0"
                 >
                   {advancing ? (
                     <>
@@ -457,7 +457,7 @@ export default function WorkerWorkspace() {
                     </>
                   ) : (
                     <>
-                      <Send className="h-4 w-4" />
+                      <Send className="h-3.5 w-3.5" />
                       {PROJECT_STATUS_META[selectedTask.status].nextActionLabel}
                     </>
                   )}
