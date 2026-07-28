@@ -367,7 +367,11 @@ function ChatPanel({ project }) {
         </span>
       </header>
 
-      <ChatThread projectId={project.id} readOnly={isClosed} />
+      {/* No longer read-only once closed — the chat stays preserved AND
+          usable (a business/worker might still need to follow up after a
+          project ends), same as any real messaging app. Only a real,
+          mutual, WhatsApp-style block gates the composer now. */}
+      <ChatThread projectId={project.id} otherUserId={project.business_id} />
     </section>
   );
 }

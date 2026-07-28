@@ -33,7 +33,6 @@ const ACTIVE_THREAD_STATUSES = new Set([
   "COMPLETED",
   "CANCELLED",
 ]);
-const CLOSED_STATUSES = new Set(["COMPLETED", "CANCELLED"]);
 
 const FUNDS_SECURED_STATUSES = new Set(["FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_SUBMITTED", "PENDING_RELEASE"]);
 
@@ -237,7 +236,10 @@ function FocusHub({ thread, onViewContractTerms }) {
           transition={{ duration: 0.18, ease: "easeInOut" }}
         >
           <HubHeader thread={thread} onViewContractTerms={onViewContractTerms} />
-          <ChatThread projectId={thread.id} readOnly={CLOSED_STATUSES.has(thread.status)} />
+          {/* No longer read-only once closed — see WorkerNegotiationInbox.jsx's
+              matching comment. Only a real, mutual, WhatsApp-style block
+              gates the composer now. */}
+          <ChatThread projectId={thread.id} otherUserId={thread.worker_id} />
         </motion.div>
       </AnimatePresence>
     </main>

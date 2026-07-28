@@ -7,10 +7,13 @@ import {
   Loader2,
   Paperclip,
   Send,
+  ShieldOff,
   Upload,
+  UserX,
   X,
 } from "lucide-react";
 import { listMessages, sendImageMessage, sendLinkMessage, sendMessage } from "../../lib/messagesApi";
+import { getBlockStatus, blockUser, unblockUser } from "../../lib/blocksApi";
 import { ApiError } from "../../lib/apiClient";
 import { getSocket } from "../../lib/socketClient";
 import { useAuth } from "../../context/AuthContext";
@@ -141,12 +144,17 @@ function MessageRow({ message, isMine, onPreview }) {
 }
 
 // The real, persisted chat — one continuous thread per project spanning
-// invite through completion, replacing the fake seeded conversations that
-// used to live as local-only state inside WorkerNegotiationInbox.jsx and
-// BusinessNegotiationHub.jsx. Deliberately headerless — call sites keep
+// invite through completion (and staying open, not read-only, after
+// completion/cancellation too — the chat is preserved AND still usable,
+// same as any real messaging app), replacing the fake seeded conversations
+// that used to live as local-only state inside WorkerNegotiationInbox.jsx
+// and BusinessNegotiationHub.jsx. Deliberately headerless — call sites keep
 // their own existing header (job details / contract-terms button etc.) and
-// just render this for the feed + composer.
-export default function ChatThread({ projectId, readOnly = false }) {
+// just render this for the feed + composer. The one thing that still gates
+// the composer is a real, mutual, WhatsApp-style block — not project
+// status — enforced server-side too (messages.controller.js's
+// assertNotBlocked), so this can't be bypassed by hitting the API directly.
+export default function ChatThread({ projectId, otherUserId }) {
   const { currentUser } = useAuth();
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -160,7 +168,47 @@ export default function ChatThread({ projectId, readOnly = false }) {
   const [attachCaption, setAttachCaption] = useState("");
   const [attachImageFile, setAttachImageFile] = useState(null);
   const [previewSrc, setPreviewSrc] = useState(null);
+  const [blockStatus, setBlockStatus] = useState({ blockedByMe: false, blockedMe: false });
+  const [blockActionBusy, setBlockActionBusy] = useState(false);
   const feedRef = useRef(null);
+
+  const loadBlockStatus = () => {
+    if (!otherUserId) return;
+    getBlockStatus(otherUserId)
+      .then(setBlockStatus)
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    loadBlockStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [otherUserId]);
+
+  const handleBlock = async () => {
+    if (!otherUserId || blockActionBusy) return;
+    setBlockActionBusy(true);
+    try {
+      await blockUser(otherUserId);
+      setBlockStatus((prev) => ({ ...prev, blockedByMe: true }));
+    } catch {
+      // Non-critical — the button just stays clickable to retry.
+    } finally {
+      setBlockActionBusy(false);
+    }
+  };
+
+  const handleUnblock = async () => {
+    if (!otherUserId || blockActionBusy) return;
+    setBlockActionBusy(true);
+    try {
+      await unblockUser(otherUserId);
+      setBlockStatus((prev) => ({ ...prev, blockedByMe: false }));
+    } catch {
+      // Non-critical — the button just stays clickable to retry.
+    } finally {
+      setBlockActionBusy(false);
+    }
+  };
 
   const load = () => {
     listMessages(projectId)
@@ -270,6 +318,32 @@ export default function ChatThread({ projectId, readOnly = false }) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
+      {otherUserId && !blockStatus.blockedMe && (
+        <div className="flex flex-shrink-0 justify-end border-b border-slate-100 px-4 py-1.5">
+          {blockStatus.blockedByMe ? (
+            <button
+              type="button"
+              onClick={handleUnblock}
+              disabled={blockActionBusy}
+              className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold text-emerald-600 transition-colors hover:bg-emerald-50 disabled:opacity-60"
+            >
+              <ShieldOff className="h-3 w-3" />
+              Unblock
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleBlock}
+              disabled={blockActionBusy}
+              className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-60"
+            >
+              <UserX className="h-3 w-3" />
+              Block
+            </button>
+          )}
+        </div>
+      )}
+
       <div ref={feedRef} className="wb-scroll-clean min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-6">
         {loading ? (
           <div className="flex h-full items-center justify-center">
@@ -364,9 +438,22 @@ export default function ChatThread({ projectId, readOnly = false }) {
         </div>
       )}
 
-      {readOnly ? (
+      {blockStatus.blockedMe ? (
         <div className="flex-shrink-0 border-t border-slate-200 bg-slate-50 px-5 py-4 text-center text-xs font-semibold text-slate-400">
-          This project is closed — the chat is preserved but read-only.
+          You can't message this user.
+        </div>
+      ) : blockStatus.blockedByMe ? (
+        <div className="flex flex-shrink-0 flex-col items-center gap-2 border-t border-slate-200 bg-slate-50 px-5 py-4 text-center">
+          <p className="text-xs font-semibold text-slate-400">You blocked this user — unblock to send a message.</p>
+          <button
+            type="button"
+            onClick={handleUnblock}
+            disabled={blockActionBusy}
+            className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-3.5 py-1.5 text-xs font-bold text-emerald-700 transition-colors hover:bg-emerald-100 disabled:opacity-60"
+          >
+            <ShieldOff className="h-3.5 w-3.5" />
+            Unblock
+          </button>
         </div>
       ) : (
         <form onSubmit={handleSend} className="flex-shrink-0 border-t border-slate-200 bg-white px-5 py-4">
