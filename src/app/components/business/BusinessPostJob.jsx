@@ -50,8 +50,13 @@ const CATEGORIES = [
   "Customer Support",
 ];
 
-// today's ISO date string for min attribute — blocks all past dates
-const TODAY = new Date().toISOString().split("T")[0];
+// Resolves the same way the real submit does (Date.now() + N days) — just
+// for the live "Due <date>" preview text under the input, so what the
+// business sees here always matches what actually gets saved.
+function resolveDeadlinePreview(days) {
+  const date = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+  return date.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+}
 
 // ── Style helpers ─────────────────────────────────────────────────────────
 
@@ -124,10 +129,9 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
       tier: "Professional",
       brief: "",
       skills: "",
-      deadline: "",
+      durationDays: 14,
       budget: 30000,
       applicationWindow: 7,
-      estimatedDuration: "",
       minExperienceYears: "",
       maxExperienceYears: "",
       educationLevel: "ANY",
@@ -146,7 +150,7 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
   const watchedCategory = watch("category");
   const watchedBrief = watch("brief");
   const watchedSkills = watch("skills");
-  const watchedDeadline = watch("deadline");
+  const watchedDurationDays = Number(watch("durationDays")) || 0;
   const watchedMinExp = watch("minExperienceYears");
   const watchedMaxExp = watch("maxExperienceYears");
   const watchedEducationLevel = watch("educationLevel");
@@ -187,13 +191,20 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
         ? formData.skills.split(",").map((s) => s.trim()).filter(Boolean).slice(0, 20)
         : undefined;
 
+      // One input, two derived facts — the deadline (a real date) and the
+      // duration shown to workers now always agree, since they're computed
+      // from the same number instead of being typed in separately.
+      const days = Number(formData.durationDays);
+      const deadlineDate = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+      const estimatedDuration = `${days} Day${days === 1 ? "" : "s"}`;
+
       const project = await createProject({
         title: formData.title,
         description: formData.brief,
         budget: summaryBudget,
-        deadline: formData.deadline || undefined,
+        deadline: deadlineDate,
         applicationWindow: formData.applicationWindow || undefined,
-        estimatedDuration: formData.estimatedDuration || undefined,
+        estimatedDuration,
         minExperienceYears: formData.minExperienceYears || undefined,
         maxExperienceYears: formData.maxExperienceYears || undefined,
         educationLevel: formData.educationLevel || undefined,
@@ -336,6 +347,9 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                     {...register("skills", { setValueAs: (v) => v.trim() })}
                     className={inputCls}
                   />
+                  <p className="mt-1.5 text-xs text-slate-400">
+                    Short tags only, comma separated — longer requirements (Agile process, cloud experience, etc.) belong in the Project Brief above.
+                  </p>
                   <FieldError message={errors.skills?.message} />
                 </div>
               </SectionCard>
@@ -405,19 +419,26 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
               <SectionCard
                 icon={Clock}
                 title="Budget & Timeline"
-                sub="Set your project budget and delivery deadline"
+                sub="Set your project budget and how long the worker has to complete it"
               >
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <FieldLabel>Deadline</FieldLabel>
-                    {/* min=TODAY prevents selecting past dates */}
+                    <FieldLabel>Project Duration (Days)</FieldLabel>
                     <input
-                      type="date"
-                      min={TODAY}
-                      {...register("deadline")}
+                      type="number"
+                      min="1"
+                      max="365"
+                      step="1"
+                      placeholder="e.g. 14"
+                      {...register("durationDays")}
                       className={inputCls}
                     />
-                    <FieldError message={errors.deadline?.message} />
+                    <p className="mt-1.5 text-xs text-slate-400">
+                      {watchedDurationDays > 0
+                        ? `Due ${resolveDeadlinePreview(watchedDurationDays)} — this is the one deadline workers see.`
+                        : "How many days does the worker have to deliver, once they start?"}
+                    </p>
+                    <FieldError message={errors.durationDays?.message} />
                   </div>
                   <div>
                     <FieldLabel>Budget (₹)</FieldLabel>
@@ -437,30 +458,19 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                   </div>
                 </div>
 
-                <div className="mt-4 grid grid-cols-2 gap-4">
-                  <div>
-                    <FieldLabel>Application Window (Days)</FieldLabel>
-                    <input
-                      type="number"
-                      min="1"
-                      max="90"
-                      step="1"
-                      placeholder="e.g. 7"
-                      {...register("applicationWindow")}
-                      className={inputCls}
-                    />
-                    <FieldError message={errors.applicationWindow?.message} />
-                  </div>
-                  <div>
-                    <FieldLabel>Estimated Project Duration</FieldLabel>
-                    <input
-                      type="text"
-                      placeholder='e.g. "3 Days" or "2 Weeks"'
-                      {...register("estimatedDuration")}
-                      className={inputCls}
-                    />
-                    <FieldError message={errors.estimatedDuration?.message} />
-                  </div>
+                <div className="mt-4">
+                  <FieldLabel>Application Window (Days)</FieldLabel>
+                  <input
+                    type="number"
+                    min="1"
+                    max="90"
+                    step="1"
+                    placeholder="e.g. 7"
+                    {...register("applicationWindow")}
+                    className={`${inputCls} sm:w-1/2`}
+                  />
+                  <p className="mt-1.5 text-xs text-slate-400">How long this post stays open to new applicants — separate from the project duration above.</p>
+                  <FieldError message={errors.applicationWindow?.message} />
                 </div>
 
                 {/* Urgent toggle */}
@@ -682,13 +692,9 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                             Urgent
                           </span>
                         )}
-                        {watchedDeadline && (
+                        {watchedDurationDays > 0 && (
                           <span className="text-[10px] text-slate-400">
-                            Due{" "}
-                            {new Date(watchedDeadline).toLocaleDateString("en-IN", {
-                              day: "numeric",
-                              month: "short",
-                            })}
+                            Due {resolveDeadlinePreview(watchedDurationDays)}
                           </span>
                         )}
                       </div>
