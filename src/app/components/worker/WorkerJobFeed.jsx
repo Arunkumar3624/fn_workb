@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   Clock,
   Clock3,
+  GraduationCap,
   IndianRupee,
   Loader2,
   Search,
@@ -40,6 +41,29 @@ function timeAgo(dateString) {
 // is a real future timestamp set at posting time (see
 // projects.controller.js's resolveApplicationDeadline); this only formats
 // it, it doesn't invent one.
+const EDUCATION_LABELS = {
+  HIGH_SCHOOL: "High School",
+  DIPLOMA: "Diploma",
+  BACHELORS: "Bachelor's Degree",
+  MASTERS: "Master's Degree",
+  PHD: "PhD",
+};
+
+// ANY (no requirement) and unset both render nothing — a qualifications
+// chip only ever shows a real requirement the business actually set.
+function formatExperience(job) {
+  const min = job.min_experience_years;
+  const max = job.max_experience_years;
+  if (min != null && max != null) return `${min}-${max} yrs exp`;
+  if (min != null) return `${min}+ yrs exp`;
+  if (max != null) return `Up to ${max} yrs exp`;
+  return null;
+}
+
+function formatEducation(job) {
+  return EDUCATION_LABELS[job.education_level] ?? null;
+}
+
 function formatApplicationWindow(applicationDeadline) {
   if (!applicationDeadline) return null;
   const ms = new Date(applicationDeadline).getTime() - Date.now();
@@ -94,6 +118,36 @@ function JobDetailModal({ job, onClose, onApply, applying, applyError, alreadyAp
               </p>
             </div>
           </div>
+
+          {(formatExperience(job) || formatEducation(job) || job.required_skills?.length > 0) && (
+            <>
+              <h3 className="mt-6 text-sm font-bold text-slate-900">Qualifications</h3>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {formatExperience(job) && (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-[#1B3FAB]/15 bg-[#F4F6FF] px-2.5 py-1 text-xs font-semibold text-[#1B3FAB]">
+                    <Clock className="h-3 w-3" />
+                    {formatExperience(job)}
+                  </span>
+                )}
+                {formatEducation(job) && (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-[#1B3FAB]/15 bg-[#F4F6FF] px-2.5 py-1 text-xs font-semibold text-[#1B3FAB]">
+                    <GraduationCap className="h-3 w-3" />
+                    {formatEducation(job)}
+                    {job.education_notes ? ` — ${job.education_notes}` : ""}
+                  </span>
+                )}
+              </div>
+              {job.required_skills?.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {job.required_skills.map((skill) => (
+                    <span key={skill} className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-600">
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
 
           <h3 className="mt-6 text-sm font-bold text-slate-900">Brief</h3>
           <p className="mt-2 whitespace-pre-line text-sm leading-7 text-slate-600">
@@ -380,7 +434,33 @@ export default function WorkerJobFeed() {
                             Est. {job.estimated_duration}
                           </span>
                         )}
+                        {formatExperience(job) && (
+                          <span className="inline-flex items-center gap-1 rounded-md border border-[#1B3FAB]/15 bg-[#F4F6FF] px-2.5 py-1 text-xs font-semibold text-[#1B3FAB]">
+                            <Clock className="h-3 w-3" />
+                            {formatExperience(job)}
+                          </span>
+                        )}
+                        {formatEducation(job) && (
+                          <span className="inline-flex items-center gap-1 rounded-md border border-[#1B3FAB]/15 bg-[#F4F6FF] px-2.5 py-1 text-xs font-semibold text-[#1B3FAB]">
+                            <GraduationCap className="h-3 w-3" />
+                            {formatEducation(job)}
+                          </span>
+                        )}
                       </div>
+                      {job.required_skills?.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {job.required_skills.slice(0, 4).map((skill) => (
+                            <span key={skill} className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-semibold text-slate-600">
+                              {skill}
+                            </span>
+                          ))}
+                          {job.required_skills.length > 4 && (
+                            <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-semibold text-slate-400">
+                              +{job.required_skills.length - 4}
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <span className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
                       <ShieldCheck className="h-4 w-4" />

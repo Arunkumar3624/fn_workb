@@ -31,10 +31,36 @@ export function listOpenProjects() {
 // Business creates a project. Passing workerId keeps the original
 // direct-invite behavior (project starts INVITED); omitting it posts an
 // OPEN job board listing instead — see BusinessPostJob.jsx.
-export function createProject({ workerId, title, description, budget, deadline, applicationWindow, estimatedDuration }) {
+export function createProject({
+  workerId,
+  title,
+  description,
+  budget,
+  deadline,
+  applicationWindow,
+  estimatedDuration,
+  minExperienceYears,
+  maxExperienceYears,
+  educationLevel,
+  educationNotes,
+  requiredSkills,
+}) {
   return apiFetch("/api/projects", {
     method: "POST",
-    body: { workerId, title, description, budget, deadline, applicationWindow, estimatedDuration },
+    body: {
+      workerId,
+      title,
+      description,
+      budget,
+      deadline,
+      applicationWindow,
+      estimatedDuration,
+      minExperienceYears,
+      maxExperienceYears,
+      educationLevel,
+      educationNotes,
+      requiredSkills,
+    },
   });
 }
 

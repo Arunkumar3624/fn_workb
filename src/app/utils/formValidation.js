@@ -71,19 +71,34 @@ export const forgotPasswordSchema = z.object({
   email: emailSchema,
 });
 
-export const postJobSchema = z.object({
-  title: cleanText,
-  category: cleanText,
-  tier: cleanText,
-  brief: cleanLongText,
-  skills: cleanLongText,
-  deadline: z.string().min(1, "Deadline is required"),
-  budget: positiveCurrencySchema,
-  applicationWindow: z.coerce
-    .number()
-    .int("Enter a whole number of days")
-    .min(1, "Must be at least 1 day")
-    .max(90, "Keep it to 90 days or fewer")
-    .optional(),
-  estimatedDuration: z.string().max(50, "Keep it short, e.g. \"3 Days\"").optional(),
-});
+export const postJobSchema = z
+  .object({
+    title: cleanText,
+    category: cleanText,
+    tier: cleanText,
+    brief: cleanLongText,
+    skills: cleanLongText,
+    deadline: z.string().min(1, "Deadline is required"),
+    budget: positiveCurrencySchema,
+    applicationWindow: z.coerce
+      .number()
+      .int("Enter a whole number of days")
+      .min(1, "Must be at least 1 day")
+      .max(90, "Keep it to 90 days or fewer")
+      .optional(),
+    estimatedDuration: z.string().max(50, "Keep it short, e.g. \"3 Days\"").optional(),
+    // Real, structured job requirements — Required Skills (above) used to
+    // just get folded into the brief text; experience/education had no
+    // representation at all. See migrations/018_job_qualifications.sql.
+    minExperienceYears: z.coerce.number().int().min(0).max(60).optional().or(z.literal("").transform(() => undefined)),
+    maxExperienceYears: z.coerce.number().int().min(0).max(60).optional().or(z.literal("").transform(() => undefined)),
+    educationLevel: z.enum(["ANY", "HIGH_SCHOOL", "DIPLOMA", "BACHELORS", "MASTERS", "PHD"]).optional(),
+    educationNotes: z.string().max(300, "Keep it short, e.g. \"Computer Science or equivalent\"").optional(),
+  })
+  .refine(
+    (data) =>
+      data.maxExperienceYears === undefined ||
+      data.minExperienceYears === undefined ||
+      data.maxExperienceYears >= data.minExperienceYears,
+    { message: "Max experience must be ≥ min experience.", path: ["maxExperienceYears"] }
+  );

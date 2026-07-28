@@ -9,6 +9,7 @@ import {
   Clock,
   Eye,
   FileText,
+  GraduationCap,
   IndianRupee,
   Link2,
   Lock,
@@ -127,6 +128,10 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
       budget: 30000,
       applicationWindow: 7,
       estimatedDuration: "",
+      minExperienceYears: "",
+      maxExperienceYears: "",
+      educationLevel: "ANY",
+      educationNotes: "",
     },
   });
 
@@ -142,6 +147,25 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
   const watchedBrief = watch("brief");
   const watchedSkills = watch("skills");
   const watchedDeadline = watch("deadline");
+  const watchedMinExp = watch("minExperienceYears");
+  const watchedMaxExp = watch("maxExperienceYears");
+  const watchedEducationLevel = watch("educationLevel");
+  const EDUCATION_LABELS = {
+    ANY: null,
+    HIGH_SCHOOL: "High School",
+    DIPLOMA: "Diploma",
+    BACHELORS: "Bachelor's",
+    MASTERS: "Master's",
+    PHD: "PhD",
+  };
+  const experienceLabel =
+    watchedMinExp && watchedMaxExp
+      ? `${watchedMinExp}-${watchedMaxExp} yrs`
+      : watchedMinExp
+        ? `${watchedMinExp}+ yrs`
+        : watchedMaxExp
+          ? `Up to ${watchedMaxExp} yrs`
+          : null;
 
   // Destructure to compose tier onChange with budget auto-sync
   const { onChange: onTierChange, ...tierRegisterRest } = register("tier");
@@ -159,13 +183,22 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
     try {
       trackEvent("JobPosted", { tier: watchedTier, category: watchedCategory, budget: summaryBudget });
 
+      const requiredSkills = formData.skills
+        ? formData.skills.split(",").map((s) => s.trim()).filter(Boolean).slice(0, 20)
+        : undefined;
+
       const project = await createProject({
         title: formData.title,
-        description: formData.skills ? `${formData.brief}\n\nSkills: ${formData.skills}` : formData.brief,
+        description: formData.brief,
         budget: summaryBudget,
         deadline: formData.deadline || undefined,
         applicationWindow: formData.applicationWindow || undefined,
         estimatedDuration: formData.estimatedDuration || undefined,
+        minExperienceYears: formData.minExperienceYears || undefined,
+        maxExperienceYears: formData.maxExperienceYears || undefined,
+        educationLevel: formData.educationLevel || undefined,
+        educationNotes: formData.educationNotes || undefined,
+        requiredSkills,
       });
 
       const referenceLinks = refLinks.map((link) => link.trim()).filter(Boolean);
@@ -304,6 +337,67 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                     className={inputCls}
                   />
                   <FieldError message={errors.skills?.message} />
+                </div>
+              </SectionCard>
+
+              {/* Card 2b: Qualifications — real experience/education fields,
+                  not text buried in the brief. */}
+              <SectionCard
+                icon={GraduationCap}
+                title="Qualifications"
+                sub="Experience and education you actually require — shown as real filters on your listing"
+              >
+                <div>
+                  <FieldLabel>Experience Required (Years)</FieldLabel>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <input
+                        type="number"
+                        min="0"
+                        max="60"
+                        placeholder="Min, e.g. 3"
+                        {...register("minExperienceYears")}
+                        className={inputCls}
+                      />
+                      <FieldError message={errors.minExperienceYears?.message} />
+                    </div>
+                    <div>
+                      <input
+                        type="number"
+                        min="0"
+                        max="60"
+                        placeholder="Max, e.g. 6 (optional)"
+                        {...register("maxExperienceYears")}
+                        className={inputCls}
+                      />
+                      <FieldError message={errors.maxExperienceYears?.message} />
+                    </div>
+                  </div>
+                  <p className="mt-1.5 text-xs text-slate-400">Leave both blank if experience level doesn't matter.</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <FieldLabel>Minimum Education</FieldLabel>
+                    <select {...register("educationLevel")} className={inputCls}>
+                      <option value="ANY">No requirement</option>
+                      <option value="HIGH_SCHOOL">High School</option>
+                      <option value="DIPLOMA">Diploma</option>
+                      <option value="BACHELORS">Bachelor's Degree</option>
+                      <option value="MASTERS">Master's Degree</option>
+                      <option value="PHD">PhD</option>
+                    </select>
+                  </div>
+                  <div>
+                    <FieldLabel>Education Notes (Optional)</FieldLabel>
+                    <input
+                      type="text"
+                      placeholder='e.g. "Computer Science or equivalent"'
+                      {...register("educationNotes", { setValueAs: (v) => v.trim() })}
+                      className={inputCls}
+                    />
+                    <FieldError message={errors.educationNotes?.message} />
+                  </div>
                 </div>
               </SectionCard>
 
@@ -505,6 +599,26 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                         {summaryBudget > 0 ? `₹${summaryBudget.toLocaleString("en-IN")}` : "Budget"}
                       </span>
                     </div>
+
+                    {/* Qualifications chips — only real, filled-in
+                        requirements show; nothing implies a requirement
+                        that wasn't actually set. */}
+                    {(experienceLabel || EDUCATION_LABELS[watchedEducationLevel]) && (
+                      <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] font-semibold text-[#1B3FAB]">
+                        {experienceLabel && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-[#F4F6FF] px-2.5 py-1">
+                            <Clock className="h-3 w-3" />
+                            {experienceLabel} exp
+                          </span>
+                        )}
+                        {EDUCATION_LABELS[watchedEducationLevel] && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-[#F4F6FF] px-2.5 py-1">
+                            <GraduationCap className="h-3 w-3" />
+                            {EDUCATION_LABELS[watchedEducationLevel]}
+                          </span>
+                        )}
+                      </div>
+                    )}
 
                     {/* Brief */}
                     <p className="mt-3 line-clamp-2 text-xs leading-relaxed text-slate-600">
