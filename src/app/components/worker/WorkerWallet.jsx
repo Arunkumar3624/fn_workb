@@ -129,33 +129,51 @@ export default function WorkerWallet() {
       {/* ── Financial Vault ── */}
       <div className="relative overflow-hidden rounded-3xl border border-white/70 bg-white/50 p-6 shadow-xl shadow-slate-200/50 backdrop-blur-2xl sm:p-8 wb-card-enter">
         <div className="pointer-events-none absolute -top-24 -right-24 h-56 w-56 rounded-full bg-[#1B3FAB]/10 blur-[80px]" />
-        <div className="relative flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
+
+        {/* 3-column financial stats: Available (primary, unlocked money) vs
+            Pending in Escrow / Lifetime Earned (secondary, informational —
+            not spendable yet or already spent) — kept visually distinct so
+            the balance a user can actually withdraw is never confused with
+            money that's still tied to an active project. */}
+        <div className="relative grid grid-cols-1 gap-6 sm:grid-cols-3">
           <div>
             <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-slate-400">
               <Wallet className="h-3.5 w-3.5 text-[#1B3FAB]" />
-              Ready to Cash Out
+              Available to Withdraw
             </p>
             <p
-              className="mt-2 text-4xl font-black tracking-tight text-[#0A1128] sm:text-5xl"
+              className="mt-2 text-5xl font-bold tracking-tight text-slate-900"
               style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
             >
               {formatINR(wallet?.balance)}
             </p>
-            <div className="mt-4 flex flex-wrap gap-4">
-              <p className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
-                <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
-                {formatINR(totalEarned)} total earned
-              </p>
-              <p className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
-                <Lock className="h-3.5 w-3.5 text-amber-500" />
-                {formatINR(heldSecurely)} held securely
-              </p>
-            </div>
           </div>
 
+          <div className="sm:border-l sm:border-slate-200/70 sm:pl-6">
+            <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-slate-400">
+              <Lock className="h-3.5 w-3.5 text-amber-500" />
+              Pending in Escrow
+            </p>
+            <p className="mt-2 text-3xl font-bold tracking-tight text-slate-700">
+              {formatINR(heldSecurely)}
+            </p>
+          </div>
+
+          <div className="sm:border-l sm:border-slate-200/70 sm:pl-6">
+            <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-slate-400">
+              <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
+              Total Lifetime Earned
+            </p>
+            <p className="mt-2 text-3xl font-bold tracking-tight text-slate-700">
+              {formatINR(totalEarned)}
+            </p>
+          </div>
+        </div>
+
+        <div className="relative mt-6 border-t border-slate-200/60 pt-6">
           <button
             onClick={() => setShowWithdrawForm((v) => !v)}
-            className="flex min-h-[48px] flex-shrink-0 items-center justify-center gap-2 rounded-xl bg-[#1B3FAB] px-6 py-3 text-sm font-bold text-white shadow-md shadow-[#1B3FAB]/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#1635A0] hover:shadow-lg"
+            className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl bg-[#1B3FAB] px-6 py-3 text-sm font-bold text-white shadow-md shadow-[#1B3FAB]/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#1635A0] hover:shadow-lg sm:w-auto"
           >
             {showWithdrawForm ? <X className="h-4 w-4" /> : <Zap className="h-4 w-4" />}
             {showWithdrawForm ? "Close" : "Withdraw Funds"}

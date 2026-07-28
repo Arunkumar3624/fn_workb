@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Coins, Store, Trophy } from "lucide-react";
 import WorkerMilestones from "../components/worker/WorkerMilestones";
@@ -20,9 +20,30 @@ const TABS = [
 export default function EconomyHub() {
   useDocumentTitle("Economy Hub — WorkBridge");
   const [activeTab, setActiveTab] = useState("milestones");
+  const [scrolled, setScrolled] = useState(false);
+  const [scrollPct, setScrollPct] = useState(0);
+  const rootRef = useRef(null);
+
+  // This page renders inside DashboardLayout's own scrollable pane
+  // (`.wb-scroll-clean`), not the window — so the scroll listener has to
+  // attach to that ancestor, found once via the DOM rather than threaded
+  // down as a prop from three layers of parent components.
+  useEffect(() => {
+    const scrollEl = rootRef.current?.closest(".wb-scroll-clean");
+    if (!scrollEl) return undefined;
+
+    const handleScroll = () => {
+      setScrolled(scrollEl.scrollTop > 8);
+      const max = scrollEl.scrollHeight - scrollEl.clientHeight;
+      setScrollPct(max > 0 ? Math.min(100, (scrollEl.scrollTop / max) * 100) : 0);
+    };
+    handleScroll();
+    scrollEl.addEventListener("scroll", handleScroll, { passive: true });
+    return () => scrollEl.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10">
+    <div ref={rootRef} className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10">
       <div className="mb-6">
         <h1 className="text-xl font-extrabold text-[#0A1128]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
           Economy Hub
@@ -30,7 +51,13 @@ export default function EconomyHub() {
         <p className="mt-1 text-sm text-slate-500">Your progress, your tokens, your rewards — all in one place.</p>
       </div>
 
-      <div className="mb-6 flex flex-wrap gap-1.5 rounded-full border border-slate-200 bg-white p-1.5 w-fit">
+      <div
+        className={`sticky top-0 z-20 relative mb-6 flex flex-wrap gap-1.5 rounded-full border p-1.5 w-fit transition-all duration-300 ${
+          scrolled
+            ? "border-slate-200/80 bg-white/80 shadow-lg shadow-slate-200/50 backdrop-blur-xl"
+            : "border-slate-200 bg-white"
+        }`}
+      >
         {TABS.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
@@ -43,6 +70,10 @@ export default function EconomyHub() {
             {label}
           </button>
         ))}
+        <div
+          className="pointer-events-none absolute -bottom-1.5 left-0 h-0.5 rounded-full bg-[#FF6B35] transition-all duration-150"
+          style={{ width: `${scrollPct}%` }}
+        />
       </div>
 
       <AnimatePresence mode="wait">

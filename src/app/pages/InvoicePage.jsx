@@ -116,7 +116,21 @@ export default function InvoicePage() {
           Back
         </button>
 
-        <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_20px_60px_-15px_rgba(15,23,42,0.15)] print:border-0 print:shadow-none">
+        <div className="relative overflow-hidden rounded-2xl border-4 border-double border-slate-200 bg-white shadow-[0_20px_60px_-15px_rgba(15,23,42,0.15)] print:border-0 print:shadow-none">
+
+          {/* Official-document watermark — decorative only, sits behind
+              every section via negative z-index, never intercepts clicks. */}
+          <div
+            className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center overflow-hidden"
+            aria-hidden="true"
+          >
+            <span
+              className="-rotate-12 whitespace-nowrap text-8xl font-black text-slate-900 opacity-[0.03] sm:text-9xl"
+              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            >
+              WorkBridge
+            </span>
+          </div>
 
           {/* ── Header ─────────────────────────────────────────────────── */}
           <div className="flex flex-col gap-4 border-b border-slate-100 p-6 sm:flex-row sm:items-start sm:justify-between sm:p-10">
@@ -133,7 +147,7 @@ export default function InvoicePage() {
             </div>
             <div className="text-left sm:text-right">
               <div className="flex items-center gap-2 sm:justify-end">
-                <p className="font-serif text-2xl font-bold text-[#0F172A]">Invoice</p>
+                <p className="font-serif text-3xl font-bold tracking-tight text-[#0F172A]">Invoice</p>
                 <span
                   className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest ${
                     isPaid ? "bg-emerald-50 text-emerald-700" : isSettled ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-700"
@@ -157,12 +171,12 @@ export default function InvoicePage() {
           <div className="grid grid-cols-1 gap-6 border-b border-slate-100 p-6 sm:grid-cols-2 sm:p-10">
             <div>
               <p className="mb-2 text-xs font-bold uppercase tracking-widest text-slate-400">Bill To</p>
-              <p className="text-lg font-bold text-[#0F172A]">{project.business_name}</p>
+              <p className="font-serif text-lg font-bold tracking-tight text-[#0F172A]">{project.business_name}</p>
               <p className="mt-1 text-sm text-slate-500">Project: {project.title}</p>
             </div>
             <div className="sm:text-right">
               <p className="mb-2 text-xs font-bold uppercase tracking-widest text-slate-400">Provider</p>
-              <p className="text-lg font-bold text-[#0F172A]">{project.worker_name}</p>
+              <p className="font-serif text-lg font-bold tracking-tight text-[#0F172A]">{project.worker_name}</p>
               {/* This is the WORK deadline, not a payment ETA — release is
                   instant the moment a business approves it (no real payment
                   gateway/settlement delay exists yet). Hidden once paid so
@@ -199,8 +213,8 @@ export default function InvoicePage() {
               </div>
             </div>
             <div className="relative mt-2 flex items-center justify-between gap-4 border-t-2 border-slate-900 pt-5">
-              <span className="text-base font-bold text-[#0F172A]">Total Secured by Business</span>
-              <span className="whitespace-nowrap font-mono text-2xl font-black text-[#0F172A] sm:text-3xl">
+              <span className="font-serif text-base font-bold tracking-tight text-[#0F172A]">Total Secured by Business</span>
+              <span className="whitespace-nowrap font-mono text-2xl font-black tracking-tight text-[#0F172A] sm:text-3xl">
                 {formatINR(budget)}
               </span>
 
@@ -284,11 +298,34 @@ export default function InvoicePage() {
                   <p className="text-sm font-bold text-emerald-800">{isPaid ? "Payment Released" : "Funds Secured"}</p>
                   <p className="text-xs text-emerald-700">
                     {isPaid
-                      ? `${formatINR(workerReceives)} has been released to ${project.worker_name}.`
-                      : `${formatINR(budget)} is held and protected until work is approved.`}
+                      ? `${formatINR(workerReceives)} was automatically released to ${project.worker_name}'s wallet — payment successfully cleared.`
+                      : `${formatINR(budget)} is secured in WorkBridge Escrow until work is approved.`}
                   </p>
                 </div>
               </div>
+
+              {/* Escrow release and wallet credit are the same atomic
+                  operation today (completeProject has no separate
+                  settlement delay) — both rows share the one real
+                  timestamp rather than inventing a fake gap between them. */}
+              {isPaid && (() => {
+                const releasedAt = project.timeline?.find((e) => e.status === "COMPLETED")?.at ?? project.updated_at;
+                const formatted = releasedAt
+                  ? new Date(releasedAt).toLocaleString("en-IN", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" })
+                  : "—";
+                return (
+                  <div className="mx-auto mt-4 max-w-sm space-y-2 border-t border-emerald-200/60 pt-4">
+                    <div className="flex items-center justify-between gap-4 text-xs">
+                      <span className="font-semibold text-emerald-700">Released from WorkBridge Escrow</span>
+                      <span className="font-mono text-emerald-800">{formatted}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-4 text-xs">
+                      <span className="font-semibold text-emerald-700">Credited to Worker Wallet</span>
+                      <span className="font-mono text-emerald-800">{formatted}</span>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           )}
 
