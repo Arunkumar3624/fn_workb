@@ -18,12 +18,24 @@ import { listProjects } from "../../lib/projectsApi";
 import { getInitials } from "../../utils/formValidation";
 import { ApiError } from "../../lib/apiClient";
 
-// Same "active" definition WorkerNegotiationInbox uses — a negotiation
-// thread only makes sense while the project hasn't been completed/
-// cancelled/disputed yet.
-const ACTIVE_THREAD_STATUSES = new Set(["INVITED", "ACCEPTED", "FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_SUBMITTED"]);
+// Extended to include PENDING_RELEASE/COMPLETED/CANCELLED — this is now
+// the single unified chat inbox across every project stage (the
+// WorkerDetailDrawer's embedded chat in BusinessProjects.jsx was removed
+// in favor of redirecting here), not just the pre-completion stage the
+// original "active" definition implied. Mirrors WorkerNegotiationInbox.jsx.
+const ACTIVE_THREAD_STATUSES = new Set([
+  "INVITED",
+  "ACCEPTED",
+  "FUNDS_SECURED",
+  "WORK_IN_PROGRESS",
+  "FILES_SUBMITTED",
+  "PENDING_RELEASE",
+  "COMPLETED",
+  "CANCELLED",
+]);
+const CLOSED_STATUSES = new Set(["COMPLETED", "CANCELLED"]);
 
-const FUNDS_SECURED_STATUSES = new Set(["FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_SUBMITTED"]);
+const FUNDS_SECURED_STATUSES = new Set(["FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_SUBMITTED", "PENDING_RELEASE"]);
 
 const STATUS_META = {
   INVITED: { label: "Awaiting Response", tone: "amber" },
@@ -31,12 +43,16 @@ const STATUS_META = {
   FUNDS_SECURED: { label: "Escrow Funded", tone: "emerald" },
   WORK_IN_PROGRESS: { label: "In Progress", tone: "blue" },
   FILES_SUBMITTED: { label: "Review Pending", tone: "amber" },
+  PENDING_RELEASE: { label: "Release Pending", tone: "amber" },
+  COMPLETED: { label: "Completed", tone: "emerald" },
+  CANCELLED: { label: "Cancelled", tone: "slate" },
 };
 
 const TONE_CLASSES = {
   amber: "border-amber-100 bg-amber-50 text-amber-700",
   blue: "border-blue-100 bg-blue-50 text-blue-700",
   emerald: "border-emerald-100 bg-emerald-50 text-emerald-700",
+  slate: "border-slate-200 bg-slate-100 text-slate-500",
 };
 
 function formatINR(amount) {
@@ -64,7 +80,7 @@ function ThreadNavigator({ threads, selectedThreadId, onSelect }) {
             Negotiations
           </h1>
           <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-black text-emerald-700">
-            {threads.length} Live
+            {threads.length} {threads.length === 1 ? "Conversation" : "Conversations"}
           </span>
         </div>
 
@@ -146,6 +162,8 @@ function NoThreadSelected({ hasThreads, onFindTalent }) {
 function HubHeader({ thread, onViewContractTerms }) {
   const status = getThreadStatus(thread);
   const fundsSecured = FUNDS_SECURED_STATUSES.has(thread.status);
+  const isPaidOut = thread.status === "COMPLETED";
+  const isCancelled = thread.status === "CANCELLED";
 
   return (
     <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/80 backdrop-blur-md">
@@ -167,11 +185,15 @@ function HubHeader({ thread, onViewContractTerms }) {
         <div className="flex flex-shrink-0 items-center gap-3">
           <span
             className={`inline-flex min-h-[40px] items-center gap-2 rounded-full border px-3.5 text-xs font-black ${
-              fundsSecured ? "border-green-200 bg-green-50 text-green-700" : "border-amber-200 bg-amber-50 text-amber-700"
+              isCancelled
+                ? "border-slate-200 bg-slate-100 text-slate-500"
+                : isPaidOut || fundsSecured
+                  ? "border-green-200 bg-green-50 text-green-700"
+                  : "border-amber-200 bg-amber-50 text-amber-700"
             }`}
           >
             <ShieldCheck className="h-4 w-4" />
-            {fundsSecured ? "Escrow Secure" : "Awaiting Escrow"}
+            {isCancelled ? "Cancelled" : isPaidOut ? "Paid Out" : fundsSecured ? "Escrow Secure" : "Awaiting Escrow"}
           </span>
           <button
             type="button"
@@ -215,18 +237,18 @@ function FocusHub({ thread, onViewContractTerms }) {
           transition={{ duration: 0.18, ease: "easeInOut" }}
         >
           <HubHeader thread={thread} onViewContractTerms={onViewContractTerms} />
-          <ChatThread projectId={thread.id} />
+          <ChatThread projectId={thread.id} readOnly={CLOSED_STATUSES.has(thread.status)} />
         </motion.div>
       </AnimatePresence>
     </main>
   );
 }
 
-export default function BusinessNegotiationHub({ onFindTalent, onViewContractTerms }) {
+export default function BusinessNegotiationHub({ onFindTalent, onViewContractTerms, initialProjectId }) {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
-  const [selectedThreadId, setSelectedThreadId] = useState(null);
+  const [selectedThreadId, setSelectedThreadId] = useState(initialProjectId ?? null);
 
   useEffect(() => {
     let cancelled = false;
@@ -235,7 +257,7 @@ export default function BusinessNegotiationHub({ onFindTalent, onViewContractTer
         if (cancelled) return;
         const activeThreads = data.filter((p) => ACTIVE_THREAD_STATUSES.has(p.status));
         setProjects(activeThreads);
-        setSelectedThreadId((current) => current ?? activeThreads[0]?.id ?? null);
+        setSelectedThreadId((current) => current ?? initialProjectId ?? activeThreads[0]?.id ?? null);
       })
       .catch((err) => {
         if (!cancelled) setLoadError(err instanceof ApiError ? err.message : "Could not load your negotiations.");
@@ -246,7 +268,7 @@ export default function BusinessNegotiationHub({ onFindTalent, onViewContractTer
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [initialProjectId]);
 
   const activeThread = useMemo(
     () => projects.find((project) => project.id === selectedThreadId) ?? null,

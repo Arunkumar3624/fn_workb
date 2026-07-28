@@ -21,6 +21,7 @@ import { listOpenProjects } from "../../lib/projectsApi";
 import { applyToProject, listMyCandidates, respondToCandidate } from "../../lib/candidatesApi";
 import { ApiError } from "../../lib/apiClient";
 import { getSocket } from "../../lib/socketClient";
+import ApplicationQuizModal from "./ApplicationQuizModal";
 
 function formatINR(amount) {
   return `₹${Number(amount || 0).toLocaleString("en-IN")}`;
@@ -186,9 +187,14 @@ export default function WorkerJobFeed() {
   const [query, setQuery] = useState("");
   const [selectedJob, setSelectedJob] = useState(null);
   const [applying, setApplying] = useState(false);
-  const [applyError, setApplyError] = useState("");
   const [myCandidates, setMyCandidates] = useState([]);
   const [respondingId, setRespondingId] = useState(null);
+  // Proposal note + job carried from JobDetailModal into the quiz step —
+  // "Apply Now" no longer submits directly, it opens ApplicationQuizModal
+  // first (selectedJob closes with JobDetailModal, so the job being applied
+  // to needs its own state here).
+  const [pendingMessage, setPendingMessage] = useState("");
+  const [quizJob, setQuizJob] = useState(null);
 
   const loadJobs = () => {
     listOpenProjects()
@@ -232,17 +238,33 @@ export default function WorkerJobFeed() {
     return searchable.includes(query.trim().toLowerCase());
   });
 
-  const handleApply = async (message) => {
+  // JobDetailModal's "Apply Now" no longer applies directly — it opens the
+  // quiz step instead. The real POST /candidates call (and the real
+  // Behavior Score delta) only happens once the worker picks one of the
+  // quiz's two actions below.
+  const handleProceedToQuiz = (message) => {
     if (!selectedJob) return;
+    setPendingMessage(message);
+    setQuizJob(selectedJob);
+    setSelectedJob(null);
+  };
+
+  const submitApplication = async (quizAnswered) => {
+    if (!quizJob) return;
     setApplying(true);
-    setApplyError("");
     try {
-      await applyToProject(selectedJob.id, message.trim() || undefined);
-      toast.success("Application submitted.");
-      setSelectedJob(null);
+      await applyToProject(quizJob.id, pendingMessage.trim() || undefined, quizAnswered);
+      toast.success(
+        quizAnswered
+          ? "Application submitted — +15 Behavior Score for answering."
+          : "Application submitted — -5 Behavior Score for skipping the quiz."
+      );
+      setQuizJob(null);
+      setPendingMessage("");
       loadMyCandidates();
     } catch (err) {
-      setApplyError(err instanceof ApiError ? err.message : "Could not submit your application.");
+      toast.error(err instanceof ApiError ? err.message : "Could not submit your application.");
+      setQuizJob(null);
     } finally {
       setApplying(false);
     }
@@ -422,14 +444,23 @@ export default function WorkerJobFeed() {
 
       <JobDetailModal
         job={selectedJob}
-        onClose={() => {
-          setSelectedJob(null);
-          setApplyError("");
-        }}
-        onApply={handleApply}
-        applying={applying}
-        applyError={applyError}
+        onClose={() => setSelectedJob(null)}
+        onApply={handleProceedToQuiz}
+        applying={false}
+        applyError=""
         alreadyApplied={selectedJob ? appliedProjectIds.has(selectedJob.id) : false}
+      />
+
+      <ApplicationQuizModal
+        open={Boolean(quizJob)}
+        submitting={applying}
+        onSubmitAnswered={() => submitApplication(true)}
+        onSkip={() => submitApplication(false)}
+        onCancel={() => {
+          if (applying) return;
+          setQuizJob(null);
+          setPendingMessage("");
+        }}
       />
     </div>
   );

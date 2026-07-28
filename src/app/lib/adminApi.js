@@ -37,6 +37,16 @@ export function listPendingReleases() {
   return apiFetch("/api/admin/pending-releases");
 }
 
+// Withdrawals — workers' real cash-out requests, waiting on staff to
+// actually send the UPI/bank transfer.
+export function listPendingWithdrawals() {
+  return apiFetch("/api/admin/withdrawals");
+}
+
+export function resolveWithdrawal(id, { approved, note }) {
+  return apiFetch(`/api/admin/withdrawals/${id}/resolve`, { method: "POST", body: { approved, note } });
+}
+
 // Security Monitor — blocked_message_attempts is the only record of a
 // contact-info send that got hard-blocked (see backend's
 // messages.controller.js); the message itself is never stored elsewhere.

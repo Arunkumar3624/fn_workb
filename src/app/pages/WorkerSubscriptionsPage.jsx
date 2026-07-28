@@ -1,7 +1,17 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, BarChart3, Check, Crown, Loader2, ShieldCheck, Star, Zap } from "lucide-react";
+import { ArrowLeft, BarChart3, Check, Crown, Loader2, Lock, ShieldCheck, Star, Zap } from "lucide-react";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
+import { useAuth } from "../context/AuthContext";
+
+// "Fairness First" — Elite is the one tier that isn't just "pay and get
+// it": it's real-data gated on behavior_score (adjustBehaviorScore in
+// backend/src/repositories/users.repository.js — the same real column
+// ApplicationQuizModal.jsx's +15/-5 writes to), so a worker with a poor
+// track record can't just buy their way to top placement. The gate itself
+// is real even though the payment behind it is still the deferred preview
+// every tier here already was.
+const ELITE_GOOD_STANDING = 600;
 
 // Real payment/subscriptions are deliberately deferred (pending an
 // escrow-partner decision) — this is a visual preview, same precedent as
@@ -45,9 +55,11 @@ const TIERS = [
 
 const TIER_ICONS = { free: ShieldCheck, pro: BarChart3, elite: Crown };
 
-function TierCard({ tier, isUpgrading, upgradeResult, onUpgrade }) {
+function TierCard({ tier, isUpgrading, upgradeResult, onUpgrade, behaviorScore }) {
   const Icon = TIER_ICONS[tier.id];
   const isFree = tier.id === "free";
+  const isElite = tier.id === "elite";
+  const eliteLocked = isElite && behaviorScore < ELITE_GOOD_STANDING;
 
   const cardCls = tier.premium
     ? "bg-[#0F172A] text-white border border-white/10"
@@ -84,6 +96,26 @@ function TierCard({ tier, isUpgrading, upgradeResult, onUpgrade }) {
         ))}
       </ul>
 
+      {isElite && (
+        <div className="mt-5 rounded-xl border border-white/10 bg-white/5 p-3.5">
+          <div className="flex items-center justify-between gap-2">
+            <p className="flex items-center gap-1.5 text-xs font-bold text-slate-300">
+              <ShieldCheck className={`h-3.5 w-3.5 ${eliteLocked ? "text-rose-400" : "text-emerald-400"}`} />
+              Behavior Score: {behaviorScore}/1000
+            </p>
+            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${eliteLocked ? "bg-rose-500/20 text-rose-300" : "bg-emerald-500/20 text-emerald-300"}`}>
+              {eliteLocked ? `Need ${ELITE_GOOD_STANDING}` : "Eligible"}
+            </span>
+          </div>
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
+            <div
+              className={`h-full rounded-full transition-all duration-700 ${eliteLocked ? "bg-rose-400" : "bg-emerald-400"}`}
+              style={{ width: `${Math.min(100, (behaviorScore / 1000) * 100)}%` }}
+            />
+          </div>
+        </div>
+      )}
+
       {isFree ? (
         <button
           disabled
@@ -92,6 +124,14 @@ function TierCard({ tier, isUpgrading, upgradeResult, onUpgrade }) {
           }`}
         >
           Current Plan
+        </button>
+      ) : eliteLocked ? (
+        <button
+          disabled
+          className="mt-7 flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-white/10 py-3 text-sm font-bold text-slate-400"
+        >
+          <Lock className="h-4 w-4" />
+          Reach {ELITE_GOOD_STANDING} Behavior Score to Unlock
         </button>
       ) : upgradeResult === tier.id ? (
         <p className="mt-7 rounded-xl border border-dashed border-slate-300 py-3 text-center text-xs font-semibold text-slate-400">
@@ -118,10 +158,13 @@ function TierCard({ tier, isUpgrading, upgradeResult, onUpgrade }) {
 export default function WorkerSubscriptionsPage() {
   useDocumentTitle("Subscriptions — WorkBridge");
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
+  const behaviorScore = currentUser?.behavior_score ?? 1000;
   const [isUpgrading, setIsUpgrading] = useState(null);
   const [upgradeResult, setUpgradeResult] = useState(null);
 
   const handleUpgrade = (tierId) => {
+    if (tierId === "elite" && behaviorScore < ELITE_GOOD_STANDING) return;
     setIsUpgrading(tierId);
     setUpgradeResult(null);
     setTimeout(() => {
@@ -155,7 +198,14 @@ export default function WorkerSubscriptionsPage() {
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
         {TIERS.map((tier) => (
-          <TierCard key={tier.id} tier={tier} isUpgrading={isUpgrading} upgradeResult={upgradeResult} onUpgrade={handleUpgrade} />
+          <TierCard
+            key={tier.id}
+            tier={tier}
+            isUpgrading={isUpgrading}
+            upgradeResult={upgradeResult}
+            onUpgrade={handleUpgrade}
+            behaviorScore={behaviorScore}
+          />
         ))}
       </div>
     </div>

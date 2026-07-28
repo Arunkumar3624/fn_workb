@@ -60,3 +60,9 @@ export function requestRelease(id) {
 export function completeProject(id) {
   return apiFetch(`/api/projects/${id}/complete`, { method: "POST" });
 }
+
+// The Ghosting Failsafe — instant, business-only, only reachable once
+// project.deadline has passed with no delivery. No admin gate, by design.
+export function cancelAndRefund(id) {
+  return apiFetch(`/api/projects/${id}/cancel-refund`, { method: "POST" });
+}

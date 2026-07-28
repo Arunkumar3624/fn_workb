@@ -26,7 +26,6 @@ import Avatar from "../shared/Avatar";
 import TimelineTracker from "../shared/TimelineTracker";
 import ProjectCompletionHub from "../shared/ProjectCompletionHub";
 import DeliverablesPanel from "../shared/DeliverablesPanel";
-import ChatThread from "../shared/ChatThread";
 import DeadlineCountdown from "../shared/DeadlineCountdown";
 import { getTierData } from "../../utils/gamification";
 import { PROJECT_STATUS_META } from "../../utils/projectStatus";
@@ -35,6 +34,7 @@ import {
   requestRelease as apiRequestRelease,
   secureFunds as apiSecureFunds,
   updateProjectStatus as apiUpdateProjectStatus,
+  cancelAndRefund as apiCancelAndRefund,
   createProject,
 } from "../../lib/projectsApi";
 import { listCandidatesForProject, respondToCandidate } from "../../lib/candidatesApi";
@@ -74,7 +74,7 @@ function formatDate(iso) {
 // Fetches the real public profile (GET /api/profiles/:id — the one
 // unauthenticated route) on open, rather than showing mock skills/trust-score
 // data schema.sql has no columns for.
-function WorkerDetailDrawer({ project, onClose }) {
+function WorkerDetailDrawer({ project, onClose, onOpenChat }) {
   const isOpen = Boolean(project);
   const [profile, setProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -270,20 +270,6 @@ function WorkerDetailDrawer({ project, onClose }) {
                   </div>
 
                   <DeliverablesPanel projectId={project.id} />
-
-                  <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-                    <div className="border-b border-slate-100 px-5 py-4">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400" style={HEADING_FONT}>Chat</p>
-                      <p className="mt-1 text-sm font-bold text-[#0F172A]" style={DATA_FONT}>Message {project.worker_name}</p>
-                      <p className="mt-1 text-xs text-slate-400" style={DATA_FONT}>Keep contact details off WorkBridge — sharing phone numbers or emails isn't allowed.</p>
-                    </div>
-                    <div className="flex h-[420px] flex-col">
-                      <ChatThread
-                        projectId={project.id}
-                        readOnly={project.status === "COMPLETED" || project.status === "CANCELLED"}
-                      />
-                    </div>
-                  </div>
                 </div>
               )}
             </div>
@@ -294,6 +280,20 @@ function WorkerDetailDrawer({ project, onClose }) {
                 className="flex-1 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50"
               >
                 Close
+              </button>
+              {/* Chat lives in Negotiations now — permanent, split-screen,
+                  never deletes history — rather than this drawer's own
+                  embedded, disposable ChatThread. Matches
+                  WorkerWorkspace.jsx's "Open Chat in Negotiations" button. */}
+              <button
+                onClick={() => {
+                  onOpenChat?.(project.id);
+                  onClose?.();
+                }}
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#1B3FAB] px-5 py-3 text-sm font-bold text-white shadow-md shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-[#15338d] hover:shadow-lg"
+              >
+                <MessageSquare className="h-4 w-4" />
+                Open Chat in Negotiations
               </button>
             </div>
           </motion.div>
@@ -610,6 +610,107 @@ function DisputeConfirmModal({ project, isSubmitting, submitError, onClose, onCo
   );
 }
 
+function CancelRefundConfirmModal({ project, isSubmitting, submitError, onClose, onConfirm }) {
+  return createPortal(
+    <AnimatePresence>
+      {project && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            onClick={isSubmitting ? undefined : onClose}
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 16 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 16 }}
+            transition={{ type: "spring", stiffness: 320, damping: 26 }}
+            className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white/90 shadow-2xl backdrop-blur-xl"
+          >
+            <div className="p-6">
+              <div className="mb-5 flex items-center gap-3">
+                <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl border border-red-100 bg-red-50">
+                  <AlertTriangle className="h-5 w-5 text-red-600" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-base font-extrabold text-[#0F172A]" style={HEADING_FONT}>
+                    Cancel &amp; Refund
+                  </h3>
+                  <p className="mt-0.5 truncate text-xs text-slate-400" style={DATA_FONT}>
+                    {project.title}
+                  </p>
+                </div>
+                {!isSubmitting && (
+                  <button
+                    onClick={onClose}
+                    aria-label="Cancel"
+                    className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+
+              <div className="mb-4 space-y-2.5 rounded-xl bg-slate-50 p-4 font-mono text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500">Worker</span>
+                  <span className="font-bold text-[#0F172A]">{project.worker_name}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500">Refund Amount</span>
+                  <span className="font-bold text-[#0F172A]">{formatINR(project.budget)}</span>
+                </div>
+              </div>
+
+              <p className="mb-5 text-xs leading-relaxed text-slate-500" style={DATA_FONT}>
+                {project.worker_name} never delivered by the deadline — this cancels the project and
+                refunds the full amount back to you immediately. This can't be undone; if the worker
+                actually did submit work, use Raise Dispute instead so WorkBridge can review it.
+              </p>
+
+              {submitError && (
+                <div
+                  role="alert"
+                  className="mb-4 rounded-xl border border-red-100 bg-red-50 p-3.5 text-xs font-semibold text-red-600"
+                >
+                  {submitError}
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <button
+                  onClick={onClose}
+                  disabled={isSubmitting}
+                  className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Nevermind
+                </button>
+                <button
+                  onClick={onConfirm}
+                  disabled={isSubmitting}
+                  className="flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-xl bg-red-600 text-sm font-bold text-white shadow-md shadow-red-500/20 transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-600/60"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Refunding…
+                    </>
+                  ) : (
+                    "Cancel & Refund Now"
+                  )}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>,
+    document.body
+  );
+}
+
 // ─── Open Job Board — applicants + invites review ────────────────────────────
 // Every candidacy (source=APPLICATION or INVITE) against one of the
 // business's own OPEN posts — accepting one assigns the project for real
@@ -826,7 +927,7 @@ function RatingModal({ project, currentUserId, onClose, onRehire, onRated }) {
 }
 
 // ─── Main component ──────────────────────────────────────────────────────────
-export default function BusinessProjects() {
+export default function BusinessProjects({ onOpenChat }) {
   useDocumentTitle("Active Projects — WorkBridge Business");
   const { currentUser } = useAuth();
 
@@ -840,6 +941,9 @@ export default function BusinessProjects() {
   const [disputeProject, setDisputeProject] = useState(null);
   const [submittingDisputeId, setSubmittingDisputeId] = useState(null);
   const [disputeError, setDisputeError] = useState(null);
+  const [refundProject, setRefundProject] = useState(null);
+  const [submittingRefundId, setSubmittingRefundId] = useState(null);
+  const [refundError, setRefundError] = useState(null);
   const [downloadingId, setDownloadingId] = useState(null);
   const [paymentProject, setPaymentProject] = useState(null);
   const [completingId, setCompletingId] = useState(null);
@@ -1039,6 +1143,23 @@ export default function BusinessProjects() {
       setDisputeError(err.message || "Couldn't raise a dispute — try again.");
     } finally {
       setSubmittingDisputeId(null);
+    }
+  };
+
+  const handleConfirmRefund = async () => {
+    if (!refundProject || submittingRefundId) return;
+    const id = refundProject.id;
+    setSubmittingRefundId(id);
+    setRefundError(null);
+    try {
+      const updated = await apiCancelAndRefund(id);
+      setProjects((prev) => prev.map((p) => (p.id === id ? updated.project : p)));
+      setRefundProject(null);
+      toast.success(`${formatINR(refundProject.budget)} refunded — the project has been cancelled.`);
+    } catch (err) {
+      setRefundError(err.message || "Couldn't cancel & refund this project — try again.");
+    } finally {
+      setSubmittingRefundId(null);
     }
   };
 
@@ -1322,6 +1443,15 @@ export default function BusinessProjects() {
                 const canRelease = p.status === "FILES_SUBMITTED";
                 const canRequestRevision = p.status === "FILES_SUBMITTED";
                 const canDispute = !["DISPUTED", "CANCELLED", "COMPLETED"].includes(p.status);
+                // The Ghosting Failsafe — only once the real hard deadline
+                // has passed with the worker still stuck pre-delivery
+                // (never reached FILES_SUBMITTED). Matches cancelAndRefund's
+                // own server-side check exactly, so this button only ever
+                // shows when the click will actually succeed.
+                const isGhosted =
+                  ["FUNDS_SECURED", "WORK_IN_PROGRESS"].includes(p.status) &&
+                  p.deadline &&
+                  new Date(p.deadline).getTime() < Date.now();
                 const isCompletingThis = completingId === p.id;
 
                 return (
@@ -1425,6 +1555,19 @@ export default function BusinessProjects() {
                           >
                             <RotateCcw className="h-3.5 w-3.5" />
                             Request Revision
+                          </button>
+                        )}
+
+                        {isGhosted && (
+                          <button
+                            onClick={() => {
+                              setRefundProject(p);
+                              setRefundError(null);
+                            }}
+                            className="flex min-h-[44px] items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-bold text-red-700 transition-colors hover:bg-red-100"
+                          >
+                            <AlertTriangle className="h-3.5 w-3.5" />
+                            Cancel &amp; Refund — Deadline Missed
                           </button>
                         )}
 
@@ -1628,6 +1771,7 @@ export default function BusinessProjects() {
       <WorkerDetailDrawer
         project={workerDrawerProject}
         onClose={() => setWorkerDrawerProject(null)}
+        onOpenChat={onOpenChat}
       />
 
       <PaymentApprovalModal
@@ -1666,6 +1810,18 @@ export default function BusinessProjects() {
           setDisputeError(null);
         }}
         onConfirm={handleConfirmDispute}
+      />
+
+      <CancelRefundConfirmModal
+        project={refundProject}
+        isSubmitting={submittingRefundId === refundProject?.id}
+        submitError={refundError}
+        onClose={() => {
+          if (submittingRefundId) return;
+          setRefundProject(null);
+          setRefundError(null);
+        }}
+        onConfirm={handleConfirmRefund}
       />
 
       <RatingModal

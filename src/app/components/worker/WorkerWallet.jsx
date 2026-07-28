@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { TrendingUp, Lock, Wallet, Zap, AlertCircle, Loader2, Receipt, FileText, ArrowRight, X } from "lucide-react";
+import { TrendingUp, Lock, Wallet, Zap, AlertCircle, Loader2, Receipt, FileText, ArrowRight, X, Clock3 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion, AnimatePresence } from "motion/react";
 import LockedCurrencyInput from "../common/LockedCurrencyInput";
 import { positiveCurrencySchema } from "../../utils/formValidation";
-import { getWallet, withdraw } from "../../lib/walletApi";
+import { getWallet, withdraw, listWithdrawals } from "../../lib/walletApi";
 import { listProjects } from "../../lib/projectsApi";
 import { ApiError } from "../../lib/apiClient";
 
@@ -26,7 +26,8 @@ const IN_ESCROW_STATUSES = new Set(["FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_
 
 const withdrawalSchema = z.object({
   amount: positiveCurrencySchema,
-  destination: z.string().min(2),
+  payoutMethod: z.enum(["UPI", "BANK_TRANSFER"]),
+  payoutDetails: z.string().trim().min(3, "Enter a real UPI ID or bank account so WorkBridge can actually pay you."),
 });
 
 export default function WorkerWallet() {
@@ -34,6 +35,7 @@ export default function WorkerWallet() {
   const [wallet, setWallet] = useState(null);
   const [heldSecurely, setHeldSecurely] = useState(0);
   const [invoices, setInvoices] = useState([]);
+  const [pendingWithdrawals, setPendingWithdrawals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [submitError, setSubmitError] = useState("");
@@ -45,10 +47,11 @@ export default function WorkerWallet() {
     setLoading(true);
     setLoadError("");
     try {
-      const [walletData, projects, completed] = await Promise.all([
+      const [walletData, projects, completed, withdrawals] = await Promise.all([
         getWallet(),
         listProjects({ role: "worker" }),
         listProjects({ role: "worker", status: "COMPLETED" }),
+        listWithdrawals(),
       ]);
       setWallet(walletData);
       setHeldSecurely(
@@ -57,6 +60,7 @@ export default function WorkerWallet() {
           .reduce((sum, p) => sum + Number(p.budget), 0)
       );
       setInvoices(completed);
+      setPendingWithdrawals(withdrawals.filter((w) => w.status === "PENDING"));
     } catch (err) {
       setLoadError(err instanceof ApiError ? err.message : "Could not load your wallet.");
     } finally {
@@ -83,7 +87,8 @@ export default function WorkerWallet() {
     resolver: zodResolver(withdrawalSchema),
     defaultValues: {
       amount: "",
-      destination: "Primary Bank Account",
+      payoutMethod: "UPI",
+      payoutDetails: "",
     },
   });
 
@@ -91,12 +96,12 @@ export default function WorkerWallet() {
     setSubmitting(true);
     setSubmitError("");
     try {
-      await withdraw({ amount: formData.amount, destination: formData.destination });
-      reset({ amount: "", destination: formData.destination });
+      await withdraw({ amount: formData.amount, payoutMethod: formData.payoutMethod, payoutDetails: formData.payoutDetails });
+      reset({ amount: "", payoutMethod: formData.payoutMethod, payoutDetails: "" });
       setShowWithdrawForm(false);
       await loadWallet();
     } catch (err) {
-      setSubmitError(err instanceof ApiError ? err.message : "Withdrawal failed. Please try again.");
+      setSubmitError(err instanceof ApiError ? err.message : "Withdrawal request failed. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -170,6 +175,22 @@ export default function WorkerWallet() {
           </div>
         </div>
 
+        {pendingWithdrawals.length > 0 && (
+          <div className="relative mt-6 space-y-2">
+            {pendingWithdrawals.map((w) => (
+              <div
+                key={w.id}
+                className="flex items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50/70 px-4 py-2.5"
+              >
+                <span className="flex items-center gap-2 text-xs font-semibold text-amber-700">
+                  <Clock3 className="h-3.5 w-3.5 flex-shrink-0" />
+                  {formatINR(w.amount)} withdrawal pending review — {w.payout_method === "UPI" ? "UPI" : "Bank Transfer"}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
         <div className="relative mt-6 border-t border-slate-200/60 pt-6">
           <button
             onClick={() => setShowWithdrawForm((v) => !v)}
@@ -208,13 +229,23 @@ export default function WorkerWallet() {
                     {errors.amount && <p className="mt-1 text-xs font-semibold text-red-500">{errors.amount.message}</p>}
                   </div>
                   <div>
-                    <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">Withdraw to</label>
-                    <select {...register("destination")} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none">
-                      <option>Primary Bank Account</option>
-                      <option>Google Pay UPI</option>
-                      <option>PhonePe UPI</option>
+                    <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">Payout Method</label>
+                    <select {...register("payoutMethod")} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none">
+                      <option value="UPI">UPI</option>
+                      <option value="BANK_TRANSFER">Bank Transfer</option>
                     </select>
                   </div>
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    {watch("payoutMethod") === "BANK_TRANSFER" ? "Account Number & IFSC" : "UPI ID"}
+                  </label>
+                  <input
+                    {...register("payoutDetails")}
+                    placeholder={watch("payoutMethod") === "BANK_TRANSFER" ? "e.g. 004501234567 · HDFC0000045" : "e.g. yourname@upi"}
+                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20"
+                  />
+                  {errors.payoutDetails && <p className="mt-1 text-xs font-semibold text-red-500">{errors.payoutDetails.message}</p>}
                 </div>
                 <button
                   type="submit"
@@ -222,9 +253,11 @@ export default function WorkerWallet() {
                   className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-[#1B3FAB] py-3 text-sm font-bold text-white shadow-md shadow-[#1B3FAB]/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#1635A0] hover:shadow-lg disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
-                  {submitting ? "Processing…" : "Confirm Withdrawal"}
+                  {submitting ? "Sending Request…" : "Request Withdrawal"}
                 </button>
-                <p className="text-center text-xs text-slate-400">Platform commission already deducted from earnings.</p>
+                <p className="text-center text-xs text-slate-400">
+                  WorkBridge staff verify and send every payout — usually within one business day.
+                </p>
               </form>
             </motion.div>
           )}

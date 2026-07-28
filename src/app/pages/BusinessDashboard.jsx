@@ -16,6 +16,11 @@ import { getTierData } from "../utils/gamification";
 export default function BusinessDashboard({ onLogout, onVerify, isVerified = false }) {
   const { currentUser } = useAuth();
   const [tab, setTab] = useState("overview");
+  // Set right before switching to the Negotiations tab (see
+  // BusinessProjects.jsx's "Open Chat in Negotiations" button) so the right
+  // thread is already focused when BusinessNegotiationHub mounts — Projects
+  // no longer embeds its own chat, per the permanent-chat-history upgrade.
+  const [negotiationFocusId, setNegotiationFocusId] = useState(null);
   // MASTER_ECONOMY_PLAN.md's business-side Ledger reuses the same
   // xp/current_level/bridge_tokens columns as the worker track (no
   // separate schema exists yet — see migrations/012_gamification_foundation.sql's
@@ -77,9 +82,17 @@ export default function BusinessDashboard({ onLogout, onVerify, isVerified = fal
             onVerify={onVerify}
           />
         )}
-        {tab === "projects" && <BusinessProjects />}
+        {tab === "projects" && (
+          <BusinessProjects
+            onOpenChat={(projectId) => {
+              setNegotiationFocusId(projectId);
+              setTab("negotiations");
+            }}
+          />
+        )}
         {tab === "negotiations" && (
           <BusinessNegotiationHub
+            initialProjectId={negotiationFocusId}
             onFindTalent={() => setTab("workers")}
             onViewContractTerms={() => setTab("projects")}
           />

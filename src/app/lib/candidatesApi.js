@@ -4,10 +4,14 @@
 // from the caller's role, never sent from here.
 import { apiFetch } from "./apiClient";
 
-export function applyToProject(projectId, message) {
+// quizAnswered: true (answered all 15 of ApplicationQuizModal's questions,
+// +15 real Behavior Score) | false (skipped it, -5) | undefined (no
+// adjustment) — applied server-side in the same transaction as the
+// application itself.
+export function applyToProject(projectId, message, quizAnswered) {
   return apiFetch(`/api/projects/${projectId}/candidates`, {
     method: "POST",
-    body: { message },
+    body: { message, quizAnswered },
   });
 }
 
