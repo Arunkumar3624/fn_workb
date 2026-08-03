@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Bell, Coins, Flame, Sparkles } from "lucide-react";
+import { Coins, Flame, Sparkles } from "lucide-react";
 import DashboardLayout from "../components/common/DashboardLayout";
 import WorkerSidebar from "../components/worker/WorkerSidebar";
 import WorkerJobFeed from "../components/worker/WorkerJobFeed";
@@ -12,7 +12,6 @@ import EconomyHub from "./EconomyHub";
 import WorkerProfile from "../components/worker/WorkerProfile";
 import SettingsPage from "./SettingsPage";
 import { useAuth } from "../context/AuthContext";
-import { listProjects } from "../lib/projectsApi";
 import { getWallet } from "../lib/walletApi";
 import { getInitials } from "../utils/formValidation";
 import { getSocket } from "../lib/socketClient";
@@ -22,7 +21,6 @@ export default function WorkerDashboard({ onLogout }) {
   const { tab: urlTab } = useParams();
   const [searchParams] = useSearchParams();
   const { currentUser } = useAuth();
-  const [hasPendingInvites, setHasPendingInvites] = useState(false);
   const [walletBalance, setWalletBalance] = useState(0);
 
   // Tab is driven entirely by the URL (/worker or /worker/:tab) so deep
@@ -32,9 +30,6 @@ export default function WorkerDashboard({ onLogout }) {
   const projectIdFromUrl = searchParams.get("invite");
 
   useEffect(() => {
-    listProjects({ role: "worker", status: "INVITED" })
-      .then((projects) => setHasPendingInvites(projects.length > 0))
-      .catch(() => {});
     getWallet()
       .then((wallet) => setWalletBalance(Number(wallet.balance)))
       .catch(() => {});
@@ -43,14 +38,17 @@ export default function WorkerDashboard({ onLogout }) {
   // A brand-new invite is the one event a worker's own `projects` state
   // can't already contain (they've never seen this project before), so it's
   // handled here — mounted on every worker page — rather than inside
-  // WorkerWorkspace, which only reacts to projects it already loaded.
+  // WorkerWorkspace, which only reacts to projects it already loaded. The
+  // real "you have a pending invite" indicator itself lives on
+  // WorkerSidebar.jsx's own Negotiations nav item (its own independent
+  // fetch) — this toast is just the live, in-the-moment alert; no header
+  // bell/badge duplicates it.
   useEffect(() => {
     const socket = getSocket();
     if (!socket) return undefined;
 
     const handleProjectEvent = (event) => {
       if (event.type !== "PROJECT_CREATED") return;
-      setHasPendingInvites(true);
       toast.info(`${event.businessName ?? "A business"} invited you to "${event.title}".`);
     };
 
@@ -95,20 +93,6 @@ export default function WorkerDashboard({ onLogout }) {
                   <span className="hidden font-normal text-slate-300 md:inline">Tokens</span>
                 </span>
               </div>
-              {/* Clicking a pending "Job Invite" notification pushes straight to Negotiations */}
-              <button
-                onClick={() => navigate("/worker/negotiations")}
-                className="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-                title={hasPendingInvites ? "You have a pending job invite" : "Notifications"}
-              >
-                <Bell className="h-5 w-5" />
-                {hasPendingInvites && (
-                  <span className="absolute -top-0.5 -right-0.5 flex h-3 w-3">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
-                    <span className="relative inline-flex h-3 w-3 rounded-full bg-red-500 border-2 border-white" />
-                  </span>
-                )}
-              </button>
               <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
                 <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#0f172a] text-sm font-semibold text-white">
                   {getInitials(currentUser?.name)}
