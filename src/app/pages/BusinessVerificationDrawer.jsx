@@ -23,22 +23,6 @@ const PAYMENT_METHODS = [
   { id: "netbanking", emoji: "🏛️", label: "Net Banking",    desc: "All major Indian banks"           },
 ];
 
-// Background kanban columns — shown blurred beneath overlay
-const BG_COLS = [
-  {
-    label: "🔥 Urgent",
-    cards: ["React Dashboard – FinEdge", "AI Chatbot – RetailX", "API Bug Fix – ShopNow", "Payment Gateway – FashionKart"],
-  },
-  {
-    label: "💼 Standard",
-    cards: ["Brand Identity – Nourish", "SEO Articles ×20", "Social Campaign – StyleHaus", "Power BI – LogiTrack"],
-  },
-  {
-    label: "⚡ Micro Tasks",
-    cards: ["Logo Variation", "Email Template", "Copy Edit – 3 pages", "Icon Set Design"],
-  },
-];
-
 // ════════════════════════════════════════════════════════════════════════════
 // Main Component
 // ════════════════════════════════════════════════════════════════════════════
@@ -61,25 +45,15 @@ export default function BusinessVerificationDrawer({ onClose, onPaymentSuccess }
   return (
     <div className="fixed inset-0 z-50 flex overflow-hidden" style={{ fontFamily: "'DM Sans', sans-serif" }}>
 
-      {/* ── Background Kanban (decorative, under the blur) ── */}
-      <div className="absolute inset-0 pointer-events-none select-none">
-        <div className="h-full bg-[#F8FAFC] flex gap-4 px-6 py-6 overflow-hidden">
-          {BG_COLS.map((col) => (
-            <div key={col.label} className="flex-1 space-y-3">
-              <div className="text-xs font-bold text-slate-400 px-1 mb-3">{col.label}</div>
-              {col.cards.map((c) => (
-                <div key={c} className="bg-white rounded-xl border border-slate-100 p-3.5 shadow-sm">
-                  <div className="h-2.5 w-3/4 bg-slate-200 rounded mb-2" />
-                  <div className="text-[11px] font-medium text-slate-700 truncate">{c}</div>
-                  <div className="flex gap-1.5 mt-2">
-                    <div className="h-1.5 w-10 bg-slate-100 rounded-full" />
-                    <div className="h-1.5 w-14 bg-slate-100 rounded-full" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
+      {/* ── Ambient backdrop — same ombré-blob treatment used behind Admin
+          Panel/the landing hero, not a fake mockup of unrelated dashboard
+          content. A handful of short decorative cards only ever fills part
+          of a tall viewport (exactly what was happening before), leaving a
+          dead gray void that read as broken; a soft gradient never does. ── */}
+      <div className="absolute inset-0 bg-[#F8FAFC]">
+        <div className="pointer-events-none absolute -top-32 -left-24 h-96 w-96 rounded-full bg-[#1B3FAB]/10 blur-[120px]" />
+        <div className="pointer-events-none absolute top-1/3 -right-24 h-96 w-96 rounded-full bg-[#FF6B35]/10 blur-[120px]" />
+        <div className="pointer-events-none absolute -bottom-32 left-1/3 h-80 w-80 rounded-full bg-emerald-400/10 blur-[110px]" />
       </div>
 
       {/* ── Overlay blur ── */}
