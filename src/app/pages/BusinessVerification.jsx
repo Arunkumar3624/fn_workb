@@ -226,7 +226,7 @@ export default function BusinessVerification({ onComplete, onExit }) {
 
         {/* Scrollable form content */}
         <div className="flex-1 overflow-auto px-5 py-6 sm:px-10 sm:py-10">
-          <div className="max-w-xl mx-auto">
+          <div className="max-w-2xl mx-auto">
 
             {/* ── STEP 1: Company Details ── */}
             {activeStep === 1 && (

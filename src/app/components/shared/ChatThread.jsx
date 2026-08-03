@@ -319,13 +319,13 @@ export default function ChatThread({ projectId, otherUserId }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       {otherUserId && !blockStatus.blockedMe && (
-        <div className="flex flex-shrink-0 justify-end border-b border-slate-100 px-4 py-1.5">
+        <div className="flex flex-shrink-0 justify-end border-b border-slate-100 bg-white px-4 py-2">
           {blockStatus.blockedByMe ? (
             <button
               type="button"
               onClick={handleUnblock}
               disabled={blockActionBusy}
-              className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold text-emerald-600 transition-colors hover:bg-emerald-50 disabled:opacity-60"
+              className="flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[11px] font-bold text-emerald-700 shadow-sm transition-colors hover:bg-emerald-100 disabled:opacity-60"
             >
               <ShieldOff className="h-3 w-3" />
               Unblock
@@ -335,7 +335,7 @@ export default function ChatThread({ projectId, otherUserId }) {
               type="button"
               onClick={handleBlock}
               disabled={blockActionBusy}
-              className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-60"
+              className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-bold text-slate-500 shadow-sm transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:opacity-60"
             >
               <UserX className="h-3 w-3" />
               Block

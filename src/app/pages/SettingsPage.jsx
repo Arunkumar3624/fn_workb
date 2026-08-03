@@ -3,7 +3,9 @@ import { useNavigate } from "react-router-dom";
 import {
   AlertCircle,
   Camera,
+  Check,
   CheckCircle2,
+  Crown,
   Loader2,
   Lock,
   ShieldAlert,
@@ -267,42 +269,103 @@ function BillingTab() {
   const tiers = isBusiness
     ? [
         { name: "Standard", price: "Free", perks: ["Post jobs", "Message workers", "Standard support"] },
-        { name: "Growth", price: "₹299/mo", perks: ["Priority support", "Dispute mediation fee waiver", "Verified enterprise badge"] },
+        {
+          name: "Growth",
+          price: "₹299",
+          period: "/mo",
+          highlight: true,
+          perks: ["Priority support", "Dispute mediation fee waiver", "Verified enterprise badge"],
+        },
       ]
     : [
         { name: "Free", price: "Free", perks: ["Standard job matching", "10 proposals/week"] },
-        { name: "Pro", price: "₹299/mo", perks: ["Priority in applicant lists", "Profile analytics", "Reduced platform commission"] },
-        { name: "Elite", price: "₹599/mo", perks: ["Top placement in Find Workers", "Priority badge verification", "Zero commission on first ₹10,000/mo"] },
+        {
+          name: "Pro",
+          price: "₹299",
+          period: "/mo",
+          highlight: true,
+          perks: ["Priority in applicant lists", "Profile analytics", "Reduced platform commission"],
+        },
+        {
+          name: "Elite",
+          price: "₹599",
+          period: "/mo",
+          premium: true,
+          perks: ["Top placement in Find Workers", "Priority badge verification", "Zero commission on first ₹10,000/mo"],
+        },
       ];
 
   return (
     <div className="space-y-6">
-      <SectionCard>
-        <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Current Plan</p>
-        <p className="mt-1 text-lg font-extrabold text-[#0A1128]">Free</p>
-      </SectionCard>
+      <div className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-50 to-white p-6">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Current Plan</p>
+          <p className="mt-1 text-2xl font-black text-[#0A1128]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            {isBusiness ? "Standard" : "Free"}
+          </p>
+        </div>
+        <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+          <ShieldCheck className="h-5 w-5" />
+        </span>
+      </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {tiers.map((tier) => (
-          <div key={tier.name} className="rounded-2xl border border-slate-200 bg-white p-5">
-            <p className="text-sm font-bold text-[#0A1128]">{tier.name}</p>
-            <p className="mt-1 text-xl font-black text-[#0A1128]">{tier.price}</p>
-            <ul className="mt-3 space-y-1.5">
-              {tier.perks.map((perk) => (
-                <li key={perk} className="flex items-start gap-1.5 text-xs text-slate-500">
-                  <Sparkles className="mt-0.5 h-3 w-3 flex-shrink-0 text-[#FF6B35]" />
-                  {perk}
-                </li>
-              ))}
-            </ul>
-            <button
-              disabled
-              className="mt-4 w-full cursor-not-allowed rounded-lg border border-slate-200 py-2 text-xs font-bold text-slate-400"
-            >
-              Coming soon
-            </button>
-          </div>
-        ))}
+      <div className={`grid grid-cols-1 gap-5 ${isBusiness ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
+        {tiers.map((tier) => {
+          const cardCls = tier.premium
+            ? "bg-[#0F172A] text-white border border-white/10 shadow-lg shadow-slate-900/20"
+            : tier.highlight
+              ? "bg-white border-2 border-[#FF6B35] shadow-md shadow-orange-500/10"
+              : "bg-white border border-slate-200";
+
+          return (
+            <div key={tier.name} className={`relative flex flex-col rounded-2xl p-6 transition-transform duration-300 hover:-translate-y-1 ${cardCls}`}>
+              {tier.highlight && (
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#FF6B35] px-3 py-1 text-[10px] font-black uppercase tracking-wide text-white">
+                  Most Popular
+                </span>
+              )}
+              {tier.premium && (
+                <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-[#FF6B35]">
+                  <Crown className="h-4 w-4" />
+                </span>
+              )}
+
+              <p className={`text-xs font-bold uppercase tracking-wide ${tier.premium ? "text-slate-300" : "text-slate-400"}`}>
+                {tier.name}
+              </p>
+              <p className="mt-1.5 flex items-baseline gap-1">
+                <span className="text-2xl font-black" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                  {tier.price}
+                </span>
+                {tier.period && <span className={`text-xs font-semibold ${tier.premium ? "text-slate-400" : "text-slate-400"}`}>{tier.period}</span>}
+              </p>
+
+              <ul className="mt-4 flex-1 space-y-2">
+                {tier.perks.map((perk) => (
+                  <li key={perk} className="flex items-start gap-2 text-xs leading-5">
+                    <span
+                      className={`mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full ${
+                        tier.premium ? "bg-emerald-400/20 text-emerald-300" : "bg-emerald-50 text-emerald-600"
+                      }`}
+                    >
+                      <Check className="h-2.5 w-2.5" />
+                    </span>
+                    <span className={tier.premium ? "text-slate-300" : "text-slate-600"}>{perk}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <button
+                disabled
+                className={`mt-6 w-full cursor-not-allowed rounded-xl py-2.5 text-xs font-bold ${
+                  tier.premium ? "bg-white/10 text-slate-300" : tier.name === (isBusiness ? "Standard" : "Free") ? "bg-slate-100 text-slate-500" : "border border-slate-200 text-slate-400"
+                }`}
+              >
+                {tier.name === (isBusiness ? "Standard" : "Free") ? "Current Plan" : "Coming soon"}
+              </button>
+            </div>
+          );
+        })}
       </div>
       <p className="text-center text-[11px] text-slate-400">
         Paid plans aren't live yet — this is a preview of what's coming.
@@ -310,9 +373,10 @@ function BillingTab() {
       {!isBusiness && (
         <button
           onClick={() => navigate("/worker/subscriptions")}
-          className="mx-auto block text-xs font-bold text-[#1B3FAB] hover:underline"
+          className="mx-auto flex items-center gap-1 text-xs font-bold text-[#1B3FAB] hover:underline"
         >
-          View full plan comparison →
+          View full plan comparison
+          <Sparkles className="h-3 w-3" />
         </button>
       )}
     </div>
