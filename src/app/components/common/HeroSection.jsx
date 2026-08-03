@@ -9,6 +9,16 @@ export function HeroSection({ onSelect }) {
   return (
     <section className="wb-hero">
       <GlassCard className="wb-hero-card">
+        {/* Fluid glass bubbles — decorative only, first in the DOM so
+            every real element below stacks above it automatically. */}
+        <div className="wb-hero-bubbles" aria-hidden="true">
+          <span className="wb-bubble wb-bubble--1" />
+          <span className="wb-bubble wb-bubble--2" />
+          <span className="wb-bubble wb-bubble--3" />
+          <span className="wb-bubble wb-bubble--4" />
+          <span className="wb-bubble wb-bubble--5" />
+        </div>
+
         <div className="wb-hero-copy">
           <div className="wb-badge-row">
             <span className="wb-pill">

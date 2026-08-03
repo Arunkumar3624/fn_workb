@@ -121,15 +121,20 @@ export default function BusinessVerificationDrawer({ onClose, onPaymentSuccess }
               {/* Glow rings */}
               <div className="absolute inset-0 rounded-full bg-[#FF6B2C]/20 scale-150 blur-xl" />
               <div className="absolute inset-0 rounded-full bg-amber-400/10 scale-[2] blur-2xl" />
+              
               {/* Shield */}
               <div className="relative w-20 h-20 bg-gradient-to-br from-[#FF6B2C] to-amber-400 rounded-[22px] flex items-center justify-center shadow-2xl shadow-[#FF6B2C]/40">
                 <Shield className="w-10 h-10 text-white drop-shadow-lg" />
               </div>
-              {/* Stars */}
-              <div className="absolute -top-2 -right-2 flex">
-                {[...Array(3)].map((_, i) => (
-                  <Star key={i} className="w-3 h-3 text-amber-400 fill-amber-400" />
-                ))}
+
+              {/* Stars - The SaaS "Trust Crown" */}
+              <div className="absolute -top-4 -right-4 flex items-end justify-center gap-0.5 drop-shadow-md">
+                {/* Left Star */}
+                <Star className="w-4 h-4 text-amber-300 fill-amber-300 -rotate-12 translate-y-1.5" />
+                {/* Center Star (Hero) */}
+                <Star className="w-6 h-6 text-amber-400 fill-amber-400 z-10" />
+                {/* Right Star */}
+                <Star className="w-4 h-4 text-amber-300 fill-amber-300 rotate-12 translate-y-1.5" />
               </div>
             </div>
           </div>

@@ -217,6 +217,32 @@ body {
   color: white;
 }
 
+/* Specular sweep — a single glossy highlight travels across primary/
+   outline buttons on hover (their solid/glass surfaces give it something
+   to read against; ghost text-links stay plain). Same "one restrained
+   sweep, not a permanent shine" rule as the dashboard's shop-perk cards. */
+.wb-button--primary,
+.wb-button--outline {
+  position: relative;
+  overflow: hidden;
+}
+
+.wb-button--primary::before,
+.wb-button--outline::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 32%, rgba(255, 255, 255, 0.55) 48%, rgba(255, 255, 255, 0.15) 54%, transparent 70%);
+  transform: translateX(-130%);
+  transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.wb-button--primary:hover::before,
+.wb-button--outline:hover::before {
+  transform: translateX(130%);
+}
+
 .wb-glass-card {
   background: var(--wb-surface);
   border: 1px solid var(--wb-border);
@@ -416,6 +442,46 @@ body {
   animation: wb-search-enter 700ms cubic-bezier(0.4, 0, 0.2, 1) 650ms both;
 }
 
+/* Fluid glass bubbles — ambient, not interactive (aria-hidden in JSX).
+   Sits first in the DOM inside .wb-hero-card so every real element
+   (copy, media, search bar) naturally stacks above it without needing
+   an explicit z-index war. Clustered loosely around the search bar,
+   since that's the one element every visitor's eye lands on. */
+.wb-hero-bubbles {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.wb-bubble {
+  position: absolute;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.08));
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.7);
+  animation: wb-bubble-float 10s ease-in-out infinite;
+}
+
+.wb-bubble--1 { width: 58px; height: 58px; left: 4%;  top: 8%;    animation-duration: 11s; }
+.wb-bubble--2 { width: 30px; height: 30px; left: 44%; bottom: 4%; animation-duration: 8s;  animation-delay: -2.4s; background: linear-gradient(135deg, rgba(255, 107, 53, 0.32), rgba(255, 255, 255, 0.06)); }
+.wb-bubble--3 { width: 46px; height: 46px; right: 10%; top: 18%;  animation-duration: 12s; animation-delay: -5s;   background: linear-gradient(135deg, rgba(37, 99, 235, 0.28), rgba(255, 255, 255, 0.06)); }
+.wb-bubble--4 { width: 20px; height: 20px; left: 60%; bottom: 22%; animation-duration: 7s;  animation-delay: -1.2s; }
+.wb-bubble--5 { width: 36px; height: 36px; right: 26%; bottom: -6%; animation-duration: 9.5s; animation-delay: -3.6s; background: linear-gradient(135deg, rgba(255, 107, 53, 0.24), rgba(255, 255, 255, 0.05)); }
+
+@keyframes wb-bubble-float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%      { transform: translate(9px, -20px) scale(1.06); }
+  66%      { transform: translate(-7px, -6px) scale(0.95); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wb-bubble { animation: none; }
+}
+
 /* Preserves the horizontal-centering transform throughout the animation */
 @keyframes wb-search-enter {
   from { opacity: 0; transform: translateX(-50%) translateY(22px); }
@@ -530,6 +596,32 @@ body {
 
 .wb-feature-card--float:nth-child(3) {
   animation-delay: -2.4s;
+}
+
+/* Chroma Grid — cards render true-color; a duplicate grayscale layer sits
+   on top, masked by a radial "spotlight" that follows the cursor (mask,
+   not opacity, so the two layers never cross-fade — the spotlight edge
+   stays crisp). Net effect: the grid reads muted at rest, and color
+   reveals only in the small circle around your pointer. Both layers run
+   the exact same wb-pillar-float keyframes with identical per-card
+   delays, so they stay pixel-aligned as the cards bob. */
+.wb-chroma-grid {
+  position: relative;
+}
+
+.wb-chroma-grid-gray {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  filter: grayscale(1) brightness(0.97);
+  -webkit-mask-image: radial-gradient(circle var(--chroma-radius, 0px) at var(--chroma-x, 50%) var(--chroma-y, 50%), transparent 55%, black 100%);
+  mask-image: radial-gradient(circle var(--chroma-radius, 0px) at var(--chroma-x, 50%) var(--chroma-y, 50%), transparent 55%, black 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wb-chroma-grid-gray {
+    display: none;
+  }
 }
 
 .wb-icon-tile {

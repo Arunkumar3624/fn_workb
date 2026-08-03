@@ -13,6 +13,7 @@ import {
 import { Link } from "react-router-dom";
 import { Button } from "./Button";
 import { GlassCard } from "./GlassCard";
+import { ChromaGrid } from "./ChromaGrid";
 
 const workFeatures = [
   {
@@ -58,7 +59,7 @@ export function FindWorkSection({ showLink = true, onSelect }) {
     <section className="wb-section" id="find-work">
       <SectionHeader eyebrow="Find Work" title="Your ambition, paid on time. Every time." />
 
-      <div className="wb-card-grid wb-card-grid--three">
+      <ChromaGrid gridClassName="wb-card-grid wb-card-grid--three">
         {workFeatures.map(({ title, text, Icon, badge }) => (
           <GlassCard key={title} className="wb-feature-card wb-feature-card--float">
             <span className="wb-icon-tile">
@@ -73,7 +74,7 @@ export function FindWorkSection({ showLink = true, onSelect }) {
             )}
           </GlassCard>
         ))}
-      </div>
+      </ChromaGrid>
 
       <SectionAction showLink={showLink} to="/find-work" onClick={() => onSelect("worker")}>
         Start Earning
