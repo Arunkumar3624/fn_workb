@@ -71,6 +71,10 @@ export const forgotPasswordSchema = z.object({
   email: emailSchema,
 });
 
+// A "skill" is meant to be a short tag ("React", "Node.js"), not a
+// sentence — this caps how many words one comma-separated entry can have.
+const MAX_SKILL_WORDS = 5;
+
 export const postJobSchema = z
   .object({
     title: cleanText,
@@ -122,10 +126,10 @@ export const postJobSchema = z
         .split(",")
         .map((s) => s.trim())
         .filter(Boolean)
-        .every((s) => s.length <= 60);
+        .every((s) => s.split(/\s+/).filter(Boolean).length <= MAX_SKILL_WORDS);
     },
     {
-      message: "Each skill must be 60 characters or fewer — looks like a full sentence got in there. Keep skills short (e.g. \"React, Node.js\"); put longer requirements in the Project Brief instead.",
+      message: `Each skill must be ${MAX_SKILL_WORDS} words or fewer — looks like a full sentence got in there. Keep skills short (e.g. "React, Node.js"); put longer requirements in the Project Brief instead.`,
       path: ["skills"],
     }
   );

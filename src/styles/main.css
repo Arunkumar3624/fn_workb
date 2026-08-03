@@ -2,7 +2,10 @@
   --wb-bg: #f8fafc;
   --wb-surface: rgba(255, 255, 255, 0.28);
   --wb-surface-strong: rgba(255, 255, 255, 0.72);
-  --wb-border: rgba(255, 255, 255, 0.62);
+  /* A white border at any opacity disappears against this page's light
+     bg (--wb-bg). Every light-surface card/pill on the landing page uses
+     this — a soft navy hairline instead, visible but still subtle. */
+  --wb-border: rgba(15, 23, 42, 0.12);
   --wb-navy: #0f172a;
   --wb-muted: #64748b;
   --wb-orange: #ff6b35;
@@ -282,8 +285,9 @@ body {
   gap: 8px;
   padding: 10px 16px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.58);
-  border: 1px solid rgba(255, 255, 255, 0.66);
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--wb-border);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
   color: var(--wb-navy);
   font-size: 12px;
   font-weight: 900;
@@ -383,7 +387,7 @@ body {
   left: 22px;
   padding: 9px 16px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.9);
   border: 1px solid rgba(255, 255, 255, 0.6);
   color: var(--wb-navy);
   font-size: 11px;
@@ -404,8 +408,8 @@ body {
   gap: 14px;
   padding: 10px;
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--wb-border);
   box-shadow: 0 22px 44px rgba(15, 23, 42, 0.12);
   backdrop-filter: blur(28px);
   opacity: 0;
@@ -444,8 +448,8 @@ body {
   gap: 9px;
   padding: 14px 18px;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.88);
-  border: 1px solid rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--wb-border);
   color: #475569;
   font-size: 14px;
   font-weight: 900;
