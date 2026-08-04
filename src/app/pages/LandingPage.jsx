@@ -45,38 +45,39 @@ function WallOfLove() {
   if (!loading && !loadError && reviews.length === 0) return null;
 
   return (
-    <section className="px-4 py-16 sm:px-6 sm:py-24">
-      <div className="mx-auto max-w-5xl">
-        <div className="text-center">
-          <h2
-            className="text-3xl font-black tracking-tight text-[#0F172A] sm:text-4xl"
-            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-          >
-            Trusted by ambitious teams and top talent
-          </h2>
-          <p className="mx-auto mt-3 max-w-xl text-base text-slate-500">
-            Join the businesses and freelancers already scaling on WorkBridge.
-          </p>
-        </div>
-
-        <div className="mt-12">
-          {loading ? (
-            <div className="flex justify-center py-16">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[#FF6B35]" />
-            </div>
-          ) : loadError ? (
-            <div className="mx-auto max-w-md rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-center text-sm text-red-600">
-              {loadError}
-            </div>
-          ) : (
-            <div className="columns-1 gap-6 sm:columns-2 md:columns-3">
-              {reviews.map((review) => (
-                <WallOfLoveCard key={review.id} review={review} />
-              ))}
-            </div>
-          )}
-        </div>
+    // wb-section, not an ad-hoc Tailwind wrapper — matches the same
+    // max-width (1180px) and 96px/72px section-padding rhythm every other
+    // section on this page uses (see main.css), so this doesn't read as a
+    // narrower, bolted-on block once you scroll past the pillar sections.
+    <section className="wb-section">
+      <div
+        className="wb-section-header"
+        style={{ maxWidth: 640, margin: "0 auto", textAlign: "center" }}
+      >
+        <h2>Trusted by ambitious teams and top talent</h2>
       </div>
+      {/* Outside wb-section-header on purpose — that class's `p` selector is
+          styled for the small uppercase orange eyebrow label every other
+          section uses above its h2, not body copy. */}
+      <p className="mx-auto mb-12 mt-3 max-w-xl text-center text-base text-slate-500">
+        Join the businesses and freelancers already scaling on WorkBridge.
+      </p>
+
+      {loading ? (
+        <div className="flex justify-center py-16">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[#FF6B35]" />
+        </div>
+      ) : loadError ? (
+        <div className="mx-auto max-w-md rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-center text-sm text-red-600">
+          {loadError}
+        </div>
+      ) : (
+        <div className="columns-1 gap-6 sm:columns-2 md:columns-3">
+          {reviews.map((review) => (
+            <WallOfLoveCard key={review.id} review={review} />
+          ))}
+        </div>
+      )}
     </section>
   );
 }

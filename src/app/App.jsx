@@ -2,22 +2,26 @@ import { Suspense, lazy, useEffect, useState } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { trackPageView } from "./lib/analytics";
 import { PageShell } from "./components/common/PageShell";
+// LandingPage stays a static import — it's the `/` entry point, the one
+// route that must render on the very first request with no extra
+// lazy-chunk round trip. Every other route below is fair game to split.
 import LandingPage from "./pages/LandingPage";
-import FindWorkPage from "./pages/FindWorkPage";
-import HireTalentPage from "./pages/HireTalentPage";
-import EnterprisePage from "./pages/EnterprisePage";
-import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
-import TermsPage from "./pages/TermsPage";
-import AuthPage from "./pages/AuthPage";
-import InvoicePage from "./pages/InvoicePage";
 import CelebrationOverlay from "./components/common/CelebrationOverlay";
 import SupportFab from "./components/common/SupportFab";
+import SuspenseFallback from "./components/common/SuspenseFallback";
 import { Toaster } from "./components/ui/sonner";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 
-// Code-split the heavy, post-auth dashboard bundles — none of these are
-// needed for the first paint of a marketing page or auth, so they shouldn't
-// be in the initial JS payload.
+// Code-split everything that isn't the landing page — none of these are
+// needed for the first paint of `/`, so they shouldn't be in the initial
+// JS payload.
+const FindWorkPage = lazy(() => import("./pages/FindWorkPage"));
+const HireTalentPage = lazy(() => import("./pages/HireTalentPage"));
+const EnterprisePage = lazy(() => import("./pages/EnterprisePage"));
+const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
+const TermsPage = lazy(() => import("./pages/TermsPage"));
+const AuthPage = lazy(() => import("./pages/AuthPage"));
+const InvoicePage = lazy(() => import("./pages/InvoicePage"));
 const WorkerDashboard = lazy(() => import("./pages/WorkerDashboard"));
 const BusinessDashboard = lazy(() => import("./pages/BusinessDashboard"));
 const BusinessVerification = lazy(() => import("./pages/BusinessVerification"));
@@ -27,11 +31,7 @@ const PublicProfilePage = lazy(() => import("./pages/PublicProfilePage"));
 const WorkerSubscriptionsPage = lazy(() => import("./pages/WorkerSubscriptionsPage"));
 
 function RouteFallback() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC]">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[#FF6B35]" />
-    </div>
-  );
+  return <SuspenseFallback label="Loading…" fullScreen />;
 }
 
 // Gates a route behind real authentication. `roles`, if given, additionally

@@ -1,19 +1,25 @@
-import { useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { BarChart3, Shield, AlertTriangle, ShieldAlert, UserCog, Receipt, Banknote, Landmark, Send, Zap, LogOut, Image as ImageIcon, Users, Headphones } from "lucide-react";
-import AdminOverviewTab from "../components/admin/AdminOverviewTab";
-import AdminUsersTab from "../components/admin/AdminUsersTab";
-import AdminVerificationsTab from "../components/admin/AdminVerificationsTab";
-import AdminInvitationsTab from "../components/admin/AdminInvitationsTab";
-import AdminDisputesTab from "../components/admin/AdminDisputesTab";
-import AdminFundReleasesTab from "../components/admin/AdminFundReleasesTab";
-import AdminWithdrawalsTab from "../components/admin/AdminWithdrawalsTab";
-import AdminSecurityTab from "../components/admin/AdminSecurityTab";
-import AdminTeamTab from "../components/admin/AdminTeamTab";
-import AdminTransactionsTab from "../components/admin/AdminTransactionsTab";
-import AdminContentReviewTab from "../components/admin/AdminContentReviewTab";
-import AdminSupportTab from "../components/admin/AdminSupportTab";
+import SuspenseFallback from "../components/common/SuspenseFallback";
 import { useAuth } from "../context/AuthContext";
+
+// Only the active tab's code ever needs to load — this panel previously
+// pulled in all 12 tabs' code up front, which is most of why the AdminPanel
+// chunk was 486KB. Each entry below is now its own chunk, fetched only when
+// that tab is actually opened.
+const AdminOverviewTab = lazy(() => import("../components/admin/AdminOverviewTab"));
+const AdminUsersTab = lazy(() => import("../components/admin/AdminUsersTab"));
+const AdminVerificationsTab = lazy(() => import("../components/admin/AdminVerificationsTab"));
+const AdminInvitationsTab = lazy(() => import("../components/admin/AdminInvitationsTab"));
+const AdminDisputesTab = lazy(() => import("../components/admin/AdminDisputesTab"));
+const AdminFundReleasesTab = lazy(() => import("../components/admin/AdminFundReleasesTab"));
+const AdminWithdrawalsTab = lazy(() => import("../components/admin/AdminWithdrawalsTab"));
+const AdminSecurityTab = lazy(() => import("../components/admin/AdminSecurityTab"));
+const AdminTeamTab = lazy(() => import("../components/admin/AdminTeamTab"));
+const AdminTransactionsTab = lazy(() => import("../components/admin/AdminTransactionsTab"));
+const AdminContentReviewTab = lazy(() => import("../components/admin/AdminContentReviewTab"));
+const AdminSupportTab = lazy(() => import("../components/admin/AdminSupportTab"));
 import { listVerifications, listDisputes, listPendingReleases, listPendingWithdrawals } from "../lib/adminApi";
 import { listThreadsForAdmin } from "../lib/supportApi";
 import { getInitials } from "../utils/formValidation";
@@ -165,7 +171,9 @@ export default function AdminPanel({ onLogout }) {
             transition={{ duration: 0.2, ease: "easeOut" }}
             className="h-full"
           >
-            <ActiveTabComponent onNavigate={setActiveTab} />
+            <Suspense fallback={<SuspenseFallback label="Loading module…" fullScreen={false} />}>
+              <ActiveTabComponent onNavigate={setActiveTab} />
+            </Suspense>
           </motion.div>
         </AnimatePresence>
       </div>
