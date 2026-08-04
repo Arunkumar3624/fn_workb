@@ -37,7 +37,7 @@ export default function PrivacyPolicyPage() {
       </LegalSection>
 
       <LegalSection title="3. What's visible to other people">
-        <p>Your name, role, avatar, title/bio, and aggregate rating are visible on your public profile. Reviews — written by the other party on a completed project — are shown publicly with the reviewer's name attached, the same way they'd appear on any marketplace. A small number of real reviews may also be featured on our public Testimonials page.</p>
+        <p>Your name, role, avatar, title/bio, and aggregate rating are visible on your public profile. Reviews — written by the other party on a completed project — are shown publicly with the reviewer's name attached, the same way they'd appear on any marketplace. A small number of real reviews may also be featured in the "Wall of Love" section on our homepage.</p>
         <p>Your email address and phone number are never included in any public profile or API response — they're structurally excluded at the database level, not just hidden in the interface.</p>
         <p>WorkBridge admins can see full account information, including project and payment history, when reviewing verification requests, disputes, or security reports.</p>
       </LegalSection>

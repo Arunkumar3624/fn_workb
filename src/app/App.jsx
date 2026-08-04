@@ -6,7 +6,6 @@ import LandingPage from "./pages/LandingPage";
 import FindWorkPage from "./pages/FindWorkPage";
 import HireTalentPage from "./pages/HireTalentPage";
 import EnterprisePage from "./pages/EnterprisePage";
-import TestimonialsPage from "./pages/TestimonialsPage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsPage from "./pages/TermsPage";
 import AuthPage from "./pages/AuthPage";
@@ -146,14 +145,6 @@ function AppRoutes() {
         element={
           <PageShell onSelect={handleSelect}>
             <EnterprisePage onSelect={handleSelect} />
-          </PageShell>
-        }
-      />
-      <Route
-        path="/testimonials"
-        element={
-          <PageShell onSelect={handleSelect}>
-            <TestimonialsPage onSelect={handleSelect} />
           </PageShell>
         }
       />

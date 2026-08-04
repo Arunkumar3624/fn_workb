@@ -8,7 +8,6 @@ const navItems = [
   { label: "Find Work",  to: "/find-work"  },
   { label: "Hire Talent", to: "/hire-talent" },
   { label: "Enterprise", to: "/enterprise" },
-  { label: "Testimonials", to: "/testimonials" },
 ];
 
 // ── Role-picker modal — shown when nav "Log In" / "Sign Up" is clicked ──────
