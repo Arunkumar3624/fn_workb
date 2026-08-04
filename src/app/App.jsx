@@ -11,6 +11,7 @@ import TermsPage from "./pages/TermsPage";
 import AuthPage from "./pages/AuthPage";
 import InvoicePage from "./pages/InvoicePage";
 import CelebrationOverlay from "./components/common/CelebrationOverlay";
+import SupportFab from "./components/common/SupportFab";
 import { Toaster } from "./components/ui/sonner";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 
@@ -289,6 +290,7 @@ function AppRoutes() {
         onClose={() => setShowVerifiedCelebration(false)}
       />
     )}
+    <SupportFab />
     <Toaster position="top-right" richColors />
     </>
   );

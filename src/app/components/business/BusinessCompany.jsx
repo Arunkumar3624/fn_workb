@@ -294,14 +294,11 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
                       <p className="text-sm font-bold text-[#0F172A] truncate group-hover:text-[#1B3FAB] transition-colors">{job.title}</p>
                       <p className="text-xs text-slate-400 mt-0.5">{job.tier} · {job.workload} · Posted {job.posted}</p>
                     </div>
-                    <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-                      <span className="text-sm font-extrabold text-[#FF6B35]">{job.budget}</span>
-                      {job.urgent && (
-                        <span className="text-[10px] font-bold text-red-600 bg-red-50 border border-red-100 px-2 py-0.5 rounded-full">
-                          Urgent
-                        </span>
-                      )}
-                    </div>
+                    {job.urgent && (
+                      <span className="flex-shrink-0 text-[10px] font-bold text-red-600 bg-red-50 border border-red-100 px-2 py-0.5 rounded-full">
+                        Urgent
+                      </span>
+                    )}
                   </div>
                 ))}
               </div>

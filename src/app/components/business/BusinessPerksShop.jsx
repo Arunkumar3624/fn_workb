@@ -2,16 +2,19 @@ import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { AlertCircle, AlertTriangle, Coins, Loader2, Radar, Search, Zap } from "lucide-react";
 import { getLedger } from "../../lib/gamificationApi";
+import { purchasePerk, getPerkPurchases } from "../../lib/perksApi";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { ApiError } from "../../lib/apiClient";
 
 // Corporate Credits balance shown here is real (earned on completing a
 // project with no dispute — see projects.controller.js's completeProject),
-// and the insufficient-balance check against a selected tier is real too.
-// The perks themselves stay a visual preview, same precedent as
-// WorkerTokenShop.jsx — none of these have a real effect wired into the
-// job-feed ranking or worker-matching logic yet, so "Purchase" resolves to
-// an honest "Coming soon" (when affordable) rather than faking one.
+// and "Purchase" is real too — it debits the balance and persists a
+// redemption row via perks.controller.js (server resolves cost from
+// perksCatalog.js, never trusts the tier.cost shown here). Tier `id`s must
+// match perksCatalog.js exactly. What's still a preview: none of these
+// perks have a real effect wired into the job-feed ranking or
+// worker-matching logic yet (MASTER_ECONOMY_PLAN.md Phase 3's slot-cap
+// logic) — same precedent as WorkerTokenShop.jsx.
 const PERKS = [
   {
     id: "flash-post",
@@ -20,9 +23,9 @@ const PERKS = [
     icon: Zap,
     color: "teal",
     tiers: [
-      { label: "24-Hour Express", cost: 15 },
-      { label: "3-Day Featured", cost: 35 },
-      { label: "7-Day Dominance", cost: 70 },
+      { id: "24h-express", label: "24-Hour Express", cost: 15 },
+      { id: "3d-featured", label: "3-Day Featured", cost: 35 },
+      { id: "7d-dominance", label: "7-Day Dominance", cost: 70 },
     ],
   },
   {
@@ -32,8 +35,8 @@ const PERKS = [
     icon: Search,
     color: "slate",
     tiers: [
-      { label: "Single-Use Pass", cost: 35 },
-      { label: "7-Day Active", cost: 90 },
+      { id: "single-use", label: "Single-Use Pass", cost: 35 },
+      { id: "7d-active", label: "7-Day Active", cost: 90 },
     ],
   },
   {
@@ -42,7 +45,7 @@ const PERKS = [
     description: "Direct notification to elite, top-tier talent.",
     icon: Radar,
     color: "amber",
-    tiers: [{ label: "One-Time Broadcast", cost: 120 }],
+    tiers: [{ id: "one-time", label: "One-Time Broadcast", cost: 120 }],
   },
 ];
 
@@ -52,7 +55,7 @@ const COLOR_STYLES = {
   amber: "bg-amber-50 text-amber-600",
 };
 
-function PerkCard({ perk, balance, onPurchase, index }) {
+function PerkCard({ perk, balance, onPurchase, index, isPurchasing, purchaseDisabled }) {
   const [tierIndex, setTierIndex] = useState(0);
   const Icon = perk.icon;
   const tier = perk.tiers[tierIndex];
@@ -114,13 +117,15 @@ function PerkCard({ perk, balance, onPurchase, index }) {
 
       <button
         onClick={() => onPurchase(perk, tier, canAfford)}
-        className={`relative mt-4 w-full rounded-lg border py-2 text-xs font-bold transition-all duration-200 active:scale-95 ${
+        disabled={purchaseDisabled}
+        className={`relative mt-4 flex w-full items-center justify-center gap-1.5 rounded-lg border py-2 text-xs font-bold transition-all duration-200 active:scale-95 ${
           canAfford
             ? "border-slate-200 text-slate-500 hover:bg-slate-50"
             : "border-slate-100 text-slate-300 opacity-50 hover:bg-transparent"
-        }`}
+        } ${purchaseDisabled ? "cursor-not-allowed opacity-60" : ""}`}
       >
-        Purchase
+        {isPurchasing && <Loader2 className="h-3 w-3 animate-spin" />}
+        {isPurchasing ? "Purchasing…" : "Purchase"}
       </button>
     </motion.div>
   );
@@ -132,12 +137,16 @@ export default function BusinessPerksShop() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [notice, setNotice] = useState(null);
+  const [purchases, setPurchases] = useState([]);
+  const [purchasingPerkId, setPurchasingPerkId] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
-    getLedger()
-      .then((data) => {
-        if (!cancelled) setBalance(data.bridgeTokens);
+    Promise.all([getLedger(), getPerkPurchases()])
+      .then(([ledger, purchaseHistory]) => {
+        if (cancelled) return;
+        setBalance(ledger.bridgeTokens);
+        setPurchases(purchaseHistory);
       })
       .catch((err) => {
         if (!cancelled) setLoadError(err instanceof ApiError ? err.message : "Could not load your balance.");
@@ -169,12 +178,23 @@ export default function BusinessPerksShop() {
     );
   }
 
-  const handlePurchase = (perk, tier, canAfford) => {
+  const handlePurchase = async (perk, tier, canAfford) => {
     if (!canAfford) {
       setNotice(`You need ${tier.cost} credits for ${perk.name} (${tier.label}) — you have ${balance}.`);
       return;
     }
-    setNotice(`${perk.name} (${tier.label}) isn't redeemable yet — coming soon.`);
+    setNotice(null);
+    setPurchasingPerkId(perk.id);
+    try {
+      const result = await purchasePerk({ perkId: perk.id, tierId: tier.id });
+      setBalance(result.bridgeTokens);
+      setPurchases((prev) => [result.purchase, ...prev]);
+      setNotice(`Purchased ${perk.name} (${tier.label}) — ${tier.cost} credits debited.`);
+    } catch (err) {
+      setNotice(err instanceof ApiError ? err.message : "Purchase failed — try again.");
+    } finally {
+      setPurchasingPerkId(null);
+    }
   };
 
   return (
@@ -200,12 +220,38 @@ export default function BusinessPerksShop() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {PERKS.map((perk, index) => (
-          <PerkCard key={perk.id} perk={perk} balance={balance} onPurchase={handlePurchase} index={index} />
+          <PerkCard
+            key={perk.id}
+            perk={perk}
+            balance={balance}
+            onPurchase={handlePurchase}
+            index={index}
+            isPurchasing={purchasingPerkId === perk.id}
+            purchaseDisabled={purchasingPerkId !== null}
+          />
         ))}
       </div>
+
+      {purchases.length > 0 && (
+        <div className="mt-8">
+          <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Recent Purchases</p>
+          <div className="mt-2 divide-y divide-slate-100 rounded-xl border border-slate-100">
+            {purchases.slice(0, 5).map((p) => (
+              <div key={p.id} className="flex items-center justify-between px-4 py-2.5 text-sm">
+                <span className="text-slate-700">{p.label}</span>
+                <span className="flex items-center gap-1 font-semibold text-slate-500">
+                  <Coins className="h-3.5 w-3.5 text-amber-500" />
+                  {p.token_cost}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <p className="mt-6 text-center text-[11px] text-slate-400">
-        Your credit balance is real (earned when a project closes with no dispute) — these perks aren't
-        redeemable yet, this is a preview of what's coming.
+        Your credit balance is real (earned when a project closes with no dispute), and purchases here really
+        debit it and are recorded — the visibility boost itself isn't wired into job-feed ranking yet.
       </p>
     </div>
   );

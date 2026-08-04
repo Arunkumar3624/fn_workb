@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { Building2, Coins, ShieldAlert, ShieldCheck } from "lucide-react";
 import DashboardLayout from "../components/common/DashboardLayout";
 import BusinessSidebar from "../components/business/BusinessSidebar";
@@ -17,7 +18,16 @@ import { getInitials } from "../utils/formValidation";
 
 export default function BusinessDashboard({ onLogout, onVerify, isVerified = false }) {
   const { currentUser } = useAuth();
-  const [tab, setTab] = useState("overview");
+  const location = useLocation();
+  const [tab, setTab] = useState(location.state?.tab ?? "overview");
+  // Tab state here is local, not URL-driven (unlike WorkerDashboard) — a
+  // navigate("/business-dashboard", { state: { tab: "support" } }) (see
+  // SupportFab.jsx) lands on the SAME route, so the component doesn't
+  // remount and the useState initializer above only ever runs once. This
+  // re-syncs on every subsequent navigation that carries a tab in state.
+  useEffect(() => {
+    if (location.state?.tab) setTab(location.state.tab);
+  }, [location.state]);
   // Set right before switching to the Negotiations tab (see
   // BusinessProjects.jsx's "Open Chat in Negotiations" button) so the right
   // thread is already focused when BusinessNegotiationHub mounts — Projects
