@@ -73,7 +73,7 @@ function getThreadStatus(project) {
 
 function ThreadNavigator({ threads, selectedThreadId, onSelect }) {
   return (
-    <aside className="flex h-screen w-[300px] flex-shrink-0 flex-col overflow-hidden border-r border-slate-200 bg-slate-50/80 backdrop-blur-md">
+    <aside className="flex h-full w-[300px] flex-shrink-0 flex-col overflow-hidden border-r border-slate-200 bg-slate-50/80 backdrop-blur-md">
       <div className="border-b border-slate-200 bg-white/70 px-5 py-5 backdrop-blur-md">
         <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
           Thread Navigator
@@ -134,7 +134,7 @@ function ThreadNavigator({ threads, selectedThreadId, onSelect }) {
 
 function NoThreadSelected({ hasThreads, onFindTalent }) {
   return (
-    <div className="flex h-screen flex-1 items-center justify-center bg-white px-8">
+    <div className="flex h-full flex-1 items-center justify-center bg-white px-8">
       <div className="max-w-md text-center">
         <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-[2rem] border border-orange-100 bg-slate-50 shadow-sm">
           <Users className="h-11 w-11 text-[#FF6B35]" />
@@ -229,7 +229,7 @@ function HubHeader({ thread, onViewContractTerms }) {
 // seeded conversation this used to render locally.
 function FocusHub({ thread, onViewContractTerms }) {
   return (
-    <main className="flex h-screen min-w-0 flex-1 flex-col overflow-hidden bg-white">
+    <main className="flex h-full min-w-0 flex-1 flex-col overflow-hidden bg-white">
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={thread.id}
@@ -283,7 +283,7 @@ export default function BusinessNegotiationHub({ onFindTalent, onViewContractTer
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-slate-50">
+      <div className="flex h-full items-center justify-center bg-slate-50">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[#FF6B35]" />
       </div>
     );
@@ -291,7 +291,7 @@ export default function BusinessNegotiationHub({ onFindTalent, onViewContractTer
 
   if (loadError) {
     return (
-      <div className="flex h-screen items-center justify-center bg-slate-50 p-7">
+      <div className="flex h-full items-center justify-center bg-slate-50 p-7">
         <div className="flex max-w-md items-start gap-2 rounded-2xl border border-red-100 bg-white px-4 py-3 text-sm text-red-600 shadow-sm">
           <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
           <span>{loadError}</span>
@@ -301,7 +301,7 @@ export default function BusinessNegotiationHub({ onFindTalent, onViewContractTer
   }
 
   return (
-    <section className="flex h-screen w-full overflow-hidden bg-slate-50">
+    <section className="flex h-full w-full overflow-hidden bg-slate-50">
       <ThreadNavigator
         threads={projects}
         selectedThreadId={activeThread?.id}

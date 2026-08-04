@@ -251,7 +251,15 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
       .then(([workerRows, projects]) => {
         if (cancelled) return;
         setWorkers(workerRows);
-        setInvitedWorkerIds(new Set(projects.filter((p) => p.status !== "CANCELLED").map((p) => p.worker_id)));
+        // "Invited" here means "you already have something active going with
+        // this worker" (the button links to onViewProjects, not a fresh
+        // invite) — CANCELLED *and* COMPLETED must both be excluded, or a
+        // worker who finished a job with this business months ago would
+        // show as permanently "Invited" and could never be invited to a new
+        // job through this button again.
+        setInvitedWorkerIds(
+          new Set(projects.filter((p) => p.status !== "CANCELLED" && p.status !== "COMPLETED").map((p) => p.worker_id))
+        );
         setOpenJobs(projects.filter((p) => p.status === "OPEN"));
       })
       .catch((err) => {

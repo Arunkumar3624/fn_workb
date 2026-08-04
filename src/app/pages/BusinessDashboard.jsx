@@ -67,8 +67,8 @@ export default function BusinessDashboard({ onLogout, onVerify, isVerified = fal
         />
       }
     >
-      <div className={`flex-1 ${tab === "negotiations" ? "overflow-hidden" : "overflow-auto"}`}>
-        <header className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/80 bg-white/90 px-6 py-4 backdrop-blur-xl lg:px-8">
+      <div className="flex h-full flex-col bg-white">
+        <header className="flex-shrink-0 flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/80 bg-white/90 px-6 py-4 backdrop-blur-xl lg:px-8">
           <div
             className={`flex min-w-0 flex-1 items-center gap-3 rounded-2xl border px-4 py-3 shadow-sm ${
               isVerified
@@ -129,41 +129,44 @@ export default function BusinessDashboard({ onLogout, onVerify, isVerified = fal
             </div>
           </div>
         </header>
-        {tab === "overview" && (
-          <BusinessOverview
-            onPostJob={handlePostJob}
-            onViewProjects={() => setTab("projects")}
-            isVerified={isVerified}
-          />
-        )}
-        {tab === "post" && (
-          <BusinessPostJob onVerify={onVerify} isVerified={isVerified} onJobPosted={handleJobPosted} />
-        )}
-        {tab === "workers" && (
-          <BusinessWorkers
-            onViewProjects={() => setTab("projects")}
-            isVerified={isVerified}
-            onVerify={onVerify}
-          />
-        )}
-        {tab === "projects" && (
-          <BusinessProjects
-            onOpenChat={(projectId) => {
-              setNegotiationFocusId(projectId);
-              setTab("negotiations");
-            }}
-          />
-        )}
-        {tab === "negotiations" && (
-          <BusinessNegotiationHub
-            initialProjectId={negotiationFocusId}
-            onFindTalent={() => setTab("workers")}
-            onViewContractTerms={() => setTab("projects")}
-          />
-        )}
-        {tab === "company" && <BusinessCompany />}
-        {tab === "perks" && <BusinessPerksShop />}
-        {tab === "settings" && <SettingsPage />}
+
+        <div className={`flex-1 ${tab === "negotiations" ? "overflow-hidden" : "overflow-auto"}`}>
+          {tab === "overview" && (
+            <BusinessOverview
+              onPostJob={handlePostJob}
+              onViewProjects={() => setTab("projects")}
+              isVerified={isVerified}
+            />
+          )}
+          {tab === "post" && (
+            <BusinessPostJob onVerify={onVerify} isVerified={isVerified} onJobPosted={handleJobPosted} />
+          )}
+          {tab === "workers" && (
+            <BusinessWorkers
+              onViewProjects={() => setTab("projects")}
+              isVerified={isVerified}
+              onVerify={onVerify}
+            />
+          )}
+          {tab === "projects" && (
+            <BusinessProjects
+              onOpenChat={(projectId) => {
+                setNegotiationFocusId(projectId);
+                setTab("negotiations");
+              }}
+            />
+          )}
+          {tab === "negotiations" && (
+            <BusinessNegotiationHub
+              initialProjectId={negotiationFocusId}
+              onFindTalent={() => setTab("workers")}
+              onViewContractTerms={() => setTab("projects")}
+            />
+          )}
+          {tab === "company" && <BusinessCompany />}
+          {tab === "perks" && <BusinessPerksShop />}
+          {tab === "settings" && <SettingsPage />}
+        </div>
       </div>
     </DashboardLayout>
   );

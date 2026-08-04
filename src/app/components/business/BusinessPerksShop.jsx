@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
-import { AlertCircle, AlertTriangle, Coins, Loader2, Radar, Search, Zap } from "lucide-react";
+import { AlertCircle, AlertTriangle, Coins, Loader2, Radar, Scale, Search, Star, Zap } from "lucide-react";
 import { getLedger } from "../../lib/gamificationApi";
 import { purchasePerk, getPerkPurchases } from "../../lib/perksApi";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
@@ -47,12 +47,36 @@ const PERKS = [
     color: "amber",
     tiers: [{ id: "one-time", label: "One-Time Broadcast", cost: 120 }],
   },
+  // Both deliberately service/visibility perks, not anything that touches
+  // worker ranking — "nobody can buy their way past better talent"
+  // (BusinessWorkers.jsx's own ranking comment) applies here too.
+  {
+    id: "dispute-fast-track",
+    name: "Dispute Fast-Track",
+    description: "Move one active dispute straight to WorkBridge's priority mediation queue.",
+    icon: Scale,
+    color: "rose",
+    tiers: [{ id: "single-dispute", label: "One Active Dispute", cost: 60 }],
+  },
+  {
+    id: "featured-employer",
+    name: "Featured Employer Spotlight",
+    description: "Feature your Company Page in front of workers browsing WorkBridge.",
+    icon: Star,
+    color: "violet",
+    tiers: [
+      { id: "3d-spotlight", label: "3-Day Spotlight", cost: 50 },
+      { id: "7d-spotlight", label: "7-Day Spotlight", cost: 90 },
+    ],
+  },
 ];
 
 const COLOR_STYLES = {
   teal: "bg-teal-50 text-teal-600",
   slate: "bg-slate-100 text-slate-600",
   amber: "bg-amber-50 text-amber-600",
+  rose: "bg-rose-50 text-rose-600",
+  violet: "bg-violet-50 text-violet-600",
 };
 
 function PerkCard({ perk, balance, onPurchase, index, isPurchasing, purchaseDisabled }) {
@@ -198,7 +222,7 @@ export default function BusinessPerksShop() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10">
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-xl font-extrabold text-[#0A1128]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
@@ -218,7 +242,7 @@ export default function BusinessPerksShop() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {PERKS.map((perk, index) => (
           <PerkCard
             key={perk.id}
