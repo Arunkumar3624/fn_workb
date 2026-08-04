@@ -4,7 +4,9 @@ import { Coins, Store, Trophy } from "lucide-react";
 import WorkerMilestones from "../components/worker/WorkerMilestones";
 import WorkerTokenShop from "../components/worker/WorkerTokenShop";
 import WorkerLedger from "../components/worker/WorkerLedger";
+import WorkerLevelRing from "../components/worker/WorkerLevelRing";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
+import { getLedger } from "../lib/gamificationApi";
 
 // Consolidates three previously separate sidebar pages (Ledger, Token
 // Shop, Milestones) into one hub. Deliberately a composition, not a
@@ -23,6 +25,23 @@ export default function EconomyHub() {
   const [scrolled, setScrolled] = useState(false);
   const [scrollPct, setScrollPct] = useState(0);
   const rootRef = useRef(null);
+  // Fetched once here (not inside WorkerMilestones/WorkerTokenShop, which
+  // already fetch their own copies independently) so the ring at the top
+  // of the page can show real level/XP data regardless of which tab is
+  // active. A failed fetch just hides the ring — it's a HUD, not blocking.
+  const [ledger, setLedger] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    getLedger()
+      .then((data) => {
+        if (!cancelled) setLedger(data);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // WorkerDashboard.jsx wraps every tab body in a `flex-1 overflow-hidden`
   // div — each tab is expected to own its own scrolling (WorkerWallet.jsx
@@ -52,6 +71,17 @@ export default function EconomyHub() {
           </h1>
           <p className="mt-1 text-sm text-slate-500">Your progress, your tokens, your rewards — all in one place.</p>
         </div>
+
+        {ledger && (
+          <div className="mb-8 flex justify-center">
+            <WorkerLevelRing
+              level={ledger.currentLevel}
+              currentXp={Math.max(0, ledger.xp - ledger.xpForCurrentLevel)}
+              nextLevelXp={Math.max(0, ledger.xpForNextLevel - ledger.xpForCurrentLevel)}
+              progressPct={ledger.progressPct}
+            />
+          </div>
+        )}
 
         <div
           className={`sticky top-0 z-20 mb-6 flex w-fit flex-wrap gap-1.5 rounded-full border p-1.5 transition-all duration-300 ${
