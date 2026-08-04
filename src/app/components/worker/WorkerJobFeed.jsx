@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   Clock,
   Clock3,
+  Flame,
   GraduationCap,
   IndianRupee,
   Loader2,
@@ -406,7 +407,11 @@ export default function WorkerJobFeed() {
                       setSelectedJob(job);
                     }
                   }}
-                  className="cursor-pointer rounded-2xl border border-white/70 bg-white/60 backdrop-blur-xl p-5 shadow-lg shadow-slate-200/40 transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl"
+                  className={`cursor-pointer rounded-2xl border p-5 shadow-lg backdrop-blur-xl transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl ${
+                    job.is_urgent
+                      ? "border-[#FF6B35]/40 bg-orange-50/50 shadow-orange-200/40"
+                      : "border-white/70 bg-white/60 shadow-slate-200/40"
+                  }`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
@@ -419,6 +424,12 @@ export default function WorkerJobFeed() {
                           <IndianRupee className="h-3 w-3" />
                           {Number(job.budget).toLocaleString("en-IN")}
                         </span>
+                        {job.is_urgent && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-[#FF6B35] px-2 py-0.5 text-[11px] font-bold text-white">
+                            <Flame className="h-3 w-3" />
+                            Urgent
+                          </span>
+                        )}
                       </div>
                       <h2 className="mt-2 text-lg font-black leading-snug text-slate-900">{job.title}</h2>
                       <div className="mt-2 flex flex-wrap items-center gap-1.5">

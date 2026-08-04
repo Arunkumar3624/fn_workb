@@ -9,6 +9,7 @@ import NegotiationInbox from "../components/worker/WorkerNegotiationInbox";
 import WorkerWorkspace from "../components/worker/WorkerWorkspace";
 import WorkerWallet from "../components/worker/WorkerWallet";
 import EconomyHub from "./EconomyHub";
+import SupportChat from "../components/shared/SupportChat";
 import WorkerProfile from "../components/worker/WorkerProfile";
 import SettingsPage from "./SettingsPage";
 import { useAuth } from "../context/AuthContext";
@@ -112,6 +113,7 @@ export default function WorkerDashboard({ onLogout }) {
           {tab === "workspace" && <WorkerWorkspace />}
           {tab === "wallet" && <WorkerWallet />}
           {tab === "economy" && <EconomyHub />}
+          {tab === "support" && <SupportChat />}
           {tab === "profile" && <WorkerProfile />}
           {tab === "settings" && <SettingsPage />}
         </div>

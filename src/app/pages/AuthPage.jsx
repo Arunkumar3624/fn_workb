@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -711,10 +712,23 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
                     </button>
 
                     {!isAdmin && authMode === "signup" && (
-                      <div className="flex items-center justify-center gap-2 pt-1 text-xs text-slate-400">
-                        <Shield className="h-3.5 w-3.5 text-emerald-600" />
-                        We'll email you a 6-digit code to verify your address
-                      </div>
+                      <>
+                        <div className="flex items-center justify-center gap-2 pt-1 text-xs text-slate-400">
+                          <Shield className="h-3.5 w-3.5 text-emerald-600" />
+                          We'll email you a 6-digit code to verify your address
+                        </div>
+                        <p className="pt-1 text-center text-[11px] text-slate-400">
+                          By creating an account, you agree to WorkBridge's{" "}
+                          <Link to="/terms" className="font-semibold text-[#1B3FAB] hover:underline">
+                            Terms
+                          </Link>{" "}
+                          and{" "}
+                          <Link to="/privacy" className="font-semibold text-[#1B3FAB] hover:underline">
+                            Privacy Policy
+                          </Link>
+                          .
+                        </p>
+                      </>
                     )}
 
                   </form>

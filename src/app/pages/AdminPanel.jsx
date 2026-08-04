@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { BarChart3, Shield, AlertTriangle, ShieldAlert, UserCog, Receipt, Banknote, Landmark, Send, Zap, LogOut, Image as ImageIcon, Users } from "lucide-react";
+import { BarChart3, Shield, AlertTriangle, ShieldAlert, UserCog, Receipt, Banknote, Landmark, Send, Zap, LogOut, Image as ImageIcon, Users, Headphones } from "lucide-react";
 import AdminOverviewTab from "../components/admin/AdminOverviewTab";
 import AdminUsersTab from "../components/admin/AdminUsersTab";
 import AdminVerificationsTab from "../components/admin/AdminVerificationsTab";
@@ -12,8 +12,10 @@ import AdminSecurityTab from "../components/admin/AdminSecurityTab";
 import AdminTeamTab from "../components/admin/AdminTeamTab";
 import AdminTransactionsTab from "../components/admin/AdminTransactionsTab";
 import AdminContentReviewTab from "../components/admin/AdminContentReviewTab";
+import AdminSupportTab from "../components/admin/AdminSupportTab";
 import { useAuth } from "../context/AuthContext";
 import { listVerifications, listDisputes, listPendingReleases, listPendingWithdrawals } from "../lib/adminApi";
+import { listThreadsForAdmin } from "../lib/supportApi";
 import { getInitials } from "../utils/formValidation";
 
 const NAV = [
@@ -25,6 +27,7 @@ const NAV = [
   { id: "releases", label: "Fund Releases", icon: Banknote, badgeKey: "releases" },
   { id: "withdrawals", label: "Withdrawals", icon: Landmark, badgeKey: "withdrawals" },
   { id: "disputes", label: "Dispute Resolution", icon: AlertTriangle, badgeKey: "disputes" },
+  { id: "support", label: "Customer Care", icon: Headphones, badgeKey: "support" },
   { id: "transactions", label: "Transaction History", icon: Receipt },
   { id: "security", label: "Security Monitor", icon: ShieldAlert },
   { id: "team", label: "Team Access", icon: UserCog },
@@ -41,6 +44,7 @@ const TAB_COMPONENTS = {
   releases: AdminFundReleasesTab,
   withdrawals: AdminWithdrawalsTab,
   disputes: AdminDisputesTab,
+  support: AdminSupportTab,
   transactions: AdminTransactionsTab,
   security: AdminSecurityTab,
   team: AdminTeamTab,
@@ -52,16 +56,17 @@ export default function AdminPanel({ onLogout }) {
   // Real pending counts for the nav badges — fetched once here rather than
   // duplicated inside AdminVerificationsTab/AdminDisputesTab, which fetch
   // their own full lists independently for their actual content.
-  const [badgeCounts, setBadgeCounts] = useState({ verifications: 0, disputes: 0, releases: 0, withdrawals: 0 });
+  const [badgeCounts, setBadgeCounts] = useState({ verifications: 0, disputes: 0, releases: 0, withdrawals: 0, support: 0 });
 
   useEffect(() => {
-    Promise.all([listVerifications(), listDisputes(), listPendingReleases(), listPendingWithdrawals()])
-      .then(([verifications, disputes, releases, withdrawals]) => {
+    Promise.all([listVerifications(), listDisputes(), listPendingReleases(), listPendingWithdrawals(), listThreadsForAdmin()])
+      .then(([verifications, disputes, releases, withdrawals, threads]) => {
         setBadgeCounts({
           verifications: verifications.length,
           disputes: disputes.length,
           releases: releases.length,
           withdrawals: withdrawals.length,
+          support: threads.filter((t) => t.status === "OPEN").length,
         });
       })
       .catch(() => {

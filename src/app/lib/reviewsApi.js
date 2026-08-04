@@ -9,3 +9,7 @@ export function submitReview({ projectId, rating, feedback }) {
 export function listReviewsFor(userId) {
   return apiFetch(`/api/reviews?revieweeId=${userId}`);
 }
+
+export function getFeaturedReviews() {
+  return apiFetch("/api/reviews/featured");
+}

@@ -8,6 +8,7 @@ const navItems = [
   { label: "Find Work",  to: "/find-work"  },
   { label: "Hire Talent", to: "/hire-talent" },
   { label: "Enterprise", to: "/enterprise" },
+  { label: "Testimonials", to: "/testimonials" },
 ];
 
 // ── Role-picker modal — shown when nav "Log In" / "Sign Up" is clicked ──────
@@ -122,8 +123,8 @@ export function PageShell({ children, onSelect }) {
           </span>
           <span>WorkBridge Technologies Pvt. Ltd.</span>
         </Link>
-        <span>Privacy</span>
-        <span>Terms</span>
+        <Link to="/privacy">Privacy</Link>
+        <Link to="/terms">Terms</Link>
         <span>Help</span>
       </footer>
     </div>

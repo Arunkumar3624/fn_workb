@@ -9,6 +9,7 @@ import {
   Clock,
   Eye,
   FileText,
+  Flame,
   GraduationCap,
   IndianRupee,
   Link2,
@@ -210,6 +211,9 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
         educationLevel: formData.educationLevel || undefined,
         educationNotes: formData.educationNotes || undefined,
         requiredSkills,
+        // Explicitly appended, not left to silently drop — see
+        // migrations/019_urgent_matching.sql for what this actually does now.
+        isUrgent: urgent,
       });
 
       const referenceLinks = refLinks.map((link) => link.trim()).filter(Boolean);
@@ -473,25 +477,39 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                   <FieldError message={errors.applicationWindow?.message} />
                 </div>
 
-                {/* Urgent toggle */}
-                <div className="flex items-center justify-between p-4 bg-amber-50 border border-amber-100 rounded-xl">
-                  <div>
-                    <div className="text-sm font-bold text-amber-800">
-                      Urgent Matching (2-hour response)
-                    </div>
-                    <div className="text-xs text-amber-600 mt-0.5">
-                      Platform fast-tracks your project to top-matched talent
+                {/* Urgent toggle — real effect now: is_urgent persists and
+                    the Job Board actually sorts/gates on it (see
+                    projects.repository.js's listOpen). Copy describes only
+                    what actually happens — no fabricated "2-hour response"
+                    promise, no subscription-tier claim (deferred). */}
+                <div
+                  className={`flex items-center justify-between rounded-xl border p-4 transition-colors ${
+                    urgent ? "border-[#FF6B35]/40 bg-orange-50" : "border-slate-200 bg-slate-50"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl ${urgent ? "bg-[#FF6B35]/10" : "bg-white"}`}>
+                      <Flame className={`h-4 w-4 ${urgent ? "text-[#FF6B35]" : "text-slate-400"}`} />
+                    </span>
+                    <div>
+                      <div className={`text-sm font-bold ${urgent ? "text-[#0F172A]" : "text-slate-700"}`}>Urgent Matching</div>
+                      <div className="mt-0.5 text-xs text-slate-500">
+                        Sorts to the top of the Job Board; Silver-tier+ workers see it immediately, others after 3 hours.
+                      </div>
                     </div>
                   </div>
                   <button
                     type="button"
+                    role="switch"
+                    aria-checked={urgent}
+                    aria-label="Urgent Matching"
                     onClick={() => setUrgent(!urgent)}
-                    className={`w-12 h-6 rounded-full transition-colors duration-200 relative flex-shrink-0 ml-4 ${
-                      urgent ? "bg-amber-500" : "bg-slate-300"
+                    className={`relative ml-4 h-6 w-12 flex-shrink-0 rounded-full transition-colors duration-200 ${
+                      urgent ? "bg-[#FF6B35]" : "bg-slate-300"
                     }`}
                   >
                     <div
-                      className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform duration-200 shadow-sm ${
+                      className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
                         urgent ? "translate-x-6" : "translate-x-0.5"
                       }`}
                     />

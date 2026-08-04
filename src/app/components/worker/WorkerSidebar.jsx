@@ -1,20 +1,20 @@
 import { useEffect, useState } from "react";
-import { Briefcase, Search, Wallet, User, LogOut, ShieldCheck, Zap, Handshake, Settings, Sparkles } from "lucide-react";
+import { Briefcase, Search, Wallet, User, LogOut, ShieldCheck, Zap, Handshake, Headphones, Settings, Sparkles } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { listProjects } from "../../lib/projectsApi";
 import { getInitials } from "../../utils/formValidation";
 
-// "Job Feed" is a dummy/placeholder listing for now — the real backend only
-// supports business-initiated match-and-invite (no open "browse and apply"
-// endpoint yet), so nothing clicked here creates a real project. "Messages"
-// stays deferred (no chat backend at all). "Negotiations" sits between the
-// two — the bridge between finding work and doing work, and IS fully real.
+// Every one of these is fully real: Job Feed is the real Open Job Board
+// (listOpenProjects/applyToProject), Negotiations is the permanent chat
+// inbox spanning every project stage, and Support is a real, separate
+// conversation with WorkBridge staff (not scoped to any one project).
 const NAV = [
   { id: "feed", label: "Job Feed", icon: Search },
   { id: "negotiations", label: "Negotiations", icon: Handshake },
   { id: "workspace", label: "Active Workspace", icon: Briefcase },
   { id: "wallet", label: "Wallet", icon: Wallet },
   { id: "economy", label: "Economy Hub", icon: Sparkles },
+  { id: "support", label: "Support", icon: Headphones },
   { id: "profile", label: "My Profile", icon: User },
   { id: "settings", label: "Settings", icon: Settings },
 ];

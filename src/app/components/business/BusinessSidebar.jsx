@@ -2,6 +2,7 @@ import {
   BarChart3,
   Briefcase,
   Building2,
+  Headphones,
   Lock,
   LogOut,
   MessageSquare,
@@ -23,6 +24,7 @@ const NAV = [
   { id: "negotiations", label: "Negotiations", icon: MessageSquare },
   { id: "company", label: "Company Page", icon: Building2 },
   { id: "perks", label: "Perks Shop", icon: Store },
+  { id: "support", label: "Support", icon: Headphones },
   { id: "settings", label: "Settings", icon: Settings },
 ];
 

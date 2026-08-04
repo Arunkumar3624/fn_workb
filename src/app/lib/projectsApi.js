@@ -44,6 +44,7 @@ export function createProject({
   educationLevel,
   educationNotes,
   requiredSkills,
+  isUrgent,
 }) {
   return apiFetch("/api/projects", {
     method: "POST",
@@ -60,6 +61,7 @@ export function createProject({
       educationLevel,
       educationNotes,
       requiredSkills,
+      isUrgent,
     },
   });
 }
