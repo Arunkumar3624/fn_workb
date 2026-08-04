@@ -1,11 +1,12 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   AlertCircle,
   Camera,
   Check,
   CheckCircle2,
   Crown,
+  Headphones,
   Loader2,
   Lock,
   ShieldAlert,
@@ -20,6 +21,7 @@ import { changePassword, deactivateAccount } from "../lib/authApi";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { getInitials } from "../utils/formValidation";
 import { ApiError } from "../lib/apiClient";
+import SupportChat from "../components/shared/SupportChat";
 
 const MAX_AVATAR_BYTES = 1.5 * 1024 * 1024;
 
@@ -27,6 +29,7 @@ const TABS = [
   { id: "general", label: "General Profile", icon: User },
   { id: "security", label: "Security & Auth", icon: Lock },
   { id: "billing", label: "Billing & Subscriptions", icon: Sparkles },
+  { id: "support", label: "Support", icon: Headphones },
   { id: "danger", label: "Danger Zone", icon: ShieldAlert },
 ];
 
@@ -441,7 +444,19 @@ function DangerZoneTab() {
 
 export default function SettingsPage() {
   useDocumentTitle("Settings — WorkBridge");
-  const [activeTab, setActiveTab] = useState("general");
+  const location = useLocation();
+  // settingsTab lets a caller (SupportFab.jsx) deep-link straight to a
+  // specific tab here — e.g. navigate("/worker/settings", { state: {
+  // settingsTab: "support" } }). The effect below re-syncs on every
+  // subsequent navigation carrying it, since a navigate() to a route this
+  // component is already mounted on doesn't remount it (the useState
+  // initializer only runs once) — same pattern as BusinessDashboard.jsx's
+  // own outer-tab sync.
+  const [activeTab, setActiveTab] = useState(location.state?.settingsTab ?? "general");
+
+  useEffect(() => {
+    if (location.state?.settingsTab) setActiveTab(location.state.settingsTab);
+  }, [location.state]);
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
@@ -475,6 +490,17 @@ export default function SettingsPage() {
           {activeTab === "general" && <GeneralProfileTab />}
           {activeTab === "security" && <SecurityTab />}
           {activeTab === "billing" && <BillingTab />}
+          {activeTab === "support" && (
+            // SupportChat's internals rely on `h-full` cascading from an
+            // ancestor with a definite height (it previously lived inside
+            // DashboardLayout's viewport-filling flex chain) — this card has
+            // no fixed height of its own, so without this wrapper the chat
+            // feed/composer would collapse to a sliver instead of a real
+            // chat window.
+            <div className="-m-6 h-[640px] sm:-m-8 sm:h-[640px]">
+              <SupportChat />
+            </div>
+          )}
           {activeTab === "danger" && <DangerZoneTab />}
         </div>
       </div>

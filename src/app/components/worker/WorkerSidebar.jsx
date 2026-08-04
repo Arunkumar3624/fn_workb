@@ -1,20 +1,20 @@
 import { useEffect, useState } from "react";
-import { Briefcase, Search, Wallet, User, LogOut, ShieldCheck, Zap, Handshake, Headphones, Settings, Sparkles } from "lucide-react";
+import { Briefcase, Search, Wallet, User, LogOut, ShieldCheck, Zap, Handshake, Settings, Sparkles } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { listProjects } from "../../lib/projectsApi";
 import { getInitials } from "../../utils/formValidation";
 
 // Every one of these is fully real: Job Feed is the real Open Job Board
 // (listOpenProjects/applyToProject), Negotiations is the permanent chat
-// inbox spanning every project stage, and Support is a real, separate
-// conversation with WorkBridge staff (not scoped to any one project).
+// inbox spanning every project stage. Support moved into Settings (its own
+// tab there) rather than sitting as a top-level item here — the global
+// SupportFab is the fast path to it now, not the sidebar.
 const NAV = [
   { id: "feed", label: "Job Feed", icon: Search },
   { id: "negotiations", label: "Negotiations", icon: Handshake },
   { id: "workspace", label: "Active Workspace", icon: Briefcase },
   { id: "wallet", label: "Wallet", icon: Wallet },
   { id: "economy", label: "Economy Hub", icon: Sparkles },
-  { id: "support", label: "Support", icon: Headphones },
   { id: "profile", label: "My Profile", icon: User },
   { id: "settings", label: "Settings", icon: Settings },
 ];

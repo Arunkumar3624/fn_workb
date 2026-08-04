@@ -55,11 +55,11 @@ export function HeroSection({ onSelect }) {
           className="wb-search"
           onSubmit={(event) => {
             event.preventDefault();
-            onSelect("business");
+            onSelect("worker");
           }}
         >
           <Search size={22} />
-          <input type="text" placeholder="Search 500,000+ verified experts by skill…" />
+          <input type="text" placeholder="Search 500,000+ open gigs by skill…" />
           <Button type="submit">
             Search <ArrowRight size={18} />
           </Button>

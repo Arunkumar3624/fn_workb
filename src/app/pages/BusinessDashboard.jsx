@@ -10,7 +10,6 @@ import BusinessProjects from "../components/business/BusinessProjects";
 import BusinessNegotiationHub from "../components/business/BusinessNegotiationHub";
 import BusinessCompany from "../components/business/BusinessCompany";
 import BusinessPerksShop from "../components/business/BusinessPerksShop";
-import SupportChat from "../components/shared/SupportChat";
 import SettingsPage from "./SettingsPage";
 import { useAuth } from "../context/AuthContext";
 import { getTierData } from "../utils/gamification";
@@ -164,7 +163,6 @@ export default function BusinessDashboard({ onLogout, onVerify, isVerified = fal
         )}
         {tab === "company" && <BusinessCompany />}
         {tab === "perks" && <BusinessPerksShop />}
-        {tab === "support" && <SupportChat />}
         {tab === "settings" && <SettingsPage />}
       </div>
     </DashboardLayout>

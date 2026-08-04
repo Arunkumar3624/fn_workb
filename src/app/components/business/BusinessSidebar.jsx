@@ -2,7 +2,6 @@ import {
   BarChart3,
   Briefcase,
   Building2,
-  Headphones,
   Lock,
   LogOut,
   MessageSquare,
@@ -16,6 +15,8 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import { getInitials } from "../../utils/formValidation";
 
+// Support moved into Settings (its own tab there) rather than sitting as a
+// top-level item here — the global SupportFab is the fast path to it now.
 const NAV = [
   { id: "overview", label: "Overview", icon: BarChart3 },
   { id: "post", label: "Post a Job", icon: Plus },
@@ -24,7 +25,6 @@ const NAV = [
   { id: "negotiations", label: "Negotiations", icon: MessageSquare },
   { id: "company", label: "Company Page", icon: Building2 },
   { id: "perks", label: "Perks Shop", icon: Store },
-  { id: "support", label: "Support", icon: Headphones },
   { id: "settings", label: "Settings", icon: Settings },
 ];
 
