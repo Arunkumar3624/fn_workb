@@ -38,130 +38,76 @@ const scoreTone = (score) => {
   return "bg-rose-50 text-rose-600 border-rose-200";
 };
 
-// Small inline form for standalone "Invite" (no job draft handed in from
-// BusinessPostJob) — collects just enough to create a real project.
-function InviteModal({ worker, onClose, onSubmit, submitting, error }) {
+const INPUT_CLASS =
+  "mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/20";
+
+// Unified invite entry point — a business either sends this worker to one of
+// their OWN already-public OPEN job board posts (creates a real
+// job_candidates row, source=INVITE — the post stays live on the public feed
+// in case the worker declines, see job_candidates.controller.js) or drafts a
+// brand-new private project on the spot (creates a real project via
+// createProject). Two genuinely different backend calls behind one toggle —
+// previously two separate buttons/modals for the same underlying decision.
+function InviteWorkerModal({ worker, openJobs, onClose, onSubmitExisting, onSubmitNew, submitting, error }) {
+  const [mode, setMode] = useState(openJobs.length > 0 ? "existing" : "new");
+  const [selectedProjectId, setSelectedProjectId] = useState(openJobs[0]?.id ?? "");
+  const [message, setMessage] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [budget, setBudget] = useState("");
   const [deadline, setDeadline] = useState("");
   const [referenceLink, setReferenceLink] = useState("");
 
+  const canSubmit = mode === "existing" ? Boolean(selectedProjectId) : Boolean(title.trim() && budget);
+
+  const handleSubmit = () => {
+    if (!canSubmit) return;
+    if (mode === "existing") {
+      onSubmitExisting(selectedProjectId, message);
+    } else {
+      onSubmitNew({ title, description, budget, deadline, referenceLinks: referenceLink.trim() ? [referenceLink.trim()] : [] });
+    }
+  };
+
   return (
     <div
       className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4"
       onClick={onClose}
     >
-      <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl" onClick={(event) => event.stopPropagation()}>
+      <div
+        className="w-full max-w-md rounded-2xl border border-slate-200/60 bg-white/90 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl"
+        onClick={(event) => event.stopPropagation()}
+      >
         <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-          <h2 className="text-lg font-bold text-slate-900">Invite {worker.name}</h2>
+          <h2 className="text-lg font-extrabold tracking-tight text-slate-900">Invite {worker.name}</h2>
           <button onClick={onClose} className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100">
             <X className="h-4 w-4" />
           </button>
         </div>
-        <div className="space-y-4 px-6 py-5">
-          {error && (
-            <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
-              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-              <span>{error}</span>
-            </div>
-          )}
-          <label className="block">
-            <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Job Title</span>
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Landing page redesign"
-              className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
-            />
-          </label>
-          <label className="block">
-            <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Description</span>
-            <textarea
-              rows={3}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="e.g., I need a 5-page Figma wireframe for a real estate app, including a homepage, listings grid, and contact form."
-              className="mt-2 w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
-            />
-          </label>
-          <div className="grid grid-cols-2 gap-3">
-            <label className="block">
-              <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Budget (₹)</span>
-              <input
-                type="number"
-                min="1"
-                value={budget}
-                onChange={(e) => setBudget(e.target.value)}
-                placeholder="15000"
-                className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
-              />
-            </label>
-            <label className="block">
-              <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Deadline</span>
-              <input
-                type="date"
-                value={deadline}
-                onChange={(e) => setDeadline(e.target.value)}
-                min={new Date().toISOString().split("T")[0]}
-                className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
-              />
-            </label>
+
+        <div className="px-6 pt-5">
+          <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1">
+            <button
+              type="button"
+              onClick={() => setMode("existing")}
+              className={`rounded-lg px-3 py-2 text-xs font-bold transition-colors ${
+                mode === "existing" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              Select Existing Project
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("new")}
+              className={`rounded-lg px-3 py-2 text-xs font-bold transition-colors ${
+                mode === "new" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              Draft New Project
+            </button>
           </div>
-          <label className="block">
-            <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Reference Link (optional)</span>
-            <input
-              type="url"
-              value={referenceLink}
-              onChange={(e) => setReferenceLink(e.target.value)}
-              placeholder="https://drive.google.com/… or a video/doc link for context"
-              className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
-            />
-            <span className="mt-1.5 block text-xs text-slate-400">
-              Sent for a quick WorkBridge review before {worker.name} can see it.
-            </span>
-          </label>
         </div>
-        <div className="flex justify-end gap-2 border-t border-slate-100 px-6 py-4">
-          <button onClick={onClose} className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50">
-            Cancel
-          </button>
-          <button
-            onClick={() => onSubmit({ title, description, budget, deadline, referenceLinks: referenceLink.trim() ? [referenceLink.trim()] : [] })}
-            disabled={submitting || !title.trim() || !budget}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#FF6B35] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#E55E1F] disabled:opacity-60"
-          >
-            {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-            {submitting ? "Sending…" : "Send Invite"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
-// Invites a specific worker directly to one of the business's OWN already-
-// public OPEN job board posts — distinct from InviteModal above, which
-// creates a brand-new private project. This one creates a job_candidates
-// row (source=INVITE) against an EXISTING post instead; the post stays live
-// on the public feed in case the invited worker declines (see
-// job_candidates.controller.js).
-function InviteToJobModal({ worker, openJobs, onClose, onSubmit, submitting, error }) {
-  const [selectedProjectId, setSelectedProjectId] = useState(openJobs[0]?.id ?? "");
-  const [message, setMessage] = useState("");
-
-  return (
-    <div
-      className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4"
-      onClick={onClose}
-    >
-      <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl" onClick={(event) => event.stopPropagation()}>
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-          <h2 className="text-lg font-bold text-slate-900">Invite {worker.name} to a job</h2>
-          <button onClick={onClose} className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
         <div className="space-y-4 px-6 py-5">
           {error && (
             <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
@@ -169,58 +115,118 @@ function InviteToJobModal({ worker, openJobs, onClose, onSubmit, submitting, err
               <span>{error}</span>
             </div>
           )}
-          {openJobs.length === 0 ? (
-            <p className="text-sm text-slate-500">
-              You don't have any open job posts right now. Post a job first — it'll go live on the public Job Feed, and you can
-              come back here to invite {worker.name} to it directly at any time while it's still open.
-            </p>
+
+          {mode === "existing" ? (
+            openJobs.length === 0 ? (
+              <p className="text-sm text-slate-500">
+                You don't have any open job posts right now. Switch to "Draft New Project" above, or post a job first and
+                come back to invite {worker.name} to it directly while it's still open.
+              </p>
+            ) : (
+              <>
+                <label className="block">
+                  <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Which open job?</span>
+                  <select
+                    value={selectedProjectId}
+                    onChange={(e) => setSelectedProjectId(e.target.value)}
+                    className={INPUT_CLASS}
+                  >
+                    {openJobs.map((job) => (
+                      <option key={job.id} value={job.id}>
+                        {job.title} — ₹{Number(job.budget).toLocaleString("en-IN")}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block">
+                  <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Note (optional)</span>
+                  <textarea
+                    rows={3}
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Why you think they'd be a great fit for this one"
+                    className={`${INPUT_CLASS} resize-none`}
+                  />
+                </label>
+                <p className="text-xs text-slate-400">
+                  The job post stays live on the public feed in case {worker.name} says no — it only comes down once someone
+                  actually accepts.
+                </p>
+              </>
+            )
           ) : (
             <>
               <label className="block">
-                <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Which open job?</span>
-                <select
-                  value={selectedProjectId}
-                  onChange={(e) => setSelectedProjectId(e.target.value)}
-                  className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
-                >
-                  {openJobs.map((job) => (
-                    <option key={job.id} value={job.id}>
-                      {job.title} — ₹{Number(job.budget).toLocaleString("en-IN")}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="block">
-                <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Note (optional)</span>
-                <textarea
-                  rows={3}
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Why you think they'd be a great fit for this one"
-                  className="mt-2 w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
+                <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Job Title</span>
+                <input
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="e.g. Landing page redesign"
+                  className={INPUT_CLASS}
                 />
               </label>
-              <p className="text-xs text-slate-400">
-                The job post stays live on the public feed in case {worker.name} says no — it only comes down once someone
-                actually accepts.
-              </p>
+              <label className="block">
+                <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Description</span>
+                <textarea
+                  rows={3}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="e.g., I need a 5-page Figma wireframe for a real estate app, including a homepage, listings grid, and contact form."
+                  className={`${INPUT_CLASS} resize-none`}
+                />
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <label className="block">
+                  <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Budget (₹)</span>
+                  <input
+                    type="number"
+                    min="1"
+                    value={budget}
+                    onChange={(e) => setBudget(e.target.value)}
+                    placeholder="15000"
+                    className={INPUT_CLASS}
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Deadline</span>
+                  <input
+                    type="date"
+                    value={deadline}
+                    onChange={(e) => setDeadline(e.target.value)}
+                    min={new Date().toISOString().split("T")[0]}
+                    className={INPUT_CLASS}
+                  />
+                </label>
+              </div>
+              <label className="block">
+                <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Reference Link (optional)</span>
+                <input
+                  type="url"
+                  value={referenceLink}
+                  onChange={(e) => setReferenceLink(e.target.value)}
+                  placeholder="https://drive.google.com/… or a video/doc link for context"
+                  className={INPUT_CLASS}
+                />
+                <span className="mt-1.5 block text-xs text-slate-400">
+                  Sent for a quick WorkBridge review before {worker.name} can see it.
+                </span>
+              </label>
             </>
           )}
         </div>
+
         <div className="flex justify-end gap-2 border-t border-slate-100 px-6 py-4">
-          <button onClick={onClose} className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50">
+          <button onClick={onClose} className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50">
             Cancel
           </button>
-          {openJobs.length > 0 && (
-            <button
-              onClick={() => onSubmit(selectedProjectId, message)}
-              disabled={submitting || !selectedProjectId}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#FF6B35] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#E55E1F] disabled:opacity-60"
-            >
-              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-              {submitting ? "Sending…" : "Send Invite"}
-            </button>
-          )}
+          <button
+            onClick={handleSubmit}
+            disabled={submitting || !canSubmit}
+            className="inline-flex items-center gap-2 rounded-xl bg-[#FF6B35] px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-transform hover:bg-[#E55E1F] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            {submitting ? "Sending…" : "Send Invitation"}
+          </button>
         </div>
       </div>
     </div>
@@ -238,9 +244,6 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
   const [inviteError, setInviteError] = useState("");
   const [toast, setToast] = useState("");
   const [openJobs, setOpenJobs] = useState([]);
-  const [jobInviteTarget, setJobInviteTarget] = useState(null); // worker being invited to an existing open post
-  const [jobInviteSubmitting, setJobInviteSubmitting] = useState(false);
-  const [jobInviteError, setJobInviteError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -333,28 +336,23 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
     }
   };
 
-  const handleInviteToJobClick = (worker) => {
-    if (!isVerified) {
-      onVerify?.();
-      return;
-    }
-    setJobInviteError("");
-    setJobInviteTarget(worker);
-  };
-
-  const submitJobInvite = async (projectId, message) => {
-    if (!jobInviteTarget) return;
-    setJobInviteSubmitting(true);
-    setJobInviteError("");
+  // The "existing project" branch of the unified invite modal — creates a
+  // real job_candidates row (source=INVITE) against one of the business's
+  // own OPEN posts, distinct from submitInvite above (which creates a
+  // brand-new project via createProject).
+  const submitExistingJobInvite = async (projectId, message) => {
+    if (!inviteTarget) return;
+    setSubmitting(true);
+    setInviteError("");
     try {
-      await inviteWorkerToProject(projectId, jobInviteTarget.id, message.trim() || undefined);
-      setToast(`Invite sent to ${jobInviteTarget.name}.`);
+      await inviteWorkerToProject(projectId, inviteTarget.id, message.trim() || undefined);
+      setToast(`Invite sent to ${inviteTarget.name}.`);
       window.setTimeout(() => setToast(""), 2600);
-      setJobInviteTarget(null);
+      setInviteTarget(null);
     } catch (err) {
-      setJobInviteError(err instanceof ApiError ? err.message : "Could not send this invite.");
+      setInviteError(err instanceof ApiError ? err.message : "Could not send this invite.");
     } finally {
-      setJobInviteSubmitting(false);
+      setSubmitting(false);
     }
   };
 
@@ -431,7 +429,7 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
             return (
               <div
                 key={w.id}
-                className="flex flex-col rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-md wb-card-enter"
+                className="flex flex-col overflow-hidden rounded-2xl border border-slate-200/60 bg-white/90 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-lg wb-card-enter"
                 style={{ animationDelay: `${i * 100}ms` }}
               >
                 <div className="p-5 flex flex-col flex-1">
@@ -444,7 +442,7 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
                       )}
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-1.5 mb-0.5">
-                          <h3 className="font-extrabold text-[#0F172A] text-sm leading-tight" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                          <h3 className="font-extrabold tracking-tight text-slate-900 text-sm leading-tight" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                             {w.name}
                           </h3>
                           {w.verified && <ShieldCheck className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />}
@@ -496,17 +494,6 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
                       View Profile
                     </button>
 
-                    {isVerified && !pendingJob && (
-                      <button
-                        onClick={() => handleInviteToJobClick(w)}
-                        title="Invite to one of your open job posts"
-                        className="flex items-center gap-1.5 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors"
-                      >
-                        <Briefcase className="w-3.5 h-3.5" />
-                        Invite to Job
-                      </button>
-                    )}
-
                     {alreadyInvited ? (
                       <button
                         onClick={() => onViewProjects?.()}
@@ -519,7 +506,7 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
                       <button
                         onClick={() => handleInviteClick(w)}
                         disabled={submitting}
-                        className="flex items-center gap-1.5 bg-[#FF6B35] text-white hover:bg-[#e55e1f] px-3 py-1.5 rounded-lg text-sm font-semibold shadow-sm transition-colors disabled:opacity-60"
+                        className="flex items-center gap-1.5 rounded-lg bg-[#FF6B35] px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition-transform hover:bg-[#e55e1f] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         <Send className="w-3.5 h-3.5" />
                         Invite
@@ -565,23 +552,14 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
       )}
 
       {inviteTarget && (
-        <InviteModal
+        <InviteWorkerModal
           worker={inviteTarget}
+          openJobs={openJobs}
           onClose={() => setInviteTarget(null)}
-          onSubmit={(details) => submitInvite(inviteTarget, details)}
+          onSubmitExisting={submitExistingJobInvite}
+          onSubmitNew={(details) => submitInvite(inviteTarget, details)}
           submitting={submitting}
           error={inviteError}
-        />
-      )}
-
-      {jobInviteTarget && (
-        <InviteToJobModal
-          worker={jobInviteTarget}
-          openJobs={openJobs}
-          onClose={() => setJobInviteTarget(null)}
-          onSubmit={submitJobInvite}
-          submitting={jobInviteSubmitting}
-          error={jobInviteError}
         />
       )}
 

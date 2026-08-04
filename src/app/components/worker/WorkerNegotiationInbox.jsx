@@ -30,6 +30,7 @@ import { getSocket } from "../../lib/socketClient";
 const ACTIVE_THREAD_STATUSES = new Set([
   "INVITED",
   "ACCEPTED",
+  "PENDING_FUNDS",
   "FUNDS_SECURED",
   "WORK_IN_PROGRESS",
   "FILES_SUBMITTED",
@@ -57,6 +58,7 @@ function formatDuration(deadline) {
 function getThreadStatus(project) {
   if (project.status === "INVITED") return { label: "Pending Invite", className: "bg-orange-50 text-orange-700 border-orange-100" };
   if (project.status === "ACCEPTED") return { label: "Negotiating", className: "bg-blue-50 text-blue-700 border-blue-100" };
+  if (project.status === "PENDING_FUNDS") return { label: "Verifying Funds", className: "bg-amber-50 text-amber-700 border-amber-100" };
   if (project.status === "FUNDS_SECURED") return { label: "Escrow Locked", className: "bg-emerald-50 text-emerald-700 border-emerald-100" };
   if (project.status === "WORK_IN_PROGRESS") return { label: "In Progress", className: "bg-slate-100 text-slate-700 border-slate-200" };
   if (project.status === "FILES_SUBMITTED") return { label: "In Review", className: "bg-amber-50 text-amber-700 border-amber-100" };

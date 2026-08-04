@@ -27,12 +27,12 @@ import TimelineTracker from "../shared/TimelineTracker";
 import ProjectCompletionHub from "../shared/ProjectCompletionHub";
 import DeliverablesPanel from "../shared/DeliverablesPanel";
 import DeadlineCountdown from "../shared/DeadlineCountdown";
+import EscrowFundingDrawer from "./EscrowFundingDrawer";
 import { getTierData } from "../../utils/gamification";
 import { PROJECT_STATUS_META } from "../../utils/projectStatus";
 import {
   listBusinessProjects,
   requestRelease as apiRequestRelease,
-  secureFunds as apiSecureFunds,
   updateProjectStatus as apiUpdateProjectStatus,
   cancelAndRefund as apiCancelAndRefund,
   createProject,
@@ -949,8 +949,10 @@ export default function BusinessProjects({ onOpenChat }) {
   const [completingId, setCompletingId] = useState(null);
   const [completeError, setCompleteError] = useState(null);
   const [workerDrawerProject, setWorkerDrawerProject] = useState(null);
-  const [securingId, setSecuringId] = useState(null);
-  const [secureError, setSecureError] = useState(null);
+  // Opens EscrowFundingDrawer for this project — replaces the old instant,
+  // no-proof-required apiSecureFunds() click (see fundEscrow in
+  // projects.controller.js for why that changed).
+  const [fundingProject, setFundingProject] = useState(null);
   const [ratingProject, setRatingProject] = useState(null);
   const [rehireToast, setRehireToast] = useState("");
   // projectId -> rating, so a History row can show the stars you already gave
@@ -1187,20 +1189,6 @@ export default function BusinessProjects({ onOpenChat }) {
     }
   };
 
-  const handleSecureFunds = async (id) => {
-    if (securingId) return;
-    setSecuringId(id);
-    setSecureError(null);
-    try {
-      const result = await apiSecureFunds(id);
-      setProjects((prev) => prev.map((p) => (p.id === id ? result.project : p)));
-    } catch (err) {
-      setSecureError(err.message || "Couldn't secure funds — try again.");
-    } finally {
-      setSecuringId(null);
-    }
-  };
-
   // The old "Download Files" button just opened the worker-detail drawer
   // (same as "View Worker") — clicking it never actually downloaded
   // anything. This fetches the project's real approved deliverables and
@@ -1306,11 +1294,6 @@ export default function BusinessProjects({ onOpenChat }) {
           </div>
         )}
 
-        {secureError && (
-          <div role="alert" className="mb-6 rounded-2xl border border-red-100 bg-red-50 p-4">
-            <p className="text-sm font-semibold text-red-600">{secureError}</p>
-          </div>
-        )}
 
         {!isLoading && !loadError && (
           <div className="mb-6 flex gap-1 rounded-2xl bg-slate-100 p-1">
@@ -1586,22 +1569,19 @@ export default function BusinessProjects({ onOpenChat }) {
 
                         {p.status === "ACCEPTED" && (
                           <button
-                            onClick={() => handleSecureFunds(p.id)}
-                            disabled={securingId === p.id}
-                            className="flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-xl bg-[#1B3FAB] px-5 py-2 text-xs font-bold text-white shadow-sm shadow-blue-500/25 transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#1635A0] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60 sm:ml-auto sm:w-auto sm:justify-start"
+                            onClick={() => setFundingProject(p)}
+                            className="flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-xl bg-[#1B3FAB] px-5 py-2 text-xs font-bold text-white shadow-sm shadow-blue-500/25 transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#1635A0] hover:shadow-md sm:ml-auto sm:w-auto sm:justify-start"
                           >
-                            {securingId === p.id ? (
-                              <>
-                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                Securing…
-                              </>
-                            ) : (
-                              <>
-                                <Wallet className="h-3.5 w-3.5" />
-                                Secure Funds
-                              </>
-                            )}
+                            <Wallet className="h-3.5 w-3.5" />
+                            Secure Funds
                           </button>
+                        )}
+
+                        {p.status === "PENDING_FUNDS" && (
+                          <span className="flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-5 py-2 text-xs font-bold text-amber-700 sm:ml-auto sm:w-auto sm:justify-start">
+                            <ShieldCheck className="h-3.5 w-3.5" />
+                            Awaiting WorkBridge Verification
+                          </span>
                         )}
 
                         {/* The single primary CTA on this card — only one
@@ -1772,6 +1752,14 @@ export default function BusinessProjects({ onOpenChat }) {
         project={workerDrawerProject}
         onClose={() => setWorkerDrawerProject(null)}
         onOpenChat={onOpenChat}
+      />
+
+      <EscrowFundingDrawer
+        project={fundingProject}
+        onClose={() => setFundingProject(null)}
+        onFunded={(updatedProject) => {
+          setProjects((prev) => prev.map((p) => (p.id === updatedProject.id ? updatedProject : p)));
+        }}
       />
 
       <PaymentApprovalModal

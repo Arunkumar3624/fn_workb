@@ -26,6 +26,7 @@ import { ApiError } from "../../lib/apiClient";
 const ACTIVE_THREAD_STATUSES = new Set([
   "INVITED",
   "ACCEPTED",
+  "PENDING_FUNDS",
   "FUNDS_SECURED",
   "WORK_IN_PROGRESS",
   "FILES_SUBMITTED",
@@ -34,11 +35,14 @@ const ACTIVE_THREAD_STATUSES = new Set([
   "CANCELLED",
 ]);
 
+// PENDING_FUNDS deliberately excluded — funds aren't secured yet, only
+// submitted for verification (see EscrowFundingDrawer.jsx).
 const FUNDS_SECURED_STATUSES = new Set(["FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_SUBMITTED", "PENDING_RELEASE"]);
 
 const STATUS_META = {
   INVITED: { label: "Awaiting Response", tone: "amber" },
   ACCEPTED: { label: "Negotiating", tone: "blue" },
+  PENDING_FUNDS: { label: "Verifying Funds", tone: "amber" },
   FUNDS_SECURED: { label: "Escrow Funded", tone: "emerald" },
   WORK_IN_PROGRESS: { label: "In Progress", tone: "blue" },
   FILES_SUBMITTED: { label: "Review Pending", tone: "amber" },

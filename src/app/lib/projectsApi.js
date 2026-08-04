@@ -73,8 +73,16 @@ export function updateProjectStatus(id, status, note) {
   return apiFetch(`/api/projects/${id}`, { method: "PATCH", body: note ? { status, note } : { status } });
 }
 
-export function secureFunds(id) {
-  return apiFetch(`/api/projects/${id}/secure-funds`, { method: "POST" });
+// The business's real transfer proof — UTR/transaction ID + a screenshot
+// (base64 data URI, same convention as avatar/cover uploads elsewhere).
+// Does NOT itself grant FUNDS_SECURED — only moves the project to
+// PENDING_FUNDS. WorkBridge staff verifying the transfer (Admin Panel's
+// Escrow Funding tab) is what actually grants it. See EscrowFundingDrawer.jsx.
+export function fundEscrow(id, { utrReference, screenshotUrl }) {
+  return apiFetch(`/api/projects/${id}/fund-escrow`, {
+    method: "POST",
+    body: { utrReference, screenshotUrl },
+  });
 }
 
 // Business's "Approve & Release" click — only requests the release

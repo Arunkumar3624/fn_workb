@@ -1,6 +1,6 @@
 import { Suspense, lazy, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { BarChart3, Shield, AlertTriangle, ShieldAlert, UserCog, Receipt, Banknote, Landmark, Send, Zap, LogOut, Image as ImageIcon, Users, Headphones } from "lucide-react";
+import { BarChart3, Shield, AlertTriangle, ShieldAlert, UserCog, Receipt, Banknote, Landmark, ShieldCheck, Send, Zap, LogOut, Image as ImageIcon, Users, Headphones } from "lucide-react";
 import SuspenseFallback from "../components/common/SuspenseFallback";
 import { useAuth } from "../context/AuthContext";
 
@@ -14,13 +14,14 @@ const AdminVerificationsTab = lazy(() => import("../components/admin/AdminVerifi
 const AdminInvitationsTab = lazy(() => import("../components/admin/AdminInvitationsTab"));
 const AdminDisputesTab = lazy(() => import("../components/admin/AdminDisputesTab"));
 const AdminFundReleasesTab = lazy(() => import("../components/admin/AdminFundReleasesTab"));
+const AdminEscrowFundingTab = lazy(() => import("../components/admin/AdminEscrowFundingTab"));
 const AdminWithdrawalsTab = lazy(() => import("../components/admin/AdminWithdrawalsTab"));
 const AdminSecurityTab = lazy(() => import("../components/admin/AdminSecurityTab"));
 const AdminTeamTab = lazy(() => import("../components/admin/AdminTeamTab"));
 const AdminTransactionsTab = lazy(() => import("../components/admin/AdminTransactionsTab"));
 const AdminContentReviewTab = lazy(() => import("../components/admin/AdminContentReviewTab"));
 const AdminSupportTab = lazy(() => import("../components/admin/AdminSupportTab"));
-import { listVerifications, listDisputes, listPendingReleases, listPendingWithdrawals } from "../lib/adminApi";
+import { listVerifications, listDisputes, listPendingReleases, listPendingWithdrawals, listPendingEscrowFunding } from "../lib/adminApi";
 import { listThreadsForAdmin } from "../lib/supportApi";
 import { getInitials } from "../utils/formValidation";
 
@@ -31,6 +32,7 @@ const NAV = [
   { id: "invitations", label: "Invitations", icon: Send },
   { id: "content", label: "Content Review", icon: ImageIcon },
   { id: "releases", label: "Fund Releases", icon: Banknote, badgeKey: "releases" },
+  { id: "escrowFunding", label: "Escrow Funding", icon: ShieldCheck, badgeKey: "escrowFunding" },
   { id: "withdrawals", label: "Withdrawals", icon: Landmark, badgeKey: "withdrawals" },
   { id: "disputes", label: "Dispute Resolution", icon: AlertTriangle, badgeKey: "disputes" },
   { id: "support", label: "Customer Care", icon: Headphones, badgeKey: "support" },
@@ -48,6 +50,7 @@ const TAB_COMPONENTS = {
   invitations: AdminInvitationsTab,
   content: AdminContentReviewTab,
   releases: AdminFundReleasesTab,
+  escrowFunding: AdminEscrowFundingTab,
   withdrawals: AdminWithdrawalsTab,
   disputes: AdminDisputesTab,
   support: AdminSupportTab,
@@ -62,15 +65,23 @@ export default function AdminPanel({ onLogout }) {
   // Real pending counts for the nav badges — fetched once here rather than
   // duplicated inside AdminVerificationsTab/AdminDisputesTab, which fetch
   // their own full lists independently for their actual content.
-  const [badgeCounts, setBadgeCounts] = useState({ verifications: 0, disputes: 0, releases: 0, withdrawals: 0, support: 0 });
+  const [badgeCounts, setBadgeCounts] = useState({ verifications: 0, disputes: 0, releases: 0, escrowFunding: 0, withdrawals: 0, support: 0 });
 
   useEffect(() => {
-    Promise.all([listVerifications(), listDisputes(), listPendingReleases(), listPendingWithdrawals(), listThreadsForAdmin()])
-      .then(([verifications, disputes, releases, withdrawals, threads]) => {
+    Promise.all([
+      listVerifications(),
+      listDisputes(),
+      listPendingReleases(),
+      listPendingEscrowFunding(),
+      listPendingWithdrawals(),
+      listThreadsForAdmin(),
+    ])
+      .then(([verifications, disputes, releases, escrowFunding, withdrawals, threads]) => {
         setBadgeCounts({
           verifications: verifications.length,
           disputes: disputes.length,
           releases: releases.length,
+          escrowFunding: escrowFunding.length,
           withdrawals: withdrawals.length,
           support: threads.filter((t) => t.status === "OPEN").length,
         });

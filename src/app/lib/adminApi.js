@@ -47,6 +47,17 @@ export function resolveWithdrawal(id, { approved, note }) {
   return apiFetch(`/api/admin/withdrawals/${id}/resolve`, { method: "POST", body: { approved, note } });
 }
 
+// Escrow Funding — businesses' real transfer-proof submissions (UTR +
+// screenshot), waiting on staff to verify the transfer actually happened
+// before the project is granted FUNDS_SECURED.
+export function listPendingEscrowFunding() {
+  return apiFetch("/api/admin/escrow-funding");
+}
+
+export function resolveEscrowFunding(id, { approved, note }) {
+  return apiFetch(`/api/admin/escrow-funding/${id}/resolve`, { method: "POST", body: { approved, note } });
+}
+
 // Security Monitor — blocked_message_attempts is the only record of a
 // contact-info send that got hard-blocked (see backend's
 // messages.controller.js); the message itself is never stored elsewhere.

@@ -18,7 +18,9 @@ function round2(n) {
   return Math.round(n * 100) / 100;
 }
 
-const ACTIVE_STATUSES = new Set(["ACCEPTED", "FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_SUBMITTED"]);
+const ACTIVE_STATUSES = new Set(["ACCEPTED", "PENDING_FUNDS", "FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_SUBMITTED"]);
+// PENDING_FUNDS deliberately excluded — the transfer is only submitted for
+// verification at that point, not yet confirmed as real held funds.
 const FUNDS_HELD_STATUSES = new Set(["FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_SUBMITTED"]);
 const CHART_MAX_FLOOR = 1000; // avoid a div-by-zero-flavored 0-height chart on a brand-new account
 

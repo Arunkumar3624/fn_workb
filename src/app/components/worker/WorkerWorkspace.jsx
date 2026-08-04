@@ -16,7 +16,7 @@ import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { ApiError } from "../../lib/apiClient";
 import { getSocket } from "../../lib/socketClient";
 
-const ACTIVE_STATUSES = new Set(["ACCEPTED", "FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_SUBMITTED", "PENDING_RELEASE"]);
+const ACTIVE_STATUSES = new Set(["ACCEPTED", "PENDING_FUNDS", "FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_SUBMITTED", "PENDING_RELEASE"]);
 
 export default function WorkerWorkspace() {
   useDocumentTitle("Active Workspace — WorkBridge");

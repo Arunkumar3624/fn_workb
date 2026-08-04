@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { AlertCircle, ArrowLeft, Clock, Download, Loader2, Lock, ShieldCheck, Zap } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { getProject, secureFunds } from "../lib/projectsApi";
+import { getProject } from "../lib/projectsApi";
+import EscrowFundingDrawer from "../components/business/EscrowFundingDrawer";
 import { PROJECT_STATUS_META } from "../utils/projectStatus";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { trackEvent } from "../lib/analytics";
@@ -24,8 +25,7 @@ export default function InvoicePage() {
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
-  const [securing, setSecuring] = useState(false);
-  const [secureError, setSecureError] = useState("");
+  const [fundingOpen, setFundingOpen] = useState(false);
 
   useEffect(() => {
     if (!projectId) {
@@ -77,19 +77,10 @@ export default function InvoicePage() {
   const platformFee = round2(budget * (feePct / 100));
   const workerReceives = round2(budget - platformFee);
 
-  const handlePayment = async () => {
-    if (securing || project.status !== "ACCEPTED") return;
+  const handleOpenFunding = () => {
+    if (project.status !== "ACCEPTED") return;
     trackEvent("SecureFundsClicked", { amount: budget, projectId: project.id });
-    setSecuring(true);
-    setSecureError("");
-    try {
-      const result = await secureFunds(project.id);
-      setProject((prev) => ({ ...prev, ...result.project }));
-    } catch (err) {
-      setSecureError(err instanceof ApiError ? err.message : "Payment failed — try again.");
-    } finally {
-      setSecuring(false);
-    }
+    setFundingOpen(true);
   };
 
   return (
@@ -251,36 +242,25 @@ export default function InvoicePage() {
               Worker / anyone else: read-only status. ── */}
           {isBusinessViewer && project.status === "ACCEPTED" && (
             <div className="border-t border-slate-100 bg-slate-50 p-6 sm:p-10 print:hidden">
-              {secureError && (
-                <div className="mb-4 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
-                  <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                  <span>{secureError}</span>
-                </div>
-              )}
               <button
-                onClick={handlePayment}
-                disabled={securing}
-                className={`flex w-full items-center justify-center gap-2 rounded-xl py-4 text-base font-bold text-white shadow-[0_4px_14px_0_rgba(255,107,53,0.39)] transition-all duration-300 active:scale-[0.98] ${
-                  securing
-                    ? "cursor-not-allowed bg-[#FF6B35]/70"
-                    : "bg-[#FF6B35] hover:-translate-y-0.5 hover:bg-[#e55a2b] hover:shadow-xl"
-                }`}
+                onClick={handleOpenFunding}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#FF6B35] py-4 text-base font-bold text-white shadow-[0_4px_14px_0_rgba(255,107,53,0.39)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#e55a2b] hover:shadow-xl active:scale-[0.98]"
               >
-                {securing ? (
-                  <>
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    Processing…
-                  </>
-                ) : (
-                  <>
-                    Pay {formatINR(budget)} &amp; Secure Funds
-                    <Zap className="h-5 w-5" />
-                  </>
-                )}
+                Pay {formatINR(budget)} &amp; Secure Funds
+                <Zap className="h-5 w-5" />
               </button>
               <p className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-slate-400">
                 <Lock className="h-3 w-3" />
                 256-bit SSL encrypted checkout
+              </p>
+            </div>
+          )}
+
+          {isBusinessViewer && project.status === "PENDING_FUNDS" && (
+            <div className="flex items-center gap-2.5 border-t border-slate-100 bg-amber-50 p-6 sm:p-10 print:hidden">
+              <ShieldCheck className="h-5 w-5 flex-shrink-0 text-amber-600" />
+              <p className="text-sm font-semibold text-amber-800">
+                Your transfer proof has been submitted — WorkBridge staff are verifying it now.
               </p>
             </div>
           )}
@@ -358,6 +338,14 @@ export default function InvoicePage() {
           )}
         </div>
       </div>
+
+      <EscrowFundingDrawer
+        project={fundingOpen ? project : null}
+        onClose={() => setFundingOpen(false)}
+        onFunded={(updatedProject) => {
+          setProject((prev) => ({ ...prev, ...updatedProject }));
+        }}
+      />
     </div>
   );
 }

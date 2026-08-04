@@ -5,6 +5,7 @@
 export const PROJECT_STATUS_FLOW = [
   "INVITED",
   "ACCEPTED",
+  "PENDING_FUNDS",
   "FUNDS_SECURED",
   "WORK_IN_PROGRESS",
   "FILES_SUBMITTED",
@@ -43,6 +44,19 @@ export const PROJECT_STATUS_META = {
     triggeredBy: "worker",
     actionBy: "business",
     nextActionLabel: "Secure Funds",
+  },
+  // The business already submitted transfer proof (UTR + screenshot) — see
+  // EscrowFundingDrawer.jsx / fundEscrow in projects.controller.js. Nothing
+  // further for either party to click; WorkBridge staff verify the
+  // transfer from the Admin Panel's Escrow Funding tab, same shape as
+  // PENDING_RELEASE below.
+  PENDING_FUNDS: {
+    label: "Escrow Verification Pending",
+    shortLabel: "Verifying Funds",
+    tone: "amber",
+    triggeredBy: "business",
+    actionBy: "admin",
+    nextActionLabel: null,
   },
   FUNDS_SECURED: {
     label: "Funds Secured",
