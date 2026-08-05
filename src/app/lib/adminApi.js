@@ -15,6 +15,13 @@ export function listAllUsers() {
   return apiFetch("/api/admin/users");
 }
 
+// Real, audited "log in as this user" — writes a platform_logs row
+// server-side before issuing a short-lived (30min) elevated token. See
+// AuthContext.jsx's startImpersonation for how the session actually swaps.
+export function impersonateUser(targetUserId) {
+  return apiFetch("/api/admin/impersonate", { method: "POST", body: { targetUserId } });
+}
+
 export function reviewVerification(id, approved) {
   return apiFetch(`/api/admin/verify/${id}`, { method: "PATCH", body: { approved } });
 }

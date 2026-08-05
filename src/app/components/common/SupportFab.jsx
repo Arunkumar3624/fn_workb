@@ -6,9 +6,20 @@ import { useAuth } from "../../context/AuthContext";
 // bubble) — one click straight to the caller's real support thread
 // (SupportChat.jsx, backed by support_threads/support_messages), not a
 // decorative link. Hidden for admins (they ARE the support team, reached
-// via AdminSupportTab instead) and during the business verification
-// wizard (a focused flow that shouldn't be interrupted mid-step).
-const HIDDEN_PATH_PREFIXES = ["/verify"];
+// via AdminSupportTab instead), during the business verification wizard (a
+// focused flow that shouldn't be interrupted mid-step), and on the public
+// marketing pages — a still-logged-in user can land back on any of these
+// (e.g. clicking the logo), and a "get help" bubble floating over the
+// marketing site looks out of place next to its own CTAs.
+const HIDDEN_PATH_PREFIXES = [
+  "/verify",
+  "/find-work",
+  "/hire-talent",
+  "/enterprise",
+  "/privacy",
+  "/terms",
+  "/auth",
+];
 
 export default function SupportFab() {
   const { currentUser } = useAuth();
@@ -16,6 +27,7 @@ export default function SupportFab() {
   const navigate = useNavigate();
 
   if (!currentUser || currentUser.role === "admin") return null;
+  if (location.pathname === "/") return null;
   if (HIDDEN_PATH_PREFIXES.some((prefix) => location.pathname.startsWith(prefix))) return null;
 
   // Support now lives inside Settings (its own tab), not as a top-level

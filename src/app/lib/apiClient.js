@@ -20,6 +20,32 @@ export function setToken(token) {
   }
 }
 
+// Stashes the real admin's own token+user while POST /api/admin/impersonate
+// swaps the active session to a target user (AuthContext.jsx's
+// startImpersonation/endImpersonation) — a separate key from TOKEN_KEY so
+// "End Session" can restore the admin's session directly without a fresh
+// login. Its mere presence is also how the rest of the app knows an
+// impersonation is currently active (see ImpersonationBanner.jsx).
+const IMPERSONATOR_STASH_KEY = "workbridge_impersonator_stash";
+
+export function getImpersonatorStash() {
+  const raw = localStorage.getItem(IMPERSONATOR_STASH_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+export function setImpersonatorStash(stash) {
+  if (stash) {
+    localStorage.setItem(IMPERSONATOR_STASH_KEY, JSON.stringify(stash));
+  } else {
+    localStorage.removeItem(IMPERSONATOR_STASH_KEY);
+  }
+}
+
 export class ApiError extends Error {
   constructor(status, message) {
     super(message);

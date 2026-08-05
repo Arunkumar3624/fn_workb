@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { apiFetch, getToken, setToken } from "../lib/apiClient";
+import { apiFetch, getToken, setToken, getImpersonatorStash, setImpersonatorStash } from "../lib/apiClient";
 import { connectSocket, disconnectSocket } from "../lib/socketClient";
 
 const AuthContext = createContext(null);
@@ -17,6 +17,10 @@ const STALE_DEV_BYPASS_USER_KEY = "workbridge_dev_bypass_user";
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [status, setStatus] = useState("loading");
+  // Mirrors whether an admin-impersonation stash exists (see
+  // startImpersonation/endImpersonation below) — survives a page refresh
+  // mid-impersonation since it's read from the same localStorage key.
+  const [isImpersonating, setIsImpersonating] = useState(() => Boolean(getImpersonatorStash()));
 
   useEffect(() => {
     localStorage.removeItem(STALE_DEV_BYPASS_USER_KEY);
@@ -51,8 +55,37 @@ export function AuthProvider({ children }) {
   const logout = () => {
     disconnectSocket();
     setToken(null);
+    setImpersonatorStash(null);
+    setIsImpersonating(false);
     setCurrentUser(null);
     setStatus("guest");
+  };
+
+  // Called right after POST /api/admin/impersonate succeeds — stashes the
+  // real admin's own session (so "End Session" can restore it with no
+  // re-login) and swaps the active session to the target user's short-lived
+  // token. adminUser/adminToken are the CALLER's own session, captured
+  // before this swap — never derived from anything the impersonated
+  // session could influence.
+  const startImpersonation = (impersonationToken, targetUser, adminToken, adminUser) => {
+    setImpersonatorStash({ token: adminToken, user: adminUser });
+    setIsImpersonating(true);
+    authenticate(impersonationToken, targetUser);
+  };
+
+  // Restores the stashed admin session directly — no API call, no
+  // re-login. Returns the restored admin user so the caller (
+  // ImpersonationBanner.jsx) can navigate back to /admin.
+  const endImpersonation = () => {
+    const stash = getImpersonatorStash();
+    setImpersonatorStash(null);
+    setIsImpersonating(false);
+    if (stash) {
+      authenticate(stash.token, stash.user);
+      return stash.user;
+    }
+    logout();
+    return null;
   };
 
   // Called with the fresh row returned by PATCH /api/profiles/me so an
@@ -63,8 +96,8 @@ export function AuthProvider({ children }) {
   };
 
   const value = useMemo(
-    () => ({ currentUser, status, authenticate, logout, updateCurrentUser }),
-    [currentUser, status]
+    () => ({ currentUser, status, authenticate, logout, updateCurrentUser, isImpersonating, startImpersonation, endImpersonation }),
+    [currentUser, status, isImpersonating]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

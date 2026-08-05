@@ -8,6 +8,7 @@ import { PageShell } from "./components/common/PageShell";
 import LandingPage from "./pages/LandingPage";
 import CelebrationOverlay from "./components/common/CelebrationOverlay";
 import SupportFab from "./components/common/SupportFab";
+import ImpersonationBanner from "./components/common/ImpersonationBanner";
 import SuspenseFallback from "./components/common/SuspenseFallback";
 import { Toaster } from "./components/ui/sonner";
 import { AuthProvider, useAuth } from "./context/AuthContext";
@@ -290,6 +291,7 @@ function AppRoutes() {
         onClose={() => setShowVerifiedCelebration(false)}
       />
     )}
+    <ImpersonationBanner />
     <SupportFab />
     <Toaster position="top-right" richColors />
     </>

@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { AlertCircle, CheckCircle2, XCircle } from "lucide-react";
-import { listAllUsers } from "../../lib/adminApi";
+import { useNavigate } from "react-router-dom";
+import { AlertCircle, CheckCircle2, Eye, Loader2, XCircle } from "lucide-react";
+import { listAllUsers, impersonateUser } from "../../lib/adminApi";
 import { getInitials } from "../../utils/formValidation";
-import { ApiError } from "../../lib/apiClient";
+import { ApiError, getToken } from "../../lib/apiClient";
+import { useAuth } from "../../context/AuthContext";
 
 function RoleBadge({ role }) {
   if (role === "business") {
@@ -30,6 +32,10 @@ export default function AdminUsersTab() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [filter, setFilter] = useState("All");
+  const [impersonatingId, setImpersonatingId] = useState(null);
+  const [impersonateError, setImpersonateError] = useState("");
+  const { currentUser, startImpersonation } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     listAllUsers()
@@ -37,6 +43,25 @@ export default function AdminUsersTab() {
       .catch((err) => setLoadError(err instanceof ApiError ? err.message : "Could not load the user directory."))
       .finally(() => setLoading(false));
   }, []);
+
+  // Real, audited "log in as this user" (see admin.controller.js's
+  // impersonateUser) — captures the admin's OWN current token/user before
+  // the swap, so "End Session" in ImpersonationBanner.jsx can restore it
+  // with no re-login.
+  const handleImpersonate = async (target) => {
+    if (impersonatingId) return;
+    setImpersonatingId(target.id);
+    setImpersonateError("");
+    try {
+      const adminToken = getToken();
+      const { token, user } = await impersonateUser(target.id);
+      startImpersonation(token, user, adminToken, currentUser);
+      navigate(target.role === "worker" ? "/worker" : "/business-dashboard");
+    } catch (err) {
+      setImpersonateError(err instanceof ApiError ? err.message : "Could not start impersonation.");
+      setImpersonatingId(null);
+    }
+  };
 
   const filtered = users.filter((item) => {
     if (filter === "All") return true;
@@ -67,6 +92,13 @@ export default function AdminUsersTab() {
         </div>
       </div>
 
+      {impersonateError && (
+        <div className="mb-4 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+          <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+          <span>{impersonateError}</span>
+        </div>
+      )}
+
       {loading ? (
         <div className="flex justify-center py-16">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[#FF6B35]" />
@@ -86,7 +118,7 @@ export default function AdminUsersTab() {
             <table className="w-full">
               <thead>
                 <tr className="bg-white/40 border-b border-slate-200">
-                  {["Name", "Email", "Phone", "Role", "Email Verified", "ID Verified", "Joined"].map((h) => (
+                  {["Name", "Email", "Phone", "Role", "Email Verified", "ID Verified", "Joined", ""].map((h) => (
                     <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">{h}</th>
                   ))}
                 </tr>
@@ -113,6 +145,24 @@ export default function AdminUsersTab() {
                     </td>
                     <td className="px-5 py-4 text-sm text-slate-500">
                       {new Date(item.created_at).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}
+                    </td>
+                    <td className="px-5 py-4 text-right">
+                      {item.role !== "admin" && (
+                        <button
+                          type="button"
+                          onClick={() => handleImpersonate(item)}
+                          disabled={Boolean(impersonatingId)}
+                          title={`Impersonate ${item.name} — logged and audited`}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {impersonatingId === item.id ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <Eye className="h-3.5 w-3.5" />
+                          )}
+                          Impersonate
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
