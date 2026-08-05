@@ -261,7 +261,13 @@ export default function BusinessNegotiationHub({ onFindTalent, onViewContractTer
     listProjects({ role: "business" })
       .then((data) => {
         if (cancelled) return;
-        const activeThreads = data.filter((p) => ACTIVE_THREAD_STATUSES.has(p.status));
+        // A CANCELLED project that never had a worker assigned (an OPEN job
+        // post withdrawn via handleWithdrawPost in BusinessProjects.jsx,
+        // before anyone was ever invited/accepted) isn't a negotiation with
+        // anyone — there's no counterparty to show a thread for. Every
+        // other CANCELLED case did have a worker at some point, so this
+        // only excludes that one specific "withdrawn while still open" path.
+        const activeThreads = data.filter((p) => ACTIVE_THREAD_STATUSES.has(p.status) && p.worker_id);
         setProjects(activeThreads);
         setSelectedThreadId((current) => current ?? initialProjectId ?? activeThreads[0]?.id ?? null);
       })
