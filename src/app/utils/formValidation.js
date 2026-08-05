@@ -12,9 +12,11 @@ export function formatINR(value) {
 
 // Real profiles have no stored avatar initials (unlike the old mock `av`
 // field) — derived client-side from the display name wherever an avatar
-// image isn't set.
-export function getInitials(name = "") {
-  return name.split(" ").filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join("") || "?";
+// image isn't set. The `= ""` default only covers a missing argument, not
+// an explicit `null` (e.g. an unassigned project's worker_name from a LEFT
+// JOIN) — `|| ""` catches that too, where a plain default param can't.
+export function getInitials(name) {
+  return (name || "").split(" ").filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join("") || "?";
 }
 
 export const cleanText = z
