@@ -273,12 +273,12 @@ function SecurityTab() {
 // the browser level — only fixable from the browser's own site settings),
 // "subscribed", "unsubscribed", or "checking" while getPushStatus resolves.
 const PUSH_STATUS_COPY = {
-  checking: { label: "Checking…", tone: "text-slate-400" },
-  unsupported: { label: "Not supported on this browser", tone: "text-slate-400" },
-  "not-configured": { label: "Not available yet", tone: "text-slate-400" },
-  denied: { label: "Blocked — enable in your browser's site settings", tone: "text-red-500" },
-  subscribed: { label: "Enabled on this device", tone: "text-emerald-600" },
-  unsubscribed: { label: "Off on this device", tone: "text-slate-400" },
+  checking: { label: "Checking…", dot: "bg-slate-300", tone: "text-slate-400 bg-slate-50 border-slate-200" },
+  unsupported: { label: "Not supported on this browser", dot: "bg-slate-300", tone: "text-slate-400 bg-slate-50 border-slate-200" },
+  "not-configured": { label: "Not available yet", dot: "bg-slate-300", tone: "text-slate-400 bg-slate-50 border-slate-200" },
+  denied: { label: "Blocked in browser settings", dot: "bg-red-500", tone: "text-red-600 bg-red-50 border-red-100" },
+  subscribed: { label: "Enabled on this device", dot: "bg-emerald-500", tone: "text-emerald-600 bg-emerald-50 border-emerald-100" },
+  unsubscribed: { label: "Off on this device", dot: "bg-slate-300", tone: "text-slate-500 bg-slate-50 border-slate-200" },
 };
 
 function NotificationsTab() {
@@ -316,23 +316,29 @@ function NotificationsTab() {
   };
 
   const canToggle = status === "subscribed" || status === "unsubscribed";
+  const isOn = status === "subscribed";
   const copy = PUSH_STATUS_COPY[status] ?? PUSH_STATUS_COPY.checking;
 
   return (
     <div className="space-y-6">
       <SectionCard>
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-[#F4F6FF] text-[#1B3FAB]">
+        <div className="flex items-start justify-between gap-5">
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-50 to-amber-50 text-[#FF6B35] ring-1 ring-orange-100">
               <Bell className="h-5 w-5" />
             </div>
             <div>
               <h3 className="text-sm font-bold text-[#0A1128]">Push Notifications</h3>
-              <p className="mt-1 max-w-md text-sm text-slate-500">
+              <p className="mt-1 max-w-md text-sm leading-6 text-slate-500">
                 Get a real notification on this device for new messages, invites, applications, and project updates —
                 even when WorkBridge isn't open in a tab.
               </p>
-              <p className={`mt-2 text-xs font-semibold ${copy.tone}`}>{copy.label}</p>
+              <span
+                className={`mt-3 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-bold ${copy.tone}`}
+              >
+                <span className={`h-1.5 w-1.5 rounded-full ${copy.dot} ${status === "subscribed" ? "animate-pulse" : ""}`} />
+                {copy.label}
+              </span>
               {error && <p className="mt-2 text-xs font-semibold text-red-500">{error}</p>}
             </div>
           </div>
@@ -341,16 +347,23 @@ function NotificationsTab() {
               onClick={handleToggle}
               disabled={busy}
               role="switch"
-              aria-checked={status === "subscribed"}
-              className={`relative h-7 w-12 flex-shrink-0 rounded-full transition-colors disabled:opacity-60 ${
-                status === "subscribed" ? "bg-[#FF6B35]" : "bg-slate-200"
+              aria-checked={isOn}
+              aria-label="Toggle push notifications"
+              className={`relative h-8 w-14 flex-shrink-0 rounded-full shadow-inner transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${
+                isOn ? "bg-[#FF6B35]" : "bg-slate-200"
               }`}
             >
               <span
-                className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
-                  status === "subscribed" ? "translate-x-6" : "translate-x-1"
+                className={`absolute top-1 flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-md transition-transform duration-200 ${
+                  isOn ? "translate-x-6" : "translate-x-1"
                 }`}
-              />
+              >
+                {busy ? (
+                  <Loader2 className="h-3 w-3 animate-spin text-slate-400" />
+                ) : (
+                  <Bell className={`h-3 w-3 ${isOn ? "text-[#FF6B35]" : "text-slate-300"}`} />
+                )}
+              </span>
             </button>
           )}
         </div>
