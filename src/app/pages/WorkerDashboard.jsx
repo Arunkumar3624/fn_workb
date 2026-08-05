@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Coins, Flame, Sparkles } from "lucide-react";
+import { Coins, Flame, Sparkles, TrendingUp } from "lucide-react";
 import DashboardLayout from "../components/common/DashboardLayout";
 import WorkerSidebar from "../components/worker/WorkerSidebar";
 import WorkerJobFeed from "../components/worker/WorkerJobFeed";
@@ -13,6 +13,7 @@ import WorkerProfile from "../components/worker/WorkerProfile";
 import SettingsPage from "./SettingsPage";
 import { useAuth } from "../context/AuthContext";
 import { getWallet } from "../lib/walletApi";
+import { getMyCandidateStats } from "../lib/candidatesApi";
 import { getInitials } from "../utils/formValidation";
 import { getSocket } from "../lib/socketClient";
 
@@ -22,6 +23,7 @@ export default function WorkerDashboard({ onLogout }) {
   const [searchParams] = useSearchParams();
   const { currentUser } = useAuth();
   const [walletBalance, setWalletBalance] = useState(0);
+  const [hustleStats, setHustleStats] = useState(null);
 
   // Tab is driven entirely by the URL (/worker or /worker/:tab) so deep
   // links — like a "Job Invite" notification — can land directly on a tab.
@@ -36,6 +38,14 @@ export default function WorkerDashboard({ onLogout }) {
   useEffect(() => {
     getWallet()
       .then((wallet) => setWalletBalance(Number(wallet.balance)))
+      .catch(() => {});
+  }, []);
+
+  // The Hustle Stats card — real job_candidates counts (source='APPLICATION'
+  // only), not a fabricated "momentum" number.
+  useEffect(() => {
+    getMyCandidateStats()
+      .then(setHustleStats)
       .catch(() => {});
   }, []);
 
@@ -78,6 +88,24 @@ export default function WorkerDashboard({ onLogout }) {
             </div>
 
             <div className="flex items-center gap-3">
+              {/* The Hustle Stats card — real job_candidates counts, not a
+                  fabricated "momentum" number. Glassmorphism to match the
+                  HUD pill beside it, but on a light frosted panel since it
+                  sits over the same bg-white/90 header either way. */}
+              {hustleStats && (
+                <div className="hidden items-center gap-2.5 rounded-2xl border border-white/60 bg-white/50 px-4 py-2 shadow-sm backdrop-blur-md lg:flex">
+                  <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-orange-50 text-[#FF6B35]">
+                    <TrendingUp className="h-4 w-4" />
+                  </span>
+                  <div className="leading-tight">
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Momentum</p>
+                    <p className="text-sm font-bold text-slate-900">
+                      {hustleStats.thisWeek} this week
+                      <span className="font-normal text-slate-400"> · {hustleStats.thisMonth} this month</span>
+                    </p>
+                  </div>
+                </div>
+              )}
               {/* MASTER_ECONOMY_PLAN.md's Dashboard HUD. This header is
                   bg-white/90 (light), so a literal bg-white/10 glass pill
                   from the design brief would be invisible — using a navy

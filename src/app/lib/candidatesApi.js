@@ -32,6 +32,18 @@ export function listMyCandidates() {
   return apiFetch("/api/candidates/mine");
 }
 
+// The Hustle Stats card — real counts of applications this worker has
+// submitted this week/month (source='APPLICATION' only, invites excluded).
+export function getMyCandidateStats() {
+  return apiFetch("/api/candidates/stats");
+}
+
+// BusinessWorkers.jsx's "Invited" badge — worker ids with an outstanding
+// PENDING invite from this business, across all their own OPEN posts.
+export function getPendingInvitedWorkerIds() {
+  return apiFetch("/api/candidates/pending-invited-workers");
+}
+
 export function respondToCandidate(candidateId, accept) {
   return apiFetch(`/api/candidates/${candidateId}`, {
     method: "PATCH",

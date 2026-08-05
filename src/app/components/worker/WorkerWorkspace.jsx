@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 import { toast } from "sonner";
 import { AlertCircle, Briefcase, History, Loader2, MessageSquare, Send } from "lucide-react";
 import CelebrationOverlay from "../common/CelebrationOverlay";
+import { MILESTONES } from "./WorkerMilestones";
 import TimelineTracker from "../shared/TimelineTracker";
 import ProjectCompletionHub from "../shared/ProjectCompletionHub";
 import DeliverablesPanel from "../shared/DeliverablesPanel";
@@ -36,10 +37,17 @@ export default function WorkerWorkspace() {
 
   const dismissCelebration = () => {
     if (pendingLevelUp) {
+      // If this level exactly matches one of the Badges page's milestones,
+      // name the actual badge instead of a generic "Rank Up" — same real
+      // currentLevel this modal already gets, just a richer message when
+      // it lines up with MILESTONES (WorkerMilestones.jsx's own list).
+      const badge = MILESTONES.find((m) => m.level === pendingLevelUp);
       setCelebration({
         variant: "milestone",
-        title: `Rank Up! You've reached Level ${pendingLevelUp}!`,
-        message: "Keep completing projects on time to climb the next tier.",
+        title: badge ? `Badge Unlocked: ${badge.name}!` : `Rank Up! You've reached Level ${pendingLevelUp}!`,
+        message: badge
+          ? `${badge.reward} — see it on your Badges page.`
+          : "Keep completing projects on time to climb the next tier.",
       });
       setPendingLevelUp(null);
     } else {

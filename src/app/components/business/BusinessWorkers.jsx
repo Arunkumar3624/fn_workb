@@ -17,7 +17,7 @@ import WorkerShareableProfile from "../worker/WorkerShareableProfile";
 import { listWorkers } from "../../lib/profilesApi";
 import { listProjects, createProject } from "../../lib/projectsApi";
 import { submitLink } from "../../lib/submissionsApi";
-import { inviteWorkerToProject } from "../../lib/candidatesApi";
+import { getPendingInvitedWorkerIds, inviteWorkerToProject } from "../../lib/candidatesApi";
 import { getInitials } from "../../utils/formValidation";
 import { ApiError } from "../../lib/apiClient";
 
@@ -247,8 +247,8 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([listWorkers(), listProjects({ role: "business" })])
-      .then(([workerRows, projects]) => {
+    Promise.all([listWorkers(), listProjects({ role: "business" }), getPendingInvitedWorkerIds()])
+      .then(([workerRows, projects, pendingInvitedIds]) => {
         if (cancelled) return;
         setWorkers(workerRows);
         // "Invited" here means "you already have something active going with
@@ -256,9 +256,18 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
         // invite) — CANCELLED *and* COMPLETED must both be excluded, or a
         // worker who finished a job with this business months ago would
         // show as permanently "Invited" and could never be invited to a new
-        // job through this button again.
+        // job through this button again. Assigned-project invites
+        // (worker_id already set) are only half the picture, though — an
+        // invite to one of this business's own still-OPEN posts never sets
+        // worker_id until accepted, so without pendingInvitedIds those stay
+        // invisible here and a second invite attempt would 409 with no
+        // warning (see job_candidates.repository.js's
+        // listPendingInvitedWorkerIdsForBusiness).
         setInvitedWorkerIds(
-          new Set(projects.filter((p) => p.status !== "CANCELLED" && p.status !== "COMPLETED").map((p) => p.worker_id))
+          new Set([
+            ...projects.filter((p) => p.status !== "CANCELLED" && p.status !== "COMPLETED").map((p) => p.worker_id),
+            ...pendingInvitedIds,
+          ])
         );
         setOpenJobs(projects.filter((p) => p.status === "OPEN"));
       })
@@ -354,6 +363,7 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
     setInviteError("");
     try {
       await inviteWorkerToProject(projectId, inviteTarget.id, message.trim() || undefined);
+      setInvitedWorkerIds((prev) => new Set(prev).add(inviteTarget.id));
       setToast(`Invite sent to ${inviteTarget.name}.`);
       window.setTimeout(() => setToast(""), 2600);
       setInviteTarget(null);

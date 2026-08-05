@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
-import { AlertCircle, Coins, Gift, Loader2, Receipt, ShieldCheck, TrendingUp, Zap } from "lucide-react";
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { AlertCircle, Coins, Gift, Loader2, Receipt, ShieldCheck, ShoppingBag, TrendingUp, Zap } from "lucide-react";
 import { getLedger } from "../../lib/gamificationApi";
+import { getPerkPurchases } from "../../lib/perksApi";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { ApiError } from "../../lib/apiClient";
 
@@ -57,6 +59,28 @@ function useCountUp(target, duration = 900) {
   return value;
 }
 
+// The Ledger Trend Chart's data — net Bridge Token flow per day over the
+// last 7 days, built from the same merged activity array the list below
+// renders (earn events' token_delta minus spend purchases' token_cost), not
+// a separate fetch. Days with zero activity are real zeros, not omitted —
+// an empty day is honest information, not a gap to hide.
+function buildTrend(activity) {
+  const days = [];
+  const now = new Date();
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    days.push({ key: d.toDateString(), day: d.toLocaleDateString("en-US", { weekday: "short" }), net: 0 });
+  }
+  const byKey = new Map(days.map((d) => [d.key, d]));
+  for (const row of activity) {
+    const bucket = byKey.get(new Date(row.created_at).toDateString());
+    if (!bucket) continue;
+    bucket.net += row.kind === "spend" ? -row.purchase.token_cost : row.event.token_delta;
+  }
+  return days;
+}
+
 function timeAgo(dateString) {
   const ms = Date.now() - new Date(dateString).getTime();
   const hours = Math.floor(ms / (60 * 60 * 1000));
@@ -69,14 +93,17 @@ function timeAgo(dateString) {
 export default function WorkerLedger({ embedded = false }) {
   useDocumentTitle("Ledger — WorkBridge");
   const [ledger, setLedger] = useState(null);
+  const [purchases, setPurchases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
-    getLedger()
-      .then((data) => {
-        if (!cancelled) setLedger(data);
+    Promise.all([getLedger(), getPerkPurchases()])
+      .then(([ledgerData, purchaseData]) => {
+        if (cancelled) return;
+        setLedger(ledgerData);
+        setPurchases(purchaseData);
       })
       .catch((err) => {
         if (!cancelled) setLoadError(err instanceof ApiError ? err.message : "Could not load your ledger.");
@@ -118,6 +145,19 @@ export default function WorkerLedger({ embedded = false }) {
     .filter((e) => Date.now() - new Date(e.created_at).getTime() < 7 * 24 * 60 * 60 * 1000)
     .reduce((sum, e) => sum + e.token_delta, 0);
 
+  // One real, unified history — every earn event (ledger_events) and every
+  // shop purchase (perk_purchases), merged and sorted by when it actually
+  // happened. Previously purchases only ever showed inside the shop itself
+  // (its own "Recent Purchases" strip) — a worker had no single place to
+  // see "what I earned AND what I spent it on," which is what an actual
+  // ledger/history is for.
+  const activity = [
+    ...ledger.events.map((e) => ({ id: `earn-${e.id}`, kind: "earn", created_at: e.created_at, event: e })),
+    ...purchases.map((p) => ({ id: `spend-${p.id}`, kind: "spend", created_at: p.created_at, purchase: p })),
+  ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+  const trend = buildTrend(activity);
+
   return (
     <div className={embedded ? "" : "mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10"}>
       <div className="mb-6">
@@ -127,9 +167,39 @@ export default function WorkerLedger({ embedded = false }) {
           </h1>
         )}
         <p className={embedded ? "text-sm text-slate-500" : "mt-1 text-sm text-slate-500"}>
-          Your real Bridge Token balance and earn history.
+          Your real Bridge Token balance, earn history, and shop purchases — all in one place.
         </p>
       </div>
+
+      {activity.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="mb-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+        >
+          <p className="mb-1 text-sm font-bold text-[#0A1128]">7-Day Token Trend</p>
+          <p className="mb-3 text-xs text-slate-400">Net Bridge Tokens earned minus spent, per day.</p>
+          <ResponsiveContainer width="100%" height={160}>
+            <AreaChart data={trend} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+              <defs>
+                <linearGradient id="ledgerTrendGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#FF6B35" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#FF6B35" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+              <XAxis dataKey="day" tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} width={32} />
+              <Tooltip
+                formatter={(value) => [`${value >= 0 ? "+" : ""}${value} 🪙`, "Net"]}
+                contentStyle={{ borderRadius: 12, border: "1px solid #f1f5f9", fontSize: 12 }}
+              />
+              <Area type="monotone" dataKey="net" stroke="#FF6B35" strokeWidth={2} fill="url(#ledgerTrendGradient)" name="Net Tokens" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </motion.div>
+      )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <motion.div
@@ -173,7 +243,7 @@ export default function WorkerLedger({ embedded = false }) {
 
       <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6">
         <p className="mb-4 text-sm font-bold text-[#0A1128]">Recent Activity</p>
-        {ledger.events.length === 0 ? (
+        {activity.length === 0 ? (
           <div className="flex flex-col items-center gap-2 py-10 text-center">
             <Receipt className="h-6 w-6 text-slate-300" />
             <p className="text-sm font-semibold text-slate-400">
@@ -182,12 +252,39 @@ export default function WorkerLedger({ embedded = false }) {
           </div>
         ) : (
           <div className="divide-y divide-slate-100">
-            {ledger.events.map((event, index) => {
+            {activity.map((row, index) => {
+              if (row.kind === "spend") {
+                const p = row.purchase;
+                return (
+                  <motion.div
+                    key={row.id}
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.25, delay: Math.min(index * 0.03, 0.3) }}
+                    className="flex items-center justify-between gap-4 py-3 transition-colors hover:bg-slate-50"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-rose-50 text-rose-600">
+                        <ShoppingBag className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-[#0A1128]">{p.label}</p>
+                        <p className="text-xs text-slate-400">Token Shop purchase · {timeAgo(p.created_at)}</p>
+                      </div>
+                    </div>
+                    <div className="flex flex-shrink-0 items-center gap-3 text-sm font-bold">
+                      <span className="text-rose-600">−{p.token_cost} 🪙</span>
+                    </div>
+                  </motion.div>
+                );
+              }
+
+              const event = row.event;
               const meta = getEventMeta(event.event_type);
               const Icon = meta.icon;
               return (
                 <motion.div
-                  key={event.id}
+                  key={row.id}
                   initial={{ opacity: 0, x: -8 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.25, delay: Math.min(index * 0.03, 0.3) }}
