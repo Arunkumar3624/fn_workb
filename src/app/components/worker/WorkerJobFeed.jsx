@@ -101,19 +101,19 @@ function JobDetailModal({ job, onClose, onApply, applying, applyError, alreadyAp
         <div className="wb-scroll-clean min-h-0 flex-1 overflow-y-auto px-6 py-5">
           <div className="grid grid-cols-4 gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-center">
             <div>
-              <p className="text-xs text-slate-500">Budget</p>
+              <p className="text-xs font-semibold text-slate-600">Budget</p>
               <p className="mt-1 text-sm font-black text-slate-900">{formatINR(job.budget)}</p>
             </div>
             <div className="border-x border-slate-200">
-              <p className="text-xs text-slate-500">Applicants</p>
+              <p className="text-xs font-semibold text-slate-600">Applicants</p>
               <p className="mt-1 text-sm font-black text-slate-900">{job.applicant_count ?? 0}</p>
             </div>
             <div className="border-r border-slate-200">
-              <p className="text-xs text-slate-500">Posted</p>
+              <p className="text-xs font-semibold text-slate-600">Posted</p>
               <p className="mt-1 text-sm font-black text-slate-900">{timeAgo(job.created_at)}</p>
             </div>
             <div>
-              <p className="text-xs text-slate-500">Deadline</p>
+              <p className="text-xs font-semibold text-slate-600">Deadline</p>
               <p className="mt-1 text-sm font-black text-slate-900">
                 {job.deadline ? new Date(job.deadline).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "Flexible"}
               </p>
@@ -151,7 +151,7 @@ function JobDetailModal({ job, onClose, onApply, applying, applyError, alreadyAp
           )}
 
           <h3 className="mt-6 text-sm font-bold text-slate-900">Brief</h3>
-          <p className="mt-2 whitespace-pre-line text-sm leading-7 text-slate-600">
+          <p className="mt-2 whitespace-pre-line text-[15px] leading-7 text-slate-700">
             {job.description || "No further details were added to this post."}
           </p>
 

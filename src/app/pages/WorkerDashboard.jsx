@@ -25,8 +25,12 @@ export default function WorkerDashboard({ onLogout }) {
 
   // Tab is driven entirely by the URL (/worker or /worker/:tab) so deep
   // links — like a "Job Invite" notification — can land directly on a tab.
-  const tab = urlTab ?? "workspace";
-  const setTab = (id) => navigate(id === "workspace" ? "/worker" : `/worker/${id}`);
+  // "feed" (Job Feed) is the bare-/worker default, not "workspace" — a
+  // worker's landing page should be where new jobs are, not their current
+  // work, matching how BusinessDashboard's default is "overview" rather
+  // than an active-projects list.
+  const tab = urlTab ?? "feed";
+  const setTab = (id) => navigate(id === "feed" ? "/worker" : `/worker/${id}`);
   const projectIdFromUrl = searchParams.get("invite");
 
   useEffect(() => {

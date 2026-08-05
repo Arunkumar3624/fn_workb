@@ -463,8 +463,8 @@ function RequestRevisionModal({ project, note, onNoteChange, isSubmitting, submi
                 )}
               </div>
 
-              <p className="mb-3 text-xs leading-relaxed text-slate-500" style={DATA_FONT}>
-                This sends the project back to <span className="font-semibold text-slate-700">In Progress</span> so{" "}
+              <p className="mb-3 text-[13px] leading-relaxed text-slate-700" style={DATA_FONT}>
+                This sends the project back to <span className="font-semibold text-slate-900">In Progress</span> so{" "}
                 {project.worker_name} can upload a new file. Let them know what to fix.
               </p>
 
@@ -564,7 +564,7 @@ function DisputeConfirmModal({ project, isSubmitting, submitError, onClose, onCo
                 )}
               </div>
 
-              <p className="mb-5 text-xs leading-relaxed text-slate-500" style={DATA_FONT}>
+              <p className="mb-5 text-[13px] leading-relaxed text-slate-700" style={DATA_FONT}>
                 This pauses the project and hands it to WorkBridge for review — funds stay held until
                 an admin resolves the dispute. Use this only when a revision request isn't enough.
               </p>
@@ -664,7 +664,7 @@ function CancelRefundConfirmModal({ project, isSubmitting, submitError, onClose,
                 </div>
               </div>
 
-              <p className="mb-5 text-xs leading-relaxed text-slate-500" style={DATA_FONT}>
+              <p className="mb-5 text-[13px] leading-relaxed text-slate-700" style={DATA_FONT}>
                 {project.worker_name} never delivered by the deadline — this cancels the project and
                 refunds the full amount back to you immediately. This can't be undone; if the worker
                 actually did submit work, use Raise Dispute instead so WorkBridge can review it.

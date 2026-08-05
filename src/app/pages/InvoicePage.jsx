@@ -125,7 +125,7 @@ export default function InvoicePage() {
           </div>
 
           {/* ── Header ─────────────────────────────────────────────────── */}
-          <div className="flex flex-col gap-4 border-b border-slate-100 p-6 sm:flex-row sm:items-start sm:justify-between sm:p-10">
+          <div className="flex flex-col gap-4 border-b border-slate-100 p-6 sm:flex-row sm:items-start sm:justify-between sm:p-10 print:flex-row print:items-start print:justify-between">
             <div className="flex items-center gap-2.5">
               <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-[#FF6B35]">
                 <Zap className="h-4 w-4 text-white" />
@@ -137,8 +137,8 @@ export default function InvoicePage() {
                 WorkBridge
               </span>
             </div>
-            <div className="text-left sm:text-right">
-              <div className="flex items-center gap-2 sm:justify-end">
+            <div className="text-left sm:text-right print:text-right">
+              <div className="flex items-center gap-2 sm:justify-end print:justify-end">
                 <p className="font-serif text-3xl font-bold tracking-tight text-[#0F172A]">Invoice</p>
                 <span
                   className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest ${
@@ -160,13 +160,13 @@ export default function InvoicePage() {
           </div>
 
           {/* ── Participant identity ──────────────────────────────────── */}
-          <div className="grid grid-cols-1 gap-6 border-b border-slate-100 p-6 sm:grid-cols-2 sm:p-10">
+          <div className="grid grid-cols-1 gap-6 border-b border-slate-100 p-6 sm:grid-cols-2 sm:p-10 print:grid-cols-2">
             <div>
               <p className="mb-2 text-xs font-bold uppercase tracking-widest text-slate-400">Bill To</p>
               <p className="font-serif text-lg font-bold tracking-tight text-[#0F172A]">{project.business_name}</p>
               <p className="mt-1 text-sm text-slate-500">Project: {project.title}</p>
             </div>
-            <div className="sm:text-right">
+            <div className="sm:text-right print:text-right">
               <p className="mb-2 text-xs font-bold uppercase tracking-widest text-slate-400">Provider</p>
               <p className="font-serif text-lg font-bold tracking-tight text-[#0F172A]">{project.worker_name}</p>
               {/* This is the WORK deadline, not a payment ETA — release is
@@ -204,7 +204,13 @@ export default function InvoicePage() {
                 </span>
               </div>
             </div>
-            <div className="relative mt-2 flex items-center justify-between gap-4 border-t-2 border-slate-900 pt-5">
+            {/* mt-10 (not mt-2) — the PAID stamp below needs real clearance
+                from the breakdown rows above it. It previously sat close
+                enough (mt-2 + a small negative top offset) that print
+                rendering — which computes font metrics/DPI slightly
+                differently than screen — could push it into "Worker
+                Receives" above. More gap here is a real fix, not a tweak. */}
+            <div className="relative mt-10 flex items-center justify-between gap-4 border-t-2 border-slate-900 pt-5">
               <span className="font-serif text-base font-bold tracking-tight text-[#0F172A]">Total Secured by Business</span>
               <span className="whitespace-nowrap font-mono text-2xl font-black tracking-tight text-[#0F172A] sm:text-3xl">
                 {formatINR(budget)}
@@ -212,7 +218,7 @@ export default function InvoicePage() {
 
               {isPaid && (
                 <div
-                  className="pointer-events-none absolute -top-6 right-0 z-10 -rotate-[13deg] mix-blend-multiply sm:-top-8 sm:right-8"
+                  className="pointer-events-none absolute -top-3 right-0 z-10 -rotate-[13deg] mix-blend-multiply sm:-top-4 sm:right-8 print:-top-3 print:right-8"
                   aria-hidden="true"
                 >
                   <div className="rounded-md border-[3px] border-emerald-600/80 px-2.5 py-1 sm:px-3 sm:py-1.5">

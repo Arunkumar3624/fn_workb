@@ -74,7 +74,7 @@ export default function JobApplicationDrawer({
                   <span className="text-xs font-black uppercase tracking-[0.14em]">Recommended</span>
                 </div>
                 <h3 className="mt-2 text-lg font-black text-slate-900">Take the Skill Quiz</h3>
-                <p className="mt-1 text-sm leading-6 text-slate-500">
+                <p className="mt-1 text-sm leading-6 text-slate-700">
                   Prove your expertise and earn <strong className="text-green-700">+15 Behavior Points.</strong>
                 </p>
                 <span className="mt-4 flex w-full items-center justify-center rounded-xl bg-green-600 px-4 py-3 text-sm font-black text-white transition-colors hover:bg-green-700">
@@ -92,8 +92,8 @@ export default function JobApplicationDrawer({
                   <AlertTriangle className="h-3.5 w-3.5" />
                   <span className="text-xs font-black uppercase tracking-[0.14em]">Not recommended</span>
                 </div>
-                <h3 className="mt-2 text-lg font-black text-slate-600">Direct Apply</h3>
-                <p className="mt-1 text-sm leading-6 text-slate-500">
+                <h3 className="mt-2 text-lg font-black text-slate-700">Direct Apply</h3>
+                <p className="mt-1 text-sm leading-6 text-slate-700">
                   Skip the quiz and apply instantly. Penalty: <strong className="text-red-600">-5 Points.</strong>
                 </p>
                 <span className="mt-4 flex w-full items-center justify-center rounded-xl bg-red-50 px-4 py-3 text-sm font-black text-red-600 transition-colors hover:bg-red-100">

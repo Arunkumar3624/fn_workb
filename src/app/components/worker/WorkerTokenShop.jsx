@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
-import { AlertCircle, AlertTriangle, Award, Coins, Loader2, ShieldCheck, Sparkles } from "lucide-react";
+import { AlertCircle, AlertTriangle, Award, Banknote, Coins, Loader2, Scale, ShieldCheck, Sparkles } from "lucide-react";
 import { getLedger } from "../../lib/gamificationApi";
 import { purchasePerk, getPerkPurchases } from "../../lib/perksApi";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
@@ -46,12 +46,33 @@ const PERKS = [
     color: "slate",
     tiers: [{ id: "one-time-review", label: "One-Time Review", cost: 50 }],
   },
+  // Both new — mirrors the Business Perks Shop's own expansion. Real
+  // existing admin queues (disputes, withdrawal_requests) as precedent, not
+  // anything that touches proposal ranking against other workers.
+  {
+    id: "dispute-fast-track",
+    name: "Dispute Fast-Track",
+    description: "Move one active dispute straight to WorkBridge's priority mediation queue.",
+    icon: Scale,
+    color: "rose",
+    tiers: [{ id: "single-dispute", label: "One Active Dispute", cost: 40 }],
+  },
+  {
+    id: "withdrawal-fast-track",
+    name: "Withdrawal Fast-Track",
+    description: "Move one pending withdrawal to the front of WorkBridge's payout queue.",
+    icon: Banknote,
+    color: "violet",
+    tiers: [{ id: "single-withdrawal", label: "One Pending Withdrawal", cost: 30 }],
+  },
 ];
 
 const COLOR_STYLES = {
   amber: "bg-amber-50 text-amber-600",
   teal: "bg-teal-50 text-teal-600",
   slate: "bg-slate-100 text-slate-600",
+  rose: "bg-rose-50 text-rose-600",
+  violet: "bg-violet-50 text-violet-600",
 };
 
 function PerkCard({ perk, balance, onPurchase, index, isPurchasing, purchaseDisabled }) {
@@ -200,7 +221,7 @@ export default function WorkerTokenShop({ embedded = false }) {
   };
 
   return (
-    <div className={embedded ? "" : "mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10"}>
+    <div className={embedded ? "" : "mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10"}>
       <div className="mb-6 flex items-center justify-between">
         <div>
           {!embedded && (
@@ -224,7 +245,7 @@ export default function WorkerTokenShop({ embedded = false }) {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {PERKS.map((perk, index) => (
           <PerkCard
             key={perk.id}
