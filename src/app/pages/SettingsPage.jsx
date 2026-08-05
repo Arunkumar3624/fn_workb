@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   AlertCircle,
+  Bell,
   Camera,
   Check,
   CheckCircle2,
@@ -21,6 +22,7 @@ import { changePassword, deactivateAccount } from "../lib/authApi";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { getInitials } from "../utils/formValidation";
 import { ApiError } from "../lib/apiClient";
+import { getPushStatus, subscribeToPush, unsubscribeFromPush } from "../lib/pushNotifications";
 import SupportChat from "../components/shared/SupportChat";
 
 const MAX_AVATAR_BYTES = 1.5 * 1024 * 1024;
@@ -28,6 +30,7 @@ const MAX_AVATAR_BYTES = 1.5 * 1024 * 1024;
 const TABS = [
   { id: "general", label: "General Profile", icon: User },
   { id: "security", label: "Security & Auth", icon: Lock },
+  { id: "notifications", label: "Notifications", icon: Bell },
   { id: "billing", label: "Billing & Subscriptions", icon: Sparkles },
   { id: "support", label: "Support", icon: Headphones },
   { id: "danger", label: "Danger Zone", icon: ShieldAlert },
@@ -265,6 +268,97 @@ function SecurityTab() {
   );
 }
 
+// "unsupported" (no Push API — Safari <16.4, most in-app browsers),
+// "not-configured" (backend has no VAPID keys set), "denied" (blocked at
+// the browser level — only fixable from the browser's own site settings),
+// "subscribed", "unsubscribed", or "checking" while getPushStatus resolves.
+const PUSH_STATUS_COPY = {
+  checking: { label: "Checking…", tone: "text-slate-400" },
+  unsupported: { label: "Not supported on this browser", tone: "text-slate-400" },
+  "not-configured": { label: "Not available yet", tone: "text-slate-400" },
+  denied: { label: "Blocked — enable in your browser's site settings", tone: "text-red-500" },
+  subscribed: { label: "Enabled on this device", tone: "text-emerald-600" },
+  unsubscribed: { label: "Off on this device", tone: "text-slate-400" },
+};
+
+function NotificationsTab() {
+  const [status, setStatus] = useState("checking");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  const refreshStatus = () => {
+    getPushStatus()
+      .then(setStatus)
+      .catch(() => setStatus("unsupported"));
+  };
+
+  useEffect(refreshStatus, []);
+
+  const handleToggle = async () => {
+    setBusy(true);
+    setError("");
+    try {
+      if (status === "subscribed") {
+        await unsubscribeFromPush();
+      } else {
+        const granted = await subscribeToPush();
+        if (!granted) {
+          setStatus("denied");
+          return;
+        }
+      }
+      refreshStatus();
+    } catch (err) {
+      setError(err.message || "Could not update your notification settings.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const canToggle = status === "subscribed" || status === "unsubscribed";
+  const copy = PUSH_STATUS_COPY[status] ?? PUSH_STATUS_COPY.checking;
+
+  return (
+    <div className="space-y-6">
+      <SectionCard>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-[#F4F6FF] text-[#1B3FAB]">
+              <Bell className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-[#0A1128]">Push Notifications</h3>
+              <p className="mt-1 max-w-md text-sm text-slate-500">
+                Get a real notification on this device for new messages, invites, applications, and project updates —
+                even when WorkBridge isn't open in a tab.
+              </p>
+              <p className={`mt-2 text-xs font-semibold ${copy.tone}`}>{copy.label}</p>
+              {error && <p className="mt-2 text-xs font-semibold text-red-500">{error}</p>}
+            </div>
+          </div>
+          {canToggle && (
+            <button
+              onClick={handleToggle}
+              disabled={busy}
+              role="switch"
+              aria-checked={status === "subscribed"}
+              className={`relative h-7 w-12 flex-shrink-0 rounded-full transition-colors disabled:opacity-60 ${
+                status === "subscribed" ? "bg-[#FF6B35]" : "bg-slate-200"
+              }`}
+            >
+              <span
+                className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
+                  status === "subscribed" ? "translate-x-6" : "translate-x-1"
+                }`}
+              />
+            </button>
+          )}
+        </div>
+      </SectionCard>
+    </div>
+  );
+}
+
 function BillingTab() {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
@@ -489,6 +583,7 @@ export default function SettingsPage() {
         <div className="min-w-0 flex-1 rounded-2xl border border-slate-200 bg-white/70 p-6 backdrop-blur-xl sm:p-8">
           {activeTab === "general" && <GeneralProfileTab />}
           {activeTab === "security" && <SecurityTab />}
+          {activeTab === "notifications" && <NotificationsTab />}
           {activeTab === "billing" && <BillingTab />}
           {activeTab === "support" && (
             // SupportChat's internals rely on `h-full` cascading from an
