@@ -5,7 +5,7 @@ const FEATURES = [
   {
     icon: Zap,
     title: "Instant Payouts",
-    description: "Cash out approved work in 60 seconds flat — no invoices, no chasing net-30 terms.",
+    description: "Get paid the moment your work is approved — no invoices, no chasing net-30 terms.",
   },
   {
     icon: ShieldCheck,
@@ -42,7 +42,7 @@ export default function FindWorkPage({ onSelect }) {
       seoKeywords="Freelance Jobs, Instant Payment Freelance, Freelance Marketplace, Get Paid Fast"
       eyebrow="For Freelancers"
       title="Find Freelance Jobs. Get Paid Instantly."
-      subtitle="WorkBridge connects freelancers with verified clients and moves your earnings to your wallet in 60 seconds — not 60 days."
+      subtitle="WorkBridge connects freelancers with verified clients and moves your earnings to your wallet fast — no more waiting weeks to get paid."
       heroContent={
         <div className="flex flex-wrap items-center justify-center gap-2">
           {["Instant Payouts", "Verified Clients", "Payment Protection"].map((pill) => (

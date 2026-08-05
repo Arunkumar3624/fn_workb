@@ -82,8 +82,8 @@ export default function WorkerDashboard({ onLogout }) {
                 <Sparkles className="h-5 w-5 text-[#ff6b35]" />
               </div>
               <p className="text-sm text-slate-700">
-                Stop waiting for invoices.{' '}
-                <span className="font-semibold text-slate-900">Cash out in 60 seconds upon project approval.</span>
+                Stop waiting on invoices.{' '}
+                <span className="font-semibold text-slate-900">Get paid fast the second your project's approved.</span>
               </p>
             </div>
 

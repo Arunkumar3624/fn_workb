@@ -93,7 +93,7 @@ export default function SecureVaultModal({ jobTitle, workerName, amount, onClose
               {/* The ledger */}
               <div className="mt-4 space-y-1.5 text-sm">
                 <div className="flex items-center justify-between text-slate-500">
-                  <span>Service Fee (8%)</span>
+                  <span>Service Fee</span>
                   <span className="font-mono">+{formatINR(fee)}</span>
                 </div>
                 <div className="flex items-center justify-between border-t border-dashed border-slate-200 pt-1.5 font-bold text-slate-900">

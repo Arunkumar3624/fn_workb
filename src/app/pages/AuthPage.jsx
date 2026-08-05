@@ -29,10 +29,10 @@ const USER_CONFIG = {
 };
 
 const BRAND_FEATURES = [
-  { Icon: Lock, text: "Protected payments held securely until approval" },
-  { Icon: Zap, text: "Fast payouts released in under 60 seconds" },
-  { Icon: Shield, text: "Verified profiles and behavior-score trust" },
-  { Icon: Award, text: "Trust badges that reward great work" },
+  { Icon: Lock, text: "Every payment held safely in escrow until you approve it" },
+  { Icon: Zap, text: "Lightning-fast payouts the moment work is approved" },
+  { Icon: Shield, text: "Verified profiles, real trust scores, zero guesswork" },
+  { Icon: Award, text: "Real badges and recognition for great work" },
 ];
 
 const OTP_LENGTH = 6;
@@ -387,17 +387,17 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
               "Secure admin access"
             ) : (
               <>
-                {authMode === "signin" ? "Welcome back." : "Join India’s faster"}<br />
+                {authMode === "signin" ? `Welcome back, ${cfg.label}.` : "Join India’s fastest-growing"}<br />
                 <span className="text-[#FF6B2C]">
-                  {authMode === "signin" ? "India’s freelance platform." : "freelance platform."}
+                  {authMode === "signin" ? "Let’s get you back to work." : "freelance platform."}
                 </span>
               </>
             )}
           </h1>
           <p className="mb-10 text-sm leading-relaxed text-slate-400">
-            {userType === "worker" && "Access verified projects, track earnings, and get paid with confidence."}
-            {userType === "business" && "Hire verified talent, protect every payment, and scale with confidence."}
-            {userType === "admin" && "Manage platform verifications, disputes, and live operations securely."}
+            {userType === "worker" && "Unlock verified gigs, grow your earnings, and get paid every time — no chasing invoices."}
+            {userType === "business" && "Hire verified talent, safeguard every payment in escrow, and scale without the risk."}
+            {userType === "admin" && "Oversee verifications, disputes, and platform integrity in real time."}
           </p>
 
           <div className="space-y-4">

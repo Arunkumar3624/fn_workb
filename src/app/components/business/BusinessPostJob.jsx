@@ -754,7 +754,7 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-slate-500">Platform Fee (8%)</span>
+                      <span className="text-slate-500">Platform Fee</span>
                       <span className="font-semibold text-[#0F172A]">
                         {formatINR(platformFee)}
                       </span>

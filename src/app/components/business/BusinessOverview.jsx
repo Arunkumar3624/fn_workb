@@ -157,7 +157,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
           rows.push({
             id: `${p.id}-fee`,
             type: "fee",
-            desc: `Platform Fee (${feePct}%) – ${p.title}`,
+            desc: `Platform Fee – ${p.title}`,
             worker: null,
             amount: fee,
             at: event.at,

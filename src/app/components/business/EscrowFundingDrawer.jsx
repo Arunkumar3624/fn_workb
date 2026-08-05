@@ -178,7 +178,7 @@ export default function EscrowFundingDrawer({ project, onClose, onFunded }) {
                     <span className="font-semibold text-slate-800">₹{budget.toLocaleString("en-IN")}</span>
                   </div>
                   <div className="mt-2 flex items-center justify-between text-sm">
-                    <span className="text-slate-500">WorkBridge Platform Fee ({feePct}%)</span>
+                    <span className="text-slate-500">WorkBridge Platform Fee</span>
                     <span className="font-semibold text-slate-500">−₹{feeOnWorkerPayout.toLocaleString("en-IN")}</span>
                   </div>
                   <p className="mt-1 text-[11px] leading-4 text-slate-400">
