@@ -42,50 +42,39 @@ export function getMilestoneByLevel(level) {
 }
 
 // A "competitive gaming rank" system modeled on real mobile-game ladders
-// (Mobile Legends/Free Fire) — real <svg> paths with multi-stop gradient
-// defs (not CSS clip-path approximations), a genuinely different
-// silhouette per tier, and wings from Gold up. RankBadge.jsx is the only
-// consumer of the shape data; this module just computes which tier a level
-// falls in so the rank NAME and the SHAPE can never disagree with each
-// other (an earlier version computed those from two separate tables with
-// different boundaries and drifted out of sync).
-function starPoints(points, outerR, innerR, cx = 50, cy = 50) {
-  const total = points * 2;
-  const coords = [];
-  for (let i = 0; i < total; i++) {
-    const angle = (Math.PI * 2 * i) / total - Math.PI / 2;
-    const r = i % 2 === 0 ? outerR : innerR;
-    coords.push(`${(cx + r * Math.cos(angle)).toFixed(2)},${(cy + r * Math.sin(angle)).toFixed(2)}`);
-  }
-  return coords.join(" ");
-}
-
-// Every shape lives in a 0-100 viewBox. `points` (SVG <polygon>) for the
-// star shapes, `path` (SVG <path> d attribute) for the shield/crystal.
+// (Mobile Legends/Free Fire) — real <svg> shapes with multi-stop gradient
+// defs (not CSS clip-path approximations). Shapes are deliberately simple
+// (circle/hexagon/pentagon/shield) rather than many-pointed stars — a
+// sharp 8-point "shuriken" reads as noisy/jagged at badge scale and is
+// exactly what made an earlier version look bad. Wings only render in
+// RankBadge's non-compact mode (the full Badges grid) — at small avatar-
+// overlay sizes they roughly doubled the badge's footprint and overlapped
+// the avatar, which is what "not placed neatly" meant.
 export const RANK_SHAPES = {
-  shield: { kind: "path", d: "M50 3 L86 17 L86 48 Q86 80 50 97 Q14 80 14 48 L14 17 Z" },
-  shuriken: { kind: "polygon", points: starPoints(8, 46, 28) }, // Silver — sharp 8-point
-  crest: { kind: "polygon", points: starPoints(6, 47, 33) }, // Gold — bolder 6-point
-  crystal: { kind: "path", d: "M50 4 L84 33 L68 97 L32 97 L16 33 Z" }, // Diamond — 5-point cut gem
+  circle: { kind: "circle" },
+  hexagon: { kind: "polygon", points: "50,4 93,27 93,73 50,96 7,73 7,27" },
+  pentagon: { kind: "polygon", points: "50,4 95,38 78,94 22,94 5,38" },
+  shield: { kind: "path", d: "M50 4 L88 18 L88 50 Q88 80 50 97 Q12 80 12 50 L12 18 Z" },
 };
 
-// A zigzag "feather" wing, attached at the badge's edge (x=0 for the left
-// wing, x=100 for the right) and extending outward — RankBadge.jsx widens
-// its viewBox to -50..150 to fit both when rank.wings is true.
+// A simple, smooth wing (4 points, not a jagged multi-point zigzag),
+// attached at the badge's edge (x=0 left wing, x=100 right) and extending
+// outward — RankBadge.jsx widens its viewBox to -45..145 to fit both when
+// rank.wings is true.
 function wingPoints(side) {
-  const base = [[0, 50], [45, 15], [30, 32], [50, 28], [22, 50], [50, 72], [30, 68], [45, 85]];
+  const base = [[0, 42], [42, 18], [30, 50], [42, 82], [0, 58]];
   return base.map(([x, y]) => `${side === "right" ? 100 + x : -x},${y}`).join(" ");
 }
 export const WING_SHAPES = { left: wingPoints("left"), right: wingPoints("right") };
 
 // Multi-stop gradients (real <linearGradient> stops, not a 2-3 color CSS
 // gradient) for a genuine metallic look, plus the glow color used by
-// RankBadge's idle-float drop-shadow animation.
+// RankBadge's idle-float glow animation.
 const RANK_TIERS = [
-  { min: 0, name: "Bronze", shape: "shield", stops: [["0%", "#E8C39E"], ["45%", "#CD853F"], ["100%", "#6B3F1D"]], stroke: "#F3D9B1", glowRgb: "184,115,51" },
-  { min: 50, name: "Silver", shape: "shuriken", stops: [["0%", "#FFFFFF"], ["45%", "#C7CDD6"], ["100%", "#5B6472"]], stroke: "#EDEFF2", glowRgb: "190,200,210" },
-  { min: 100, name: "Gold", shape: "crest", stops: [["0%", "#FFF3B0"], ["40%", "#FFD700"], ["100%", "#B8790A"]], stroke: "#FFF6D0", glowRgb: "255,196,0" },
-  { min: 150, name: "Diamond", shape: "crystal", stops: [["0%", "#E8FFFF"], ["35%", "#00E5FF"], ["70%", "#6A5ACD"], ["100%", "#4B0082"]], stroke: "#CFFFFF", glowRgb: "0,229,255" },
+  { min: 0, name: "Bronze", shape: "circle", stops: [["0%", "#E8C39E"], ["45%", "#CD853F"], ["100%", "#6B3F1D"]], stroke: "#F3D9B1", glowRgb: "184,115,51" },
+  { min: 50, name: "Silver", shape: "hexagon", stops: [["0%", "#FFFFFF"], ["45%", "#C7CDD6"], ["100%", "#5B6472"]], stroke: "#EDEFF2", glowRgb: "190,200,210" },
+  { min: 100, name: "Gold", shape: "pentagon", stops: [["0%", "#FFF3B0"], ["40%", "#FFD700"], ["100%", "#B8790A"]], stroke: "#FFF6D0", glowRgb: "255,196,0" },
+  { min: 150, name: "Diamond", shape: "shield", stops: [["0%", "#E8FFFF"], ["35%", "#00E5FF"], ["70%", "#6A5ACD"], ["100%", "#4B0082"]], stroke: "#CFFFFF", glowRgb: "0,229,255" },
 ];
 const ROMAN = ["I", "II", "III", "IV", "V"];
 
