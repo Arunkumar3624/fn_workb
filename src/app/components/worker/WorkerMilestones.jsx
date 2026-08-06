@@ -38,16 +38,25 @@ function BadgeMedal({ milestone, achieved, isNext, index, pinned, pinning, onTog
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.35, delay: Math.min(index * 0.03, 0.4) }}
-      className={`relative flex flex-col items-center gap-3 rounded-2xl border p-5 text-center transition-all duration-300 ${
+      className={`relative flex flex-col items-center gap-2 overflow-hidden rounded-2xl border p-5 pt-7 text-center transition-all duration-300 ${
         pinned
-          ? "border-[#FF6B35]/40 bg-orange-50/40 shadow-sm hover:-translate-y-1 hover:shadow-md"
+          ? "border-[#FF6B35] bg-gradient-to-b from-[#2a1608] to-slate-950 shadow-[0_0_0_1px_rgba(255,107,53,0.3)] hover:-translate-y-1"
           : achieved
-            ? "border-slate-200 bg-white shadow-sm hover:-translate-y-1 hover:shadow-md"
-            : "border-slate-100 bg-slate-50/60"
+            ? "border-white/10 bg-gradient-to-b from-slate-900 to-slate-950 shadow-lg hover:-translate-y-1 hover:shadow-2xl"
+            : "border-slate-800/60 bg-slate-900/40"
       }`}
     >
+      {/* Ambient colored glow behind the badge — this + the dark card (not
+          a small icon floating on a plain white card) is what actually
+          reads as a "gaming rank" card rather than a generic reward tile. */}
+      {achieved && (
+        <div
+          className={`pointer-events-none absolute left-1/2 top-16 h-32 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br opacity-30 blur-2xl ${rank.grad}`}
+        />
+      )}
+
       {isNext && (
-        <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full bg-[#FF6B35] px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-white shadow-sm">
+        <span className="absolute -top-0.5 left-1/2 z-20 -translate-x-1/2 rounded-b-lg bg-[#FF6B35] px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-white shadow-sm">
           Next
         </span>
       )}
@@ -60,10 +69,10 @@ function BadgeMedal({ milestone, achieved, isNext, index, pinned, pinning, onTog
           onClick={onTogglePin}
           disabled={pinning}
           title={pinned ? "Unpin from profile" : "Show this badge on your profile avatar"}
-          className={`absolute -top-2 -right-2 flex h-7 w-7 items-center justify-center rounded-full border shadow-sm transition-colors disabled:opacity-60 ${
+          className={`absolute right-2 top-2 z-20 flex h-7 w-7 items-center justify-center rounded-full border shadow-sm transition-colors disabled:opacity-60 ${
             pinned
               ? "border-[#FF6B35] bg-[#FF6B35] text-white"
-              : "border-slate-200 bg-white text-slate-400 hover:border-[#FF6B35] hover:text-[#FF6B35]"
+              : "border-white/15 bg-white/10 text-slate-300 backdrop-blur-sm hover:border-[#FF6B35] hover:text-[#FF6B35]"
           }`}
         >
           {pinning ? (
@@ -76,7 +85,7 @@ function BadgeMedal({ milestone, achieved, isNext, index, pinned, pinning, onTog
         </button>
       )}
 
-      <div className="relative pb-2">
+      <div className="relative z-10 pb-2">
         {isNext && (
           <motion.span
             className="absolute inset-0 rounded-full border-2 border-[#FF6B35]"
@@ -88,18 +97,17 @@ function BadgeMedal({ milestone, achieved, isNext, index, pinned, pinning, onTog
 
         {/* Concentric decorative rings — one extra ring per rank tier,
             biggest badges (Diamond) getting a visibly "thicker" medal than
-            a fresh Bronze one, not just a recolor. */}
+            a fresh Bronze one, not just a recolor. White on the dark card
+            so they read at every rank hue, not just the light ones. */}
         {achieved &&
           Array.from({ length: rank.rings - 1 }).map((_, ringIndex) => (
             <span
               key={ringIndex}
-              className={`absolute left-1/2 top-8 -translate-x-1/2 -translate-y-1/2 rounded-full border ${
-                milestone.major ? "border-amber-400/40" : "border-current"
-              } ${milestone.major ? "" : theme.icon}`}
+              className="absolute left-1/2 top-10 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white"
               style={{
-                width: `${72 + ringIndex * 10}px`,
-                height: `${72 + ringIndex * 10}px`,
-                opacity: 0.35 - ringIndex * 0.08,
+                width: `${88 + ringIndex * 12}px`,
+                height: `${88 + ringIndex * 12}px`,
+                opacity: 0.22 - ringIndex * 0.05,
               }}
             />
           ))}
@@ -108,11 +116,11 @@ function BadgeMedal({ milestone, achieved, isNext, index, pinned, pinning, onTog
             only. */}
         {achieved && rank.shimmer && (
           <motion.span
-            className="absolute left-1/2 top-8 -translate-x-1/2 -translate-y-1/2 rounded-full"
+            className="absolute left-1/2 top-10 -translate-x-1/2 -translate-y-1/2 rounded-full"
             style={{
-              width: "64px",
-              height: "64px",
-              background: "conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0.55) 8%, transparent 16%)",
+              width: "80px",
+              height: "80px",
+              background: "conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0.6) 8%, transparent 16%)",
             }}
             animate={{ rotate: 360 }}
             transition={{ duration: 3.5, repeat: Infinity, ease: "linear" }}
@@ -122,12 +130,12 @@ function BadgeMedal({ milestone, achieved, isNext, index, pinned, pinning, onTog
         {/* Orbiting sparkle — Level 120+ only. */}
         {achieved && rank.sparkle && (
           <motion.span
-            className="absolute left-1/2 top-8 z-20"
-            style={{ marginLeft: "22px", marginTop: "-30px" }}
-            animate={{ opacity: [0.3, 1, 0.3], scale: [0.85, 1.1, 0.85] }}
+            className="absolute left-1/2 top-10 z-20"
+            style={{ marginLeft: "28px", marginTop: "-38px" }}
+            animate={{ opacity: [0.3, 1, 0.3], scale: [0.85, 1.15, 0.85] }}
             transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
           >
-            <Sparkles className={`h-3.5 w-3.5 ${milestone.major ? "text-amber-500" : theme.icon}`} />
+            <Sparkles className="h-4 w-4 text-white" />
           </motion.span>
         )}
 
@@ -139,17 +147,17 @@ function BadgeMedal({ milestone, achieved, isNext, index, pinned, pinning, onTog
             breathes with a pulsating glow. CSS-only, no image asset. Locked
             badges preview their eventual shape in flat slate. */}
         <motion.div
-          className={`relative z-10 flex h-16 w-16 items-center justify-center border-b-4 border-r-4 ${
-            achieved ? rank.darkEdge : "border-slate-400/50"
+          className={`relative z-10 flex h-20 w-20 items-center justify-center border-b-[5px] border-r-[5px] ${
+            achieved ? rank.darkEdge : "border-slate-700"
           } ${glowClass} ${ringGrad}`}
           style={{ clipPath }}
           animate={
             isMaxRank
               ? {
                   boxShadow: [
-                    "0 0 14px 2px rgba(34,211,238,0.45)",
-                    "0 0 28px 7px rgba(168,85,247,0.6)",
-                    "0 0 14px 2px rgba(34,211,238,0.45)",
+                    "0 0 18px 3px rgba(34,211,238,0.5)",
+                    "0 0 34px 9px rgba(168,85,247,0.65)",
+                    "0 0 18px 3px rgba(34,211,238,0.5)",
                   ],
                 }
               : undefined
@@ -157,24 +165,24 @@ function BadgeMedal({ milestone, achieved, isNext, index, pinned, pinning, onTog
           transition={isMaxRank ? { duration: 2.2, repeat: Infinity, ease: "easeInOut" } : undefined}
         >
           <div
-            className={`flex h-10 w-10 items-center justify-center rounded-full shadow-inner ${
-              achieved ? "bg-gradient-to-br from-white via-white to-slate-100" : "bg-slate-100"
+            className={`flex h-12 w-12 items-center justify-center rounded-full shadow-inner ${
+              achieved ? "bg-gradient-to-br from-white via-white to-slate-100" : "bg-slate-800"
             }`}
           >
             {achieved ? (
-              <Icon className={`h-5 w-5 ${milestone.major ? "text-amber-700" : theme.icon}`} />
+              <Icon className={`h-6 w-6 ${milestone.major ? "text-amber-700" : theme.icon}`} />
             ) : (
-              <Lock className="h-4 w-4 text-slate-400" />
+              <Lock className="h-5 w-5 text-slate-500" />
             )}
           </div>
         </motion.div>
       </div>
 
-      <div className="mt-1.5">
-        <p className={`text-[10px] font-bold uppercase tracking-wide ${achieved ? "text-slate-400" : "text-slate-300"}`}>
+      <div className="relative z-10">
+        <p className={`text-[10px] font-bold uppercase tracking-wide ${achieved ? "text-slate-400" : "text-slate-600"}`}>
           Level {milestone.level} {achieved && `· ${rank.label}`}
         </p>
-        <p className={`mt-0.5 text-sm font-extrabold leading-tight ${achieved ? "text-slate-900" : "text-slate-400"}`}>
+        <p className={`mt-0.5 text-sm font-extrabold leading-tight ${achieved ? "text-white" : "text-slate-500"}`}>
           {milestone.name}
         </p>
         {pinned && (
@@ -184,7 +192,7 @@ function BadgeMedal({ milestone, achieved, isNext, index, pinned, pinning, onTog
         )}
       </div>
 
-      <p className={`text-[11px] leading-4 ${achieved ? "text-slate-500" : "text-slate-300"}`}>{milestone.reward}</p>
+      <p className={`relative z-10 text-[11px] leading-4 ${achieved ? "text-slate-400" : "text-slate-600"}`}>{milestone.reward}</p>
     </motion.div>
   );
 }
