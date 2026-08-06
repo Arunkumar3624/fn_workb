@@ -28,6 +28,13 @@ export function listOpenProjects() {
   return apiFetch("/api/projects/open");
 }
 
+// Deliberately unguarded on the backend (see routes/public.routes.js) — a
+// logged-out visitor browsing the Job Board doesn't need an account, only
+// applying to one does. apiFetch works fine with no token present.
+export function listPublicOpenJobs() {
+  return apiFetch("/api/public/open-jobs");
+}
+
 // Business creates a project. Passing workerId keeps the original
 // direct-invite behavior (project starts INVITED); omitting it posts an
 // OPEN job board listing instead — see BusinessPostJob.jsx.

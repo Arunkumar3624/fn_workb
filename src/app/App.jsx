@@ -17,6 +17,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 // needed for the first paint of `/`, so they shouldn't be in the initial
 // JS payload.
 const FindWorkPage = lazy(() => import("./pages/FindWorkPage"));
+const PublicJobFeed = lazy(() => import("./pages/PublicJobFeed"));
 const HireTalentPage = lazy(() => import("./pages/HireTalentPage"));
 const EnterprisePage = lazy(() => import("./pages/EnterprisePage"));
 const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
@@ -131,6 +132,14 @@ function AppRoutes() {
         element={
           <PageShell onSelect={handleSelect}>
             <FindWorkPage onSelect={handleSelect} />
+          </PageShell>
+        }
+      />
+      <Route
+        path="/jobs"
+        element={
+          <PageShell onSelect={handleSelect}>
+            <PublicJobFeed onSelect={handleSelect} />
           </PageShell>
         }
       />

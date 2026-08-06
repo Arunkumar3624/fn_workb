@@ -120,7 +120,6 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
     [completedProjects]
   );
   const deliveredTotal = completedSplits.reduce((s, c) => s + c.delivered, 0);
-  const feesTotal = completedSplits.reduce((s, c) => s + c.fee, 0);
   const workersHired = new Set(projects.filter((p) => p.status !== "INVITED").map((p) => p.worker_id)).size;
   const avgBudget = projects.length ? projects.reduce((s, p) => s + Number(p.budget), 0) / projects.length : 0;
 
@@ -145,6 +144,9 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
           });
         }
         if (event.status === "COMPLETED") {
+          // Platform Fee is only ever shown upfront, at the moment a job is
+          // posted (BusinessPostJob.jsx's cost breakdown) — not tracked as
+          // its own ongoing line item here once it's already been deducted.
           const fee = round2(budget * (feePct / 100));
           rows.push({
             id: `${p.id}-delivered`,
@@ -152,14 +154,6 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
             desc: `Payment Released – ${p.title}`,
             worker: p.worker_name,
             amount: round2(budget - fee),
-            at: event.at,
-          });
-          rows.push({
-            id: `${p.id}-fee`,
-            type: "fee",
-            desc: `Platform Fee – ${p.title}`,
-            worker: null,
-            amount: fee,
             at: event.at,
           });
         }
@@ -179,7 +173,6 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
     { key: "all", label: "All", count: paymentFeed.length },
     { key: "secured", label: "Secured", count: paymentFeed.filter((t) => t.type === "secured").length },
     { key: "delivered", label: "Delivered", count: paymentFeed.filter((t) => t.type === "delivered").length },
-    { key: "fee", label: "Fees", count: paymentFeed.filter((t) => t.type === "fee").length },
   ];
 
   const TX_META = {
@@ -492,7 +485,6 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
                 {[
                   { label: "Delivered this month", value: formatINR(deliveredThisMonth), color: "text-purple-600", bg: "bg-purple-50" },
                   { label: "Total delivered", value: formatINR(deliveredTotal), color: "text-emerald-600", bg: "bg-emerald-50" },
-                  { label: "Platform fees paid", value: formatINR(feesTotal), color: "text-amber-600", bg: "bg-amber-50" },
                   { label: "Avg. project budget", value: formatINR(avgBudget), color: "text-[#1B3FAB]", bg: "bg-[#F4F6FF]" },
                 ].map(({ label, value, color, bg }) => (
                   <div key={label} className="flex items-center justify-between gap-2">

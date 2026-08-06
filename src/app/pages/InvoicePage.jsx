@@ -191,12 +191,6 @@ export default function InvoicePage() {
                   {formatINR(budget)}
                 </span>
               </div>
-              <div className="flex items-center justify-between gap-4 bg-slate-50/70 px-4 py-3.5">
-                <span className="text-sm text-slate-600">Platform Fee — Deducted from Worker Payout</span>
-                <span className="whitespace-nowrap font-mono text-sm text-slate-500">
-                  –{formatINR(platformFee)}
-                </span>
-              </div>
               <div className="flex items-center justify-between gap-4 bg-white px-4 py-3.5">
                 <span className="text-sm text-slate-600">Worker Receives</span>
                 <span className="whitespace-nowrap font-mono text-sm font-semibold text-slate-900">

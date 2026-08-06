@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import { toast } from "sonner";
-import { AlertCircle, Briefcase, Clock3, History, Loader2, MessageSquare, Send } from "lucide-react";
+import { AlertCircle, Briefcase, Clock3, History, Loader2, MessageSquare, Send, X } from "lucide-react";
 import CelebrationOverlay from "../common/CelebrationOverlay";
 import { MILESTONES } from "./WorkerMilestones";
 import TimelineTracker from "../shared/TimelineTracker";
@@ -108,6 +108,28 @@ export default function WorkerWorkspace() {
     };
   }, []);
 
+  // Dismissing a resolved (DECLINED/CLOSED) application is purely a
+  // personal declutter preference — there's no "archived" concept in
+  // job_candidates, and inventing a column/migration for what's just a
+  // per-device hide isn't worth it. localStorage persists it across
+  // reloads without touching the backend at all.
+  const [dismissedApplicationIds, setDismissedApplicationIds] = useState(() => {
+    try {
+      return new Set(JSON.parse(localStorage.getItem("wb_dismissed_applications") ?? "[]"));
+    } catch {
+      return new Set();
+    }
+  });
+
+  const dismissApplication = (id) => {
+    setDismissedApplicationIds((prev) => {
+      const next = new Set(prev).add(id);
+      localStorage.setItem("wb_dismissed_applications", JSON.stringify([...next]));
+      return next;
+    });
+    if (selectedApplicationId === id) setSelectedApplicationId(null);
+  };
+
   const tasks = projects.filter((p) => ACTIVE_STATUSES.has(p.status));
   // Declining an invite (or any other cancellation) used to just vanish —
   // not "active" (excluded from ACTIVE_STATUSES) and not "history" (this
@@ -116,6 +138,20 @@ export default function WorkerWorkspace() {
   const historyTasks = projects.filter((p) => p.status === "COMPLETED" || p.status === "CANCELLED");
   const activeList = pipelineTab === "tasks" ? tasks : pipelineTab === "history" ? historyTasks : [];
   const selectedTask = activeList.find((task) => task.id === selectedTaskId) ?? null;
+
+  // Still-in-play applications first (most recent first), decided ones
+  // (declined / filled by someone else — no chance left) sink to the
+  // bottom instead of cluttering the top of a list that's meant to
+  // highlight what still has a shot.
+  const visibleApplications = applications
+    .filter((a) => !dismissedApplicationIds.has(a.id))
+    .sort((a, b) => {
+      const aPending = a.status === "PENDING";
+      const bPending = b.status === "PENDING";
+      if (aPending !== bPending) return aPending ? -1 : 1;
+      return new Date(b.created_at) - new Date(a.created_at);
+    });
+  const pendingApplicationCount = applications.filter((a) => a.status === "PENDING").length;
   const selectedApplication = applications.find((a) => a.id === selectedApplicationId) ?? null;
 
   useEffect(() => {
@@ -145,7 +181,7 @@ export default function WorkerWorkspace() {
   const handlePipelineTab = (tab) => {
     setPipelineTab(tab);
     if (tab === "applied") {
-      setSelectedApplicationId(applications[0]?.id ?? null);
+      setSelectedApplicationId(visibleApplications[0]?.id ?? null);
       return;
     }
     const list = tab === "tasks" ? tasks : historyTasks;
@@ -301,7 +337,7 @@ export default function WorkerWorkspace() {
 
         <div className="mb-4 flex gap-1 rounded-2xl bg-slate-100 p-1">
           {[
-            { id: "applied", label: "Applied", count: applications.length, icon: Clock3 },
+            { id: "applied", label: "Applied", count: pendingApplicationCount, icon: Clock3 },
             { id: "tasks", label: "Active Tasks", count: tasks.length, icon: Briefcase },
             { id: "history", label: "History", count: historyTasks.length, icon: History },
           ].map(({ id, label, count, icon: Icon }) => {
@@ -326,27 +362,45 @@ export default function WorkerWorkspace() {
 
         <div className="flex-1 space-y-3 overflow-y-auto pr-1">
           {pipelineTab === "applied" ? (
-            applications.length === 0 ? (
+            visibleApplications.length === 0 ? (
               <div className="rounded-xl border border-dashed border-slate-300 bg-white/60 p-6 text-center text-xs text-slate-400">
                 No pending applications — jobs you apply to on the Job Feed show up here.
               </div>
             ) : (
-              applications.map((application) => {
+              visibleApplications.map((application) => {
                 const statusMeta = APPLICATION_STATUS_META[application.status] ?? APPLICATION_STATUS_META.PENDING;
+                const isResolved = application.status !== "PENDING";
                 return (
-                  <motion.button
+                  <motion.div
                     key={application.id}
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.2 }}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => handleSelectApplication(application.id)}
-                    className={`w-full rounded-xl border p-4 text-left transition-all ${
+                    onKeyDown={(e) => e.key === "Enter" && handleSelectApplication(application.id)}
+                    className={`relative w-full cursor-pointer rounded-xl border p-4 text-left transition-all ${
                       selectedApplicationId === application.id
                         ? "border-slate-200 border-l-4 border-l-[#FF6B35] bg-white shadow-sm"
                         : "border-slate-200/80 bg-white/50 hover:border-slate-300 hover:bg-white hover:shadow-sm"
                     }`}
                   >
-                    <div className="min-w-0">
+                    {isResolved && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          dismissApplication(application.id);
+                        }}
+                        aria-label="Dismiss this application"
+                        title="Dismiss"
+                        className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full text-slate-300 transition-colors hover:bg-slate-100 hover:text-slate-500"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                    <div className="min-w-0 pr-5">
                       <p className="truncate text-sm font-semibold text-slate-900">{application.project_title}</p>
                       <p className="mt-1 text-xs text-slate-500">{application.business_name}</p>
                     </div>
@@ -358,7 +412,7 @@ export default function WorkerWorkspace() {
                         ₹{Number(application.budget).toLocaleString("en-IN")}
                       </span>
                     </div>
-                  </motion.button>
+                  </motion.div>
                 );
               })
             )
