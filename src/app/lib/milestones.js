@@ -41,28 +41,40 @@ export function getMilestoneByLevel(level) {
   return MILESTONES.find((m) => m.level === level) ?? null;
 }
 
-// A "competitive gaming rank" system modeled on real mobile-game ladders
-// (Mobile Legends/Free Fire) — real <svg> shapes with multi-stop gradient
-// defs (not CSS clip-path approximations). Shapes are deliberately simple
-// (circle/hexagon/pentagon/shield) rather than many-pointed stars — a
-// sharp 8-point "shuriken" reads as noisy/jagged at badge scale and is
-// exactly what made an earlier version look bad. No wings — they made
-// avatar-overlay badges cover too much of the actual profile photo.
-export const RANK_SHAPES = {
-  circle: { kind: "circle" },
-  hexagon: { kind: "polygon", points: "50,4 93,27 93,73 50,96 7,73 7,27" },
-  pentagon: { kind: "polygon", points: "50,4 95,38 78,94 22,94 5,38" },
-  shield: { kind: "path", d: "M50 4 L88 18 L88 50 Q88 80 50 97 Q12 80 12 50 L12 18 Z" },
+// A "classic medal rosette" system — ONE consistent shape throughout (a
+// scalloped-edge circle, the real "award medal" silhouette), rather than a
+// different shape per tier — only the metal (color gradient) escalates
+// Bronze -> Silver -> Gold -> Diamond, plus a ribbon tail on the top two
+// tiers. Real <svg> with a multi-stop gradient (not a CSS approximation).
+function scallopPoints(teeth, outerR, innerR, cx = 50, cy = 50) {
+  const total = teeth * 2;
+  const coords = [];
+  for (let i = 0; i < total; i++) {
+    const angle = (Math.PI * 2 * i) / total - Math.PI / 2;
+    const r = i % 2 === 0 ? outerR : innerR;
+    coords.push(`${(cx + r * Math.cos(angle)).toFixed(2)},${(cy + r * Math.sin(angle)).toFixed(2)}`);
+  }
+  return coords.join(" ");
+}
+export const ROSETTE_POINTS = scallopPoints(20, 47, 40);
+
+// The ribbon tail — two overlapping legs, each with a V-notch cut into its
+// bottom edge (the classic medal-ribbon silhouette). Sits below the
+// rosette, y=94..132, so RankBadge widens its viewBox vertically to fit
+// when rank.ribbon is true.
+export const RIBBON_SHAPES = {
+  left: "40,94 50,94 50,132 44,120 40,132",
+  right: "50,94 60,94 60,132 56,120 50,132",
 };
 
 // Multi-stop gradients (real <linearGradient> stops, not a 2-3 color CSS
 // gradient) for a genuine metallic look, plus the glow color used by
 // RankBadge's idle-float glow animation.
 const RANK_TIERS = [
-  { min: 0, name: "Bronze", shape: "circle", stops: [["0%", "#E8C39E"], ["45%", "#CD853F"], ["100%", "#6B3F1D"]], stroke: "#F3D9B1", glowRgb: "184,115,51" },
-  { min: 50, name: "Silver", shape: "hexagon", stops: [["0%", "#FFFFFF"], ["45%", "#C7CDD6"], ["100%", "#5B6472"]], stroke: "#EDEFF2", glowRgb: "190,200,210" },
-  { min: 100, name: "Gold", shape: "pentagon", stops: [["0%", "#FFF3B0"], ["40%", "#FFD700"], ["100%", "#B8790A"]], stroke: "#FFF6D0", glowRgb: "255,196,0" },
-  { min: 150, name: "Diamond", shape: "shield", stops: [["0%", "#E8FFFF"], ["35%", "#00E5FF"], ["70%", "#6A5ACD"], ["100%", "#4B0082"]], stroke: "#CFFFFF", glowRgb: "0,229,255" },
+  { min: 0, name: "Bronze", stops: [["0%", "#E8C39E"], ["45%", "#CD853F"], ["100%", "#6B3F1D"]], stroke: "#F3D9B1", glowRgb: "184,115,51" },
+  { min: 50, name: "Silver", stops: [["0%", "#FFFFFF"], ["45%", "#C7CDD6"], ["100%", "#5B6472"]], stroke: "#EDEFF2", glowRgb: "190,200,210" },
+  { min: 100, name: "Gold", stops: [["0%", "#FFF3B0"], ["40%", "#FFD700"], ["100%", "#B8790A"]], stroke: "#FFF6D0", glowRgb: "255,196,0" },
+  { min: 150, name: "Diamond", stops: [["0%", "#E8FFFF"], ["35%", "#00E5FF"], ["70%", "#6A5ACD"], ["100%", "#4B0082"]], stroke: "#CFFFFF", glowRgb: "0,229,255" },
 ];
 const ROMAN = ["I", "II", "III", "IV", "V"];
 
@@ -80,11 +92,11 @@ export function getRankTier(level) {
   const subIndex = Math.min(5, Math.floor((level - tier.min) / 10) + 1); // 1-5
 
   return {
-    shape: tier.shape,
     stops: tier.stops,
     stroke: tier.stroke,
     glowRgb: tier.glowRgb,
     label: isMaxRank ? "Heroic" : `${tier.name} ${ROMAN[subIndex - 1]}`,
     isMaxRank,
+    ribbon: tierIndex >= 2, // Gold tier (Level 100+) and up
   };
 }

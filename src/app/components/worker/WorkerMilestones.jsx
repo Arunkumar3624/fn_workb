@@ -77,10 +77,10 @@ function BadgeMedal({ milestone, achieved, isNext, index, pinned, pinning, onTog
           />
         )}
 
-        {/* Real <svg> rank badge — genuinely different silhouette per tier
-            (Bronze circle, Silver hexagon, Gold pentagon, Diamond shield),
-            multi-stop metallic gradients, wings from Gold up, and its own
-            infinite idle-float + pulsing glow. See RankBadge.jsx. */}
+        {/* Real <svg> rank badge — one consistent scalloped-medal rosette,
+            multi-stop metallic gradient escalating Bronze -> Silver -> Gold
+            -> Diamond, a ribbon tail from Gold up, and its own infinite
+            idle-float + pulsing glow. See RankBadge.jsx. */}
         <RankBadge level={milestone.level} achieved={achieved} size="lg" />
       </div>
 
