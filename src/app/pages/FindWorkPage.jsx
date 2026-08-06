@@ -5,7 +5,7 @@ const FEATURES = [
   {
     icon: Zap,
     title: "Instant Payouts",
-    description: "Get paid the moment your work is approved — no invoices, no chasing net-30 terms.",
+    description: "Get Paid Instantly on Approval—Say Goodbye to Unpaid Invoices & 30-Day Waits",
   },
   {
     icon: ShieldCheck,
@@ -20,7 +20,7 @@ const FEATURES = [
   {
     icon: Briefcase,
     title: "Thousands of Freelance Jobs",
-    description: "Whether it's dev, design, or content — new gigs go live every hour, across every category.",
+    description: "From Code to Copy: Fresh Freelance Gigs Posted Hourly Across All Industries",
   },
   {
     icon: Eye,
@@ -42,7 +42,7 @@ export default function FindWorkPage({ onSelect }) {
       seoKeywords="Freelance Jobs, Instant Payment Freelance, Freelance Marketplace, Get Paid Fast"
       eyebrow="For Freelancers"
       title="Find Freelance Jobs. Get Paid Instantly."
-      subtitle="WorkBridge connects you with verified clients and gets your earnings into your wallet fast — no more waiting weeks to see your money."
+      subtitle="Connect with Top Clients & Get Paid Fast—Stop Waiting Weeks for Your Money"
       heroContent={
         <div className="flex flex-wrap items-center justify-center gap-2">
           {["Instant Payouts", "Verified Clients", "Payment Protection"].map((pill) => (

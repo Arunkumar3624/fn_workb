@@ -4,12 +4,12 @@
 // written by us) is real data or nothing. Every claim below is something
 // this platform actually does, not a number we'd have to make up.
 const TRUST_SIGNALS = [
-  "ID-Verified Workers & Businesses",
-  "Escrow-Protected Payments",
-  "Real Dispute Resolution Team",
+  "ID-Verified Pros",
+  "Secure Escrow Payments",
+  "Real Dispute Resolution",
   "Behavior-Score Trust System",
-  "Instant Release on Approval",
-  "Transparent, No-Surprise Hiring",
+  "Instant Payouts",
+  "Transparent Hiring",
 ];
 
 // Items are duplicated so the CSS loop transition is seamless
@@ -18,7 +18,7 @@ const TRACK = [...TRUST_SIGNALS, ...TRUST_SIGNALS];
 export function TrustedPartners() {
   return (
     <div className="wb-partners">
-      <p className="wb-partners-label">THE WORKBRIDGE TRUST STANDARD</p>
+      <p className="wb-partners-label">THE WORKBRIDGE GUARANTEE</p>
       <div className="wb-partners-viewport">
         <div className="wb-partners-track">
           {TRACK.map((name, i) => (

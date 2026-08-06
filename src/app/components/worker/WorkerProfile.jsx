@@ -370,7 +370,7 @@ export default function WorkerProfile() {
                       )}
                     </div>
                     <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600">
-                      {profile.bio || "No bio yet — add one from Edit Profile to introduce yourself."}
+                      {profile.bio || "Your Bio is Empty! Click 'Edit Profile' to Stand Out to Clients."}
                     </p>
 
                     {/* MASTER_ECONOMY_PLAN.md Part 5a — a thin, understated

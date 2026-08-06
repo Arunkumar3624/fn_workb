@@ -10,12 +10,12 @@ const FEATURES = [
   {
     icon: ShieldCheck,
     title: "Behavior Score Verification",
-    description: "Every freelancer carries a live Behavior Score built from real delivery history — so you know exactly who you're bringing on, before you commit.",
+    description: "Know Who You're Hiring: Live Behavior Scores Built on Real Freelancer Track Records",
   },
   {
     icon: CheckCircle2,
     title: "Quality Assurance",
-    description: "We check portfolios, past ratings, and job history before anyone's allowed to bid on your project.",
+    description: "Strict Vetting: We Verify Portfolios & Ratings Before Anyone Can Bid on Your Job",
   },
   {
     icon: Code2,
@@ -42,7 +42,7 @@ export default function HireTalentPage({ onSelect }) {
       seoKeywords="Verified Freelancers, Hire Software Developers, Hire Freelancers, Freelance Talent"
       eyebrow="For Businesses"
       title="Hire Verified Talent. Instantly."
-      subtitle="WorkBridge matches you with pre-vetted freelancers and developers — every hire backed by a real Behavior Score, and your money stays in your control until you're happy."
+      subtitle="Match with Pre-Vetted Pros. Check Their Trust Score. Keep Your Funds Safe Until You're Happy."
       heroContent={
         <div className="flex flex-wrap items-center justify-center gap-2">
           {["Instant Matching", "Behavior Score Verification", "Quality Assurance"].map((pill) => (

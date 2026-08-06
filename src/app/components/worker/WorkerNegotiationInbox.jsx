@@ -203,7 +203,7 @@ function JobDetailsPanel({ project }) {
       <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
         <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Description</p>
         <p className="mt-2 max-h-44 overflow-y-auto pr-1 text-sm leading-6 text-slate-600 wb-scroll-clean">
-          {project.description || "The business didn't add extra details for this one."}
+          {project.description || "The Client Didn't Provide Extra Details for This Project."}
         </p>
       </div>
 
@@ -213,7 +213,7 @@ function JobDetailsPanel({ project }) {
           <div>
             <p className="text-sm font-bold text-slate-900">Terms stay protected</p>
             <p className="mt-1 text-xs leading-5 text-slate-500">
-              Once you accept, this scope, budget, and timeline are locked in — no surprises later.
+              Accepting Locks in Your Scope, Budget, and Timeline—Zero Surprises Later.
             </p>
           </div>
         </div>
@@ -530,7 +530,7 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
         <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
           <MessageSquare className="mx-auto h-10 w-10 text-slate-300" />
           <h2 className="mt-4 text-lg font-bold text-slate-900">No conversations yet</h2>
-          <p className="mt-1 text-sm text-slate-500">Once you get an invite or land a project, the conversation shows up right here.</p>
+          <p className="mt-1 text-sm text-slate-500">Your Hub for Invites, Active Projects, and Past Chats</p>
         </div>
       </div>
     );

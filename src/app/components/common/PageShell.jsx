@@ -48,7 +48,7 @@ function RoleModal({ onSelect, onClose }) {
             </div>
             <div>
               <div className="font-bold text-[#0A1128] text-sm">Freelancer</div>
-              <div className="text-slate-400 text-xs">Find work · Get paid fast, every time</div>
+              <div className="text-slate-400 text-xs">Find Freelance Work · Get Paid Instantly</div>
             </div>
             <ArrowRight className="w-4 h-4 text-slate-300 ml-auto group-hover:text-[#FF6B2C] transition-colors" />
           </button>
@@ -62,7 +62,7 @@ function RoleModal({ onSelect, onClose }) {
             </div>
             <div>
               <div className="font-bold text-[#0A1128] text-sm">Business</div>
-              <div className="text-slate-400 text-xs">Hire verified talent · Pay only when it's done</div>
+              <div className="text-slate-400 text-xs">Hire Top Talent · Pay Only Upon Approval</div>
             </div>
             <ArrowRight className="w-4 h-4 text-slate-300 ml-auto group-hover:text-[#1B3FAB] transition-colors" />
           </button>

@@ -18,18 +18,18 @@ import { ChromaGrid } from "./ChromaGrid";
 const workFeatures = [
   {
     title: "Build your Reputation",
-    text: "Deliver great work consistently, and better clients start finding you — not the other way around.",
+    text: "Do Great Work, Get Noticed: Let Top-Tier Clients Come to You",
     Icon: Award,
   },
   {
     title: "Get Paid Instantly",
-    text: "The moment your work's approved, your payment's on its way. No chasing, no waiting around.",
+    text: "Instant Payouts: Work Approved? Your Money is Already on the Way",
     Icon: Wallet,
     badge: "Instant Payout",
   },
   {
     title: "Own Your Schedule",
-    text: "Pick projects that fit your life, not the other way around — your hours, your skills, your call.",
+    text: "Work on Your Terms: Pick Projects That Fit Your Schedule, Skills, and Lifestyle",
     Icon: CalendarClock,
   },
 ];
@@ -39,17 +39,17 @@ const trustMatrix = ["Verified Talent", "Payment Protection", "Instant Matching"
 const enterpriseHighlights = [
   {
     title: "Dedicated Account Manager",
-    text: "One real person who gets to know your hiring needs and keeps things moving for you.",
+    text: "Your Personal Hiring Partner: We Learn Your Needs and Keep Your Projects Moving",
     Icon: Headphones,
   },
   {
     title: "API & SaaS Integrations",
-    text: "Plug WorkBridge into the tools your team already uses — ops, finance, hiring, all of it.",
+    text: "Seamless Integrations: Sync WorkBridge with Your Favorite Ops, Finance, and HR Tools",
     Icon: PlugZap,
   },
   {
     title: "Bulk Hiring & Compliance",
-    text: "Onboard at scale without the paperwork headache — document checks and clean records, handled.",
+    text: "Stress-Free Bulk Onboarding: We Handle the Document Checks and Paperwork for You",
     Icon: FileCheck2,
   },
 ];
@@ -141,7 +141,7 @@ export function EnterpriseSection({ showLink = true, onSelect }) {
   return (
     <section className="wb-section" id="enterprise">
       <div className="wb-section-split-head">
-        <SectionHeader eyebrow="Enterprise" title="Bring Vetted Talent Onboard in Hours, Not Weeks." />
+        <SectionHeader eyebrow="Enterprise" title="Onboard Fully Vetted Talent in Hours, Not Weeks" />
         <SectionAction
           showLink={showLink}
           to="/enterprise"

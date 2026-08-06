@@ -10,11 +10,11 @@ const STEPS = [
 ];
 
 const BENEFITS = [
-  "Attract serious, verified digital talent",
-  "Post as many projects as you want — zero listing fees",
-  "Every job comes with instant dispute protection",
-  "A premium company profile, complete with your Verified badge",
-  "Priority WorkBridge support when you need it",
+  "Attract Top-Tier, Fully Verified Digital Talent",
+  "Post Unlimited Projects with Zero Listing Fees",
+  "Instant Dispute Protection on Every Single Job",
+  "Stand Out with a Premium, Verified Company Profile",
+  "Get VIP Priority Support Whenever You Need It",
 ];
 
 const PAYMENT_METHODS = [
@@ -111,7 +111,7 @@ export default function BusinessVerificationDrawer({ onClose, onPaymentSuccess }
               <span className="text-[#FF6B2C]">Verified Badge.</span>
             </h2>
             <p className="text-slate-400 text-xs leading-relaxed mt-2">
-              Hire India's best freelancers with full payment protection, backed by a verified badge on your profile.
+              Hire India's Best Freelancers with 100% Payment Protection &amp; a Verified Profile Badge
             </p>
           </div>
 

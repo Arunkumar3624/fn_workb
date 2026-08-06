@@ -135,7 +135,7 @@ function TierCard({ tier, isUpgrading, upgradeResult, onUpgrade, behaviorScore }
         </button>
       ) : upgradeResult === tier.id ? (
         <p className="mt-7 rounded-xl border border-dashed border-slate-300 py-3 text-center text-xs font-semibold text-slate-400">
-          Coming soon — we haven't wired up payment yet.
+          Coming Soon! (We're Still Wiring Up the Payment System)
         </p>
       ) : (
         <button

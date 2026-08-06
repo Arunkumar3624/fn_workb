@@ -29,10 +29,10 @@ const USER_CONFIG = {
 };
 
 const BRAND_FEATURES = [
-  { Icon: Lock, text: "Every payment held safely in escrow until you approve it" },
-  { Icon: Zap, text: "Lightning-fast payouts the moment work is approved" },
-  { Icon: Shield, text: "Verified profiles, real trust scores, zero guesswork" },
-  { Icon: Award, text: "Real badges and recognition for great work" },
+  { Icon: Lock, text: "Your Money is Safe: 100% Escrow Protection Until You Approve" },
+  { Icon: Zap, text: "Instant Payouts: Get Your Cash the Second Your Work is Approved" },
+  { Icon: Shield, text: "Zero Guesswork: Verified Freelancers & Real Trust Scores" },
+  { Icon: Award, text: "Earn Real Badges & Recognition for Your Hard Work" },
 ];
 
 const OTP_LENGTH = 6;
@@ -387,17 +387,17 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
               "Secure admin access"
             ) : (
               <>
-                {authMode === "signin" ? `Welcome back, ${cfg.label}.` : "Join India’s fastest-growing"}<br />
+                {authMode === "signin" ? `Welcome Back, ${cfg.label}!` : "Join India’s Fastest-Growing"}<br />
                 <span className="text-[#FF6B2C]">
-                  {authMode === "signin" ? "Let’s get you back to work." : "freelance platform."}
+                  {authMode === "signin" ? "Let’s Get You Back to Work" : "Freelance Platform"}
                 </span>
               </>
             )}
           </h1>
           <p className="mb-10 text-sm leading-relaxed text-slate-400">
-            {userType === "worker" && "Unlock verified gigs, grow your earnings, and get paid every time — no chasing invoices."}
-            {userType === "business" && "Hire verified talent, safeguard every payment in escrow, and scale without the risk."}
-            {userType === "admin" && "Oversee verifications, disputes, and platform integrity in real time."}
+            {userType === "worker" && "Unlock Premium Gigs, Maximize Earnings, and Get Paid Instantly—No More Chasing Clients"}
+            {userType === "business" && "Hire Vetted Experts, Secure Payments in Escrow, and Grow Your Business Risk-Free"}
+            {userType === "admin" && "Real-Time Admin: Manage Verifications, Resolve Disputes & Keep the Platform Safe"}
           </p>
 
           <div className="space-y-4">
