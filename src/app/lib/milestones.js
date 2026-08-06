@@ -57,45 +57,20 @@ export function getMilestoneByLevel(level) {
   return MILESTONES.find((m) => m.level === level) ?? null;
 }
 
-// A real material-rank escalation, one step every 10 levels (1-200 -> 20
-// steps) — so the badge grid visibly "upgrades" as a worker climbs, not
-// just a different hue per milestone. Visual complexity (ring count,
-// shimmer, sparkle, ribbon count) escalates in 4 broad bands rather than 20
-// hand-authored looks, computed here so WorkerMilestones.jsx's BadgeMedal
-// stays a single component instead of 20 near-duplicates.
-const MATERIAL_TIER_NAMES = [
-  "Bronze", "Bronze II", "Silver", "Silver II", "Gold",
-  "Gold II", "Platinum", "Platinum II", "Diamond", "Diamond II",
-  "Diamond III", "Master", "Master II", "Grandmaster", "Grandmaster II",
-  "Elite", "Elite II", "Mythic", "Mythic II", "Legendary",
-];
-
-const MATERIAL_GLOW_BY_BAND = [
-  "shadow-[0_4px_10px_-2px_rgba(15,23,42,0.32)]",
-  "shadow-[0_7px_16px_-2px_rgba(100,116,139,0.42)]",
-  "shadow-[0_9px_20px_-2px_rgba(217,119,6,0.5)]",
-  "shadow-[0_12px_26px_-2px_rgba(99,102,241,0.55)]",
-];
-
-export function getMaterialTier(level) {
-  const index = Math.min(19, Math.max(0, Math.floor((level - 1) / 10)));
-  const band = Math.min(3, Math.floor(index / 5)); // 0-3 — a visual step-up every 50 levels within the 10-level name changes
-  return {
-    index,
-    name: MATERIAL_TIER_NAMES[index],
-    rings: band + 1, // 1-4 concentric decorative rings
-    shimmer: index >= 5,
-    sparkle: index >= 10,
-    glow: MATERIAL_GLOW_BY_BAND[band],
-  };
-}
-
-// A "competitive gaming rank" shape system — each real tier boundary
-// (getTierData's 50/100/150/200, backend/src/utils/gamification.js) gets a
-// completely different silhouette and gradient, not just a recolored
-// circle, so the badge grid AND the small pinned-badge avatar overlay both
-// read as genuinely different ranks at a glance. clip-path polygons only —
-// no image assets.
+// A "competitive gaming rank" system — one function, so the rank NAME the
+// caption shows and the SHAPE/gradient the medal renders can never disagree
+// (an earlier version computed these from two separate tier tables with
+// different boundaries — Level 60 read "Gold" in text next to a Silver
+// hexagon shape, which is exactly the "look bad" bug this replaced).
+// Each real fee-tier boundary (getTierData's 50/100/150/200,
+// backend/src/utils/gamification.js) gets a completely different
+// silhouette and gradient — Bronze shield, Silver hexagon, Gold spiked
+// crest, Diamond rhombus — clip-path polygons only, no image assets. A
+// Roman-numeral sub-rank steps every 10 levels within that tier (same
+// pattern real ladders like Free Fire/Valorant use: Bronze I..V, Silver
+// I..V, etc.), and the absolute Level 200 cap gets the unique label
+// "Heroic" instead of "Diamond V" — it's the single hard prestige ceiling,
+// not just another sub-rank.
 function scallopClipPath(teeth = 16, outerR = 50, innerR = 41) {
   const total = teeth * 2;
   const points = [];
@@ -116,17 +91,41 @@ export const SHAPE_CLIP_PATHS = {
   diamond: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
 };
 
-const SHAPE_TIERS = [
-  { min: 0, shape: "shield", name: "Bronze Rank", grad: "from-orange-300 via-amber-600 to-orange-800", darkEdge: "border-orange-950/50" },
-  { min: 50, shape: "hexagon", name: "Silver Rank", grad: "from-slate-100 via-slate-300 to-slate-500", darkEdge: "border-slate-700/50" },
-  { min: 100, shape: "star", name: "Gold Rank", grad: "from-amber-300 via-yellow-500 to-orange-600", darkEdge: "border-orange-900/50" },
-  { min: 150, shape: "diamond", name: "Diamond Rank", grad: "from-cyan-300 via-purple-400 to-blue-600", darkEdge: "border-blue-950/50" },
+const RANK_TIERS = [
+  { min: 0, shape: "shield", name: "Bronze", grad: "from-orange-300 via-amber-600 to-orange-800", darkEdge: "border-orange-950/50" },
+  { min: 50, shape: "hexagon", name: "Silver", grad: "from-slate-100 via-slate-300 to-slate-500", darkEdge: "border-slate-700/50" },
+  { min: 100, shape: "star", name: "Gold", grad: "from-amber-300 via-yellow-500 to-orange-600", darkEdge: "border-orange-900/50" },
+  { min: 150, shape: "diamond", name: "Diamond", grad: "from-cyan-300 via-purple-400 to-blue-600", darkEdge: "border-blue-950/50" },
+];
+const ROMAN = ["I", "II", "III", "IV", "V"];
+const GLOW_BY_TIER_INDEX = [
+  "shadow-[0_4px_10px_-2px_rgba(15,23,42,0.32)]",
+  "shadow-[0_7px_16px_-2px_rgba(100,116,139,0.42)]",
+  "shadow-[0_9px_20px_-2px_rgba(217,119,6,0.5)]",
+  "shadow-[0_12px_26px_-2px_rgba(99,102,241,0.55)]",
 ];
 
-export function getShapeTier(level) {
-  let tier = SHAPE_TIERS[0];
-  for (const t of SHAPE_TIERS) {
-    if (level >= t.min) tier = t;
+export function getRankTier(level) {
+  let tierIndex = 0;
+  for (let i = 0; i < RANK_TIERS.length; i++) {
+    if (level >= RANK_TIERS[i].min) tierIndex = i;
   }
-  return tier;
+  const tier = RANK_TIERS[tierIndex];
+  const isMaxRank = level >= 200;
+  const subIndex = Math.min(5, Math.floor((level - tier.min) / 10) + 1); // 1-5
+
+  return {
+    shape: tier.shape,
+    grad: tier.grad,
+    darkEdge: tier.darkEdge,
+    label: isMaxRank ? "Heroic" : `${tier.name} ${ROMAN[subIndex - 1]}`,
+    isMaxRank,
+    // Decorative complexity escalates across the FULL 1-200 range, not just
+    // within one shape tier, so a fresh Diamond I doesn't look plainer than
+    // a maxed-out Gold V.
+    rings: 1 + tierIndex,
+    shimmer: level >= 60,
+    sparkle: level >= 120,
+    glow: isMaxRank ? GLOW_BY_TIER_INDEX[3] : GLOW_BY_TIER_INDEX[tierIndex],
+  };
 }

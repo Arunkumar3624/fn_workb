@@ -6,7 +6,7 @@ import { pinBadge } from "../../lib/profilesApi";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { ApiError } from "../../lib/apiClient";
 import { useAuth } from "../../context/AuthContext";
-import { MILESTONES, BADGE_THEMES, getMaterialTier, getShapeTier, SHAPE_CLIP_PATHS } from "../../lib/milestones";
+import { MILESTONES, BADGE_THEMES, getRankTier, SHAPE_CLIP_PATHS } from "../../lib/milestones";
 
 // MASTER_ECONOMY_PLAN.md Part 6's Worker Reward Roadmap, verbatim (see
 // lib/milestones.js for the actual MILESTONES/BADGE_THEMES data, shared
@@ -22,19 +22,15 @@ const TABS = ["All", "Unlocked", "Locked"];
 function BadgeMedal({ milestone, achieved, isNext, index, pinned, pinning, onTogglePin }) {
   const Icon = milestone.icon;
   const theme = BADGE_THEMES[milestone.color];
-  // A real escalation, one step every 10 levels — higher-level badges get
-  // more decorative rings, a shimmer sweep, and an orbiting sparkle, so the
-  // collection visibly "upgrades" as you climb, not just a hue change. See
-  // lib/milestones.js's getMaterialTier.
-  const material = getMaterialTier(milestone.level);
-  // A completely different silhouette per real tier boundary (Bronze
-  // shield / Silver hexagon / Gold spiked crest / Diamond rhombus) — a
-  // "competitive gaming rank" identity instead of one recolored circle.
-  const shapeTier = getShapeTier(milestone.level);
-  const clipPath = SHAPE_CLIP_PATHS[shapeTier.shape];
-  const isDiamond = achieved && shapeTier.shape === "diamond";
-  const ringGrad = !achieved ? "bg-slate-300" : `bg-gradient-to-br ${shapeTier.grad}`;
-  const glowClass = achieved ? material.glow : "shadow-[0_4px_10px_-2px_rgba(15,23,42,0.35)]";
+  // One source of truth for both the shape/gradient AND the rank label, so
+  // they can never disagree (Bronze shield / Silver hexagon / Gold spiked
+  // crest / Diamond rhombus, Roman-numeral sub-rank every 10 levels). See
+  // lib/milestones.js's getRankTier.
+  const rank = getRankTier(milestone.level);
+  const clipPath = SHAPE_CLIP_PATHS[rank.shape];
+  const isMaxRank = achieved && rank.isMaxRank;
+  const ringGrad = !achieved ? "bg-slate-300" : `bg-gradient-to-br ${rank.grad}`;
+  const glowClass = achieved ? rank.glow : "shadow-[0_4px_10px_-2px_rgba(15,23,42,0.35)]";
 
   return (
     <motion.div
@@ -90,11 +86,11 @@ function BadgeMedal({ milestone, achieved, isNext, index, pinned, pinning, onTog
           />
         )}
 
-        {/* Concentric decorative rings — one extra ring every material
-            band, biggest badges (Grandmaster+) getting a visibly "thicker"
-            medal than a fresh Bronze one, not just a recolor. */}
+        {/* Concentric decorative rings — one extra ring per rank tier,
+            biggest badges (Diamond) getting a visibly "thicker" medal than
+            a fresh Bronze one, not just a recolor. */}
         {achieved &&
-          Array.from({ length: material.rings - 1 }).map((_, ringIndex) => (
+          Array.from({ length: rank.rings - 1 }).map((_, ringIndex) => (
             <span
               key={ringIndex}
               className={`absolute left-1/2 top-8 -translate-x-1/2 -translate-y-1/2 rounded-full border ${
@@ -108,9 +104,9 @@ function BadgeMedal({ milestone, achieved, isNext, index, pinned, pinning, onTog
             />
           ))}
 
-        {/* Shimmer sweep — a slowly rotating soft highlight, Gold-band
-            badges (Level 51+) and up only. */}
-        {achieved && material.shimmer && (
+        {/* Shimmer sweep — a slowly rotating soft highlight, Level 60+
+            only. */}
+        {achieved && rank.shimmer && (
           <motion.span
             className="absolute left-1/2 top-8 -translate-x-1/2 -translate-y-1/2 rounded-full"
             style={{
@@ -123,8 +119,8 @@ function BadgeMedal({ milestone, achieved, isNext, index, pinned, pinning, onTog
           />
         )}
 
-        {/* Orbiting sparkle — Diamond III+ badges (Level 101+) only. */}
-        {achieved && material.sparkle && (
+        {/* Orbiting sparkle — Level 120+ only. */}
+        {achieved && rank.sparkle && (
           <motion.span
             className="absolute left-1/2 top-8 z-20"
             style={{ marginLeft: "22px", marginTop: "-30px" }}
@@ -137,18 +133,18 @@ function BadgeMedal({ milestone, achieved, isNext, index, pinned, pinning, onTog
 
         {/* The rank badge itself — a completely different silhouette per
             real tier boundary (Bronze shield, Silver hexagon, Gold spiked
-            crest, Diamond rhombus; see lib/milestones.js's getShapeTier),
+            crest, Diamond rhombus; see lib/milestones.js's getRankTier),
             not one recolored circle. border-b-4/border-r-4 in a darker
-            shade fake a 3D bevel; Diamond rank additionally breathes with a
-            pulsating glow. CSS-only, no image asset. Locked badges preview
-            their eventual shape in flat slate. */}
+            shade fake a 3D bevel; the Level 200 "Heroic" cap additionally
+            breathes with a pulsating glow. CSS-only, no image asset. Locked
+            badges preview their eventual shape in flat slate. */}
         <motion.div
           className={`relative z-10 flex h-16 w-16 items-center justify-center border-b-4 border-r-4 ${
-            achieved ? shapeTier.darkEdge : "border-slate-400/50"
+            achieved ? rank.darkEdge : "border-slate-400/50"
           } ${glowClass} ${ringGrad}`}
           style={{ clipPath }}
           animate={
-            isDiamond
+            isMaxRank
               ? {
                   boxShadow: [
                     "0 0 14px 2px rgba(34,211,238,0.45)",
@@ -158,7 +154,7 @@ function BadgeMedal({ milestone, achieved, isNext, index, pinned, pinning, onTog
                 }
               : undefined
           }
-          transition={isDiamond ? { duration: 2.2, repeat: Infinity, ease: "easeInOut" } : undefined}
+          transition={isMaxRank ? { duration: 2.2, repeat: Infinity, ease: "easeInOut" } : undefined}
         >
           <div
             className={`flex h-10 w-10 items-center justify-center rounded-full shadow-inner ${
@@ -176,7 +172,7 @@ function BadgeMedal({ milestone, achieved, isNext, index, pinned, pinning, onTog
 
       <div className="mt-1.5">
         <p className={`text-[10px] font-bold uppercase tracking-wide ${achieved ? "text-slate-400" : "text-slate-300"}`}>
-          Level {milestone.level} {achieved && `· ${material.name}`}
+          Level {milestone.level} {achieved && `· ${rank.label}`}
         </p>
         <p className={`mt-0.5 text-sm font-extrabold leading-tight ${achieved ? "text-slate-900" : "text-slate-400"}`}>
           {milestone.name}
