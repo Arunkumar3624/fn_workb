@@ -68,7 +68,7 @@ export default function WorkerSidebar({ tab, onTabChange, onLogout }) {
                 {getInitials(currentUser?.name)}
               </div>
             )}
-            <PinnedBadgeOverlay level={currentUser?.pinned_milestone_level} size="h-5 w-5" iconSize="h-2.5 w-2.5" className="-bottom-1 -right-1" />
+            <PinnedBadgeOverlay level={currentUser?.pinned_milestone_level} size="sm" className="-bottom-2 -right-2" />
           </div>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-white">{currentUser?.name || "—"}</p>

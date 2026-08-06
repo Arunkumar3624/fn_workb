@@ -460,7 +460,7 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
                         ) : (
                           <Avatar initials={getInitials(w.name)} size="w-12 h-12" text="text-sm" />
                         )}
-                        <PinnedBadgeOverlay level={w.pinned_milestone_level} size="h-5 w-5" iconSize="h-2.5 w-2.5" className="-bottom-1 -right-1" />
+                        <PinnedBadgeOverlay level={w.pinned_milestone_level} size="sm" className="-bottom-2 -right-2" />
                       </div>
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-1.5 mb-0.5">

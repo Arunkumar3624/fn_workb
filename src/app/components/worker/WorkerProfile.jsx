@@ -329,9 +329,8 @@ export default function WorkerProfile() {
                     <span className="absolute bottom-2 right-2 h-5 w-5 rounded-full border-4 border-white bg-emerald-500 shadow-[0_0_0_5px_rgba(16,185,129,0.16)]" />
                     <PinnedBadgeOverlay
                       level={currentUser?.pinned_milestone_level}
-                      size="h-9 w-9"
-                      iconSize="h-4 w-4"
-                      className="-bottom-1 -left-1"
+                      size="md"
+                      className="-bottom-3 -left-3"
                     />
                     <span className="absolute inset-0 flex items-center justify-center rounded-full bg-slate-950/55 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                       {avatarUploading ? (

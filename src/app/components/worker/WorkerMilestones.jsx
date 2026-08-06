@@ -1,18 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
-import { AlertCircle, Check, Loader2, Lock, Pin, PinOff, Sparkles } from "lucide-react";
+import { AlertCircle, Check, Loader2, Pin, PinOff } from "lucide-react";
 import { getLedger } from "../../lib/gamificationApi";
 import { pinBadge } from "../../lib/profilesApi";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { ApiError } from "../../lib/apiClient";
 import { useAuth } from "../../context/AuthContext";
-import { MILESTONES, BADGE_THEMES, getRankTier, SHAPE_CLIP_PATHS, WING_CLIP_PATH } from "../../lib/milestones";
-
-const DEFAULT_GEM_GRAD = "from-blue-400 via-blue-500 to-indigo-600";
+import { MILESTONES, getRankTier } from "../../lib/milestones";
+import RankBadge from "../shared/RankBadge";
 
 // MASTER_ECONOMY_PLAN.md Part 6's Worker Reward Roadmap, verbatim (see
-// lib/milestones.js for the actual MILESTONES/BADGE_THEMES data, shared
-// with Avatar.jsx's pinned-badge overlay). Only the Level/Tier badge
+// lib/milestones.js for the actual MILESTONES data, shared with
+// RankBadge.jsx's shared rank/shape system). Only the Level/Tier badge
 // boundaries (50/100/150/200, via getTierData) and the backend-only fee
 // lookup are real today; everything else here (priority boosts, featured
 // placement, mentor status, etc.) is still just the design's intent,
@@ -22,22 +21,7 @@ export { MILESTONES };
 const TABS = ["All", "Unlocked", "Locked"];
 
 function BadgeMedal({ milestone, achieved, isNext, index, pinned, pinning, onTogglePin }) {
-  const Icon = milestone.icon;
-  const theme = BADGE_THEMES[milestone.color];
-  // One source of truth for the shape, rank label, AND the metal frame, so
-  // they can never disagree (an earlier version computed these separately —
-  // Level 60 read "Gold" in text next to a Silver-colored shape). A genuinely
-  // different silhouette per tier (Bronze shield, Silver hexagon, Gold
-  // spiked crest, Diamond crystal — all 5+ sided on purpose), each gem
-  // tinted per-badge for variety, set inside a frame whose metal escalates
-  // Bronze -> Silver -> Gold -> Diamond, with wings appearing at Diamond.
-  // See lib/milestones.js's getRankTier.
   const rank = getRankTier(milestone.level);
-  const shapeClip = SHAPE_CLIP_PATHS[rank.shape];
-  const isMaxRank = achieved && rank.isMaxRank;
-  const frameGrad = !achieved ? "bg-slate-700" : `bg-gradient-to-br ${rank.frame}`;
-  const gemGrad = theme?.grad ?? DEFAULT_GEM_GRAD;
-  const glowClass = achieved ? rank.glow : "shadow-[0_4px_10px_-2px_rgba(15,23,42,0.35)]";
 
   return (
     <motion.div
@@ -53,15 +37,6 @@ function BadgeMedal({ milestone, achieved, isNext, index, pinned, pinning, onTog
             : "border-slate-800/60 bg-slate-900/40"
       }`}
     >
-      {/* Ambient colored glow behind the badge — this + the dark card (not
-          a small icon floating on a plain white card) is what actually
-          reads as a "gaming rank" card rather than a generic reward tile. */}
-      {achieved && (
-        <div
-          className={`pointer-events-none absolute left-1/2 top-16 h-32 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br opacity-30 blur-2xl ${gemGrad}`}
-        />
-      )}
-
       {isNext && (
         <span className="absolute -top-0.5 left-1/2 z-20 -translate-x-1/2 rounded-b-lg bg-[#FF6B35] px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-white shadow-sm">
           Next
@@ -92,7 +67,7 @@ function BadgeMedal({ milestone, achieved, isNext, index, pinned, pinning, onTog
         </button>
       )}
 
-      <div className="relative z-10 pb-2">
+      <div className="relative z-10 flex justify-center pb-2 pt-1">
         {isNext && (
           <motion.span
             className="absolute inset-0 rounded-full border-2 border-[#FF6B35]"
@@ -102,107 +77,11 @@ function BadgeMedal({ milestone, achieved, isNext, index, pinned, pinning, onTog
           />
         )}
 
-        {/* Concentric decorative rings — one extra ring per rank tier,
-            biggest badges (Diamond) getting a visibly "thicker" medal than
-            a fresh Bronze one, not just a recolor. White on the dark card
-            so they read at every rank hue, not just the light ones. */}
-        {achieved &&
-          Array.from({ length: rank.rings - 1 }).map((_, ringIndex) => (
-            <span
-              key={ringIndex}
-              className="absolute left-1/2 top-10 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white"
-              style={{
-                width: `${88 + ringIndex * 12}px`,
-                height: `${88 + ringIndex * 12}px`,
-                opacity: 0.22 - ringIndex * 0.05,
-              }}
-            />
-          ))}
-
-        {/* Shimmer sweep — a slowly rotating soft highlight, Level 60+
-            only. */}
-        {achieved && rank.shimmer && (
-          <motion.span
-            className="absolute left-1/2 top-10 -translate-x-1/2 -translate-y-1/2 rounded-full"
-            style={{
-              width: "80px",
-              height: "80px",
-              background: "conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0.6) 8%, transparent 16%)",
-            }}
-            animate={{ rotate: 360 }}
-            transition={{ duration: 3.5, repeat: Infinity, ease: "linear" }}
-          />
-        )}
-
-        {/* Orbiting sparkle — Level 120+ only. */}
-        {achieved && rank.sparkle && (
-          <motion.span
-            className="absolute left-1/2 top-10 z-20"
-            style={{ marginLeft: "28px", marginTop: "-38px" }}
-            animate={{ opacity: [0.3, 1, 0.3], scale: [0.85, 1.15, 0.85] }}
-            transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <Sparkles className="h-4 w-4 text-white" />
-          </motion.span>
-        )}
-
-        {/* Wings — Diamond tier (Level 150+) and up only, metallic to match
-            the frame, mirrored on each side. */}
-        {achieved && rank.wings && (
-          <>
-            <span
-              className={`absolute left-1/2 top-10 z-0 h-9 w-7 -translate-y-1/2 bg-gradient-to-br ${rank.frame}`}
-              style={{ clipPath: WING_CLIP_PATH, marginLeft: "-42px", transform: "translateY(-50%) scaleX(-1)" }}
-            />
-            <span
-              className={`absolute left-1/2 top-10 z-0 h-9 w-7 -translate-y-1/2 bg-gradient-to-br ${rank.frame}`}
-              style={{ clipPath: WING_CLIP_PATH, marginLeft: "10px" }}
-            />
-          </>
-        )}
-
-        {/* The rank badge — a genuinely different silhouette per tier
-            (Bronze shield, Silver hexagon, Gold spiked crest, Diamond
-            crystal), set inside a frame whose metal escalates Bronze ->
-            Silver -> Gold -> Diamond, same language real mobile-game rank
-            ladders use. border-b/border-r in a darker shade fake a 3D bevel
-            on the frame; the Level 200 "Heroic" cap additionally breathes
-            with a pulsating glow. CSS-only, no image asset. Locked badges
-            preview the shape in flat slate. */}
-        <motion.div
-          className={`relative z-10 flex h-20 w-20 items-center justify-center border-b-[5px] border-r-[5px] ${
-            achieved ? rank.frameEdge : "border-slate-800"
-          } ${glowClass} ${frameGrad}`}
-          style={{ clipPath: shapeClip }}
-          animate={
-            isMaxRank
-              ? {
-                  boxShadow: [
-                    "0 0 18px 3px rgba(34,211,238,0.5)",
-                    "0 0 34px 9px rgba(168,85,247,0.65)",
-                    "0 0 18px 3px rgba(34,211,238,0.5)",
-                  ],
-                }
-              : undefined
-          }
-          transition={isMaxRank ? { duration: 2.2, repeat: Infinity, ease: "easeInOut" } : undefined}
-        >
-          {/* The gem — per-badge tinted (BADGE_THEMES), so within one rank
-              tier the collection still reads as individually varied. */}
-          <div
-            className={`relative flex h-14 w-14 items-center justify-center ${
-              achieved ? `bg-gradient-to-br ${gemGrad}` : "bg-slate-800"
-            }`}
-            style={{ clipPath: shapeClip }}
-          >
-            {achieved && <div className="absolute -inset-y-3 left-[8%] w-1/3 -rotate-12 bg-white/35 blur-[2px]" />}
-            {achieved ? (
-              <Icon className="relative h-6 w-6 text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.4)]" />
-            ) : (
-              <Lock className="relative h-5 w-5 text-slate-500" />
-            )}
-          </div>
-        </motion.div>
+        {/* Real <svg> rank badge — genuinely different silhouette per tier
+            (Bronze shield, Silver shuriken, Gold crest, Diamond crystal),
+            multi-stop metallic gradients, wings from Gold up, and its own
+            infinite idle-float + pulsing glow. See RankBadge.jsx. */}
+        <RankBadge level={milestone.level} achieved={achieved} size="lg" />
       </div>
 
       <div className="relative z-10">

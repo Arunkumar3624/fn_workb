@@ -14,15 +14,14 @@ export default function Avatar({
   size = "w-12 h-12",
   text = "text-sm",
   pinnedLevel = null,
-  badgeSize = "h-5 w-5",
-  badgeIconSize = "h-2.5 w-2.5",
+  badgeSize = "sm",
 }) {
   return (
     <div className={`relative inline-flex flex-shrink-0 ${size}`}>
       <div className={`${size} ${bg} rounded-xl flex items-center justify-center text-white font-bold ${text} flex-shrink-0`}>
         {initials}
       </div>
-      <PinnedBadgeOverlay level={pinnedLevel} size={badgeSize} iconSize={badgeIconSize} className="-bottom-1 -right-1" />
+      <PinnedBadgeOverlay level={pinnedLevel} size={badgeSize} className="-bottom-2 -right-2" />
     </div>
   );
 }
