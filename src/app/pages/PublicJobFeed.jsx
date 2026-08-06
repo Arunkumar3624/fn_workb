@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Briefcase, Clock3, Flame, IndianRupee, Lock, Search, ShieldCheck, Users, X } from "lucide-react";
 import { listPublicOpenJobs } from "../lib/projectsApi";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
@@ -108,10 +109,13 @@ function JobDetailModal({ job, onClose, onSignIn }) {
 
 export default function PublicJobFeed({ onSelect }) {
   useDocumentTitle("Browse Freelance Jobs | WorkBridge");
+  const [searchParams] = useSearchParams();
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
-  const [query, setQuery] = useState("");
+  // Seeded from the Hero search bar's ?q= (see HeroSection.jsx) — still a
+  // normal controlled input after that, so typing here works the same way.
+  const [query, setQuery] = useState(() => searchParams.get("q") ?? "");
   const [selectedJob, setSelectedJob] = useState(null);
 
   useEffect(() => {

@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { ArrowRight, Check, Lock, Search, Star, Users } from "lucide-react";
 import heroVideoSrc from "../../assets/I_checked_the_video_again_The.mp4";
 import { Button } from "./Button";
@@ -6,6 +8,18 @@ import { GlassCard } from "./GlassCard";
 const trustItems = ["Vetted.", "Seamless.", "Secure."];
 
 export function HeroSection({ onSelect }) {
+  const navigate = useNavigate();
+  const [query, setQuery] = useState("");
+
+  // Previously ignored whatever was typed here and sent everyone straight
+  // to login regardless — now it actually searches the real, public Job
+  // Board (see PublicJobFeed.jsx), which needs no account to browse.
+  const handleSearch = (event) => {
+    event.preventDefault();
+    const trimmed = query.trim();
+    navigate(trimmed ? `/jobs?q=${encodeURIComponent(trimmed)}` : "/jobs");
+  };
+
   return (
     <section className="wb-hero">
       <GlassCard className="wb-hero-card">
@@ -51,15 +65,14 @@ export function HeroSection({ onSelect }) {
           </div>
         </div>
 
-        <form
-          className="wb-search"
-          onSubmit={(event) => {
-            event.preventDefault();
-            onSelect("worker");
-          }}
-        >
+        <form className="wb-search" onSubmit={handleSearch}>
           <Search size={22} />
-          <input type="text" placeholder="Search 500,000+ open gigs by skill…" />
+          <input
+            type="text"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search 500,000+ open gigs by skill…"
+          />
           <Button type="submit">
             Search <ArrowRight size={18} />
           </Button>
