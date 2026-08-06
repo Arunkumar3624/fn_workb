@@ -1,12 +1,12 @@
 import { motion } from "motion/react";
-import { getMilestoneByLevel, getRankTier, HEX_CLIP_PATH } from "../../lib/milestones";
+import { getMilestoneByLevel, getRankTier, SHAPE_CLIP_PATHS } from "../../lib/milestones";
 
 // The small rank-badge overlay shown on an avatar for a worker's pinned
-// milestone (WorkerMilestones.jsx's "pin one badge" action) — same hexagon
-// shape + metal-frame gradient + label system as the full Badges grid
-// (lib/milestones.js's getRankTier — one source of truth, so this can never
-// disagree with the grid), just scaled down to a single frame-colored
-// hexagon (no room for the nested gem layer at this size). Shared by
+// milestone (WorkerMilestones.jsx's "pin one badge" action) — same
+// per-tier shape + metal-frame gradient + label system as the full Badges
+// grid (lib/milestones.js's getRankTier — one source of truth, so this can
+// never disagree with the grid), just scaled down to a single frame-colored
+// shape (no room for the nested gem layer at this size). Shared by
 // Avatar.jsx and every worker-profile/business-card call site so they can
 // never visually drift apart. The Level 200 "Heroic" cap keeps its
 // pulsating glow even at this size — the one grid effect that reads fine
@@ -22,7 +22,7 @@ export default function PinnedBadgeOverlay({ level, size = "h-5 w-5", iconSize =
     <motion.span
       title={`${milestone.name} — Level ${milestone.level} (${rank.label})`}
       className={`absolute flex flex-shrink-0 items-center justify-center border-b-2 border-r-2 shadow-md ${rank.frameEdge} bg-gradient-to-br ${rank.frame} ${size} ${className}`}
-      style={{ clipPath: HEX_CLIP_PATH }}
+      style={{ clipPath: SHAPE_CLIP_PATHS[rank.shape] }}
       animate={
         rank.isMaxRank
           ? {

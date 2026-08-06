@@ -58,21 +58,44 @@ export function getMilestoneByLevel(level) {
 }
 
 // A "competitive gaming rank" system modeled on real mobile-game ladders
-// (Mobile Legends/Free Fire) — ONE consistent gem shape throughout (a
-// hexagon reads cleanest at small sizes), with an escalating METAL FRAME
-// (bronze -> silver -> gold -> diamond) and wings on the top tier, rather
-// than switching to a different silhouette per tier. One function
-// computes the rank name, frame, and decorative escalation together so
-// they can never disagree with each other.
-export const HEX_CLIP_PATH = "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)";
+// (Mobile Legends/Free Fire) — a genuinely different SILHOUETTE per tier
+// (not one shape recolored), each with an escalating METAL FRAME (bronze ->
+// silver -> gold -> diamond) and wings on the top tier. Every shape is 5+
+// sided on purpose — no triangles/quadrilaterals, which read as too plain/
+// generic for a "rank" silhouette at badge scale. One function computes
+// the shape, rank name, and frame together so they can never disagree.
+function scallopClipPath(teeth = 16, outerR = 50, innerR = 41) {
+  const total = teeth * 2;
+  const points = [];
+  for (let i = 0; i < total; i++) {
+    const angle = (Math.PI * 2 * i) / total - Math.PI / 2;
+    const r = i % 2 === 0 ? outerR : innerR;
+    const x = (50 + r * Math.cos(angle)).toFixed(2);
+    const y = (50 + r * Math.sin(angle)).toFixed(2);
+    points.push(`${x}% ${y}%`);
+  }
+  return `polygon(${points.join(", ")})`;
+}
+
+export const SHAPE_CLIP_PATHS = {
+  // Shield — 6 points.
+  shield: "polygon(50% 0%, 90% 12%, 90% 55%, 50% 100%, 10% 55%, 10% 12%)",
+  // Flat hexagon — 6 points.
+  hexagon: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
+  // Spiked crest/star — 32 points (scallopClipPath's default).
+  star: scallopClipPath(),
+  // Cut-gem crystal — 5 points, replaces a plain 4-point diamond.
+  crystal: "polygon(50% 0%, 85% 30%, 70% 100%, 30% 100%, 15% 30%)",
+};
+
 // A single wing "feather" — mirrored (scaleX(-1)) for the opposite side.
 export const WING_CLIP_PATH = "polygon(0% 50%, 100% 0%, 78% 30%, 100% 38%, 70% 50%, 100% 62%, 78% 70%, 100% 100%)";
 
 const RANK_TIERS = [
-  { min: 0, name: "Bronze", frame: "from-orange-300 via-amber-600 to-orange-800", frameEdge: "border-orange-950/60" },
-  { min: 50, name: "Silver", frame: "from-slate-100 via-slate-300 to-slate-500", frameEdge: "border-slate-600/60" },
-  { min: 100, name: "Gold", frame: "from-amber-200 via-yellow-400 to-amber-600", frameEdge: "border-amber-900/60" },
-  { min: 150, name: "Diamond", frame: "from-sky-100 via-cyan-300 to-blue-500", frameEdge: "border-blue-950/60" },
+  { min: 0, name: "Bronze", shape: "shield", frame: "from-orange-300 via-amber-600 to-orange-800", frameEdge: "border-orange-950/60" },
+  { min: 50, name: "Silver", shape: "hexagon", frame: "from-slate-100 via-slate-300 to-slate-500", frameEdge: "border-slate-600/60" },
+  { min: 100, name: "Gold", shape: "star", frame: "from-amber-200 via-yellow-400 to-amber-600", frameEdge: "border-amber-900/60" },
+  { min: 150, name: "Diamond", shape: "crystal", frame: "from-sky-100 via-cyan-300 to-blue-500", frameEdge: "border-blue-950/60" },
 ];
 const ROMAN = ["I", "II", "III", "IV", "V"];
 const GLOW_BY_TIER_INDEX = [
@@ -96,6 +119,7 @@ export function getRankTier(level) {
   const subIndex = Math.min(5, Math.floor((level - tier.min) / 10) + 1); // 1-5
 
   return {
+    shape: tier.shape,
     frame: tier.frame,
     frameEdge: tier.frameEdge,
     label: isMaxRank ? "Heroic" : `${tier.name} ${ROMAN[subIndex - 1]}`,

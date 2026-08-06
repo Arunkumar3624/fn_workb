@@ -6,7 +6,7 @@ import { pinBadge } from "../../lib/profilesApi";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { ApiError } from "../../lib/apiClient";
 import { useAuth } from "../../context/AuthContext";
-import { MILESTONES, BADGE_THEMES, getRankTier, HEX_CLIP_PATH, WING_CLIP_PATH } from "../../lib/milestones";
+import { MILESTONES, BADGE_THEMES, getRankTier, SHAPE_CLIP_PATHS, WING_CLIP_PATH } from "../../lib/milestones";
 
 const DEFAULT_GEM_GRAD = "from-blue-400 via-blue-500 to-indigo-600";
 
@@ -24,16 +24,16 @@ const TABS = ["All", "Unlocked", "Locked"];
 function BadgeMedal({ milestone, achieved, isNext, index, pinned, pinning, onTogglePin }) {
   const Icon = milestone.icon;
   const theme = BADGE_THEMES[milestone.color];
-  // One source of truth for the rank label AND the metal frame, so they can
-  // never disagree (an earlier version computed these separately — Level 60
-  // read "Gold" in text next to a Silver-colored shape). One consistent
-  // hexagon "gem" shape throughout (real mobile-game ladders like Mobile
-  // Legends/Free Fire keep one silhouette and escalate the FRAME material
-  // instead of switching shapes every tier), tinted per-badge for variety,
-  // set inside a frame whose metal escalates Bronze -> Silver -> Gold ->
-  // Diamond, with wings appearing at Diamond. See lib/milestones.js's
-  // getRankTier.
+  // One source of truth for the shape, rank label, AND the metal frame, so
+  // they can never disagree (an earlier version computed these separately —
+  // Level 60 read "Gold" in text next to a Silver-colored shape). A genuinely
+  // different silhouette per tier (Bronze shield, Silver hexagon, Gold
+  // spiked crest, Diamond crystal — all 5+ sided on purpose), each gem
+  // tinted per-badge for variety, set inside a frame whose metal escalates
+  // Bronze -> Silver -> Gold -> Diamond, with wings appearing at Diamond.
+  // See lib/milestones.js's getRankTier.
   const rank = getRankTier(milestone.level);
+  const shapeClip = SHAPE_CLIP_PATHS[rank.shape];
   const isMaxRank = achieved && rank.isMaxRank;
   const frameGrad = !achieved ? "bg-slate-700" : `bg-gradient-to-br ${rank.frame}`;
   const gemGrad = theme?.grad ?? DEFAULT_GEM_GRAD;
@@ -161,19 +161,19 @@ function BadgeMedal({ milestone, achieved, isNext, index, pinned, pinning, onTog
           </>
         )}
 
-        {/* The rank badge — one consistent hexagon "gem" shape throughout
-            (not a different silhouette per tier), set inside a frame whose
-            metal escalates Bronze -> Silver -> Gold -> Diamond, same
-            language real mobile-game rank ladders use. border-b/border-r in
-            a darker shade fake a 3D bevel on the frame; the Level 200
-            "Heroic" cap additionally breathes with a pulsating glow.
-            CSS-only, no image asset. Locked badges preview the shape in
-            flat slate. */}
+        {/* The rank badge — a genuinely different silhouette per tier
+            (Bronze shield, Silver hexagon, Gold spiked crest, Diamond
+            crystal), set inside a frame whose metal escalates Bronze ->
+            Silver -> Gold -> Diamond, same language real mobile-game rank
+            ladders use. border-b/border-r in a darker shade fake a 3D bevel
+            on the frame; the Level 200 "Heroic" cap additionally breathes
+            with a pulsating glow. CSS-only, no image asset. Locked badges
+            preview the shape in flat slate. */}
         <motion.div
           className={`relative z-10 flex h-20 w-20 items-center justify-center border-b-[5px] border-r-[5px] ${
             achieved ? rank.frameEdge : "border-slate-800"
           } ${glowClass} ${frameGrad}`}
-          style={{ clipPath: HEX_CLIP_PATH }}
+          style={{ clipPath: shapeClip }}
           animate={
             isMaxRank
               ? {
@@ -193,7 +193,7 @@ function BadgeMedal({ milestone, achieved, isNext, index, pinned, pinning, onTog
             className={`relative flex h-14 w-14 items-center justify-center ${
               achieved ? `bg-gradient-to-br ${gemGrad}` : "bg-slate-800"
             }`}
-            style={{ clipPath: HEX_CLIP_PATH }}
+            style={{ clipPath: shapeClip }}
           >
             {achieved && <div className="absolute -inset-y-3 left-[8%] w-1/3 -rotate-12 bg-white/35 blur-[2px]" />}
             {achieved ? (
