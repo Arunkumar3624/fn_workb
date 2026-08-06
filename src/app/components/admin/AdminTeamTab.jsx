@@ -65,7 +65,7 @@ function PermissionsModal({ member, onClose, onTogglePermission }) {
             {isSuper && (
               <span className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700">
                 <ShieldAlert className="h-3.5 w-3.5" />
-                Super Admins have unrestricted God-Mode access.
+                Super Admins have full access — none of these permissions can be turned off for this role.
               </span>
             )}
           </div>
@@ -324,7 +324,7 @@ export default function AdminTeamTab() {
               </label>
 
               <label className="flex flex-col gap-1.5 text-sm font-bold text-slate-700">
-                Role Selection
+                Role
                 <select
                   name="role"
                   required

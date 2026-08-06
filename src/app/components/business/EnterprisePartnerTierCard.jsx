@@ -71,8 +71,8 @@ export default function EnterprisePartnerTierCard() {
 
         {status.tier === "Gold" ? (
           <div className="rounded-xl border border-amber-200 bg-amber-50/80 px-4 py-2.5 text-xs font-bold text-amber-800">
-            Gold Tier: Discounted Platform Fees &amp; Priority VIP Support
-            <span className="ml-1.5 font-semibold text-amber-600/80">(preview — not yet applied at checkout)</span>
+            Gold tier: lower platform fees and priority support
+            <span className="ml-1.5 font-semibold text-amber-600/80">(preview — not applied at checkout yet)</span>
           </div>
         ) : status.nextTier ? (
           <div className="text-right text-xs font-semibold text-slate-500">

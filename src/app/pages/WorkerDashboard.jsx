@@ -82,8 +82,8 @@ export default function WorkerDashboard({ onLogout }) {
                 <Sparkles className="h-5 w-5 text-[#ff6b35]" />
               </div>
               <p className="text-sm text-slate-700">
-                No More Chasing Invoices.{' '}
-                <span className="font-semibold text-slate-900">Get Paid the Second Your Project is Approved!</span>
+                No more chasing invoices.{' '}
+                <span className="font-semibold text-slate-900">Once a business approves your work, the payout lands straight in your wallet.</span>
               </p>
             </div>
 

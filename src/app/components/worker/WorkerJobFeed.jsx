@@ -387,8 +387,8 @@ export default function WorkerJobFeed() {
         ) : filteredJobs.length === 0 ? (
           <div className="rounded-2xl border border-white/70 bg-white/60 backdrop-blur-xl p-10 text-center shadow-lg shadow-slate-200/40">
             <Briefcase className="mx-auto h-10 w-10 text-slate-300" />
-            <h2 className="mt-4 text-lg font-bold text-slate-900">No Open Jobs Yet</h2>
-            <p className="mt-1 text-sm text-slate-500">Check back soon for fresh opportunities!</p>
+            <h2 className="mt-4 text-lg font-bold text-slate-900">No open jobs right now</h2>
+            <p className="mt-1 text-sm text-slate-500">New posts show up here as businesses hire — check back soon.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">

@@ -56,7 +56,7 @@ export default function WorkerWorkspace() {
       const badge = MILESTONES.find((m) => m.level === pendingLevelUp);
       setCelebration({
         variant: "milestone",
-        title: badge ? `Badge Unlocked: ${badge.name}!` : `Rank Up! You've reached Level ${pendingLevelUp}!`,
+        title: badge ? `Badge unlocked: ${badge.name}` : `Level up — you've reached Level ${pendingLevelUp}`,
         message: badge
           ? `${badge.reward} — see it on your Badges page.`
           : "Keep completing projects on time to climb the next tier.",
@@ -226,7 +226,7 @@ export default function WorkerWorkspace() {
           // and it was showing a plain toast instead.
           setCelebration({
             variant: "paid",
-            title: "Payment received!",
+            title: "Payment received",
             message: `${project.business_name} approved "${project.title}" — the funds are in your wallet.`,
             amount: event.earnings,
           });

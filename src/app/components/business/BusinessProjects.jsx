@@ -1279,7 +1279,7 @@ export default function BusinessProjects({ onOpenChat }) {
             stays on solid/near-solid backgrounds for readability. */}
         <div className="mb-6 flex items-center gap-2.5 rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-slate-600 shadow-sm backdrop-blur-2xl">
           <ShieldCheck className="h-4 w-4 flex-shrink-0 text-emerald-600" />
-          <p className="text-xs font-semibold">Every payment release is a single atomic transaction — WorkBridge Payment Protection.</p>
+          <p className="text-xs font-semibold">Every payment release goes through WorkBridge in one clean step — nothing is ever left half-transferred.</p>
         </div>
 
         {loadError && (

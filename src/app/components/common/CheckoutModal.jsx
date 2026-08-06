@@ -91,7 +91,7 @@ export default function CheckoutModal({
 
           <div className="mt-3 flex items-center justify-center gap-1.5 text-xs font-semibold text-slate-500">
             <Lock className="h-4 w-4 text-green-600" />
-            Secure 256-bit SSL Checkout
+            Secure Checkout
           </div>
         </div>
 
@@ -158,7 +158,7 @@ export default function CheckoutModal({
             {isProcessing ? (
               <>
                 <Loader2 className="h-5 w-5 animate-spin" />
-                Processing Securely...
+                Processing…
               </>
             ) : (
               <>
@@ -170,7 +170,7 @@ export default function CheckoutModal({
 
           <p className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-slate-400">
             <ShieldCheck className="h-3 w-3" />
-            Payments are encrypted and processed securely
+            This is a preview of checkout — no live payment gateway yet
           </p>
         </div>
       </div>

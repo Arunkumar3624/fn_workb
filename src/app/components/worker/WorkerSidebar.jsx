@@ -49,7 +49,7 @@ export default function WorkerSidebar({ tab, onTabChange, onLogout }) {
             <p className="text-base font-semibold text-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
               WorkBridge
             </p>
-            <p className="text-xs text-slate-400">Premium freelance OS</p>
+            <p className="text-xs text-slate-400">Where freelance work gets done</p>
           </div>
         </div>
       </div>

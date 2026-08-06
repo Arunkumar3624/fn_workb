@@ -56,7 +56,7 @@ function TrustBar({ score }) {
         <div className="h-full rounded-full bg-emerald-500" style={{ width: `${percentage}%` }} />
       </div>
       <p className="mt-3 text-sm leading-6 text-slate-500">
-        High trust score based on quality, response speed, and on-time delivery.
+        {label} standing — built from how this worker applies for jobs and conducts themselves on WorkBridge.
       </p>
     </div>
   );

@@ -69,7 +69,7 @@ export default function EconomyHub() {
           <h1 className="text-xl font-extrabold text-[#0A1128]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
             Economy Hub
           </h1>
-          <p className="mt-1 text-sm text-slate-500">Your progress, your tokens, your rewards — all in one place.</p>
+          <p className="mt-1 text-sm text-slate-500">Everything you've earned so far — level, tokens, and rewards — lives here.</p>
         </div>
 
         {ledger && (

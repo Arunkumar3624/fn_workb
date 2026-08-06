@@ -10,11 +10,11 @@ const STEPS = [
 ];
 
 const BENEFITS = [
-  "Attract Top-Tier, Fully Verified Digital Talent",
-  "Post Unlimited Projects with Zero Listing Fees",
-  "Instant Dispute Protection on Every Single Job",
-  "Stand Out with a Premium, Verified Company Profile",
-  "Get VIP Priority Support Whenever You Need It",
+  "A verified badge that gives freelancers a reason to trust you",
+  "Post as many jobs as you want, with no separate listing fees",
+  "Dispute protection built into every job, from day one",
+  "A premium, verified badge on your company profile",
+  "Priority support whenever you need it",
 ];
 
 const PAYMENT_METHODS = [
@@ -107,11 +107,11 @@ export default function BusinessVerificationDrawer({ onClose, onPaymentSuccess }
               className="text-xl font-extrabold text-white leading-snug mb-1"
               style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
             >
-              Unlock the Business<br />
+              Get the Business<br />
               <span className="text-[#FF6B2C]">Verified Badge.</span>
             </h2>
             <p className="text-slate-400 text-xs leading-relaxed mt-2">
-              Hire India's Best Freelancers with 100% Payment Protection &amp; a Verified Profile Badge
+              Post jobs with payments held securely in escrow, and a verified badge on your profile.
             </p>
           </div>
 
@@ -142,7 +142,7 @@ export default function BusinessVerificationDrawer({ onClose, onPaymentSuccess }
           {/* Benefits list */}
           <div className="px-8 flex-1">
             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">
-              What you unlock
+              What you get
             </p>
             <ul className="space-y-3">
               {BENEFITS.map((b) => (
@@ -295,7 +295,7 @@ export default function BusinessVerificationDrawer({ onClose, onPaymentSuccess }
                 </div>
                 {upiOk && (
                   <div className="flex items-center gap-2 text-emerald-600 text-xs font-semibold">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> UPI ID verified successfully
+                    <CheckCircle2 className="w-3.5 h-3.5" /> UPI ID looks valid
                   </div>
                 )}
                 {upiId && !upiOk && (
@@ -357,8 +357,8 @@ export default function BusinessVerificationDrawer({ onClose, onPaymentSuccess }
                 <Lock className="w-4 h-4 text-emerald-600" />
               </div>
               <div>
-                <p className="text-[11px] font-bold text-emerald-700">256-bit SSL Encryption</p>
-                <p className="text-[10px] text-slate-400">Bank-level security · Razorpay powered</p>
+                <p className="text-[11px] font-bold text-emerald-700">Encrypted checkout</p>
+                <p className="text-[10px] text-slate-400">Your payment details stay private</p>
               </div>
             </div>
 

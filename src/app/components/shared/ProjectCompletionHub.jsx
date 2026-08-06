@@ -81,7 +81,7 @@ export default function ProjectCompletionHub({
             className="mt-6 text-2xl font-black tracking-tight text-[#0F172A]"
             style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
           >
-            Project Completed Successfully!
+            Project Completed
           </h2>
           <p className="mt-2 max-w-sm text-sm leading-relaxed text-slate-500">
             {copy.subheadline(amount, counterpartName)}
@@ -94,8 +94,8 @@ export default function ProjectCompletionHub({
             title={copy.ratingTitle(counterpartName)}
             helperText={
               localReview
-                ? "Your review is saved. You can edit it without triggering duplicate actions."
-                : "Leave a rating without committing to rehire."
+                ? "Your review is saved — you can edit it any time."
+                : "Rating them doesn't commit you to rehiring."
             }
             initialRating={localReview?.rating ?? 0}
             initialFeedback={localReview?.feedback ?? ""}
@@ -121,7 +121,7 @@ export default function ProjectCompletionHub({
                 className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#FF6B35] py-4 text-base font-black text-white shadow-[0_10px_30px_-8px_rgba(255,107,53,0.55)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#e55a2b] hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
               >
                 <Zap className="h-5 w-5" />
-                {rehired ? "Invitation Sent!" : `Rehire ${counterpartName} for a New Task`}
+                {rehired ? "Invitation Sent" : `Rehire ${counterpartName} for a New Task`}
               </button>
             </div>
 

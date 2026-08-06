@@ -203,7 +203,7 @@ function JobDetailsPanel({ project }) {
       <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
         <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Description</p>
         <p className="mt-2 max-h-44 overflow-y-auto pr-1 text-sm leading-6 text-slate-600 wb-scroll-clean">
-          {project.description || "The Client Didn't Provide Extra Details for This Project."}
+          {project.description || "The client didn't add any extra details for this project."}
         </p>
       </div>
 
@@ -213,7 +213,7 @@ function JobDetailsPanel({ project }) {
           <div>
             <p className="text-sm font-bold text-slate-900">Terms stay protected</p>
             <p className="mt-1 text-xs leading-5 text-slate-500">
-              Accepting Locks in Your Scope, Budget, and Timeline—Zero Surprises Later.
+              Accepting locks in the scope, budget, and timeline — no surprises later.
             </p>
           </div>
         </div>
@@ -365,7 +365,7 @@ function ChatPanel({ project }) {
         </div>
         <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
           <BadgeCheck className="h-3.5 w-3.5" />
-          Verified client
+          On WorkBridge
         </span>
       </header>
 

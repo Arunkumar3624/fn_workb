@@ -29,10 +29,10 @@ const USER_CONFIG = {
 };
 
 const BRAND_FEATURES = [
-  { Icon: Lock, text: "Your Money is Safe: 100% Escrow Protection Until You Approve" },
-  { Icon: Zap, text: "Instant Payouts: Get Your Cash the Second Your Work is Approved" },
-  { Icon: Shield, text: "Zero Guesswork: Verified Freelancers & Real Trust Scores" },
-  { Icon: Award, text: "Earn Real Badges & Recognition for Your Hard Work" },
+  { Icon: Lock, text: "Your money sits in escrow until you approve the work" },
+  { Icon: Zap, text: "Fast payouts once your work is approved — no chasing invoices" },
+  { Icon: Shield, text: "Verified freelancers with trust scores you can actually check" },
+  { Icon: Award, text: "Real badges and recognition for the work you deliver" },
 ];
 
 const OTP_LENGTH = 6;
@@ -387,17 +387,17 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
               "Secure admin access"
             ) : (
               <>
-                {authMode === "signin" ? `Welcome Back, ${cfg.label}!` : "Join India’s Fastest-Growing"}<br />
+                {authMode === "signin" ? `Welcome Back, ${cfg.label}` : "Set Up Your"}<br />
                 <span className="text-[#FF6B2C]">
-                  {authMode === "signin" ? "Let’s Get You Back to Work" : "Freelance Platform"}
+                  {authMode === "signin" ? "Let’s Get You Back to Work" : "WorkBridge Account"}
                 </span>
               </>
             )}
           </h1>
           <p className="mb-10 text-sm leading-relaxed text-slate-400">
-            {userType === "worker" && "Unlock Premium Gigs, Maximize Earnings, and Get Paid Instantly—No More Chasing Clients"}
-            {userType === "business" && "Hire Vetted Experts, Secure Payments in Escrow, and Grow Your Business Risk-Free"}
-            {userType === "admin" && "Real-Time Admin: Manage Verifications, Resolve Disputes & Keep the Platform Safe"}
+            {userType === "worker" && "Real projects, real clients, and payouts you don't have to chase down."}
+            {userType === "business" && "Hire verified freelancers, pay through escrow, and only release funds when you're happy with the work."}
+            {userType === "admin" && "Manage verifications, resolve disputes, and keep the platform running safely."}
           </p>
 
           <div className="space-y-4">
@@ -703,7 +703,7 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
                       className="mt-2 w-full rounded-xl bg-[#1B3FAB] py-3.5 text-sm font-bold text-white shadow-lg shadow-[#1B3FAB]/20 transition hover:bg-[#163596] disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {sendingOtp
-                        ? "Please wait…"
+                        ? "One moment…"
                         : authMode === "forgot"
                           ? "Send Reset Code"
                           : isAdmin || authMode === "signin"

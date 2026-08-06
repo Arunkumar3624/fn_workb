@@ -182,7 +182,7 @@ export default function AdminPanel({ onLogout }) {
             transition={{ duration: 0.2, ease: "easeOut" }}
             className="h-full"
           >
-            <Suspense fallback={<SuspenseFallback label="Loading module…" fullScreen={false} />}>
+            <Suspense fallback={<SuspenseFallback label="Loading…" fullScreen={false} />}>
               <ActiveTabComponent onNavigate={setActiveTab} />
             </Suspense>
           </motion.div>

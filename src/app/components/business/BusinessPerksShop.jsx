@@ -19,7 +19,7 @@ const PERKS = [
   {
     id: "flash-post",
     name: "Flash Post",
-    description: "Boost Your Job Post to the Top of the Feed",
+    description: "Bumps your job post to the top of the feed",
     icon: Zap,
     color: "teal",
     tiers: [
@@ -31,7 +31,7 @@ const PERKS = [
   {
     id: "ai-shortlist",
     name: "AI Shortlist",
-    description: "Get 3 Hand-Picked, Expert Worker Recommendations",
+    description: "Get 3 hand-picked worker recommendations for your job",
     icon: Search,
     color: "slate",
     tiers: [
@@ -42,7 +42,7 @@ const PERKS = [
   {
     id: "enterprise-broadcast",
     name: "Enterprise Broadcast",
-    description: "Push Your Job Directly to Our Elite Talent Pool",
+    description: "Sends your job straight to our highest-rated workers",
     icon: Radar,
     color: "amber",
     tiers: [{ id: "one-time", label: "One-Time Broadcast", cost: 120 }],
@@ -53,7 +53,7 @@ const PERKS = [
   {
     id: "dispute-fast-track",
     name: "Dispute Fast-Track",
-    description: "Fast-Track a Dispute to the Front of the Mediation Line",
+    description: "Moves an active dispute to the front of the mediation queue",
     icon: Scale,
     color: "rose",
     tiers: [{ id: "single-dispute", label: "One Active Dispute", cost: 60 }],
@@ -61,7 +61,7 @@ const PERKS = [
   {
     id: "featured-employer",
     name: "Featured Employer Spotlight",
-    description: "Promote Your Company Page to Active Freelancers",
+    description: "Puts your company page in front of active freelancers",
     icon: Star,
     color: "violet",
     tiers: [
@@ -228,7 +228,7 @@ export default function BusinessPerksShop() {
           <h1 className="text-xl font-extrabold text-[#0A1128]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
             Business Perks Shop
           </h1>
-          <p className="mt-1 text-sm text-slate-500">Spend Corporate Credits to boost your hiring.</p>
+          <p className="mt-1 text-sm text-slate-500">Spend Corporate Credits on visibility boosts for your hiring.</p>
         </div>
         <div className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-[#0A1128]">
           <Coins className="h-4 w-4 text-amber-500" />

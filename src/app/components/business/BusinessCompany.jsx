@@ -235,7 +235,7 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
         <div className="mb-4 flex items-start gap-2 rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-700">
           <AlertCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
           <span>
-            Preview Mode: The Stats &amp; Badges Below Are Examples, Not Live Account Data
+            Preview mode — the stats and badges below are examples, not your real account data.
           </span>
         </div>
 

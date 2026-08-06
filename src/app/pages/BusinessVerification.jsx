@@ -96,10 +96,10 @@ export default function BusinessVerification({ onComplete, onExit }) {
             className="text-xl font-extrabold text-white mb-2 leading-snug"
             style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
           >
-            Unlock your<br />Verified Badge.
+            Get your<br />Verified Badge.
           </h2>
           <p className="text-slate-400 text-xs leading-relaxed">
-            Complete all three steps to start hiring top Indian talent with fully protected payments.
+            Complete all three steps and you're ready to post jobs, with payments held securely in escrow.
           </p>
         </div>
 
@@ -270,7 +270,7 @@ function Step1({ onNext, INPUT, LABEL, SELECT }) {
       <StepHeader
         step={1}
         title="Tell us about your company."
-        sub="We'll Use This to Verify Your Business and Make Your Profile Stand Out!"
+        sub="We'll use this to verify your business and fill out your company profile."
       />
 
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-5 sm:p-8">
@@ -339,7 +339,7 @@ function Step2({ gstFile, setGstFile, incorpFile, setIncorpFile, drag1, setDrag1
       <StepHeader
         step={2}
         title="Verify your business entity."
-        sub="Upload your official documents to unlock the Business Verified badge and start hiring."
+        sub="Upload your official documents to get the Business Verified badge and start hiring."
       />
 
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-7 sm:p-8">
@@ -416,7 +416,7 @@ function Step3({ showAccNum, setShowAccNum, onBack, onComplete, INPUT, LABEL, SE
       <StepHeader
         step={3}
         title="Verify your identity & banking."
-        sub="One final step — required to enable instant payouts and comply with RBI guidelines."
+        sub="One final step — we need your banking details on file to stay compliant with RBI guidelines."
       />
 
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-7 sm:p-8">
@@ -628,9 +628,8 @@ function SecurityNote() {
         <Shield className="w-4 h-4 text-emerald-600" />
       </div>
       <p className="text-xs text-emerald-700 font-medium leading-relaxed">
-        Your documents are encrypted using{" "}
-        <strong className="font-bold">256-bit bank-level security</strong> and are reviewed
-        only by our certified compliance team. They are never shared with freelancers or third parties.
+        Your documents are encrypted and reviewed only by our compliance team. They are never
+        shared with freelancers or third parties.
       </p>
     </div>
   );

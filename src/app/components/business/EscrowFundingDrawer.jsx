@@ -147,10 +147,10 @@ export default function EscrowFundingDrawer({ project, onClose, onFunded }) {
             <h2 className="text-lg font-extrabold text-slate-900" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
               Fund Escrow &amp; Start Project
             </h2>
-            <p className="mt-1 text-sm text-slate-500">100% Secure Bank Transfer—Zero Hidden Card or Gateway Fees</p>
+            <p className="mt-1 text-sm text-slate-500">Direct bank transfer — no card or gateway fees added on top</p>
             <span className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700">
               <Lock className="h-3 w-3" />
-              SSL Secure
+              Verified by Staff
             </span>
           </div>
 

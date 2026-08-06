@@ -251,7 +251,7 @@ export default function InvoicePage() {
               </button>
               <p className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-slate-400">
                 <Lock className="h-3 w-3" />
-                256-bit SSL encrypted checkout
+                Every transfer is checked by WorkBridge staff before it counts as secured
               </p>
             </div>
           )}

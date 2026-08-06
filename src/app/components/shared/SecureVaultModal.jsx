@@ -123,7 +123,7 @@ export default function SecureVaultModal({ jobTitle, workerName, amount, onClose
                   </>
                 )}
               </button>
-              <p className="mt-3 text-center text-[11px] text-slate-400">256-bit SSL encrypted checkout</p>
+              <p className="mt-3 text-center text-[11px] text-slate-400">Secure checkout</p>
             </motion.div>
           ) : (
             <motion.div
