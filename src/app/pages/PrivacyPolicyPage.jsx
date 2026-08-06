@@ -1,34 +1,74 @@
 import LegalPageLayout, { LegalSection } from "../components/common/LegalPageLayout";
 
-// Grounded in what the app actually does today — verified against the
-// codebase rather than written generically. Notably: business verification
-// is an admin-reviewed status flip today (no GST/PAN/incorporation
-// documents are actually collected or stored yet, even though the
-// verification wizard has upload fields for them), and there's no payment
-// processor integrated yet — see TermsPage for that disclosure. Both are
-// deliberately stated honestly rather than glossed over.
+// Structurally modeled on how enterprise SaaS/marketplace privacy policies
+// (Naukri's among them) are organized — defined terms, numbered clauses
+// broken into sub-points, a real rights/grievance section — but every
+// factual claim below is grounded in what this app actually does, verified
+// against the codebase rather than written generically. Notably still true
+// today: business verification is an admin-reviewed status (no GST/PAN/
+// incorporation documents are actually collected or stored yet, even
+// though the verification wizard has upload fields for them), and there's
+// no payment processor integrated yet — see TermsPage for that disclosure.
+// Both are stated honestly rather than glossed over for the sake of
+// sounding more "enterprise."
 export default function PrivacyPolicyPage() {
   return (
     <LegalPageLayout
       title="Privacy Policy"
-      lastUpdated="August 3, 2026"
-      intro="This page explains what WorkBridge Technologies Pvt. Ltd. ('WorkBridge', 'we', 'us') collects, why, and who can see it. It's written to match what the product actually does — not a generic template."
+      lastUpdated="August 6, 2026"
+      intro="This page explains what WorkBridge Technologies Pvt. Ltd. collects, why, and who can see it — written to match what the product actually does, not a generic template."
     >
-      <LegalSection title="1. Information we collect">
-        <p><strong>Account information.</strong> Name, email address, phone number, and a hashed password when you register. Your role (freelancer, business, or admin) determines what other fields apply to you.</p>
-        <p><strong>Profile information.</strong> For freelancers: title, bio, skills, location, and hourly rate. For businesses: company name and related company details. An avatar photo, if you upload one.</p>
-        <p><strong>Verification status.</strong> Businesses go through a verification flow before posting jobs. Today, verification is a status our admin team reviews and approves — the document-upload step in that flow (GST certificate, PAN, incorporation documents) is not yet required or stored; we'll update this section when that changes.</p>
-        <p><strong>Project and payment activity.</strong> Jobs you post or apply to, project status history, escrow amounts, platform fees, wallet balance, and transaction records. If you request a withdrawal, the UPI ID or bank account and IFSC details you provide so we can process the payout.</p>
-        <p><strong>Communications.</strong> Messages sent inside a project's chat, and messages sent to WorkBridge Support. If you attempt to share contact details (phone/email) inside a project chat, the attempt is blocked before it's stored and a record that a blocked attempt occurred is kept — the message content itself is not saved.</p>
-        <p><strong>Activity and gamification data.</strong> XP, level, streak, Bridge Tokens, and behavior score — all generated from your real activity on the platform, never purchased or fabricated.</p>
-        <p><strong>Usage analytics.</strong> In production, we use PostHog to record page views and key product events (e.g. a job being posted). This is fully disabled in development and only active where explicitly configured.</p>
-        <p><strong>Sign-in token.</strong> When you log in, we store a JWT session token in your browser's local storage so you stay signed in. This is not a third-party tracking cookie.</p>
+      <LegalSection id="introduction" title="1. Introduction">
+        <p>
+          WorkBridge Technologies Pvt. Ltd. ("<strong>WorkBridge</strong>", "<strong>we</strong>", "<strong>us</strong>",
+          "<strong>our</strong>") operates a two-sided project marketplace connecting freelancers with businesses
+          (the "<strong>Platform</strong>"). We are committed to protecting the personal information of everyone who
+          uses it. This Privacy Policy describes what we collect through the Platform, how we use it, and the real
+          controls in place to protect it.
+        </p>
+        <p>This Policy applies to every person who registers for or otherwise uses the Platform (each, a "<strong>User</strong>").</p>
       </LegalSection>
 
-      <LegalSection title="2. How we use this information">
+      <LegalSection id="definitions" title="2. Definitions">
         <ul>
-          <li>To operate the core service: matching freelancers and businesses, running escrow-protected projects, and releasing funds when work is approved.</li>
-          <li>To review business verification requests and maintain trust & safety, including behavior scores, admin moderation, dispute resolution, and the chat contact-info filter.</li>
+          <li><strong>Worker</strong> — a User registered to find and deliver freelance work.</li>
+          <li><strong>Business</strong> — a User registered to post projects and hire Workers.</li>
+          <li><strong>Project</strong> — a unit of work posted by a Business, tracked through its own real status lifecycle from open, to assigned, to funded, to completed.</li>
+          <li><strong>Escrow</strong> — the held state of a Project's budget from the point a Business's funding transfer is verified until the work is approved and released.</li>
+          <li><strong>Behavior Score</strong> — a 0–1000 trust metric derived from a User's real conduct on the Platform (delivery history, dispute outcomes, and communication conduct).</li>
+        </ul>
+      </LegalSection>
+
+      <LegalSection id="information-we-collect" title="3. Information We Collect">
+        <h3>3.1 Account Data</h3>
+        <p>Name, email address, phone number, and a hashed password when you register. Your role (Worker, Business, or admin) determines what other fields apply to you.</p>
+
+        <h3>3.2 Profile & Financial Data</h3>
+        <p>For Workers: title, bio, skills, location, and hourly rate. For Businesses: company name and related company details. An avatar photo and cover image, if you upload one. If you request a withdrawal, the UPI ID or bank account and IFSC details you provide so we can process the payout.</p>
+
+        <h3>3.3 Verification Status</h3>
+        <p>Businesses go through a verification flow before posting jobs. Today, verification is a status our admin team reviews and approves based on the account and company information you provide — the document-upload step in that flow (GST certificate, PAN, incorporation documents) is <strong>not yet required or stored</strong>; we will update this section the moment that changes.</p>
+
+        <h3>3.4 Project & Payment Activity</h3>
+        <p>Jobs you post or apply to, Project status history, Escrow amounts, platform fees, wallet balance, and transaction records.</p>
+
+        <h3>3.5 Communications</h3>
+        <p>See Section 5 (Platform Communications & Messaging Controls) for exactly what is and isn't collected here — it's specific enough to warrant its own section.</p>
+
+        <h3>3.6 Trust & Gamification Data</h3>
+        <p>XP, level, streak, Bridge Tokens, and Behavior Score — all generated from your real activity on the Platform, never purchased or fabricated.</p>
+
+        <h3>3.7 Usage Analytics</h3>
+        <p>In production, we use PostHog to record page views and key product events (e.g. a job being posted). This is fully disabled in development and only active where explicitly configured.</p>
+
+        <h3>3.8 Sign-In Token</h3>
+        <p>When you log in, we store a session token in your browser's local storage so you stay signed in. This is not a third-party tracking cookie.</p>
+      </LegalSection>
+
+      <LegalSection id="how-we-use" title="4. How We Use This Information">
+        <ul>
+          <li>To operate the core service: matching Workers and Businesses, running Escrow-protected Projects, and releasing funds when work is approved.</li>
+          <li>To review business verification requests and maintain trust &amp; safety, including Behavior Scores, admin moderation, dispute resolution, and the chat contact-info filter described below.</li>
           <li>To process withdrawal requests using the payout details you provide.</li>
           <li>To send you one-time verification codes and password-reset codes by email, via our email provider.</li>
           <li>To respond to messages you send WorkBridge Support.</li>
@@ -36,39 +76,68 @@ export default function PrivacyPolicyPage() {
         </ul>
       </LegalSection>
 
-      <LegalSection title="3. What's visible to other people">
-        <p>Your name, role, avatar, title/bio, and aggregate rating are visible on your public profile. Reviews — written by the other party on a completed project — are shown publicly with the reviewer's name attached, the same way they'd appear on any marketplace. A small number of real reviews may also be featured in the "Wall of Love" section on our homepage.</p>
-        <p>Your email address and phone number are never included in any public profile or API response — they're structurally excluded at the database level, not just hidden in the interface.</p>
-        <p>WorkBridge admins can see full account information, including project and payment history, when reviewing verification requests, disputes, or security reports.</p>
+      <LegalSection id="platform-communications" title="5. Platform Communications & Messaging Controls">
+        <p>
+          WorkBridge's messaging system is deliberately restricted by design, not just by policy — the restriction is
+          enforced in our backend on every request, not merely a guideline:
+        </p>
+        <ul>
+          <li>
+            When a Worker applies to an open Project, they may attach a <strong>single, one-time application note</strong>.
+            This is not a live conversation — there is no back-and-forth messaging before a Business has assigned a
+            Worker to a Project.
+          </li>
+          <li>
+            Live, ongoing direct messaging inside a Project is gated to that Project's two actual participants — the
+            Business, and the specific Worker who has been formally assigned to it. A Worker who has merely applied
+            or been invited, and has not yet been accepted, cannot access that Project's message thread at all.
+          </li>
+          <li>
+            If you attempt to share contact details (phone number, email) inside a Project chat, the attempt is
+            blocked before the message is stored — a record that a blocked attempt occurred is kept for trust &amp;
+            safety purposes, but the message content you tried to send is not saved.
+          </li>
+        </ul>
       </LegalSection>
 
-      <LegalSection title="4. Account deactivation and data retention">
-        <p>You can deactivate your own account from Settings → Danger Zone. This immediately signs you out and blocks future logins. Because escrow, transaction, and review records reference other users' history, we don't offer full data erasure today — deactivating is reversible by contacting Support if you change your mind.</p>
+      <LegalSection id="visibility" title="6. What's Visible to Other Users">
+        <p>Your name, role, avatar, title/bio, and aggregate rating are visible on your public profile. Reviews — written by the other party on a completed Project — are shown publicly with the reviewer's name attached, the same way they'd appear on any marketplace. A small number of real reviews may also be featured on our homepage.</p>
+        <p>Your email address and phone number are never included in any public profile or API response — they are structurally excluded at the database level, not just hidden in the interface.</p>
+        <p>WorkBridge admins can see full account information, including Project and payment history, when reviewing verification requests, disputes, or security reports.</p>
       </LegalSection>
 
-      <LegalSection title="5. Who we share data with">
+      <LegalSection id="sharing" title="7. Information Sharing & Disclosure">
+        <p>We do not sell your data. We restrict internal access to Personal Information to the WorkBridge staff who reasonably need it to do their jobs. We share information with the following categories of service providers, each bound to use it only to provide their specific service to us:</p>
         <ul>
           <li><strong>Render</strong> — hosts our application servers and database.</li>
           <li><strong>Resend</strong> — delivers OTP and password-reset emails on our behalf.</li>
-          <li><strong>PostHog</strong> — production-only product analytics, described above.</li>
+          <li><strong>PostHog</strong> — production-only product analytics, described in Section 3.7.</li>
         </ul>
-        <p>We do not sell your data. We do not have a payment processor integrated yet — see our Terms & Conditions for what that means for how payments currently work.</p>
+        <p>We may also disclose information where required to comply with a legal obligation, such as a court order, or to investigate a suspected violation of our Terms & Conditions. We do not have a payment processor integrated yet — see our Terms & Conditions for what that means for how payments currently move.</p>
       </LegalSection>
 
-      <LegalSection title="6. Security">
-        <p>Passwords are hashed (never stored in plain text). Access to the platform is controlled by role-based permissions enforced on every request, not just hidden in the interface. Admin actions on accounts, disputes, and verifications are logged in an internal audit trail.</p>
+      <LegalSection id="retention" title="8. Data Retention & Account Deactivation">
+        <p>You can deactivate your own account from Settings → Danger Zone. This immediately signs you out and blocks future logins. Because Escrow, transaction, and review records reference other Users' history, we don't offer full data erasure today — deactivating is reversible by contacting Support if you change your mind. Your Personal Information is otherwise retained only as long as necessary for the purposes described in this Policy.</p>
       </LegalSection>
 
-      <LegalSection title="7. Age requirement">
-        <p>WorkBridge is intended for people who are at least 18 years old. Don't use the platform if you're under 18.</p>
+      <LegalSection id="security" title="9. Security">
+        <p>Passwords are hashed and never stored in plain text. Access to the Platform is controlled by role-based permissions enforced on every request, not just hidden in the interface. Admin actions on accounts, disputes, and verifications are logged in an internal audit trail.</p>
       </LegalSection>
 
-      <LegalSection title="8. Changes to this policy">
-        <p>If how we handle your data changes in a meaningful way, we'll update this page and change the "Last updated" date above.</p>
+      <LegalSection id="rights" title="10. Your Rights">
+        <p>You can review and correct most of your own profile information directly from Settings at any time. For anything else — access to your data, questions about how it's processed, or a request that falls outside what Settings covers — contact us as described in Section 13; we will require proof of your identity before acting on the request.</p>
       </LegalSection>
 
-      <LegalSection title="9. Contact us">
-        <p>The fastest way to reach us about privacy questions or requests is the Support tab in your WorkBridge dashboard once you're signed in — it's a real, staff-monitored conversation, not a form that disappears into nowhere.</p>
+      <LegalSection id="age" title="11. Age Requirement">
+        <p>WorkBridge is intended for people who are at least 18 years old. Don't use the Platform if you're under 18.</p>
+      </LegalSection>
+
+      <LegalSection id="changes" title="12. Changes to This Policy">
+        <p>We may update, change, or modify this Policy at any time as the Platform evolves. If how we handle your data changes in a meaningful way, we'll update this page and change the "Last updated" date above.</p>
+      </LegalSection>
+
+      <LegalSection id="contact" title="13. Contact & Grievance Officer">
+        <p>The fastest way to reach us about privacy questions or requests is the Support tab in your WorkBridge dashboard once you're signed in — it's a real, staff-monitored conversation, not a form that disappears into nowhere. For formal grievances regarding this Policy, you may also write to our team via the same Support channel.</p>
       </LegalSection>
     </LegalPageLayout>
   );

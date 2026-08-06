@@ -5,7 +5,6 @@ import logoSrc from "../../assets/logo.png";
 import { Button } from "./Button";
 
 const navItems = [
-  { label: "Browse Jobs", to: "/jobs" },
   { label: "Find Work",  to: "/find-work"  },
   { label: "Hire Talent", to: "/hire-talent" },
   { label: "Enterprise", to: "/enterprise" },
