@@ -3,6 +3,7 @@ import { Briefcase, Search, Wallet, User, LogOut, ShieldCheck, Zap, Handshake, S
 import { useAuth } from "../../context/AuthContext";
 import { listProjects } from "../../lib/projectsApi";
 import { getInitials } from "../../utils/formValidation";
+import { getMilestoneByLevel, BADGE_THEMES } from "../../lib/milestones";
 
 // Every one of these is fully real: Job Feed is the real Open Job Board
 // (listOpenProjects/applyToProject), Negotiations is the permanent chat
@@ -22,6 +23,9 @@ const NAV = [
 export default function WorkerSidebar({ tab, onTabChange, onLogout }) {
   const { currentUser } = useAuth();
   const [hasPendingInvites, setHasPendingInvites] = useState(false);
+  const pinnedBadge = currentUser?.pinned_milestone_level ? getMilestoneByLevel(currentUser.pinned_milestone_level) : null;
+  const pinnedTheme = pinnedBadge && !pinnedBadge.major ? BADGE_THEMES[pinnedBadge.color] : null;
+  const PinnedIcon = pinnedBadge?.icon;
 
   useEffect(() => {
     let cancelled = false;
@@ -55,17 +59,29 @@ export default function WorkerSidebar({ tab, onTabChange, onLogout }) {
 
       <div className="border-b border-white/10 px-5 py-5">
         <div className="flex items-center gap-3">
-          {currentUser?.avatar_url ? (
-            <img
-              src={currentUser.avatar_url}
-              alt={`${currentUser?.name || "Worker"} profile`}
-              className="h-11 w-11 rounded-lg object-cover"
-            />
-          ) : (
-            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#FF6B35] text-sm font-semibold text-white">
-              {getInitials(currentUser?.name)}
-            </div>
-          )}
+          <div className="relative flex-shrink-0">
+            {currentUser?.avatar_url ? (
+              <img
+                src={currentUser.avatar_url}
+                alt={`${currentUser?.name || "Worker"} profile`}
+                className="h-11 w-11 rounded-lg object-cover"
+              />
+            ) : (
+              <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#FF6B35] text-sm font-semibold text-white">
+                {getInitials(currentUser?.name)}
+              </div>
+            )}
+            {pinnedBadge && (
+              <span
+                title={`${pinnedBadge.name} — Level ${pinnedBadge.level}`}
+                className={`absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full border-2 border-[#0F172A] ${
+                  pinnedBadge.major ? "bg-gradient-to-br from-amber-300 via-amber-400 to-amber-600" : `bg-gradient-to-br ${pinnedTheme.grad}`
+                }`}
+              >
+                <PinnedIcon className={`h-2.5 w-2.5 ${pinnedBadge.major ? "text-amber-900" : pinnedTheme.icon}`} strokeWidth={2.5} />
+              </span>
+            )}
+          </div>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-white">{currentUser?.name || "—"}</p>
             <p className="truncate text-xs text-slate-400">{currentUser?.title || "Freelancer"}</p>
@@ -77,7 +93,7 @@ export default function WorkerSidebar({ tab, onTabChange, onLogout }) {
             <span className="text-xs font-medium text-emerald-300">Available</span>
           </div>
           <span className="rounded-full bg-white/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-300">
-            {currentUser?.behavior_score ?? 0} pts
+            {currentUser?.behavior_score ?? 0} Score
           </span>
         </div>
       </div>

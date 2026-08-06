@@ -1,58 +1,52 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
-import {
-  AlertCircle,
-  Award,
-  Crown,
-  Gem,
-  Link2,
-  Loader2,
-  Lock,
-  Medal,
-  Pin,
-  Send,
-  ShieldCheck,
-  Sparkles,
-  Star,
-  TrendingUp,
-  Trophy,
-  Users,
-  Zap,
-} from "lucide-react";
+import { AlertCircle, Check, Loader2, Lock, Pin, PinOff } from "lucide-react";
 import { getLedger } from "../../lib/gamificationApi";
+import { pinBadge } from "../../lib/profilesApi";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { ApiError } from "../../lib/apiClient";
+import { useAuth } from "../../context/AuthContext";
+import { MILESTONES, BADGE_THEMES } from "../../lib/milestones";
 
-// MASTER_ECONOMY_PLAN.md Part 6's Worker Reward Roadmap, verbatim — this
-// page's whole purpose is to show real progress (currentLevel from the
-// actual gamification_config-backed ledger) against the documented plan,
-// not to claim these rewards are all functioning yet. Only the Level/Tier
-// badge boundaries (50/100/150/200, via getTierData) and the backend-only
-// fee lookup are real today; everything else here (priority boosts,
-// featured placement, mentor status, etc.) is still just the design's
-// intent, called out explicitly below. Icon per milestone is presentation
-// only — picked to match the reward's theme, not stored anywhere.
-export const MILESTONES = [
-  { level: 5, name: "First Steps", reward: 'Highlighted profile intro', icon: Sparkles },
-  { level: 10, name: "Rising Talent", reward: 'Custom profile accent border color', icon: Star },
-  { level: 20, name: "Momentum", reward: "Small priority boost in the matching algorithm", icon: TrendingUp },
-  { level: 25, name: "Verified Momentum", reward: 'Portfolio showcase reel; "Trending Talent" carousel eligibility', icon: Trophy, major: true },
-  { level: 30, name: "Spotlight", reward: 'Pin one "spotlight project" at the top of your profile', icon: Pin },
-  { level: 40, name: "Early Access", reward: "Early-access window to new job postings", icon: Zap },
-  { level: 50, name: "Established Professional", reward: "Silver-Tier Fee Discount; dedicated support queue", icon: ShieldCheck, major: true },
-  { level: 60, name: "Signature Banner", reward: "Custom animated profile banner", icon: Award },
-  { level: 75, name: "Direct Line", reward: "Limited direct proposals without an open posting", icon: Send },
-  { level: 100, name: "Top Rated", reward: "Gold-Tier Fee Discount; gold-ring verification upgrade", icon: Crown, major: true },
-  { level: 125, name: "Mentor", reward: "Paid mentorship sessions to newer workers", icon: Users },
-  { level: 150, name: "Elite Circle", reward: "Platinum-Tier Fee Discount; priority dispute-resolution queue", icon: Gem, major: true },
-  { level: 175, name: "Vanity URL", reward: "Custom vanity profile URL slug", icon: Link2 },
-  { level: 200, name: "Legend of WorkBridge", reward: "Permanent hall-of-fame badge; Diamond-Tier Fee Discount for life", icon: Medal, major: true },
-];
+// MASTER_ECONOMY_PLAN.md Part 6's Worker Reward Roadmap, verbatim (see
+// lib/milestones.js for the actual MILESTONES/BADGE_THEMES data, shared
+// with Avatar.jsx's pinned-badge overlay). Only the Level/Tier badge
+// boundaries (50/100/150/200, via getTierData) and the backend-only fee
+// lookup are real today; everything else here (priority boosts, featured
+// placement, mentor status, etc.) is still just the design's intent,
+// called out explicitly below.
+export { MILESTONES };
 
 const TABS = ["All", "Unlocked", "Locked"];
 
-function BadgeMedal({ milestone, achieved, isNext, index }) {
+// A real scalloped rosette outline (the classic "award ribbon" edge), built
+// once as a clip-path polygon rather than an image asset — alternates
+// between an outer and inner radius around the circle to cut the pointed
+// teeth, same trick real CSS rosette badges use.
+function scallopClipPath(teeth = 16, outerR = 50, innerR = 41) {
+  const total = teeth * 2;
+  const points = [];
+  for (let i = 0; i < total; i++) {
+    const angle = (Math.PI * 2 * i) / total - Math.PI / 2;
+    const r = i % 2 === 0 ? outerR : innerR;
+    const x = (50 + r * Math.cos(angle)).toFixed(2);
+    const y = (50 + r * Math.sin(angle)).toFixed(2);
+    points.push(`${x}% ${y}%`);
+  }
+  return `polygon(${points.join(", ")})`;
+}
+const SCALLOP_CLIP_PATH = scallopClipPath();
+const RIBBON_CLIP_PATH = "polygon(0% 0%, 100% 0%, 100% 72%, 50% 100%, 0% 72%)";
+
+function BadgeMedal({ milestone, achieved, isNext, index, pinned, pinning, onTogglePin }) {
   const Icon = milestone.icon;
+  const theme = BADGE_THEMES[milestone.color];
+  const ringGrad = !achieved
+    ? "bg-slate-300"
+    : milestone.major
+      ? "bg-gradient-to-br from-amber-300 via-amber-400 to-amber-600"
+      : `bg-gradient-to-br ${theme.grad}`;
+  const ribbonColors = !achieved ? ["bg-slate-300", "bg-slate-400"] : milestone.major ? ["bg-amber-500", "bg-amber-600"] : theme.ribbon;
 
   return (
     <motion.div
@@ -61,9 +55,11 @@ function BadgeMedal({ milestone, achieved, isNext, index }) {
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.35, delay: Math.min(index * 0.03, 0.4) }}
       className={`relative flex flex-col items-center gap-3 rounded-2xl border p-5 text-center transition-all duration-300 ${
-        achieved
-          ? "border-slate-200 bg-white shadow-sm hover:-translate-y-1 hover:shadow-md"
-          : "border-slate-100 bg-slate-50/60"
+        pinned
+          ? "border-[#FF6B35]/40 bg-orange-50/40 shadow-sm hover:-translate-y-1 hover:shadow-md"
+          : achieved
+            ? "border-slate-200 bg-white shadow-sm hover:-translate-y-1 hover:shadow-md"
+            : "border-slate-100 bg-slate-50/60"
       }`}
     >
       {isNext && (
@@ -72,7 +68,31 @@ function BadgeMedal({ milestone, achieved, isNext, index }) {
         </span>
       )}
 
-      <div className="relative">
+      {/* Pin-to-profile — exactly ONE badge at a time, unlike a 3-badge
+          loadout; clicking the currently-pinned badge unpins it. */}
+      {achieved && (
+        <button
+          type="button"
+          onClick={onTogglePin}
+          disabled={pinning}
+          title={pinned ? "Unpin from profile" : "Show this badge on your profile avatar"}
+          className={`absolute -top-2 -right-2 flex h-7 w-7 items-center justify-center rounded-full border shadow-sm transition-colors disabled:opacity-60 ${
+            pinned
+              ? "border-[#FF6B35] bg-[#FF6B35] text-white"
+              : "border-slate-200 bg-white text-slate-400 hover:border-[#FF6B35] hover:text-[#FF6B35]"
+          }`}
+        >
+          {pinning ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : pinned ? (
+            <PinOff className="h-3.5 w-3.5" />
+          ) : (
+            <Pin className="h-3.5 w-3.5" />
+          )}
+        </button>
+      )}
+
+      <div className="relative pb-2">
         {isNext && (
           <motion.span
             className="absolute inset-0 rounded-full border-2 border-[#FF6B35]"
@@ -81,30 +101,34 @@ function BadgeMedal({ milestone, achieved, isNext, index }) {
             transition={{ duration: 1.8, repeat: Infinity, ease: "easeOut" }}
           />
         )}
-        {/* The "medal" — a metallic-gradient disc (gold for major
-            milestones, silver otherwise), CSS-only so it never depends on
-            an external image asset. Locked ones desaturate to slate. */}
+
+        {/* Ribbon tails sit behind the rosette disc, V-cut like a real
+            award ribbon — colored per milestone so the collection reads as
+            genuinely varied, not one repeated silver medal. */}
+        <div className="absolute left-1/2 top-9 z-0 flex -translate-x-1/2 gap-1">
+          <div className={`h-6 w-4 -rotate-6 ${ribbonColors[0]}`} style={{ clipPath: RIBBON_CLIP_PATH }} />
+          <div className={`h-6 w-4 rotate-6 ${ribbonColors[1]}`} style={{ clipPath: RIBBON_CLIP_PATH }} />
+        </div>
+
+        {/* The rosette itself — a scalloped colored disc (gold for major
+            tier milestones, a distinct hue per badge otherwise) with a
+            glossy medallion center, CSS-only so it never depends on an
+            external image asset. Locked ones desaturate to slate. */}
         <div
-          className={`relative flex h-16 w-16 items-center justify-center rounded-full shadow-inner ${
-            !achieved
-              ? "bg-slate-200"
-              : milestone.major
-                ? "bg-gradient-to-br from-amber-300 via-amber-400 to-amber-600 shadow-[0_6px_16px_-4px_rgba(217,119,6,0.55)]"
-                : "bg-gradient-to-br from-slate-300 via-slate-400 to-slate-500 shadow-[0_6px_16px_-4px_rgba(100,116,139,0.45)]"
-          }`}
+          className={`relative z-10 flex h-16 w-16 items-center justify-center shadow-[0_4px_10px_-2px_rgba(15,23,42,0.35)] ${ringGrad}`}
+          style={{ clipPath: SCALLOP_CLIP_PATH }}
         >
-          <div className={`flex h-[52px] w-[52px] items-center justify-center rounded-full border-2 ${achieved ? "border-white/50" : "border-white/30"}`}>
+          <div
+            className={`flex h-10 w-10 items-center justify-center rounded-full shadow-inner ${
+              achieved ? "bg-gradient-to-br from-amber-50 via-amber-100 to-amber-200" : "bg-slate-100"
+            }`}
+          >
             {achieved ? (
-              <Icon className={`h-6 w-6 ${milestone.major ? "text-amber-900" : "text-slate-700"}`} />
+              <Icon className={`h-5 w-5 ${milestone.major ? "text-amber-700" : theme.icon}`} />
             ) : (
-              <Lock className="h-5 w-5 text-slate-400" />
+              <Lock className="h-4 w-4 text-slate-400" />
             )}
           </div>
-        </div>
-        {/* Ribbon tails — two small trapezoids under the medal disc. */}
-        <div className="absolute left-1/2 top-[52px] flex -translate-x-1/2 gap-1">
-          <div className={`h-3 w-3 -skew-x-6 ${achieved ? (milestone.major ? "bg-amber-600" : "bg-slate-500") : "bg-slate-300"}`} />
-          <div className={`h-3 w-3 skew-x-6 ${achieved ? (milestone.major ? "bg-amber-700" : "bg-slate-600") : "bg-slate-300"}`} />
         </div>
       </div>
 
@@ -115,6 +139,11 @@ function BadgeMedal({ milestone, achieved, isNext, index }) {
         <p className={`mt-0.5 text-sm font-extrabold leading-tight ${achieved ? "text-slate-900" : "text-slate-400"}`}>
           {milestone.name}
         </p>
+        {pinned && (
+          <p className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-[#FF6B35]">
+            <Check className="h-3 w-3" /> On your profile
+          </p>
+        )}
       </div>
 
       <p className={`text-[11px] leading-4 ${achieved ? "text-slate-500" : "text-slate-300"}`}>{milestone.reward}</p>
@@ -124,10 +153,13 @@ function BadgeMedal({ milestone, achieved, isNext, index }) {
 
 export default function WorkerMilestones({ embedded = false }) {
   useDocumentTitle("Badges — WorkBridge");
+  const { currentUser, updateCurrentUser } = useAuth();
   const [ledger, setLedger] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [activeTab, setActiveTab] = useState("All");
+  const [pinningLevel, setPinningLevel] = useState(null);
+  const [pinError, setPinError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -145,6 +177,23 @@ export default function WorkerMilestones({ embedded = false }) {
       cancelled = true;
     };
   }, []);
+
+  // Optimistic-free: waits for the server's real confirmation (it
+  // re-validates current_level itself) before reflecting the change
+  // everywhere Avatar.jsx reads currentUser.pinned_milestone_level from.
+  const handleTogglePin = async (level) => {
+    const nextLevel = currentUser?.pinned_milestone_level === level ? null : level;
+    setPinningLevel(level);
+    setPinError("");
+    try {
+      const result = await pinBadge(nextLevel);
+      updateCurrentUser({ ...currentUser, pinned_milestone_level: result.pinnedMilestoneLevel });
+    } catch (err) {
+      setPinError(err instanceof ApiError ? err.message : "Could not update your pinned badge.");
+    } finally {
+      setPinningLevel(null);
+    }
+  };
 
   const currentLevel = ledger?.currentLevel ?? 0;
   const nextMilestone = useMemo(() => MILESTONES.find((m) => m.level > currentLevel), [currentLevel]);
@@ -211,9 +260,18 @@ export default function WorkerMilestones({ embedded = false }) {
         <AlertCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
         <span>
           Your level is real. Most rewards below are still the platform's documented plan, not fully wired up
-          yet — only your Tier badge (Silver/Gold/Platinum/Diamond) and its backend fee tier are live today.
+          yet — only your Tier badge (Silver/Gold/Platinum/Diamond) and its backend fee tier are live today. Pin one
+          earned badge (top-right pin icon) to show it on your profile avatar — businesses can see it too, once
+          your profile has been revealed.
         </span>
       </div>
+
+      {pinError && (
+        <div className="mb-6 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-xs leading-5 text-red-600">
+          <AlertCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
+          <span>{pinError}</span>
+        </div>
+      )}
 
       {visibleMilestones.length === 0 ? (
         <div className="rounded-xl border border-dashed border-slate-300 bg-white/40 py-16 text-center text-sm text-slate-400">
@@ -228,6 +286,9 @@ export default function WorkerMilestones({ embedded = false }) {
               achieved={currentLevel >= milestone.level}
               isNext={milestone.level === nextMilestone?.level}
               index={index}
+              pinned={currentUser?.pinned_milestone_level === milestone.level}
+              pinning={pinningLevel === milestone.level}
+              onTogglePin={() => handleTogglePin(milestone.level)}
             />
           ))}
         </div>

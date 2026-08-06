@@ -4,7 +4,7 @@ import { motion } from "motion/react";
 import { toast } from "sonner";
 import { AlertCircle, Briefcase, Clock3, History, Loader2, MessageSquare, Send, X } from "lucide-react";
 import CelebrationOverlay from "../common/CelebrationOverlay";
-import { MILESTONES } from "./WorkerMilestones";
+import { MILESTONES } from "../../lib/milestones";
 import TimelineTracker from "../shared/TimelineTracker";
 import ProjectCompletionHub from "../shared/ProjectCompletionHub";
 import DeliverablesPanel from "../shared/DeliverablesPanel";

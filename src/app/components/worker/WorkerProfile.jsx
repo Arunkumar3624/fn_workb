@@ -19,6 +19,7 @@ import { updateOwnProfile } from "../../lib/profilesApi";
 import { listReviewsFor } from "../../lib/reviewsApi";
 import { getInitials } from "../../utils/formValidation";
 import { calculateLevel, calculateProgressBar, getNextTier, getTierData } from "../../utils/gamification";
+import { getMilestoneByLevel, BADGE_THEMES } from "../../lib/milestones";
 import { ApiError } from "../../lib/apiClient";
 import { getSocket } from "../../lib/socketClient";
 import EditableCoverPhoto from "../shared/EditableCoverPhoto";
@@ -80,7 +81,7 @@ function BehaviorLevelBento({ behaviorScore, verified }) {
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">Trust &amp; Behavior Level</p>
           <h2 className="mt-1 text-2xl font-black text-slate-900">{tier}</h2>
         </div>
-        <p className="text-lg font-bold text-slate-900">{score} / 1000 Pts</p>
+        <p className="text-lg font-bold text-slate-900">{score} / 1000 Score</p>
       </div>
       <div className="mt-3 h-4 w-full overflow-hidden rounded-full bg-slate-200">
         <div
@@ -98,6 +99,9 @@ function BehaviorLevelBento({ behaviorScore, verified }) {
 
 export default function WorkerProfile() {
   const { currentUser, updateCurrentUser } = useAuth();
+  const pinnedBadge = currentUser?.pinned_milestone_level ? getMilestoneByLevel(currentUser.pinned_milestone_level) : null;
+  const pinnedTheme = pinnedBadge && !pinnedBadge.major ? BADGE_THEMES[pinnedBadge.color] : null;
+  const PinnedIcon = pinnedBadge?.icon;
   const [reviews, setReviews] = useState([]);
   const [reviewsLoading, setReviewsLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -326,6 +330,16 @@ export default function WorkerProfile() {
                       />
                     )}
                     <span className="absolute bottom-2 right-2 h-5 w-5 rounded-full border-4 border-white bg-emerald-500 shadow-[0_0_0_5px_rgba(16,185,129,0.16)]" />
+                    {pinnedBadge && (
+                      <span
+                        title={`${pinnedBadge.name} — Level ${pinnedBadge.level}`}
+                        className={`absolute bottom-1 left-0 flex h-8 w-8 items-center justify-center rounded-full border-4 border-white shadow-md ${
+                          pinnedBadge.major ? "bg-gradient-to-br from-amber-300 via-amber-400 to-amber-600" : `bg-gradient-to-br ${pinnedTheme.grad}`
+                        }`}
+                      >
+                        <PinnedIcon className={`h-3.5 w-3.5 ${pinnedBadge.major ? "text-amber-900" : pinnedTheme.icon}`} strokeWidth={2.5} />
+                      </span>
+                    )}
                     <span className="absolute inset-0 flex items-center justify-center rounded-full bg-slate-950/55 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                       {avatarUploading ? (
                         <div className="h-6 w-6 animate-spin rounded-full border-2 border-white/40 border-t-white" />

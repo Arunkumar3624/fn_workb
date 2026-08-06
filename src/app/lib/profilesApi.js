@@ -26,3 +26,13 @@ export function updateOwnProfile({ avatarUrl, title, phone, name, profilePatch }
     body: { avatarUrl, title, phone, name, profilePatch },
   });
 }
+
+// WorkerMilestones.jsx's "pin this badge to my profile" action — level is a
+// real MILESTONES level the caller has already reached, or null to unpin.
+// Server re-checks eligibility against the caller's own current_level.
+export function pinBadge(level) {
+  return apiFetch("/api/profiles/me/badge", {
+    method: "PATCH",
+    body: { level },
+  });
+}

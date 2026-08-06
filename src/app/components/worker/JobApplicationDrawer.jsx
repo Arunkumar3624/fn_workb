@@ -57,7 +57,7 @@ export default function JobApplicationDrawer({
           <div className="flex-1 overflow-y-auto p-6">
             <div className="mb-6 flex items-center gap-2 rounded-xl border border-purple-200 bg-purple-100 px-4 py-3">
               <Trophy size={16} className="flex-shrink-0 text-purple-700" />
-              <p className="text-sm font-bold text-purple-700">Up to {potentialPoints} Pts for this job</p>
+              <p className="text-sm font-bold text-purple-700">Up to {potentialPoints} Score for this job</p>
             </div>
 
             <p className="mb-4 text-sm font-semibold text-slate-600">Choose how you want to apply:</p>
@@ -75,10 +75,10 @@ export default function JobApplicationDrawer({
                 </div>
                 <h3 className="mt-2 text-lg font-black text-slate-900">Take the Skill Quiz</h3>
                 <p className="mt-1 text-sm leading-6 text-slate-700">
-                  Prove your expertise and earn <strong className="text-green-700">+15 Behavior Points.</strong>
+                  Prove your expertise and earn <strong className="text-green-700">+15 Behavior Score.</strong>
                 </p>
                 <span className="mt-4 flex w-full items-center justify-center rounded-xl bg-green-600 px-4 py-3 text-sm font-black text-white transition-colors hover:bg-green-700">
-                  Start Quiz (+15 PTS)
+                  Start Quiz (+15 Score)
                 </span>
               </button>
 
@@ -94,10 +94,10 @@ export default function JobApplicationDrawer({
                 </div>
                 <h3 className="mt-2 text-lg font-black text-slate-700">Direct Apply</h3>
                 <p className="mt-1 text-sm leading-6 text-slate-700">
-                  Skip the quiz and apply instantly. Penalty: <strong className="text-red-600">-5 Points.</strong>
+                  Skip the quiz and apply instantly. Penalty: <strong className="text-red-600">-5 Score.</strong>
                 </p>
                 <span className="mt-4 flex w-full items-center justify-center rounded-xl bg-red-50 px-4 py-3 text-sm font-black text-red-600 transition-colors hover:bg-red-100">
-                  Apply Directly (-5 PTS)
+                  Apply Directly (-5 Score)
                 </span>
               </button>
             </div>
