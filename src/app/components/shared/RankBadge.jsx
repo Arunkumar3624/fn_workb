@@ -42,6 +42,11 @@ export default function RankBadge({ level, achieved = true, size = "md", compact
   const iconPx = Math.round(boxPx * ICON_RATIO);
   const fill = achieved ? `url(#${gradId})` : "#475569";
   const stroke = achieved ? rank.stroke : "#64748B";
+  // The inner face stays the SAME fixed navy for every badge — only the
+  // outer ring/ribbon change color by tier — so the collection reads as
+  // one consistent medal design, not a differently-styled badge per level.
+  const faceFill = achieved ? "#1E293B" : "#3F4A5A";
+  const faceStroke = achieved ? "#64748B" : "#5B6472";
 
   return (
     <motion.div
@@ -69,21 +74,25 @@ export default function RankBadge({ level, achieved = true, size = "md", compact
           </linearGradient>
         </defs>
 
+        {/* Ribbon legs rotate outward from their shared attachment point
+            (50,94) into a natural V-splay — two straight parallel strips
+            read as stiff/artificial. */}
         {showRibbon && (
           <>
-            <polygon points={RIBBON_SHAPES.left} fill={fill} stroke={stroke} strokeWidth="1.5" />
-            <polygon points={RIBBON_SHAPES.right} fill={fill} stroke={stroke} strokeWidth="1.5" opacity="0.82" />
+            <polygon points={RIBBON_SHAPES.left} fill={fill} stroke={stroke} strokeWidth="1.5" transform="rotate(-16 50 94)" />
+            <polygon points={RIBBON_SHAPES.right} fill={fill} stroke={stroke} strokeWidth="1.5" opacity="0.82" transform="rotate(16 50 94)" />
           </>
         )}
 
         {/* Shadow disc — a slight dark offset behind the rosette for depth. */}
         <polygon points={ROSETTE_POINTS} transform="translate(2,3)" fill="rgba(0,0,0,0.3)" />
-        {/* The scalloped outer ring — the real "award medal" edge. */}
+        {/* The scalloped outer ring — the real "award medal" edge; this is
+            the ONLY part that changes color by tier. */}
         <polygon points={ROSETTE_POINTS} fill={fill} stroke={stroke} strokeWidth="2.5" />
-        {/* The inner face — same gradient, smaller, with a light bezel ring
-            between it and the scalloped edge so the two read as one solid
-            medal rather than a flat sticker. */}
-        <circle cx="50" cy="50" r="33" fill={fill} stroke={stroke} strokeWidth="2" />
+        {/* The inner face — a fixed navy disc, same on every badge
+            regardless of tier, with a bezel ring between it and the
+            scalloped edge so the two read as one solid medal. */}
+        <circle cx="50" cy="50" r="33" fill={faceFill} stroke={faceStroke} strokeWidth="2" />
       </svg>
       <span className="absolute inset-x-0 top-0 flex items-center justify-center" style={{ height: boxPx }}>
         {achieved ? (
