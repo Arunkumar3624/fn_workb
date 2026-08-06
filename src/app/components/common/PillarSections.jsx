@@ -17,39 +17,39 @@ import { ChromaGrid } from "./ChromaGrid";
 
 const workFeatures = [
   {
-    title: "Build your Reputation",
-    text: "Do Great Work, Get Noticed: Let Top-Tier Clients Come to You",
+    title: "Earn Your Reputation",
+    text: "Complete quality projects and let your profile speak for itself",
     Icon: Award,
   },
   {
     title: "Get Paid Instantly",
-    text: "Instant Payouts: Work Approved? Your Money is Already on the Way",
+    text: "Your earnings are protected and delivered as soon as your work is completed.",
     Icon: Wallet,
     badge: "Instant Payout",
   },
   {
-    title: "Own Your Schedule",
-    text: "Work on Your Terms: Pick Projects That Fit Your Schedule, Skills, and Lifestyle",
+    title: "Work Your Way",
+    text: "Choose projects that match your skills, schedule and Growth Speak it-self",
     Icon: CalendarClock,
   },
 ];
 
-const trustMatrix = ["Verified Talent", "Payment Protection", "Instant Matching"];
+const trustMatrix = ["Verified Talent", "Secure Earnings", "Quick Connection"];
 
 const enterpriseHighlights = [
   {
-    title: "Dedicated Account Manager",
-    text: "Your Personal Hiring Partner: We Learn Your Needs and Keep Your Projects Moving",
+    title:"Dedicated Hiring Partner",
+    text: "One expert. Personalized support. Faster hiring from start to finish.",
     Icon: Headphones,
   },
   {
-    title: "API & SaaS Integrations",
-    text: "Seamless Integrations: Sync WorkBridge with Your Favorite Ops, Finance, and HR Tools",
+    title: "Business Integrations",
+    text: "Connect seamlessly with the software your business already relies on.",
     Icon: PlugZap,
-  },
+  },  
   {
     title: "Bulk Hiring & Compliance",
-    text: "Stress-Free Bulk Onboarding: We Handle the Document Checks and Paperwork for You",
+    text: "Hire hundreds of professionals while we handle compliance and verification.",
     Icon: FileCheck2,
   },
 ];
@@ -57,7 +57,7 @@ const enterpriseHighlights = [
 export function FindWorkSection({ showLink = true, onSelect }) {
   return (
     <section className="wb-section" id="find-work">
-      <SectionHeader eyebrow="Find Work" title="Your ambition, paid on time. Every time." />
+      <SectionHeader eyebrow="Earn For Your Work" title="Where Hard Work Meets Opportunity" />
 
       <ChromaGrid gridClassName="wb-card-grid wb-card-grid--three">
         {workFeatures.map(({ title, text, Icon, badge }) => (
@@ -77,7 +77,7 @@ export function FindWorkSection({ showLink = true, onSelect }) {
       </ChromaGrid>
 
       <SectionAction showLink={showLink} to="/find-work" onClick={() => onSelect("worker")}>
-        Start Earning
+        Stop Waiting. Start Earning.
       </SectionAction>
     </section>
   );
@@ -90,7 +90,7 @@ export function HireTalentSection({ showLink = true, onSelect }) {
 
       <GlassCard className="wb-trust-matrix">
         <div>
-          <p className="wb-mini-label">Trust Matrix</p>
+          <p className="wb-mini-label">WorkBridge Trust Layer</p>
           <div className="wb-check-stack">
             {trustMatrix.map((item) => (
               <div key={item} className="wb-check-row">
@@ -106,8 +106,8 @@ export function HireTalentSection({ showLink = true, onSelect }) {
         <div className="wb-dashboard-preview">
           <div className="wb-dashboard-head">
             <div>
-              <p>5-Minute Matching Algorithm</p>
-              <h3>Live talent shortlist</h3>
+              <p>Smart Matching </p>
+              <h3>Ready-to-Hire</h3>
             </div>
             <Timer size={22} />
           </div>
@@ -119,9 +119,9 @@ export function HireTalentSection({ showLink = true, onSelect }) {
           </div>
 
           {[
-            ["Senior React Developer", "Verified · Payment Ready", "92%"],
-            ["Automation Specialist",  "Hired in &lt; 24h",        "88%"],
-            ["Product Designer",       "Available now",             "84%"],
+            ["Senior React Developer", "Verified · Ready to Hire", "92%"],
+            ["Automation Specialist",  "Fast Response · Available",        "88%"],
+            ["Product Designer",       "Open for Work",             "84%"],
           ].map(([role, tag, score]) => (
             <div key={role} className="wb-candidate-row">
               <div>

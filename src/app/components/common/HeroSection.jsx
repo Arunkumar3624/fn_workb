@@ -30,9 +30,9 @@ export function HeroSection({ onSelect }) {
           </div>
 
           <h1>
-            CONNECTING <span>BUSINESS</span> &amp; <span>WORKERS.</span>
+            Talent<span>Meets</span> &amp; <span>Opportunity.</span>
           </h1>
-          <p>Match with verified talent in 5 minutes. Pay only when the work is done.</p>
+          <p>Hire verified talent in minutes. Pay only after the work is completed.</p>
 
           <div className="wb-trust-list">
             {trustItems.map((item) => (

@@ -54,13 +54,13 @@ function WallOfLove() {
         className="wb-section-header"
         style={{ maxWidth: 640, margin: "0 auto", textAlign: "center" }}
       >
-        <h2>Trusted by ambitious teams and top talent</h2>
+        <h2>Building bridges between teams and talent</h2>
       </div>
       {/* Outside wb-section-header on purpose — that class's `p` selector is
           styled for the small uppercase orange eyebrow label every other
           section uses above its h2, not body copy. */}
       <p className="mx-auto mb-12 mt-3 max-w-xl text-center text-base text-slate-500">
-        Join the businesses and freelancers already scaling on WorkBridge.
+        Connect with businesses and talent already growing on WorkBridge.
       </p>
 
       {loading ? (
