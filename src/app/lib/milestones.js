@@ -57,52 +57,29 @@ export function getMilestoneByLevel(level) {
   return MILESTONES.find((m) => m.level === level) ?? null;
 }
 
-// A "competitive gaming rank" system — one function, so the rank NAME the
-// caption shows and the SHAPE/gradient the medal renders can never disagree
-// (an earlier version computed these from two separate tier tables with
-// different boundaries — Level 60 read "Gold" in text next to a Silver
-// hexagon shape, which is exactly the "look bad" bug this replaced).
-// Each real fee-tier boundary (getTierData's 50/100/150/200,
-// backend/src/utils/gamification.js) gets a completely different
-// silhouette and gradient — Bronze shield, Silver hexagon, Gold spiked
-// crest, Diamond rhombus — clip-path polygons only, no image assets. A
-// Roman-numeral sub-rank steps every 10 levels within that tier (same
-// pattern real ladders like Free Fire/Valorant use: Bronze I..V, Silver
-// I..V, etc.), and the absolute Level 200 cap gets the unique label
-// "Heroic" instead of "Diamond V" — it's the single hard prestige ceiling,
-// not just another sub-rank.
-function scallopClipPath(teeth = 16, outerR = 50, innerR = 41) {
-  const total = teeth * 2;
-  const points = [];
-  for (let i = 0; i < total; i++) {
-    const angle = (Math.PI * 2 * i) / total - Math.PI / 2;
-    const r = i % 2 === 0 ? outerR : innerR;
-    const x = (50 + r * Math.cos(angle)).toFixed(2);
-    const y = (50 + r * Math.sin(angle)).toFixed(2);
-    points.push(`${x}% ${y}%`);
-  }
-  return `polygon(${points.join(", ")})`;
-}
-
-export const SHAPE_CLIP_PATHS = {
-  shield: "polygon(50% 0%, 90% 12%, 90% 55%, 50% 100%, 10% 55%, 10% 12%)",
-  hexagon: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
-  star: scallopClipPath(),
-  diamond: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
-};
+// A "competitive gaming rank" system modeled on real mobile-game ladders
+// (Mobile Legends/Free Fire) — ONE consistent gem shape throughout (a
+// hexagon reads cleanest at small sizes), with an escalating METAL FRAME
+// (bronze -> silver -> gold -> diamond) and wings on the top tier, rather
+// than switching to a different silhouette per tier. One function
+// computes the rank name, frame, and decorative escalation together so
+// they can never disagree with each other.
+export const HEX_CLIP_PATH = "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)";
+// A single wing "feather" — mirrored (scaleX(-1)) for the opposite side.
+export const WING_CLIP_PATH = "polygon(0% 50%, 100% 0%, 78% 30%, 100% 38%, 70% 50%, 100% 62%, 78% 70%, 100% 100%)";
 
 const RANK_TIERS = [
-  { min: 0, shape: "shield", name: "Bronze", grad: "from-orange-300 via-amber-600 to-orange-800", darkEdge: "border-orange-950/50" },
-  { min: 50, shape: "hexagon", name: "Silver", grad: "from-slate-100 via-slate-300 to-slate-500", darkEdge: "border-slate-700/50" },
-  { min: 100, shape: "star", name: "Gold", grad: "from-amber-300 via-yellow-500 to-orange-600", darkEdge: "border-orange-900/50" },
-  { min: 150, shape: "diamond", name: "Diamond", grad: "from-cyan-300 via-purple-400 to-blue-600", darkEdge: "border-blue-950/50" },
+  { min: 0, name: "Bronze", frame: "from-orange-300 via-amber-600 to-orange-800", frameEdge: "border-orange-950/60" },
+  { min: 50, name: "Silver", frame: "from-slate-100 via-slate-300 to-slate-500", frameEdge: "border-slate-600/60" },
+  { min: 100, name: "Gold", frame: "from-amber-200 via-yellow-400 to-amber-600", frameEdge: "border-amber-900/60" },
+  { min: 150, name: "Diamond", frame: "from-sky-100 via-cyan-300 to-blue-500", frameEdge: "border-blue-950/60" },
 ];
 const ROMAN = ["I", "II", "III", "IV", "V"];
 const GLOW_BY_TIER_INDEX = [
   "shadow-[0_4px_10px_-2px_rgba(15,23,42,0.32)]",
   "shadow-[0_7px_16px_-2px_rgba(100,116,139,0.42)]",
   "shadow-[0_9px_20px_-2px_rgba(217,119,6,0.5)]",
-  "shadow-[0_12px_26px_-2px_rgba(99,102,241,0.55)]",
+  "shadow-[0_12px_26px_-2px_rgba(56,189,248,0.55)]",
 ];
 
 export function getRankTier(level) {
@@ -112,17 +89,21 @@ export function getRankTier(level) {
   }
   const tier = RANK_TIERS[tierIndex];
   const isMaxRank = level >= 200;
+  // Roman-numeral sub-rank, one step every 10 levels within the tier — same
+  // pattern real ladders use (Bronze I..V, Silver I..V, ...). The absolute
+  // Level 200 cap gets the unique label "Heroic" instead of "Diamond V" —
+  // it's the single hard prestige ceiling, not just another sub-rank.
   const subIndex = Math.min(5, Math.floor((level - tier.min) / 10) + 1); // 1-5
 
   return {
-    shape: tier.shape,
-    grad: tier.grad,
-    darkEdge: tier.darkEdge,
+    frame: tier.frame,
+    frameEdge: tier.frameEdge,
     label: isMaxRank ? "Heroic" : `${tier.name} ${ROMAN[subIndex - 1]}`,
     isMaxRank,
+    wings: tierIndex >= 3, // Diamond tier (Level 150+) and up only
     // Decorative complexity escalates across the FULL 1-200 range, not just
-    // within one shape tier, so a fresh Diamond I doesn't look plainer than
-    // a maxed-out Gold V.
+    // within one tier, so a fresh Diamond I doesn't look plainer than a
+    // maxed-out Gold V.
     rings: 1 + tierIndex,
     shimmer: level >= 60,
     sparkle: level >= 120,

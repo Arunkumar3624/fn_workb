@@ -1,16 +1,16 @@
 import { motion } from "motion/react";
-import { getMilestoneByLevel, getRankTier, SHAPE_CLIP_PATHS } from "../../lib/milestones";
+import { getMilestoneByLevel, getRankTier, HEX_CLIP_PATH } from "../../lib/milestones";
 
 // The small rank-badge overlay shown on an avatar for a worker's pinned
-// milestone (WorkerMilestones.jsx's "pin one badge" action) — the exact
-// same shield/hexagon/star/diamond shape + gradient + label system as the
-// full Badges grid (lib/milestones.js's getRankTier — one source of truth,
-// so this can never show a different shape than the grid says), just
-// scaled down. Shared by Avatar.jsx and every worker-profile/business-card
-// call site so they can never visually drift apart. The Level 200 "Heroic"
-// cap keeps its pulsating glow even at this size — the one grid effect
-// that reads fine when small (rings/shimmer/sparkle don't, so those stay
-// grid-only).
+// milestone (WorkerMilestones.jsx's "pin one badge" action) — same hexagon
+// shape + metal-frame gradient + label system as the full Badges grid
+// (lib/milestones.js's getRankTier — one source of truth, so this can never
+// disagree with the grid), just scaled down to a single frame-colored
+// hexagon (no room for the nested gem layer at this size). Shared by
+// Avatar.jsx and every worker-profile/business-card call site so they can
+// never visually drift apart. The Level 200 "Heroic" cap keeps its
+// pulsating glow even at this size — the one grid effect that reads fine
+// when small (rings/shimmer/sparkle/wings don't, so those stay grid-only).
 export default function PinnedBadgeOverlay({ level, size = "h-5 w-5", iconSize = "h-2.5 w-2.5", className = "" }) {
   const milestone = level ? getMilestoneByLevel(level) : null;
   if (!milestone) return null;
@@ -21,8 +21,8 @@ export default function PinnedBadgeOverlay({ level, size = "h-5 w-5", iconSize =
   return (
     <motion.span
       title={`${milestone.name} — Level ${milestone.level} (${rank.label})`}
-      className={`absolute flex flex-shrink-0 items-center justify-center border-b-2 border-r-2 shadow-md ${rank.darkEdge} bg-gradient-to-br ${rank.grad} ${size} ${className}`}
-      style={{ clipPath: SHAPE_CLIP_PATHS[rank.shape] }}
+      className={`absolute flex flex-shrink-0 items-center justify-center border-b-2 border-r-2 shadow-md ${rank.frameEdge} bg-gradient-to-br ${rank.frame} ${size} ${className}`}
+      style={{ clipPath: HEX_CLIP_PATH }}
       animate={
         rank.isMaxRank
           ? {

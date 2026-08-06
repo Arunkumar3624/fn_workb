@@ -6,7 +6,9 @@ import { pinBadge } from "../../lib/profilesApi";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { ApiError } from "../../lib/apiClient";
 import { useAuth } from "../../context/AuthContext";
-import { MILESTONES, BADGE_THEMES, getRankTier, SHAPE_CLIP_PATHS } from "../../lib/milestones";
+import { MILESTONES, BADGE_THEMES, getRankTier, HEX_CLIP_PATH, WING_CLIP_PATH } from "../../lib/milestones";
+
+const DEFAULT_GEM_GRAD = "from-blue-400 via-blue-500 to-indigo-600";
 
 // MASTER_ECONOMY_PLAN.md Part 6's Worker Reward Roadmap, verbatim (see
 // lib/milestones.js for the actual MILESTONES/BADGE_THEMES data, shared
@@ -22,14 +24,19 @@ const TABS = ["All", "Unlocked", "Locked"];
 function BadgeMedal({ milestone, achieved, isNext, index, pinned, pinning, onTogglePin }) {
   const Icon = milestone.icon;
   const theme = BADGE_THEMES[milestone.color];
-  // One source of truth for both the shape/gradient AND the rank label, so
-  // they can never disagree (Bronze shield / Silver hexagon / Gold spiked
-  // crest / Diamond rhombus, Roman-numeral sub-rank every 10 levels). See
-  // lib/milestones.js's getRankTier.
+  // One source of truth for the rank label AND the metal frame, so they can
+  // never disagree (an earlier version computed these separately — Level 60
+  // read "Gold" in text next to a Silver-colored shape). One consistent
+  // hexagon "gem" shape throughout (real mobile-game ladders like Mobile
+  // Legends/Free Fire keep one silhouette and escalate the FRAME material
+  // instead of switching shapes every tier), tinted per-badge for variety,
+  // set inside a frame whose metal escalates Bronze -> Silver -> Gold ->
+  // Diamond, with wings appearing at Diamond. See lib/milestones.js's
+  // getRankTier.
   const rank = getRankTier(milestone.level);
-  const clipPath = SHAPE_CLIP_PATHS[rank.shape];
   const isMaxRank = achieved && rank.isMaxRank;
-  const ringGrad = !achieved ? "bg-slate-300" : `bg-gradient-to-br ${rank.grad}`;
+  const frameGrad = !achieved ? "bg-slate-700" : `bg-gradient-to-br ${rank.frame}`;
+  const gemGrad = theme?.grad ?? DEFAULT_GEM_GRAD;
   const glowClass = achieved ? rank.glow : "shadow-[0_4px_10px_-2px_rgba(15,23,42,0.35)]";
 
   return (
@@ -51,7 +58,7 @@ function BadgeMedal({ milestone, achieved, isNext, index, pinned, pinning, onTog
           reads as a "gaming rank" card rather than a generic reward tile. */}
       {achieved && (
         <div
-          className={`pointer-events-none absolute left-1/2 top-16 h-32 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br opacity-30 blur-2xl ${rank.grad}`}
+          className={`pointer-events-none absolute left-1/2 top-16 h-32 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br opacity-30 blur-2xl ${gemGrad}`}
         />
       )}
 
@@ -139,18 +146,34 @@ function BadgeMedal({ milestone, achieved, isNext, index, pinned, pinning, onTog
           </motion.span>
         )}
 
-        {/* The rank badge itself — a completely different silhouette per
-            real tier boundary (Bronze shield, Silver hexagon, Gold spiked
-            crest, Diamond rhombus; see lib/milestones.js's getRankTier),
-            not one recolored circle. border-b-4/border-r-4 in a darker
-            shade fake a 3D bevel; the Level 200 "Heroic" cap additionally
-            breathes with a pulsating glow. CSS-only, no image asset. Locked
-            badges preview their eventual shape in flat slate. */}
+        {/* Wings — Diamond tier (Level 150+) and up only, metallic to match
+            the frame, mirrored on each side. */}
+        {achieved && rank.wings && (
+          <>
+            <span
+              className={`absolute left-1/2 top-10 z-0 h-9 w-7 -translate-y-1/2 bg-gradient-to-br ${rank.frame}`}
+              style={{ clipPath: WING_CLIP_PATH, marginLeft: "-42px", transform: "translateY(-50%) scaleX(-1)" }}
+            />
+            <span
+              className={`absolute left-1/2 top-10 z-0 h-9 w-7 -translate-y-1/2 bg-gradient-to-br ${rank.frame}`}
+              style={{ clipPath: WING_CLIP_PATH, marginLeft: "10px" }}
+            />
+          </>
+        )}
+
+        {/* The rank badge — one consistent hexagon "gem" shape throughout
+            (not a different silhouette per tier), set inside a frame whose
+            metal escalates Bronze -> Silver -> Gold -> Diamond, same
+            language real mobile-game rank ladders use. border-b/border-r in
+            a darker shade fake a 3D bevel on the frame; the Level 200
+            "Heroic" cap additionally breathes with a pulsating glow.
+            CSS-only, no image asset. Locked badges preview the shape in
+            flat slate. */}
         <motion.div
           className={`relative z-10 flex h-20 w-20 items-center justify-center border-b-[5px] border-r-[5px] ${
-            achieved ? rank.darkEdge : "border-slate-700"
-          } ${glowClass} ${ringGrad}`}
-          style={{ clipPath }}
+            achieved ? rank.frameEdge : "border-slate-800"
+          } ${glowClass} ${frameGrad}`}
+          style={{ clipPath: HEX_CLIP_PATH }}
           animate={
             isMaxRank
               ? {
@@ -164,15 +187,19 @@ function BadgeMedal({ milestone, achieved, isNext, index, pinned, pinning, onTog
           }
           transition={isMaxRank ? { duration: 2.2, repeat: Infinity, ease: "easeInOut" } : undefined}
         >
+          {/* The gem — per-badge tinted (BADGE_THEMES), so within one rank
+              tier the collection still reads as individually varied. */}
           <div
-            className={`flex h-12 w-12 items-center justify-center rounded-full shadow-inner ${
-              achieved ? "bg-gradient-to-br from-white via-white to-slate-100" : "bg-slate-800"
+            className={`relative flex h-14 w-14 items-center justify-center ${
+              achieved ? `bg-gradient-to-br ${gemGrad}` : "bg-slate-800"
             }`}
+            style={{ clipPath: HEX_CLIP_PATH }}
           >
+            {achieved && <div className="absolute -inset-y-3 left-[8%] w-1/3 -rotate-12 bg-white/35 blur-[2px]" />}
             {achieved ? (
-              <Icon className={`h-6 w-6 ${milestone.major ? "text-amber-700" : theme.icon}`} />
+              <Icon className="relative h-6 w-6 text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.4)]" />
             ) : (
-              <Lock className="h-5 w-5 text-slate-500" />
+              <Lock className="relative h-5 w-5 text-slate-500" />
             )}
           </div>
         </motion.div>
