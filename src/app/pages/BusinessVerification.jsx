@@ -270,7 +270,7 @@ function Step1({ onNext, INPUT, LABEL, SELECT }) {
       <StepHeader
         step={1}
         title="Tell us about your company."
-        sub="This information will appear on your WorkBridge business profile and is used for compliance verification."
+        sub="We'll use this to verify your business, and it'll show up on your WorkBridge profile."
       />
 
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-5 sm:p-8">

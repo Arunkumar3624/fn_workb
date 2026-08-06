@@ -18,7 +18,7 @@ const PERKS = [
   {
     id: "gold-highlight",
     name: "Gold Highlight",
-    description: "Boost your next proposal's visibility to businesses.",
+    description: "Get your next proposal seen first by businesses.",
     icon: Award,
     color: "amber",
     tiers: [
@@ -30,7 +30,7 @@ const PERKS = [
   {
     id: "momentum-shield",
     name: "Momentum Shield",
-    description: "Absorbs one late-delivery penalty on your streak.",
+    description: "Save your streak — one late delivery won't count against you.",
     icon: ShieldCheck,
     color: "teal",
     tiers: [
@@ -41,7 +41,7 @@ const PERKS = [
   {
     id: "profile-audit",
     name: "Skill Bridge Profile Audit",
-    description: "A professional review of your resume and portfolio.",
+    description: "Get a pro to review your resume and portfolio.",
     icon: Sparkles,
     color: "slate",
     tiers: [{ id: "one-time-review", label: "One-Time Review", cost: 50 }],
@@ -52,7 +52,7 @@ const PERKS = [
   {
     id: "dispute-fast-track",
     name: "Dispute Fast-Track",
-    description: "Move one active dispute straight to WorkBridge's priority mediation queue.",
+    description: "Jump one active dispute to the front of WorkBridge's mediation queue.",
     icon: Scale,
     color: "rose",
     tiers: [{ id: "single-dispute", label: "One Active Dispute", cost: 40 }],
@@ -60,7 +60,7 @@ const PERKS = [
   {
     id: "withdrawal-fast-track",
     name: "Withdrawal Fast-Track",
-    description: "Move one pending withdrawal to the front of WorkBridge's payout queue.",
+    description: "Jump one pending withdrawal to the front of the payout queue.",
     icon: Banknote,
     color: "violet",
     tiers: [{ id: "single-withdrawal", label: "One Pending Withdrawal", cost: 30 }],

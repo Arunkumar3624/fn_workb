@@ -20,7 +20,7 @@ const FEATURES = [
   {
     icon: Briefcase,
     title: "Thousands of Freelance Jobs",
-    description: "From dev to design to content, new freelance jobs are posted every hour across every category.",
+    description: "Whether it's dev, design, or content — new gigs go live every hour, across every category.",
   },
   {
     icon: Eye,
@@ -42,7 +42,7 @@ export default function FindWorkPage({ onSelect }) {
       seoKeywords="Freelance Jobs, Instant Payment Freelance, Freelance Marketplace, Get Paid Fast"
       eyebrow="For Freelancers"
       title="Find Freelance Jobs. Get Paid Instantly."
-      subtitle="WorkBridge connects freelancers with verified clients and moves your earnings to your wallet fast — no more waiting weeks to get paid."
+      subtitle="WorkBridge connects you with verified clients and gets your earnings into your wallet fast — no more waiting weeks to see your money."
       heroContent={
         <div className="flex flex-wrap items-center justify-center gap-2">
           {["Instant Payouts", "Verified Clients", "Payment Protection"].map((pill) => (

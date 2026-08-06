@@ -19,7 +19,7 @@ const PERKS = [
   {
     id: "flash-post",
     name: "Flash Post",
-    description: "Boost your next job post's visibility in the Job Feed.",
+    description: "Get your next job post seen first in the Job Feed.",
     icon: Zap,
     color: "teal",
     tiers: [
@@ -31,7 +31,7 @@ const PERKS = [
   {
     id: "ai-shortlist",
     name: "AI Shortlist",
-    description: "Curated top-3 worker recommendations for your post.",
+    description: "We hand-pick the top 3 workers for your post.",
     icon: Search,
     color: "slate",
     tiers: [
@@ -42,7 +42,7 @@ const PERKS = [
   {
     id: "enterprise-broadcast",
     name: "Enterprise Broadcast",
-    description: "Direct notification to elite, top-tier talent.",
+    description: "Put your job straight in front of our best talent.",
     icon: Radar,
     color: "amber",
     tiers: [{ id: "one-time", label: "One-Time Broadcast", cost: 120 }],
@@ -53,7 +53,7 @@ const PERKS = [
   {
     id: "dispute-fast-track",
     name: "Dispute Fast-Track",
-    description: "Move one active dispute straight to WorkBridge's priority mediation queue.",
+    description: "Jump one active dispute to the front of WorkBridge's mediation queue.",
     icon: Scale,
     color: "rose",
     tiers: [{ id: "single-dispute", label: "One Active Dispute", cost: 60 }],
@@ -61,7 +61,7 @@ const PERKS = [
   {
     id: "featured-employer",
     name: "Featured Employer Spotlight",
-    description: "Feature your Company Page in front of workers browsing WorkBridge.",
+    description: "Get your Company Page in front of workers browsing WorkBridge.",
     icon: Star,
     color: "violet",
     tiers: [

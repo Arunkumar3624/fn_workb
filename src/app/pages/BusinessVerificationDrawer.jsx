@@ -10,11 +10,11 @@ const STEPS = [
 ];
 
 const BENEFITS = [
-  "Attract the top 1% of verified digital talent",
-  "Post unlimited projects with zero listing fees",
-  "Instant dispute protection on every job",
-  "Premium company profile with Verified badge",
-  "Priority support with dedicated account manager",
+  "Attract serious, verified digital talent",
+  "Post as many projects as you want — zero listing fees",
+  "Every job comes with instant dispute protection",
+  "A premium company profile, complete with your Verified badge",
+  "Priority WorkBridge support when you need it",
 ];
 
 const PAYMENT_METHODS = [
@@ -111,7 +111,7 @@ export default function BusinessVerificationDrawer({ onClose, onPaymentSuccess }
               <span className="text-[#FF6B2C]">Verified Badge.</span>
             </h2>
             <p className="text-slate-400 text-xs leading-relaxed mt-2">
-              Join 4,800+ businesses hiring India's best freelancers with full payment protection.
+              Hire India's best freelancers with full payment protection, backed by a verified badge on your profile.
             </p>
           </div>
 
@@ -154,22 +154,6 @@ export default function BusinessVerificationDrawer({ onClose, onPaymentSuccess }
                 </li>
               ))}
             </ul>
-          </div>
-
-          {/* Rating row */}
-          <div className="px-8 py-6 border-t border-white/8">
-            <div className="flex items-center gap-2">
-              <div className="flex">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                ))}
-              </div>
-              <span className="text-white text-xs font-semibold">4.9 / 5</span>
-              <span className="text-slate-500 text-xs">· 2,340 reviews</span>
-            </div>
-            <p className="text-slate-500 text-[11px] mt-1 italic">
-              "Best investment we made for hiring in India."
-            </p>
           </div>
 
           {/* Decorative blobs */}

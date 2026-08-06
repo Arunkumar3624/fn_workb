@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import { toast } from "sonner";
-import { AlertCircle, Briefcase, History, Loader2, MessageSquare, Send } from "lucide-react";
+import { AlertCircle, Briefcase, Clock3, History, Loader2, MessageSquare, Send } from "lucide-react";
 import CelebrationOverlay from "../common/CelebrationOverlay";
 import { MILESTONES } from "./WorkerMilestones";
 import TimelineTracker from "../shared/TimelineTracker";
@@ -11,6 +11,7 @@ import DeliverablesPanel from "../shared/DeliverablesPanel";
 import DeadlineCountdown from "../shared/DeadlineCountdown";
 import { useAuth } from "../../context/AuthContext";
 import { listProjects, updateProjectStatus } from "../../lib/projectsApi";
+import { listMyCandidates } from "../../lib/candidatesApi";
 import { submitReview, listReviewsFor } from "../../lib/reviewsApi";
 import { PROJECT_STATUS_META, nextProjectStatus } from "../../utils/projectStatus";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
@@ -19,15 +20,26 @@ import { getSocket } from "../../lib/socketClient";
 
 const ACTIVE_STATUSES = new Set(["ACCEPTED", "PENDING_FUNDS", "FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_SUBMITTED", "PENDING_RELEASE"]);
 
+// job_candidates.status, worker-facing copy for the "Applied" tab —
+// ACCEPTED never actually shows here (accepting turns it into a real
+// project, which immediately appears under Active Tasks instead).
+const APPLICATION_STATUS_META = {
+  PENDING: { label: "Pending Review", tone: "border-amber-200 bg-amber-50 text-amber-700" },
+  DECLINED: { label: "Declined", tone: "border-slate-200 bg-slate-50 text-slate-500" },
+  CLOSED: { label: "Filled by Someone Else", tone: "border-slate-200 bg-slate-50 text-slate-500" },
+};
+
 export default function WorkerWorkspace() {
   useDocumentTitle("Active Workspace — WorkBridge");
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const [projects, setProjects] = useState([]);
+  const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [pipelineTab, setPipelineTab] = useState("tasks");
   const [selectedTaskId, setSelectedTaskId] = useState(null);
+  const [selectedApplicationId, setSelectedApplicationId] = useState(null);
   const [celebration, setCelebration] = useState(null);
   // CelebrationOverlay shows one moment at a time — a level-up arriving in
   // the same COMPLETED event as a payment is queued here and shown right
@@ -79,14 +91,32 @@ export default function WorkerWorkspace() {
     };
   }, []);
 
+  // The "Applied" tab — job_candidates rows, not projects (an OPEN post's
+  // worker_id stays null until someone's accepted, so listProjects above
+  // can never surface a pending application). Loaded separately and doesn't
+  // block the main workspace render — a failure here just leaves the tab
+  // showing its own empty state rather than erroring the whole page.
+  useEffect(() => {
+    let cancelled = false;
+    listMyCandidates()
+      .then((data) => {
+        if (!cancelled) setApplications(data.filter((c) => c.source === "APPLICATION"));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const tasks = projects.filter((p) => ACTIVE_STATUSES.has(p.status));
   // Declining an invite (or any other cancellation) used to just vanish —
   // not "active" (excluded from ACTIVE_STATUSES) and not "history" (this
   // filter used to be COMPLETED-only), so there was nowhere it could ever
   // be seen again after the fact.
   const historyTasks = projects.filter((p) => p.status === "COMPLETED" || p.status === "CANCELLED");
-  const activeList = pipelineTab === "tasks" ? tasks : historyTasks;
+  const activeList = pipelineTab === "tasks" ? tasks : pipelineTab === "history" ? historyTasks : [];
   const selectedTask = activeList.find((task) => task.id === selectedTaskId) ?? null;
+  const selectedApplication = applications.find((a) => a.id === selectedApplicationId) ?? null;
 
   useEffect(() => {
     if (selectedTask?.status !== "COMPLETED") {
@@ -110,9 +140,14 @@ export default function WorkerWorkspace() {
   }, [selectedTask?.id, selectedTask?.status, selectedTask?.business_id, currentUser?.id]);
 
   const handleSelectTask = (id) => setSelectedTaskId(id);
+  const handleSelectApplication = (id) => setSelectedApplicationId(id);
 
   const handlePipelineTab = (tab) => {
     setPipelineTab(tab);
+    if (tab === "applied") {
+      setSelectedApplicationId(applications[0]?.id ?? null);
+      return;
+    }
     const list = tab === "tasks" ? tasks : historyTasks;
     setSelectedTaskId(list[0]?.id ?? null);
   };
@@ -266,6 +301,7 @@ export default function WorkerWorkspace() {
 
         <div className="mb-4 flex gap-1 rounded-2xl bg-slate-100 p-1">
           {[
+            { id: "applied", label: "Applied", count: applications.length, icon: Clock3 },
             { id: "tasks", label: "Active Tasks", count: tasks.length, icon: Briefcase },
             { id: "history", label: "History", count: historyTasks.length, icon: History },
           ].map(({ id, label, count, icon: Icon }) => {
@@ -289,61 +325,108 @@ export default function WorkerWorkspace() {
         </div>
 
         <div className="flex-1 space-y-3 overflow-y-auto pr-1">
-          {activeList.length === 0 && (
-            <div className="rounded-xl border border-dashed border-slate-300 bg-white/60 p-6 text-center text-xs text-slate-400">
-              {pipelineTab === "tasks" ? "No active tasks yet." : "No completed projects yet."}
-            </div>
-          )}
-          {activeList.map((task) => {
-            const meta = PROJECT_STATUS_META[task.status];
-            return (
-              <motion.button
-                key={task.id}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2 }}
-                onClick={() => handleSelectTask(task.id)}
-                className={`w-full rounded-xl border p-4 text-left transition-all ${
-                  selectedTaskId === task.id
-                    ? "border-slate-200 border-l-4 border-l-[#FF6B35] bg-white shadow-sm"
-                    : "border-slate-200/80 bg-white/50 hover:border-slate-300 hover:bg-white hover:shadow-sm"
-                }`}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-slate-900">{task.title}</p>
-                    <p className="mt-1 text-xs text-slate-500">{task.business_name}</p>
-                  </div>
-                  {task.new_deliverables_count > 0 && (
-                    <span
-                      className="flex h-5 min-w-5 flex-shrink-0 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white shadow-sm"
-                      aria-label={`${task.new_deliverables_count} new deliverable${task.new_deliverables_count === 1 ? "" : "s"} from ${task.business_name}`}
-                      title="New approved deliverable"
-                    >
-                      {task.new_deliverables_count}
-                    </span>
-                  )}
-                </div>
-                <div className="mt-3 flex items-center justify-between gap-2">
-                  <span
-                    className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${
-                      task.status === "COMPLETED"
-                        ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                        : "border-slate-200 bg-slate-50 text-slate-600"
+          {pipelineTab === "applied" ? (
+            applications.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-slate-300 bg-white/60 p-6 text-center text-xs text-slate-400">
+                No pending applications — jobs you apply to on the Job Feed show up here.
+              </div>
+            ) : (
+              applications.map((application) => {
+                const statusMeta = APPLICATION_STATUS_META[application.status] ?? APPLICATION_STATUS_META.PENDING;
+                return (
+                  <motion.button
+                    key={application.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2 }}
+                    onClick={() => handleSelectApplication(application.id)}
+                    className={`w-full rounded-xl border p-4 text-left transition-all ${
+                      selectedApplicationId === application.id
+                        ? "border-slate-200 border-l-4 border-l-[#FF6B35] bg-white shadow-sm"
+                        : "border-slate-200/80 bg-white/50 hover:border-slate-300 hover:bg-white hover:shadow-sm"
                     }`}
                   >
-                    {meta?.label}
-                  </span>
-                  <span className="text-sm font-semibold text-slate-900">₹{Number(task.budget).toLocaleString("en-IN")}</span>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-slate-900">{application.project_title}</p>
+                      <p className="mt-1 text-xs text-slate-500">{application.business_name}</p>
+                    </div>
+                    <div className="mt-3 flex items-center justify-between gap-2">
+                      <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${statusMeta.tone}`}>
+                        {statusMeta.label}
+                      </span>
+                      <span className="text-sm font-semibold text-slate-900">
+                        ₹{Number(application.budget).toLocaleString("en-IN")}
+                      </span>
+                    </div>
+                  </motion.button>
+                );
+              })
+            )
+          ) : (
+            <>
+              {activeList.length === 0 && (
+                <div className="rounded-xl border border-dashed border-slate-300 bg-white/60 p-6 text-center text-xs text-slate-400">
+                  {pipelineTab === "tasks" ? "No active tasks yet." : "No completed projects yet."}
                 </div>
-              </motion.button>
-            );
-          })}
+              )}
+              {activeList.map((task) => {
+                const meta = PROJECT_STATUS_META[task.status];
+                return (
+                  <motion.button
+                    key={task.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2 }}
+                    onClick={() => handleSelectTask(task.id)}
+                    className={`w-full rounded-xl border p-4 text-left transition-all ${
+                      selectedTaskId === task.id
+                        ? "border-slate-200 border-l-4 border-l-[#FF6B35] bg-white shadow-sm"
+                        : "border-slate-200/80 bg-white/50 hover:border-slate-300 hover:bg-white hover:shadow-sm"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-slate-900">{task.title}</p>
+                        <p className="mt-1 text-xs text-slate-500">{task.business_name}</p>
+                      </div>
+                      {task.new_deliverables_count > 0 && (
+                        <span
+                          className="flex h-5 min-w-5 flex-shrink-0 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white shadow-sm"
+                          aria-label={`${task.new_deliverables_count} new deliverable${task.new_deliverables_count === 1 ? "" : "s"} from ${task.business_name}`}
+                          title="New approved deliverable"
+                        >
+                          {task.new_deliverables_count}
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-3 flex items-center justify-between gap-2">
+                      <span
+                        className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${
+                          task.status === "COMPLETED"
+                            ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                            : "border-slate-200 bg-slate-50 text-slate-600"
+                        }`}
+                      >
+                        {meta?.label}
+                      </span>
+                      <span className="text-sm font-semibold text-slate-900">₹{Number(task.budget).toLocaleString("en-IN")}</span>
+                    </div>
+                  </motion.button>
+                );
+              })}
+            </>
+          )}
         </div>
       </aside>
 
       <main className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50/50">
-        {selectedTask?.status === "COMPLETED" ? (
+        {pipelineTab === "applied" ? (
+          selectedApplication ? (
+            <ApplicationDetail application={selectedApplication} navigate={navigate} />
+          ) : (
+            <ApplicationEmptyState />
+          )
+        ) : selectedTask?.status === "COMPLETED" ? (
           existingReview === undefined ? (
             <div className="flex h-full items-center justify-center">
               <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[#1B3FAB]" />
@@ -512,9 +595,88 @@ function WorkspaceEmptyState() {
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-sm">
           <Briefcase className="h-8 w-8 text-slate-400" />
         </div>
-        <h3 className="mt-4 text-lg font-semibold text-slate-900">Select a project</h3>
-        <p className="mt-2 max-w-xs text-sm text-slate-500">Choose a task from your pipeline to view its delivery workspace.</p>
+        <h3 className="mt-4 text-lg font-semibold text-slate-900">Pick a project</h3>
+        <p className="mt-2 max-w-xs text-sm text-slate-500">Choose a task from your pipeline and its workspace opens up here.</p>
       </div>
+    </div>
+  );
+}
+
+function ApplicationEmptyState() {
+  return (
+    <div className="flex h-full items-center justify-center rounded-[28px] border border-dashed border-slate-300 bg-slate-50/70 p-10 text-center">
+      <div>
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-sm">
+          <Clock3 className="h-8 w-8 text-slate-400" />
+        </div>
+        <h3 className="mt-4 text-lg font-semibold text-slate-900">Pick an application</h3>
+        <p className="mt-2 max-w-xs text-sm text-slate-500">Choose one from the list to see what you sent and where it stands.</p>
+      </div>
+    </div>
+  );
+}
+
+// No chat, no deliverables, nothing actionable yet — an application is
+// still just a candidacy on an OPEN post (see messages.controller.js's
+// mustBeParticipant: worker_id is null until a business accepts, so a
+// pending applicant genuinely can't message them). This is read-only,
+// deliberately simpler than the real task detail panel above.
+function ApplicationDetail({ application, navigate }) {
+  const statusMeta = APPLICATION_STATUS_META[application.status] ?? APPLICATION_STATUS_META.PENDING;
+  const appliedDate = new Date(application.created_at).toLocaleDateString("en-IN", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  return (
+    <div className="flex-1 space-y-6 overflow-y-auto p-4 pb-40 sm:p-8">
+      <header className="border-b border-slate-200 bg-white p-4 sm:p-6">
+        <span className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold ${statusMeta.tone}`}>
+          {statusMeta.label}
+        </span>
+        <h3 className="mt-3 text-xl font-bold text-slate-900 sm:text-2xl" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          {application.project_title}
+        </h3>
+        <p className="mt-2 text-sm font-medium text-slate-500">
+          {application.business_name} · Applied {appliedDate}
+        </p>
+        <p className="mt-2 text-xl font-bold text-slate-900">₹{Number(application.budget).toLocaleString("en-IN")}</p>
+      </header>
+
+      {application.description && (
+        <div className="rounded-2xl border border-slate-200 bg-white p-5">
+          <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Job Brief</p>
+          <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-600">{application.description}</p>
+        </div>
+      )}
+
+      {application.message && (
+        <div className="rounded-2xl border border-slate-200 bg-white p-5">
+          <p className="text-xs font-bold uppercase tracking-wide text-slate-400">What you sent them</p>
+          <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-600">{application.message}</p>
+        </div>
+      )}
+
+      <div className="flex items-start gap-2.5 rounded-xl border border-blue-100 bg-blue-50 p-3.5">
+        <MessageSquare className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-blue-500" />
+        <p className="text-xs leading-relaxed text-blue-700">
+          {application.status === "PENDING"
+            ? "This business hasn't decided yet — messaging opens up automatically here if they accept you."
+            : application.status === "DECLINED"
+              ? "This business decided not to move forward with this application."
+              : "Someone else was accepted for this job."}
+        </p>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => navigate("/worker")}
+        className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50"
+      >
+        <Briefcase className="h-3.5 w-3.5" />
+        Back to Job Feed
+      </button>
     </div>
   );
 }

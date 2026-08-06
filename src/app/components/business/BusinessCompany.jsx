@@ -167,10 +167,10 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
                     {profile.name}
                   </h1>
                   <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-700 text-[11px] font-bold rounded-full border border-amber-200 flex-shrink-0">
-                    <Award className="w-3 h-3" /> Premium
+                    <Award className="w-3 h-3" /> Premium (Preview)
                   </span>
                   <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-700 text-[11px] font-bold rounded-full border border-emerald-200 flex-shrink-0">
-                    <ShieldCheck className="w-3 h-3" /> GST Verified
+                    <ShieldCheck className="w-3 h-3" /> GST Verified (Preview)
                   </span>
                 </div>
 
@@ -227,6 +227,19 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
       {/* ── Body ──────────────────────────────────────────────────────────── */}
       <div className="px-7 py-6 max-w-[1200px] mx-auto">
 
+        {/* STATS/VERIFICATIONS below are illustrative sample data, not yet
+            pulled from real activity (job-post counts, real hires, the real
+            review-based rating already live via reviewsApi) — honestly
+            labeled per the same "real data or clearly-labeled preview"
+            rule the rest of this app follows. */}
+        <div className="mb-4 flex items-start gap-2 rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-700">
+          <AlertCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
+          <span>
+            Preview data — the stats and trust badges below are illustrative, not yet pulled from your real account
+            activity.
+          </span>
+        </div>
+
         {/* KPI row */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {STATS.map(({ label, value, Icon, color, bg }, i) => (
@@ -275,7 +288,7 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
             <div className="bg-white rounded-2xl border border-slate-200 p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-[10px] font-black uppercase tracking-widest text-slate-400"
-                  style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Current Openings</h2>
+                  style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Current Openings (Preview)</h2>
                 <span className="text-xs font-bold text-[#1B3FAB] bg-[#F4F6FF] px-2.5 py-1 rounded-full border border-[#1B3FAB]/10">
                   {COMPANY_JOBS.length} Open
                 </span>
@@ -308,7 +321,7 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
             <div className="bg-white rounded-2xl border border-slate-200 p-6">
               <div className="flex items-center justify-between mb-5">
                 <h2 className="text-[10px] font-black uppercase tracking-widest text-slate-400"
-                  style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Worker Reviews</h2>
+                  style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Worker Reviews (Preview)</h2>
                 <div className="flex items-center gap-2">
                   <div className="flex gap-0.5">
                     {[1,2,3,4,5].map((n) => (
@@ -316,7 +329,7 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
                     ))}
                   </div>
                   <span className="text-sm font-extrabold text-[#0F172A]">4.7</span>
-                  <span className="text-xs text-slate-400">(28 workers)</span>
+                  <span className="text-xs text-slate-400">(sample)</span>
                 </div>
               </div>
 
@@ -412,7 +425,7 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
             {/* Trust & Verification */}
             <div className="bg-white rounded-2xl border border-slate-200 p-5">
               <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4"
-                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Trust &amp; Verification</h3>
+                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Trust &amp; Verification (Preview)</h3>
               <div className="space-y-3">
                 {VERIFICATIONS.map(({ label, ok }) => (
                   <div key={label} className="flex items-center gap-2.5">

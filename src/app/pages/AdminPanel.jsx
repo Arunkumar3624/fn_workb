@@ -26,7 +26,7 @@ import { listThreadsForAdmin } from "../lib/supportApi";
 import { getInitials } from "../utils/formValidation";
 
 const NAV = [
-  { id: "overview", label: "Master Dashboard", icon: BarChart3 },
+  { id: "overview", label: "Platform Overview", icon: BarChart3 },
   { id: "users", label: "Users", icon: Users },
   { id: "verification", label: "Verification Center", icon: Shield, badgeKey: "verifications" },
   { id: "invitations", label: "Invitations", icon: Send },

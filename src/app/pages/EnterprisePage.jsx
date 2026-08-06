@@ -5,27 +5,27 @@ const FEATURES = [
   {
     icon: UserCog,
     title: "Dedicated Account Management",
-    description: "A named WorkBridge account manager owns your rollout, hiring pipeline, and escalations end to end.",
+    description: "You get one named WorkBridge contact who owns your rollout from day one — hiring, escalations, all of it.",
   },
   {
     icon: Users,
     title: "Bulk Hiring",
-    description: "Staff up entire teams at once with batch job posting, shared shortlists, and coordinated onboarding.",
+    description: "Need to staff up fast? Post in bulk, share shortlists across your team, and onboard everyone together.",
   },
   {
     icon: FileCheck2,
     title: "Service Level Agreements",
-    description: "Guaranteed response times, delivery windows, and escalation paths — backed by a formal SLA, not a promise.",
+    description: "Real guaranteed response times and delivery windows — backed by a formal SLA, not just our word.",
   },
   {
     icon: ShieldCheck,
     title: "Enterprise-Grade Security",
-    description: "SSO, audit logs, and role-based access controls keep your hiring data compliant and contained.",
+    description: "SSO, audit logs, and role-based access — your hiring data stays exactly as controlled as you need it.",
   },
   {
     icon: BarChart3,
     title: "Custom Invoicing & Reporting",
-    description: "Consolidated billing, spend dashboards, and exportable reports built for finance and procurement teams.",
+    description: "One consolidated bill, live spend dashboards, and reports your finance team can actually export and use.",
   },
   {
     icon: Headset,
@@ -42,7 +42,7 @@ export default function EnterprisePage({ onSelect }) {
       seoKeywords="Enterprise Freelance Solutions, Scale Team, Bulk Hiring, Enterprise Freelancers"
       eyebrow="For Enterprise"
       title="Scale Your Team with Enterprise Freelance Solutions"
-      subtitle="Bulk hiring, dedicated account management, and Service Level Agreements — WorkBridge Enterprise is built for organizations that hire at scale."
+      subtitle="Bulk hiring, a dedicated account manager, and real SLAs — WorkBridge Enterprise is built for teams that hire at scale."
       heroContent={
         <div className="flex flex-wrap items-center justify-center gap-2">
           {["Account Management", "Bulk Hiring", "Service Level Agreements"].map((pill) => (
