@@ -11,7 +11,7 @@ export default function PinnedBadgeOverlay({ level, size = "sm", className = "" 
 
   return (
     <span className={`absolute ${className}`}>
-      <RankBadge level={level} achieved size={size} compact />
+      <RankBadge level={level} achieved size={size} />
     </span>
   );
 }

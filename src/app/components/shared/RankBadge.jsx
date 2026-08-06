@@ -1,22 +1,20 @@
 import { useId } from "react";
 import { motion } from "motion/react";
 import { Lock } from "lucide-react";
-import { getMilestoneByLevel, getRankTier, RANK_SHAPES, WING_SHAPES } from "../../lib/milestones";
+import { getMilestoneByLevel, getRankTier, RANK_SHAPES } from "../../lib/milestones";
 
-const SIZE_PX = { sm: 36, md: 56, lg: 92, xl: 132 };
+const SIZE_PX = { xs: 22, sm: 36, md: 56, lg: 92, xl: 132 };
 const ICON_RATIO = 0.36;
 
 // A real "competitive gaming rank" badge — <svg> with a multi-stop
 // <linearGradient> per tier (Bronze/Silver/Gold/Diamond), a genuinely
 // different silhouette per tier (RANK_SHAPES in lib/milestones.js), and an
 // infinite idle-float + pulsing glow (Framer Motion). One component, one
-// `size` token (sm/md/lg/xl), used everywhere a badge appears — the full
-// Badges grid, avatar overlays, the profile page — so they can never
-// visually drift out of sync with each other again.
-//
-// `compact` (avatar overlays) suppresses wings — at small sizes the wings
-// roughly doubled the badge's footprint and visibly overlapped the
-// avatar; they only render in the full grid, where there's room for them.
+// `size` token (xs/sm/md/lg/xl), used everywhere a badge appears — the
+// full Badges grid, avatar overlays, the profile page — so they can never
+// visually drift out of sync with each other again. `xs` exists
+// specifically for small avatars (e.g. the 44px sidebar avatar) — a badge
+// any bigger there ends up covering the actual profile photo.
 //
 // The glow is a separate, statically-blurred layer with only its OPACITY
 // animated — animating the CSS `filter` property directly on the same
@@ -24,18 +22,15 @@ const ICON_RATIO = 0.36;
 // look blurry/soft in an earlier version, since the browser has to
 // re-rasterize the whole filtered layer every frame. Keeping the glow on
 // its own layer means the actual badge SVG stays crisp throughout.
-export default function RankBadge({ level, achieved = true, size = "md", compact = false, className = "" }) {
+export default function RankBadge({ level, achieved = true, size = "md", className = "" }) {
   const gradId = useId();
   const milestone = level ? getMilestoneByLevel(level) : null;
   if (!milestone) return null;
 
   const rank = getRankTier(milestone.level);
   const shape = RANK_SHAPES[rank.shape];
-  const showWings = rank.wings && !compact;
   const Icon = milestone.icon;
   const boxPx = SIZE_PX[size] ?? SIZE_PX.md;
-  const svgPx = showWings ? Math.round(boxPx * 1.5) : boxPx;
-  const viewBox = showWings ? "-45 0 190 100" : "0 0 100 100";
   const iconPx = Math.round(boxPx * ICON_RATIO);
   const fill = achieved ? `url(#${gradId})` : "#475569";
   const stroke = achieved ? rank.stroke : "#64748B";
@@ -61,7 +56,7 @@ export default function RankBadge({ level, achieved = true, size = "md", compact
   return (
     <motion.div
       className={`relative inline-flex flex-shrink-0 items-center justify-center ${className}`}
-      style={{ width: svgPx, height: boxPx }}
+      style={{ width: boxPx, height: boxPx }}
       animate={achieved ? { y: [0, -3, 0] } : undefined}
       transition={achieved ? { repeat: Infinity, duration: 3, ease: "easeInOut" } : undefined}
     >
@@ -74,7 +69,7 @@ export default function RankBadge({ level, achieved = true, size = "md", compact
           transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
         />
       )}
-      <svg width={svgPx} height={boxPx} viewBox={viewBox} className="relative">
+      <svg width={boxPx} height={boxPx} viewBox="0 0 100 100" className="relative">
         <title>{`${milestone.name} — Level ${milestone.level} (${rank.label})`}</title>
         <defs>
           <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
@@ -83,12 +78,6 @@ export default function RankBadge({ level, achieved = true, size = "md", compact
             ))}
           </linearGradient>
         </defs>
-        {showWings && (
-          <>
-            <polygon points={WING_SHAPES.left} fill={fill} stroke={stroke} strokeWidth="2" />
-            <polygon points={WING_SHAPES.right} fill={fill} stroke={stroke} strokeWidth="2" />
-          </>
-        )}
         {shapeEl}
       </svg>
       <span className="absolute inset-0 flex items-center justify-center">

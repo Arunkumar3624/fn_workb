@@ -46,26 +46,14 @@ export function getMilestoneByLevel(level) {
 // defs (not CSS clip-path approximations). Shapes are deliberately simple
 // (circle/hexagon/pentagon/shield) rather than many-pointed stars — a
 // sharp 8-point "shuriken" reads as noisy/jagged at badge scale and is
-// exactly what made an earlier version look bad. Wings only render in
-// RankBadge's non-compact mode (the full Badges grid) — at small avatar-
-// overlay sizes they roughly doubled the badge's footprint and overlapped
-// the avatar, which is what "not placed neatly" meant.
+// exactly what made an earlier version look bad. No wings — they made
+// avatar-overlay badges cover too much of the actual profile photo.
 export const RANK_SHAPES = {
   circle: { kind: "circle" },
   hexagon: { kind: "polygon", points: "50,4 93,27 93,73 50,96 7,73 7,27" },
   pentagon: { kind: "polygon", points: "50,4 95,38 78,94 22,94 5,38" },
   shield: { kind: "path", d: "M50 4 L88 18 L88 50 Q88 80 50 97 Q12 80 12 50 L12 18 Z" },
 };
-
-// A simple, smooth wing (4 points, not a jagged multi-point zigzag),
-// attached at the badge's edge (x=0 left wing, x=100 right) and extending
-// outward — RankBadge.jsx widens its viewBox to -45..145 to fit both when
-// rank.wings is true.
-function wingPoints(side) {
-  const base = [[0, 42], [42, 18], [30, 50], [42, 82], [0, 58]];
-  return base.map(([x, y]) => `${side === "right" ? 100 + x : -x},${y}`).join(" ");
-}
-export const WING_SHAPES = { left: wingPoints("left"), right: wingPoints("right") };
 
 // Multi-stop gradients (real <linearGradient> stops, not a 2-3 color CSS
 // gradient) for a genuine metallic look, plus the glow color used by
@@ -98,6 +86,5 @@ export function getRankTier(level) {
     glowRgb: tier.glowRgb,
     label: isMaxRank ? "Heroic" : `${tier.name} ${ROMAN[subIndex - 1]}`,
     isMaxRank,
-    wings: tierIndex >= 2, // Gold tier (Level 100+) and up
   };
 }
