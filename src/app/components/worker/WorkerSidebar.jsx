@@ -3,7 +3,7 @@ import { Briefcase, Search, Wallet, User, LogOut, ShieldCheck, Zap, Handshake, S
 import { useAuth } from "../../context/AuthContext";
 import { listProjects } from "../../lib/projectsApi";
 import { getInitials } from "../../utils/formValidation";
-import { getMilestoneByLevel, BADGE_THEMES } from "../../lib/milestones";
+import PinnedBadgeOverlay from "../shared/PinnedBadgeOverlay";
 
 // Every one of these is fully real: Job Feed is the real Open Job Board
 // (listOpenProjects/applyToProject), Negotiations is the permanent chat
@@ -23,9 +23,6 @@ const NAV = [
 export default function WorkerSidebar({ tab, onTabChange, onLogout }) {
   const { currentUser } = useAuth();
   const [hasPendingInvites, setHasPendingInvites] = useState(false);
-  const pinnedBadge = currentUser?.pinned_milestone_level ? getMilestoneByLevel(currentUser.pinned_milestone_level) : null;
-  const pinnedTheme = pinnedBadge && !pinnedBadge.major ? BADGE_THEMES[pinnedBadge.color] : null;
-  const PinnedIcon = pinnedBadge?.icon;
 
   useEffect(() => {
     let cancelled = false;
@@ -71,16 +68,7 @@ export default function WorkerSidebar({ tab, onTabChange, onLogout }) {
                 {getInitials(currentUser?.name)}
               </div>
             )}
-            {pinnedBadge && (
-              <span
-                title={`${pinnedBadge.name} — Level ${pinnedBadge.level}`}
-                className={`absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full border-2 border-[#0F172A] ${
-                  pinnedBadge.major ? "bg-gradient-to-br from-amber-300 via-amber-400 to-amber-600" : `bg-gradient-to-br ${pinnedTheme.grad}`
-                }`}
-              >
-                <PinnedIcon className={`h-2.5 w-2.5 ${pinnedBadge.major ? "text-amber-900" : pinnedTheme.icon}`} strokeWidth={2.5} />
-              </span>
-            )}
+            <PinnedBadgeOverlay level={currentUser?.pinned_milestone_level} size="h-5 w-5" iconSize="h-2.5 w-2.5" className="-bottom-1 -right-1" />
           </div>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-white">{currentUser?.name || "—"}</p>

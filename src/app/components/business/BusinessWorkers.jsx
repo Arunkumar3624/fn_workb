@@ -13,8 +13,8 @@ import {
   Lock,
 } from "lucide-react";
 import Avatar from "../shared/Avatar";
+import PinnedBadgeOverlay from "../shared/PinnedBadgeOverlay";
 import WorkerShareableProfile from "../worker/WorkerShareableProfile";
-import { getMilestoneByLevel, BADGE_THEMES } from "../../lib/milestones";
 import { listWorkers } from "../../lib/profilesApi";
 import { listProjects, createProject } from "../../lib/projectsApi";
 import { submitLink } from "../../lib/submissionsApi";
@@ -444,11 +444,6 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
             const alreadyInvited = invitedWorkerIds.has(w.id);
             const skills = w.profile?.skills ?? [];
             const isTopRated = (w.rating ?? 0) >= 4.8 && (w.reviews_count ?? 0) >= 20;
-            // public_user_profiles already masks this to null until the
-            // worker's own Two-Door Reveal fires — no extra gating needed here.
-            const pinnedBadge = w.pinned_milestone_level ? getMilestoneByLevel(w.pinned_milestone_level) : null;
-            const pinnedTheme = pinnedBadge && !pinnedBadge.major ? BADGE_THEMES[pinnedBadge.color] : null;
-            const PinnedIcon = pinnedBadge?.icon;
 
             return (
               <div
@@ -465,16 +460,7 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
                         ) : (
                           <Avatar initials={getInitials(w.name)} size="w-12 h-12" text="text-sm" />
                         )}
-                        {pinnedBadge && (
-                          <span
-                            title={`${pinnedBadge.name} — Level ${pinnedBadge.level}`}
-                            className={`absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full border-2 border-white shadow-sm ${
-                              pinnedBadge.major ? "bg-gradient-to-br from-amber-300 via-amber-400 to-amber-600" : `bg-gradient-to-br ${pinnedTheme.grad}`
-                            }`}
-                          >
-                            <PinnedIcon className={`h-2.5 w-2.5 ${pinnedBadge.major ? "text-amber-900" : pinnedTheme.icon}`} strokeWidth={2.5} />
-                          </span>
-                        )}
+                        <PinnedBadgeOverlay level={w.pinned_milestone_level} size="h-5 w-5" iconSize="h-2.5 w-2.5" className="-bottom-1 -right-1" />
                       </div>
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-1.5 mb-0.5">

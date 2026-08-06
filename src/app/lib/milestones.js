@@ -86,7 +86,47 @@ export function getMaterialTier(level) {
     rings: band + 1, // 1-4 concentric decorative rings
     shimmer: index >= 5,
     sparkle: index >= 10,
-    tripleRibbon: index >= 10,
     glow: MATERIAL_GLOW_BY_BAND[band],
   };
+}
+
+// A "competitive gaming rank" shape system — each real tier boundary
+// (getTierData's 50/100/150/200, backend/src/utils/gamification.js) gets a
+// completely different silhouette and gradient, not just a recolored
+// circle, so the badge grid AND the small pinned-badge avatar overlay both
+// read as genuinely different ranks at a glance. clip-path polygons only —
+// no image assets.
+function scallopClipPath(teeth = 16, outerR = 50, innerR = 41) {
+  const total = teeth * 2;
+  const points = [];
+  for (let i = 0; i < total; i++) {
+    const angle = (Math.PI * 2 * i) / total - Math.PI / 2;
+    const r = i % 2 === 0 ? outerR : innerR;
+    const x = (50 + r * Math.cos(angle)).toFixed(2);
+    const y = (50 + r * Math.sin(angle)).toFixed(2);
+    points.push(`${x}% ${y}%`);
+  }
+  return `polygon(${points.join(", ")})`;
+}
+
+export const SHAPE_CLIP_PATHS = {
+  shield: "polygon(50% 0%, 90% 12%, 90% 55%, 50% 100%, 10% 55%, 10% 12%)",
+  hexagon: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
+  star: scallopClipPath(),
+  diamond: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
+};
+
+const SHAPE_TIERS = [
+  { min: 0, shape: "shield", name: "Bronze Rank", grad: "from-orange-300 via-amber-600 to-orange-800", darkEdge: "border-orange-950/50" },
+  { min: 50, shape: "hexagon", name: "Silver Rank", grad: "from-slate-100 via-slate-300 to-slate-500", darkEdge: "border-slate-700/50" },
+  { min: 100, shape: "star", name: "Gold Rank", grad: "from-amber-300 via-yellow-500 to-orange-600", darkEdge: "border-orange-900/50" },
+  { min: 150, shape: "diamond", name: "Diamond Rank", grad: "from-cyan-300 via-purple-400 to-blue-600", darkEdge: "border-blue-950/50" },
+];
+
+export function getShapeTier(level) {
+  let tier = SHAPE_TIERS[0];
+  for (const t of SHAPE_TIERS) {
+    if (level >= t.min) tier = t;
+  }
+  return tier;
 }

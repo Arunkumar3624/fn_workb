@@ -6,7 +6,7 @@ import { pinBadge } from "../../lib/profilesApi";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { ApiError } from "../../lib/apiClient";
 import { useAuth } from "../../context/AuthContext";
-import { MILESTONES, BADGE_THEMES, getMaterialTier } from "../../lib/milestones";
+import { MILESTONES, BADGE_THEMES, getMaterialTier, getShapeTier, SHAPE_CLIP_PATHS } from "../../lib/milestones";
 
 // MASTER_ECONOMY_PLAN.md Part 6's Worker Reward Roadmap, verbatim (see
 // lib/milestones.js for the actual MILESTONES/BADGE_THEMES data, shared
@@ -19,39 +19,21 @@ export { MILESTONES };
 
 const TABS = ["All", "Unlocked", "Locked"];
 
-// A real scalloped rosette outline (the classic "award ribbon" edge), built
-// once as a clip-path polygon rather than an image asset — alternates
-// between an outer and inner radius around the circle to cut the pointed
-// teeth, same trick real CSS rosette badges use.
-function scallopClipPath(teeth = 16, outerR = 50, innerR = 41) {
-  const total = teeth * 2;
-  const points = [];
-  for (let i = 0; i < total; i++) {
-    const angle = (Math.PI * 2 * i) / total - Math.PI / 2;
-    const r = i % 2 === 0 ? outerR : innerR;
-    const x = (50 + r * Math.cos(angle)).toFixed(2);
-    const y = (50 + r * Math.sin(angle)).toFixed(2);
-    points.push(`${x}% ${y}%`);
-  }
-  return `polygon(${points.join(", ")})`;
-}
-const SCALLOP_CLIP_PATH = scallopClipPath();
-const RIBBON_CLIP_PATH = "polygon(0% 0%, 100% 0%, 100% 72%, 50% 100%, 0% 72%)";
-
 function BadgeMedal({ milestone, achieved, isNext, index, pinned, pinning, onTogglePin }) {
   const Icon = milestone.icon;
   const theme = BADGE_THEMES[milestone.color];
   // A real escalation, one step every 10 levels — higher-level badges get
-  // more decorative rings, a shimmer sweep, an orbiting sparkle, and a
-  // third ribbon tail, so the collection visibly "upgrades" as you climb
-  // rather than just changing hue. See lib/milestones.js's getMaterialTier.
+  // more decorative rings, a shimmer sweep, and an orbiting sparkle, so the
+  // collection visibly "upgrades" as you climb, not just a hue change. See
+  // lib/milestones.js's getMaterialTier.
   const material = getMaterialTier(milestone.level);
-  const ringGrad = !achieved
-    ? "bg-slate-300"
-    : milestone.major
-      ? "bg-gradient-to-br from-amber-300 via-amber-400 to-amber-600"
-      : `bg-gradient-to-br ${theme.grad}`;
-  const ribbonColors = !achieved ? ["bg-slate-300", "bg-slate-400"] : milestone.major ? ["bg-amber-500", "bg-amber-600"] : theme.ribbon;
+  // A completely different silhouette per real tier boundary (Bronze
+  // shield / Silver hexagon / Gold spiked crest / Diamond rhombus) — a
+  // "competitive gaming rank" identity instead of one recolored circle.
+  const shapeTier = getShapeTier(milestone.level);
+  const clipPath = SHAPE_CLIP_PATHS[shapeTier.shape];
+  const isDiamond = achieved && shapeTier.shape === "diamond";
+  const ringGrad = !achieved ? "bg-slate-300" : `bg-gradient-to-br ${shapeTier.grad}`;
   const glowClass = achieved ? material.glow : "shadow-[0_4px_10px_-2px_rgba(15,23,42,0.35)]";
 
   return (
@@ -153,27 +135,34 @@ function BadgeMedal({ milestone, achieved, isNext, index, pinned, pinning, onTog
           </motion.span>
         )}
 
-        {/* Ribbon tails sit behind the rosette disc, V-cut like a real
-            award ribbon — colored per milestone so the collection reads as
-            genuinely varied, not one repeated silver medal. A third center
-            tail appears from Master rank (Level 101+) up. */}
-        <div className="absolute left-1/2 top-9 z-0 flex -translate-x-1/2 gap-1">
-          <div className={`h-6 w-4 -rotate-6 ${ribbonColors[0]}`} style={{ clipPath: RIBBON_CLIP_PATH }} />
-          {achieved && material.tripleRibbon && <div className={`h-7 w-4 ${ribbonColors[1]}`} style={{ clipPath: RIBBON_CLIP_PATH }} />}
-          <div className={`h-6 w-4 rotate-6 ${ribbonColors[1]}`} style={{ clipPath: RIBBON_CLIP_PATH }} />
-        </div>
-
-        {/* The rosette itself — a scalloped colored disc (gold for major
-            tier milestones, a distinct hue per badge otherwise) with a
-            glossy medallion center, CSS-only so it never depends on an
-            external image asset. Locked ones desaturate to slate. */}
-        <div
-          className={`relative z-10 flex h-16 w-16 items-center justify-center ${glowClass} ${ringGrad}`}
-          style={{ clipPath: SCALLOP_CLIP_PATH }}
+        {/* The rank badge itself — a completely different silhouette per
+            real tier boundary (Bronze shield, Silver hexagon, Gold spiked
+            crest, Diamond rhombus; see lib/milestones.js's getShapeTier),
+            not one recolored circle. border-b-4/border-r-4 in a darker
+            shade fake a 3D bevel; Diamond rank additionally breathes with a
+            pulsating glow. CSS-only, no image asset. Locked badges preview
+            their eventual shape in flat slate. */}
+        <motion.div
+          className={`relative z-10 flex h-16 w-16 items-center justify-center border-b-4 border-r-4 ${
+            achieved ? shapeTier.darkEdge : "border-slate-400/50"
+          } ${glowClass} ${ringGrad}`}
+          style={{ clipPath }}
+          animate={
+            isDiamond
+              ? {
+                  boxShadow: [
+                    "0 0 14px 2px rgba(34,211,238,0.45)",
+                    "0 0 28px 7px rgba(168,85,247,0.6)",
+                    "0 0 14px 2px rgba(34,211,238,0.45)",
+                  ],
+                }
+              : undefined
+          }
+          transition={isDiamond ? { duration: 2.2, repeat: Infinity, ease: "easeInOut" } : undefined}
         >
           <div
             className={`flex h-10 w-10 items-center justify-center rounded-full shadow-inner ${
-              achieved ? "bg-gradient-to-br from-amber-50 via-amber-100 to-amber-200" : "bg-slate-100"
+              achieved ? "bg-gradient-to-br from-white via-white to-slate-100" : "bg-slate-100"
             }`}
           >
             {achieved ? (
@@ -182,7 +171,7 @@ function BadgeMedal({ milestone, achieved, isNext, index, pinned, pinning, onTog
               <Lock className="h-4 w-4 text-slate-400" />
             )}
           </div>
-        </div>
+        </motion.div>
       </div>
 
       <div className="mt-1.5">

@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { listReviewsFor } from "../../lib/reviewsApi";
 import { getInitials } from "../../utils/formValidation";
-import { getMilestoneByLevel, BADGE_THEMES } from "../../lib/milestones";
+import PinnedBadgeOverlay from "../shared/PinnedBadgeOverlay";
 import EditableCoverPhoto from "../shared/EditableCoverPhoto";
 import ShareProfileButton from "../shared/ShareProfileButton";
 
@@ -85,11 +85,6 @@ export default function WorkerShareableProfile({ worker }) {
   const education = profile.education ?? [];
   const certifications = profile.certifications ?? [];
   const projects = profile.projects ?? [];
-  // public_user_profiles already masks this to null until the worker's own
-  // Two-Door Reveal fires — no extra gating needed here.
-  const pinnedBadge = worker.pinned_milestone_level ? getMilestoneByLevel(worker.pinned_milestone_level) : null;
-  const pinnedTheme = pinnedBadge && !pinnedBadge.major ? BADGE_THEMES[pinnedBadge.color] : null;
-  const PinnedIcon = pinnedBadge?.icon;
 
   return (
     <main className="min-h-full bg-[#F8FAFC] font-sans text-[#0F172A]">
@@ -112,16 +107,12 @@ export default function WorkerShareableProfile({ worker }) {
                     </div>
                   )}
                   <span className="absolute bottom-3 right-3 h-5 w-5 rounded-full border-4 border-white bg-emerald-500 shadow-[0_0_0_5px_rgba(16,185,129,0.16)]" />
-                  {pinnedBadge && (
-                    <span
-                      title={`${pinnedBadge.name} — Level ${pinnedBadge.level}`}
-                      className={`absolute bottom-2 left-0 flex h-8 w-8 items-center justify-center rounded-full border-4 border-white shadow-md ${
-                        pinnedBadge.major ? "bg-gradient-to-br from-amber-300 via-amber-400 to-amber-600" : `bg-gradient-to-br ${pinnedTheme.grad}`
-                      }`}
-                    >
-                      <PinnedIcon className={`h-3.5 w-3.5 ${pinnedBadge.major ? "text-amber-900" : pinnedTheme.icon}`} strokeWidth={2.5} />
-                    </span>
-                  )}
+                  <PinnedBadgeOverlay
+                    level={worker.pinned_milestone_level}
+                    size="h-9 w-9"
+                    iconSize="h-4 w-4"
+                    className="-bottom-1 -left-1"
+                  />
                 </div>
                 <div className="pb-1">
                   <h1 className="text-3xl font-bold tracking-tight text-[#0F172A] sm:text-4xl">{worker.name}</h1>
