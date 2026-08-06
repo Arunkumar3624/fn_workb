@@ -116,12 +116,16 @@ export function PageShell({ children, onSelect }) {
       <main>{children}</main>
 
       <footer className="wb-footer">
-        <Link to="/" className="wb-brand wb-brand--muted">
+        <button
+          type="button"
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          className="wb-brand wb-brand--muted"
+        >
           <span className="wb-brand-mark wb-brand-mark--small">
             <img src={logoSrc} alt="" />
           </span>
           <span>WorkBridge Technologies Pvt. Ltd.</span>
-        </Link>
+        </button>
         <Link to="/privacy">Privacy</Link>
         <Link to="/terms">Terms</Link>
         <span>Help</span>
