@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
-import { AlertCircle, Check, Loader2, Lock, Pin, PinOff } from "lucide-react";
+import { AlertCircle, Check, Loader2, Lock, Pin, PinOff, Sparkles } from "lucide-react";
 import { getLedger } from "../../lib/gamificationApi";
 import { pinBadge } from "../../lib/profilesApi";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { ApiError } from "../../lib/apiClient";
 import { useAuth } from "../../context/AuthContext";
-import { MILESTONES, BADGE_THEMES } from "../../lib/milestones";
+import { MILESTONES, BADGE_THEMES, getMaterialTier } from "../../lib/milestones";
 
 // MASTER_ECONOMY_PLAN.md Part 6's Worker Reward Roadmap, verbatim (see
 // lib/milestones.js for the actual MILESTONES/BADGE_THEMES data, shared
@@ -41,12 +41,18 @@ const RIBBON_CLIP_PATH = "polygon(0% 0%, 100% 0%, 100% 72%, 50% 100%, 0% 72%)";
 function BadgeMedal({ milestone, achieved, isNext, index, pinned, pinning, onTogglePin }) {
   const Icon = milestone.icon;
   const theme = BADGE_THEMES[milestone.color];
+  // A real escalation, one step every 10 levels — higher-level badges get
+  // more decorative rings, a shimmer sweep, an orbiting sparkle, and a
+  // third ribbon tail, so the collection visibly "upgrades" as you climb
+  // rather than just changing hue. See lib/milestones.js's getMaterialTier.
+  const material = getMaterialTier(milestone.level);
   const ringGrad = !achieved
     ? "bg-slate-300"
     : milestone.major
       ? "bg-gradient-to-br from-amber-300 via-amber-400 to-amber-600"
       : `bg-gradient-to-br ${theme.grad}`;
   const ribbonColors = !achieved ? ["bg-slate-300", "bg-slate-400"] : milestone.major ? ["bg-amber-500", "bg-amber-600"] : theme.ribbon;
+  const glowClass = achieved ? material.glow : "shadow-[0_4px_10px_-2px_rgba(15,23,42,0.35)]";
 
   return (
     <motion.div
@@ -102,11 +108,58 @@ function BadgeMedal({ milestone, achieved, isNext, index, pinned, pinning, onTog
           />
         )}
 
+        {/* Concentric decorative rings — one extra ring every material
+            band, biggest badges (Grandmaster+) getting a visibly "thicker"
+            medal than a fresh Bronze one, not just a recolor. */}
+        {achieved &&
+          Array.from({ length: material.rings - 1 }).map((_, ringIndex) => (
+            <span
+              key={ringIndex}
+              className={`absolute left-1/2 top-8 -translate-x-1/2 -translate-y-1/2 rounded-full border ${
+                milestone.major ? "border-amber-400/40" : "border-current"
+              } ${milestone.major ? "" : theme.icon}`}
+              style={{
+                width: `${72 + ringIndex * 10}px`,
+                height: `${72 + ringIndex * 10}px`,
+                opacity: 0.35 - ringIndex * 0.08,
+              }}
+            />
+          ))}
+
+        {/* Shimmer sweep — a slowly rotating soft highlight, Gold-band
+            badges (Level 51+) and up only. */}
+        {achieved && material.shimmer && (
+          <motion.span
+            className="absolute left-1/2 top-8 -translate-x-1/2 -translate-y-1/2 rounded-full"
+            style={{
+              width: "64px",
+              height: "64px",
+              background: "conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0.55) 8%, transparent 16%)",
+            }}
+            animate={{ rotate: 360 }}
+            transition={{ duration: 3.5, repeat: Infinity, ease: "linear" }}
+          />
+        )}
+
+        {/* Orbiting sparkle — Diamond III+ badges (Level 101+) only. */}
+        {achieved && material.sparkle && (
+          <motion.span
+            className="absolute left-1/2 top-8 z-20"
+            style={{ marginLeft: "22px", marginTop: "-30px" }}
+            animate={{ opacity: [0.3, 1, 0.3], scale: [0.85, 1.1, 0.85] }}
+            transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <Sparkles className={`h-3.5 w-3.5 ${milestone.major ? "text-amber-500" : theme.icon}`} />
+          </motion.span>
+        )}
+
         {/* Ribbon tails sit behind the rosette disc, V-cut like a real
             award ribbon — colored per milestone so the collection reads as
-            genuinely varied, not one repeated silver medal. */}
+            genuinely varied, not one repeated silver medal. A third center
+            tail appears from Master rank (Level 101+) up. */}
         <div className="absolute left-1/2 top-9 z-0 flex -translate-x-1/2 gap-1">
           <div className={`h-6 w-4 -rotate-6 ${ribbonColors[0]}`} style={{ clipPath: RIBBON_CLIP_PATH }} />
+          {achieved && material.tripleRibbon && <div className={`h-7 w-4 ${ribbonColors[1]}`} style={{ clipPath: RIBBON_CLIP_PATH }} />}
           <div className={`h-6 w-4 rotate-6 ${ribbonColors[1]}`} style={{ clipPath: RIBBON_CLIP_PATH }} />
         </div>
 
@@ -115,7 +168,7 @@ function BadgeMedal({ milestone, achieved, isNext, index, pinned, pinning, onTog
             glossy medallion center, CSS-only so it never depends on an
             external image asset. Locked ones desaturate to slate. */}
         <div
-          className={`relative z-10 flex h-16 w-16 items-center justify-center shadow-[0_4px_10px_-2px_rgba(15,23,42,0.35)] ${ringGrad}`}
+          className={`relative z-10 flex h-16 w-16 items-center justify-center ${glowClass} ${ringGrad}`}
           style={{ clipPath: SCALLOP_CLIP_PATH }}
         >
           <div
@@ -134,7 +187,7 @@ function BadgeMedal({ milestone, achieved, isNext, index, pinned, pinning, onTog
 
       <div className="mt-1.5">
         <p className={`text-[10px] font-bold uppercase tracking-wide ${achieved ? "text-slate-400" : "text-slate-300"}`}>
-          Level {milestone.level}
+          Level {milestone.level} {achieved && `· ${material.name}`}
         </p>
         <p className={`mt-0.5 text-sm font-extrabold leading-tight ${achieved ? "text-slate-900" : "text-slate-400"}`}>
           {milestone.name}

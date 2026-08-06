@@ -56,3 +56,37 @@ export const BADGE_THEMES = {
 export function getMilestoneByLevel(level) {
   return MILESTONES.find((m) => m.level === level) ?? null;
 }
+
+// A real material-rank escalation, one step every 10 levels (1-200 -> 20
+// steps) — so the badge grid visibly "upgrades" as a worker climbs, not
+// just a different hue per milestone. Visual complexity (ring count,
+// shimmer, sparkle, ribbon count) escalates in 4 broad bands rather than 20
+// hand-authored looks, computed here so WorkerMilestones.jsx's BadgeMedal
+// stays a single component instead of 20 near-duplicates.
+const MATERIAL_TIER_NAMES = [
+  "Bronze", "Bronze II", "Silver", "Silver II", "Gold",
+  "Gold II", "Platinum", "Platinum II", "Diamond", "Diamond II",
+  "Diamond III", "Master", "Master II", "Grandmaster", "Grandmaster II",
+  "Elite", "Elite II", "Mythic", "Mythic II", "Legendary",
+];
+
+const MATERIAL_GLOW_BY_BAND = [
+  "shadow-[0_4px_10px_-2px_rgba(15,23,42,0.32)]",
+  "shadow-[0_7px_16px_-2px_rgba(100,116,139,0.42)]",
+  "shadow-[0_9px_20px_-2px_rgba(217,119,6,0.5)]",
+  "shadow-[0_12px_26px_-2px_rgba(99,102,241,0.55)]",
+];
+
+export function getMaterialTier(level) {
+  const index = Math.min(19, Math.max(0, Math.floor((level - 1) / 10)));
+  const band = Math.min(3, Math.floor(index / 5)); // 0-3 — a visual step-up every 50 levels within the 10-level name changes
+  return {
+    index,
+    name: MATERIAL_TIER_NAMES[index],
+    rings: band + 1, // 1-4 concentric decorative rings
+    shimmer: index >= 5,
+    sparkle: index >= 10,
+    tripleRibbon: index >= 10,
+    glow: MATERIAL_GLOW_BY_BAND[band],
+  };
+}
