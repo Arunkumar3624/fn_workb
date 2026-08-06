@@ -288,7 +288,7 @@ export default function WorkerWorkspace() {
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden overflow-x-hidden bg-slate-50 md:flex-row">
-      <aside className="flex max-h-[45vh] min-h-0 w-full flex-col border-b border-slate-200 bg-slate-50 p-4 sm:p-5 md:max-h-none md:w-[35%] md:min-w-[280px] md:max-w-[360px] md:border-b-0 md:border-r">
+      <aside className="flex max-h-[45vh] min-h-0 w-full flex-col border-b border-slate-200 bg-slate-50 p-4 sm:p-5 md:max-h-none md:w-[40%] md:min-w-[320px] md:max-w-[440px] md:border-b-0 md:border-r">
         <div className="mb-4 flex items-center justify-between">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Pipeline</p>
