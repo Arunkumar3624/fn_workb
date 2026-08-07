@@ -86,8 +86,8 @@ function PerkCard({ perk, balance, onPurchase, index, isPurchasing, purchaseDisa
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: index * 0.08, ease: "easeOut" }}
-      whileHover={{ y: -8 }}
-      className="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-300 ease-out hover:shadow-2xl hover:shadow-slate-300/40"
+      whileHover={{ y: -4 }}
+      className="group relative flex flex-col overflow-hidden rounded-xl border border-slate-100 bg-white p-5 shadow-sm transition-all duration-300 ease-out hover:shadow-lg"
     >
       {/* Sweeping light reflection — a single diagonal highlight that
           travels across the card on hover, not a permanent shine or a
@@ -100,7 +100,7 @@ function PerkCard({ perk, balance, onPurchase, index, isPurchasing, purchaseDisa
       <div className={`relative flex h-10 w-10 items-center justify-center rounded-xl ${COLOR_STYLES[perk.color]}`}>
         <Icon className="h-5 w-5" />
       </div>
-      <p className="relative mt-3 text-sm font-bold text-[#0A1128]">{perk.name}</p>
+      <p className="relative mt-3 text-sm font-bold text-slate-900">{perk.name}</p>
       <p className="relative mt-1 flex-1 text-xs leading-5 text-slate-500">{perk.description}</p>
 
       {perk.tiers.length > 1 && (
@@ -119,17 +119,19 @@ function PerkCard({ perk, balance, onPurchase, index, isPurchasing, purchaseDisa
         </div>
       )}
 
-      <motion.p
+      <motion.div
         key={tier.cost}
         initial={{ opacity: 0, y: -4 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.2 }}
-        className="relative mt-3 flex items-center gap-1 text-sm font-black text-[#0A1128]"
+        className="relative mt-3 flex items-center gap-2"
       >
-        <Coins className="h-3.5 w-3.5 text-amber-500" />
-        {tier.cost}
-        {perk.tiers.length === 1 && <span className="ml-1 text-xs font-semibold text-slate-400">{tier.label}</span>}
-      </motion.p>
+        <span className="flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700">
+          <Coins className="h-3.5 w-3.5" />
+          {tier.cost}
+        </span>
+        {perk.tiers.length === 1 && <span className="text-xs font-semibold text-slate-400">{tier.label}</span>}
+      </motion.div>
 
       {!canAfford && (
         <p className="relative mt-2 flex items-center gap-1 text-[11px] font-semibold text-red-500">
@@ -141,11 +143,11 @@ function PerkCard({ perk, balance, onPurchase, index, isPurchasing, purchaseDisa
       <button
         onClick={() => onPurchase(perk, tier, canAfford)}
         disabled={purchaseDisabled}
-        className={`relative mt-4 flex w-full items-center justify-center gap-1.5 rounded-lg border py-2 text-xs font-bold transition-all duration-200 active:scale-95 ${
+        className={`relative mt-4 flex w-full items-center justify-center gap-1.5 rounded-lg py-2.5 text-xs font-bold transition-all duration-200 active:scale-95 ${
           canAfford
-            ? "border-slate-200 text-slate-500 hover:bg-slate-50"
-            : "border-slate-100 text-slate-300 opacity-50 hover:bg-transparent"
-        } ${purchaseDisabled ? "cursor-not-allowed opacity-60" : ""}`}
+            ? "bg-[#FF6B35] text-white shadow-md hover:bg-[#e55a2b]"
+            : "cursor-not-allowed bg-slate-100 text-slate-400"
+        } ${purchaseDisabled && canAfford ? "opacity-60" : ""}`}
       >
         {isPurchasing && <Loader2 className="h-3 w-3 animate-spin" />}
         {isPurchasing ? "Purchasing…" : "Purchase"}
@@ -222,6 +224,7 @@ export default function WorkerTokenShop({ embedded = false }) {
 
   return (
     <div className={embedded ? "" : "mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10"}>
+      <div className={embedded ? "" : "rounded-2xl border border-slate-200 bg-slate-50/80 p-6 shadow-sm backdrop-blur-xl"}>
       <div className="mb-6 flex items-center justify-between">
         <div>
           {!embedded && (
@@ -233,7 +236,7 @@ export default function WorkerTokenShop({ embedded = false }) {
             Spend Bridge Tokens on visibility perks.
           </p>
         </div>
-        <div className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-[#0A1128]">
+        <div className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-[#0A1128] shadow-sm">
           <Coins className="h-4 w-4 text-amber-500" />
           {balance}
         </div>
@@ -280,6 +283,7 @@ export default function WorkerTokenShop({ embedded = false }) {
         Your token balance is real, and purchases here really debit it and are recorded — the visibility boost
         itself isn't wired into matching/ranking yet.
       </p>
+      </div>
     </div>
   );
 }
