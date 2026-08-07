@@ -12,7 +12,12 @@ import {
   UserX,
   X,
 } from "lucide-react";
-import { listMessages, sendImageMessage, sendLinkMessage, sendMessage } from "../../lib/messagesApi";
+import {
+  listThreadMessages,
+  sendThreadImageMessage,
+  sendThreadLinkMessage,
+  sendThreadMessage,
+} from "../../lib/threadsApi";
 import { getBlockStatus, blockUser, unblockUser } from "../../lib/blocksApi";
 import { ApiError } from "../../lib/apiClient";
 import { getSocket } from "../../lib/socketClient";
@@ -78,6 +83,36 @@ function detectProvider(url) {
   } catch {
     return "Link";
   }
+}
+
+// A merged thread can easily span several days (weeks, for a long-running
+// relationship) — showing only clock time on every bubble made a
+// perfectly-in-order conversation look scrambled, since "05:04 PM" then
+// "06:51 PM" then "03:45 PM" reads as out of sequence unless you know the
+// third one is the next day. WhatsApp-style day dividers fix that.
+function isSameCalendarDay(a, b) {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+
+function formatDateDivider(date) {
+  const now = new Date();
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (isSameCalendarDay(date, now)) return "Today";
+  if (isSameCalendarDay(date, yesterday)) return "Yesterday";
+  return date.toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "long",
+    year: date.getFullYear() === now.getFullYear() ? undefined : "numeric",
+  });
+}
+
+function DateDivider({ label }) {
+  return (
+    <div className="flex items-center justify-center py-1">
+      <span className="rounded-full bg-slate-200/70 px-3 py-1 text-[11px] font-bold text-slate-500">{label}</span>
+    </div>
+  );
 }
 
 // An attachment bubble wraps a submission that's still going through the
@@ -174,18 +209,44 @@ function MessageRow({ message, isMine, onPreview }) {
   );
 }
 
-// The real, persisted chat — one continuous thread per project spanning
-// invite through completion (and staying open, not read-only, after
-// completion/cancellation too — the chat is preserved AND still usable,
-// same as any real messaging app), replacing the fake seeded conversations
-// that used to live as local-only state inside WorkerNegotiationInbox.jsx
-// and BusinessNegotiationHub.jsx. Deliberately headerless — call sites keep
-// their own existing header (job details / contract-terms button etc.) and
-// just render this for the feed + composer. The one thing that still gates
-// the composer is a real, mutual, WhatsApp-style block — not project
-// status — enforced server-side too (messages.controller.js's
+// Walks the chronological message list once and threads a day divider in
+// wherever the calendar date changes — messages themselves are never
+// reordered or re-grouped, this only inserts markers between them.
+function renderMessageRows(messages, currentUserId, onPreview) {
+  const rows = [];
+  let lastDay = null;
+  for (const message of messages) {
+    const day = new Date(message.created_at);
+    if (!lastDay || !isSameCalendarDay(day, lastDay)) {
+      rows.push(<DateDivider key={`divider-${message.id}`} label={formatDateDivider(day)} />);
+      lastDay = day;
+    }
+    rows.push(
+      <MessageRow key={message.id} message={message} isMine={message.sender_id === currentUserId} onPreview={onPreview} />
+    );
+  }
+  return rows;
+}
+
+// The real, persisted chat — one continuous thread per (business, worker)
+// pair spanning every project they've ever done together, replacing the
+// fake seeded conversations that used to live as local-only state inside
+// WorkerNegotiationInbox.jsx and BusinessNegotiationHub.jsx (and, before
+// that, an earlier one-thread-per-project model). Deliberately headerless —
+// call sites keep their own existing header (job details / contract-terms
+// button etc.) and just render this for the feed + composer. The one thing
+// that still gates the composer is a real, mutual, WhatsApp-style block —
+// not project status — enforced server-side too (messages.controller.js's
 // assertNotBlocked), so this can't be bypassed by hitting the API directly.
-export default function ChatThread({ projectId, otherUserId }) {
+//
+// activeProjects (non-closed projects with this counterparty) drives the
+// attachment project-picker — a deliverable always belongs to exactly one
+// real project, and with several live projects sharing one merged
+// conversation that can no longer be inferred from context, so it's asked
+// for explicitly. projectIds (every project, active or closed) is only used
+// to recognize realtime events from the older per-project routes (an admin
+// warning, a redacted-and-sent message) that don't carry this thread's id.
+export default function ChatThread({ threadId, otherUserId, activeProjects = [], projectIds = [] }) {
   const { currentUser } = useAuth();
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -195,6 +256,7 @@ export default function ChatThread({ projectId, otherUserId }) {
   const [sending, setSending] = useState(false);
   const [attachOpen, setAttachOpen] = useState(false);
   const [attachMode, setAttachMode] = useState("link");
+  const [attachProjectId, setAttachProjectId] = useState(activeProjects[0]?.id ?? "");
   const [attachUrl, setAttachUrl] = useState("");
   const [attachCaption, setAttachCaption] = useState("");
   const [attachImageFile, setAttachImageFile] = useState(null);
@@ -214,6 +276,16 @@ export default function ChatThread({ projectId, otherUserId }) {
     loadBlockStatus();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [otherUserId]);
+
+  // Keeps the attachment picker pointed at a real, currently-active project
+  // whenever the thread switches (or a project's status moves it in/out of
+  // activeProjects) instead of silently holding onto a stale id.
+  useEffect(() => {
+    setAttachProjectId((current) =>
+      activeProjects.some((p) => p.id === current) ? current : activeProjects[0]?.id ?? ""
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [threadId, activeProjects.map((p) => p.id).join(",")]);
 
   const handleBlock = async () => {
     if (!otherUserId || blockActionBusy) return;
@@ -242,7 +314,7 @@ export default function ChatThread({ projectId, otherUserId }) {
   };
 
   const load = () => {
-    listMessages(projectId)
+    listThreadMessages(threadId)
       .then(setMessages)
       .catch((err) => setLoadError(err instanceof ApiError ? err.message : "Could not load messages."))
       .finally(() => setLoading(false));
@@ -253,21 +325,28 @@ export default function ChatThread({ projectId, otherUserId }) {
     setLoadError("");
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectId]);
+  }, [threadId]);
 
   useEffect(() => {
     const socket = getSocket();
     if (!socket) return undefined;
 
     const handleProjectEvent = (event) => {
-      if (event.projectId !== projectId) return;
-      if (event.type === "MESSAGE_CREATED" || event.type === "SUBMISSION_REVIEWED") load();
+      if (event.type !== "MESSAGE_CREATED" && event.type !== "SUBMISSION_REVIEWED") return;
+      // A message sent through the merged thread route carries threadId
+      // directly. One created through an admin action on the older
+      // per-project routes (a Security Monitor warning, a redacted-and-sent
+      // message) carries projectId instead — still relevant here if that
+      // project belongs to this same thread.
+      const matchesThread = event.threadId === threadId;
+      const matchesProject = event.projectId && projectIds.includes(event.projectId);
+      if (matchesThread || matchesProject) load();
     };
 
     socket.on("project:event", handleProjectEvent);
     return () => socket.off("project:event", handleProjectEvent);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectId]);
+  }, [threadId, projectIds.join(",")]);
 
   useEffect(() => {
     feedRef.current?.scrollTo({ top: feedRef.current.scrollHeight, behavior: "smooth" });
@@ -284,7 +363,7 @@ export default function ChatThread({ projectId, otherUserId }) {
     setSendError("");
     setSending(true);
     try {
-      await sendMessage(projectId, body);
+      await sendThreadMessage(threadId, body);
       setDraft("");
       load();
     } catch (err) {
@@ -308,6 +387,10 @@ export default function ChatThread({ projectId, otherUserId }) {
 
   const handleSendAttachment = async () => {
     setSendError("");
+    if (!attachProjectId) {
+      setSendError("Choose which project this is for first.");
+      return;
+    }
     if (looksLikeContactInfo(attachCaption)) {
       setSendError("Sharing phone numbers or email addresses in chat isn't allowed — keep contact details off WorkBridge.");
       return;
@@ -320,7 +403,12 @@ export default function ChatThread({ projectId, otherUserId }) {
           setSending(false);
           return;
         }
-        await sendLinkMessage({ projectId, url: attachUrl.trim(), caption: attachCaption.trim() || undefined });
+        await sendThreadLinkMessage({
+          threadId,
+          projectId: attachProjectId,
+          url: attachUrl.trim(),
+          caption: attachCaption.trim() || undefined,
+        });
         setAttachUrl("");
       } else {
         if (!attachImageFile) {
@@ -334,7 +422,12 @@ export default function ChatThread({ projectId, otherUserId }) {
           reader.onerror = reject;
           reader.readAsDataURL(attachImageFile);
         });
-        await sendImageMessage({ projectId, imageData, caption: attachCaption.trim() || undefined });
+        await sendThreadImageMessage({
+          threadId,
+          projectId: attachProjectId,
+          imageData,
+          caption: attachCaption.trim() || undefined,
+        });
         setAttachImageFile(null);
       }
       setAttachCaption("");
@@ -385,14 +478,7 @@ export default function ChatThread({ projectId, otherUserId }) {
         ) : messages.length === 0 ? (
           <p className="py-4 text-center text-xs text-slate-400">No messages yet — say hello.</p>
         ) : (
-          messages.map((message) => (
-            <MessageRow
-              key={message.id}
-              message={message}
-              isMine={message.sender_id === currentUser?.id}
-              onPreview={setPreviewSrc}
-            />
-          ))
+          renderMessageRows(messages, currentUser?.id, setPreviewSrc)
         )}
       </div>
 
@@ -426,6 +512,20 @@ export default function ChatThread({ projectId, otherUserId }) {
               <X className="h-3.5 w-3.5" />
             </button>
           </div>
+
+          {activeProjects.length > 1 && (
+            <select
+              value={attachProjectId}
+              onChange={(e) => setAttachProjectId(e.target.value)}
+              className="mb-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
+            >
+              {activeProjects.map((project) => (
+                <option key={project.id} value={project.id}>
+                  For: {project.title}
+                </option>
+              ))}
+            </select>
+          )}
 
           {attachMode === "link" ? (
             <input
@@ -492,8 +592,10 @@ export default function ChatThread({ projectId, otherUserId }) {
             <button
               type="button"
               onClick={() => setAttachOpen((open) => !open)}
+              disabled={activeProjects.length === 0}
               aria-label="Attach a file"
-              className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full transition ${
+              title={activeProjects.length === 0 ? "No active project to attach a deliverable to" : "Attach a file"}
+              className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full transition disabled:cursor-not-allowed disabled:opacity-40 ${
                 attachOpen ? "bg-[#1B3FAB] text-white" : "text-slate-400 hover:bg-white hover:text-slate-600"
               }`}
             >

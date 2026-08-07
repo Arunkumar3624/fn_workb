@@ -19,14 +19,16 @@ import Avatar from "../shared/Avatar";
 import DeliverablesPanel from "../shared/DeliverablesPanel";
 import ChatThread from "../shared/ChatThread";
 import { listProjects, updateProjectStatus } from "../../lib/projectsApi";
+import { listThreads } from "../../lib/threadsApi";
 import { getInitials } from "../../utils/formValidation";
 import { ApiError } from "../../lib/apiClient";
 import { getSocket } from "../../lib/socketClient";
 
-// Extended to include COMPLETED/CANCELLED — Negotiations is now the single
-// unified chat inbox across every project stage (Active Workspace's own
-// embedded chat was removed in favor of redirecting here), not just the
-// pre-acceptance stage the name originally implied.
+// A project only ever gets a real chat_threads row once it has a real
+// worker_id (see backend's threads.repository.js) — every status below
+// always has one, OPEN never does. Extended to include COMPLETED/CANCELLED
+// — Negotiations is the single unified chat inbox across every project
+// stage, not just the pre-acceptance stage the name originally implied.
 const ACTIVE_THREAD_STATUSES = new Set([
   "INVITED",
   "ACCEPTED",
@@ -55,7 +57,7 @@ function formatDuration(deadline) {
   return `${days} day${days === 1 ? "" : "s"}`;
 }
 
-function getThreadStatus(project) {
+function getProjectStatus(project) {
   if (project.status === "INVITED") return { label: "Pending Invite", className: "bg-orange-50 text-orange-700 border-orange-100" };
   if (project.status === "ACCEPTED") return { label: "Negotiating", className: "bg-blue-50 text-blue-700 border-blue-100" };
   if (project.status === "PENDING_FUNDS") return { label: "Verifying Funds", className: "bg-amber-50 text-amber-700 border-amber-100" };
@@ -65,6 +67,21 @@ function getThreadStatus(project) {
   if (project.status === "COMPLETED") return { label: "Completed", className: "bg-emerald-50 text-emerald-700 border-emerald-100" };
   if (project.status === "CANCELLED") return { label: "Cancelled", className: "bg-slate-100 text-slate-500 border-slate-200" };
   return { label: project.status ?? "Active", className: "bg-slate-100 text-slate-600 border-slate-200" };
+}
+
+// The sidebar row's own summary badge — one counterparty can be behind
+// several projects at once, so this rolls them up: a still-undecided invite
+// always wins (it needs a response), otherwise how many are live right now,
+// otherwise it's pure history.
+function getThreadBadge(group) {
+  if (group.some((p) => p.status === "INVITED")) {
+    return { label: "Pending Invite", className: "bg-orange-50 text-orange-700 border-orange-100" };
+  }
+  const activeCount = group.filter((p) => !CLOSED_STATUSES.has(p.status)).length;
+  if (activeCount > 0) {
+    return { label: activeCount === 1 ? "Active" : `${activeCount} Active`, className: "bg-blue-50 text-blue-700 border-blue-100" };
+  }
+  return { label: "History", className: "bg-slate-100 text-slate-500 border-slate-200" };
 }
 
 function MotionPanel({ children, panelKey }) {
@@ -101,11 +118,14 @@ function FieldPill({ icon: Icon, label, value, dark = false }) {
   );
 }
 
-// The Inbox List — strictly the scrollable thread list now. Each card is a
-// non-button div (a real <button> can't legally nest the "View Details"
-// button inside it) that selects the thread on click; "View Details" stops
-// propagation so it opens the modal without also switching the active chat.
-function ThreadNavigator({ threads, selectedThreadId, onSelect, onViewDetails }) {
+// The Inbox List — one row per counterparty (a business), not one per
+// project, exactly the WhatsApp-style grouping this replaced 14 separate
+// rows for the same business with. What used to be a per-thread "View
+// Details" button now lives as project chips in the chat header instead
+// (ChatPanel below) — with several projects possibly sharing one merged
+// conversation, "View Details" on the row itself would be ambiguous about
+// which one it means.
+function ThreadNavigator({ threads, groupsByCounterparty, selectedThreadId, onSelect }) {
   return (
     <section className="flex h-full min-h-0 flex-col bg-white">
       <div className="flex-shrink-0 border-b border-slate-200 px-5 py-3">
@@ -123,56 +143,40 @@ function ThreadNavigator({ threads, selectedThreadId, onSelect, onViewDetails })
       <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
         {threads.map((thread) => {
           const selected = thread.id === selectedThreadId;
-          const status = getThreadStatus(thread);
+          const group = groupsByCounterparty.get(thread.other_user_id) ?? [];
+          const badge = getThreadBadge(group);
+          const preview = thread.last_message_body || "No messages yet";
+
           return (
-            <div
+            <button
               key={thread.id}
-              role="button"
-              tabIndex={0}
+              type="button"
               onClick={() => onSelect(thread.id)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                  event.preventDefault();
-                  onSelect(thread.id);
-                }
-              }}
-              className={`mb-2 flex w-full cursor-pointer flex-col gap-2.5 rounded-2xl border p-3 text-left shadow-sm transition ${
+              className={`mb-2 flex w-full items-center gap-3 rounded-2xl border p-3 text-left shadow-sm transition ${
                 selected
                   ? "border-slate-200 border-l-4 border-l-[#FF6B35] bg-slate-100"
                   : "border-transparent border-l-4 border-l-transparent bg-white hover:border-slate-200 hover:bg-slate-50"
               }`}
             >
-              <div className="flex w-full items-center gap-3">
-                {thread.business_avatar_url ? (
-                  <img
-                    src={thread.business_avatar_url}
-                    alt={thread.business_name}
-                    className="h-10 w-10 flex-shrink-0 rounded-2xl object-cover"
-                  />
-                ) : (
-                  <Avatar initials={getInitials(thread.business_name)} bg="bg-[#1B3FAB]" size="w-10 h-10" text="text-xs" />
-                )}
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-bold text-slate-900">{thread.business_name}</p>
-                  <p className="mt-0.5 truncate text-xs font-semibold text-slate-500">{thread.title}</p>
+              {thread.other_avatar_url ? (
+                <img
+                  src={thread.other_avatar_url}
+                  alt={thread.other_name}
+                  className="h-11 w-11 flex-shrink-0 rounded-2xl object-cover"
+                />
+              ) : (
+                <Avatar initials={getInitials(thread.other_name)} bg="bg-[#1B3FAB]" size="w-11 h-11" text="text-xs" />
+              )}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="truncate text-sm font-bold text-slate-900">{thread.other_name}</p>
+                  <span className={`flex-shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold ${badge.className}`}>
+                    {badge.label}
+                  </span>
                 </div>
-                <span className={`flex-shrink-0 rounded-full border px-2 py-1 text-[10px] font-bold ${status.className}`}>
-                  {status.label}
-                </span>
+                <p className="mt-0.5 truncate text-xs font-semibold text-slate-500">{preview}</p>
               </div>
-
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onViewDetails(thread);
-                }}
-                className="ml-[52px] inline-flex w-fit items-center gap-1.5 rounded-lg bg-slate-100 px-2.5 py-1.5 text-[11px] font-bold text-slate-600 transition hover:bg-slate-200"
-              >
-                <FileText className="h-3 w-3" />
-                View Details
-              </button>
-            </div>
+            </button>
           );
         })}
       </div>
@@ -347,58 +351,105 @@ function JobDetailsModal({ project, onClose, onDecline, onAccept, actionBusy, ac
   );
 }
 
-// The Right Pane — unconditionally flex-1, fills whatever width the (now
-// much narrower) thread list leaves behind. The feed/composer themselves
-// are ChatThread (shared/ChatThread.jsx) — a real, persisted, one-
-// continuous-thread-per-project chat that replaced the fake seeded
-// conversation this used to render locally.
-function ChatPanel({ project }) {
+// One small pill per project under this counterparty — active ones full
+// contrast, closed ones muted but still clickable (the merged view keeps
+// the whole relationship's history visible, nothing just vanishes).
+function ProjectChip({ project, onClick }) {
+  const status = getProjectStatus(project);
   const isClosed = CLOSED_STATUSES.has(project.status);
   return (
-    <section className="flex h-full min-h-0 flex-1 flex-col bg-slate-50">
-      <header className="sticky top-0 z-10 flex min-h-[72px] flex-shrink-0 items-center justify-between border-b border-slate-200 bg-white/95 px-6 backdrop-blur-xl">
-        <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">
-            {isClosed ? "Chat History" : "Negotiation Chat"}
-          </p>
-          <h2 className="mt-1 text-lg font-bold text-slate-900">Chat with {project.business_name}</h2>
-        </div>
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
-          <BadgeCheck className="h-3.5 w-3.5" />
-          On WorkBridge
+    <button
+      type="button"
+      onClick={() => onClick(project)}
+      className={`flex flex-shrink-0 items-center gap-2 rounded-xl border px-3 py-2 text-left transition hover:-translate-y-0.5 hover:shadow-sm ${
+        isClosed ? "border-slate-200 bg-slate-50 opacity-70" : "border-slate-200 bg-white shadow-sm"
+      }`}
+    >
+      <FileText className="h-3.5 w-3.5 flex-shrink-0 text-slate-400" />
+      <div className="min-w-0">
+        <p className="max-w-[140px] truncate text-xs font-bold text-slate-900">{project.title}</p>
+        <span className={`mt-0.5 inline-block rounded-full border px-1.5 py-0.5 text-[9px] font-bold ${status.className}`}>
+          {status.label}
         </span>
+      </div>
+    </button>
+  );
+}
+
+// The Right Pane — unconditionally flex-1, fills whatever width the thread
+// list leaves behind. The project chip strip is what replaced the old
+// single-project header ("Chat with X") now that one merged conversation
+// (ChatThread, shared/ChatThread.jsx) can span several projects with the
+// same business at once.
+function ChatPanel({ thread, projects, onViewDetails }) {
+  const activeProjects = useMemo(() => projects.filter((p) => !CLOSED_STATUSES.has(p.status)), [projects]);
+  const historyProjects = useMemo(() => projects.filter((p) => CLOSED_STATUSES.has(p.status)), [projects]);
+
+  return (
+    <section className="flex h-full min-h-0 flex-1 flex-col bg-slate-50">
+      <header className="sticky top-0 z-10 flex-shrink-0 border-b border-slate-200 bg-white/95 px-6 py-3 backdrop-blur-xl">
+        <div className="flex min-h-[44px] items-center justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Chat History</p>
+            <h2 className="mt-0.5 truncate text-lg font-bold text-slate-900">Chat with {thread.other_name}</h2>
+          </div>
+          <span className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
+            <BadgeCheck className="h-3.5 w-3.5" />
+            On WorkBridge
+          </span>
+        </div>
+        {projects.length > 0 && (
+          <div className="wb-scroll-clean mt-3 flex gap-2 overflow-x-auto pb-1">
+            {activeProjects.map((project) => (
+              <ProjectChip key={project.id} project={project} onClick={onViewDetails} />
+            ))}
+            {historyProjects.map((project) => (
+              <ProjectChip key={project.id} project={project} onClick={onViewDetails} />
+            ))}
+          </div>
+        )}
       </header>
 
       {/* No longer read-only once closed — the chat stays preserved AND
           usable (a business/worker might still need to follow up after a
           project ends), same as any real messaging app. Only a real,
           mutual, WhatsApp-style block gates the composer now. */}
-      <ChatThread projectId={project.id} otherUserId={project.business_id} />
+      <ChatThread
+        threadId={thread.id}
+        otherUserId={thread.other_user_id}
+        activeProjects={activeProjects.map((p) => ({ id: p.id, title: p.title }))}
+        projectIds={projects.map((p) => p.id)}
+      />
     </section>
   );
 }
 
 export default function WorkerNegotiationInbox({ initialProjectId }) {
+  const [threads, setThreads] = useState([]);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [actionError, setActionError] = useState("");
-  const [selectedThreadId, setSelectedThreadId] = useState(initialProjectId ?? null);
+  const [selectedThreadId, setSelectedThreadId] = useState(null);
   const [selectedJobDetails, setSelectedJobDetails] = useState(null);
   const [actionBusy, setActionBusy] = useState(false);
   const [toast, setToast] = useState("");
 
   useEffect(() => {
     let cancelled = false;
-    listProjects({ role: "worker" })
-      .then((data) => {
+    Promise.all([listThreads(), listProjects({ role: "worker" })])
+      .then(([threadsData, projectsData]) => {
         if (cancelled) return;
-        const activeThreads = data.filter(isActiveThread);
-        setProjects(activeThreads);
-        const preferred = activeThreads.find((project) => project.id === initialProjectId)
-          ?? activeThreads.find((project) => project.status === "INVITED")
-          ?? activeThreads[0]
-          ?? null;
+        setThreads(threadsData);
+        setProjects(projectsData);
+        const initialProject = projectsData.find((p) => p.id === initialProjectId);
+        const preferred =
+          (initialProject && threadsData.find((t) => t.other_user_id === initialProject.business_id)) ??
+          threadsData.find((t) =>
+            projectsData.some((p) => p.business_id === t.other_user_id && p.status === "INVITED")
+          ) ??
+          threadsData[0] ??
+          null;
         setSelectedThreadId(preferred?.id ?? null);
       })
       .catch((err) => {
@@ -412,42 +463,55 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
     };
   }, [initialProjectId]);
 
-  // A brand-new invite from a live socket event — silent refetch, no local
-  // toast (WorkerDashboard.jsx already shows one globally for this event;
-  // duplicating it here would double up since both are mounted together).
+  // A brand-new invite, an accepted candidacy, or just a new message — any
+  // of these can change what the thread list should show (a new row, a
+  // reordered preview). No local toast here — WorkerDashboard.jsx already
+  // shows one globally for PROJECT_CREATED; duplicating it would double up
+  // since both are mounted together.
   useEffect(() => {
     const socket = getSocket();
     if (!socket) return undefined;
 
     const handleProjectEvent = (event) => {
-      if (event.type !== "PROJECT_CREATED") return;
-      listProjects({ role: "worker" })
-        .then((data) => setProjects(data.filter(isActiveThread)))
-        .catch(() => {});
+      if (event.type === "MESSAGE_CREATED") {
+        listThreads().then(setThreads).catch(() => {});
+      } else if (event.type === "PROJECT_CREATED" || event.type === "CANDIDATE_ACCEPTED") {
+        Promise.all([listThreads(), listProjects({ role: "worker" })])
+          .then(([t, p]) => {
+            setThreads(t);
+            setProjects(p);
+          })
+          .catch(() => {});
+      }
     };
 
     socket.on("project:event", handleProjectEvent);
     return () => socket.off("project:event", handleProjectEvent);
   }, []);
 
-  const selectedProject = useMemo(
-    () => projects.find((project) => project.id === selectedThreadId) ?? null,
-    [projects, selectedThreadId]
+  // One counterparty (a business) can be behind several projects — grouped
+  // client-side from the same real project list Active Workspace/Wallet
+  // already use, keyed by business_id, so each thread row's chips and the
+  // ChatThread attachment picker always reflect real project data with no
+  // second source of truth.
+  const projectsByCounterparty = useMemo(() => {
+    const map = new Map();
+    for (const project of projects) {
+      if (!isActiveThread(project)) continue;
+      if (!map.has(project.business_id)) map.set(project.business_id, []);
+      map.get(project.business_id).push(project);
+    }
+    return map;
+  }, [projects]);
+
+  const selectedThread = useMemo(
+    () => threads.find((thread) => thread.id === selectedThreadId) ?? null,
+    [threads, selectedThreadId]
   );
+  const selectedGroup = selectedThread ? projectsByCounterparty.get(selectedThread.other_user_id) ?? [] : [];
 
   const patchProject = (updated) => {
     setProjects((current) => current.map((project) => (project.id === updated.id ? { ...project, ...updated } : project)));
-  };
-
-  // This list is already pre-filtered to "active" statuses (see the fetch
-  // effect above), so a project that moves to CANCELLED doesn't belong in
-  // it anymore — patching its status in place would leave a stale CANCELLED
-  // card sitting in Negotiations until the next full reload. Removing it
-  // here is what actually makes it "fade" immediately.
-  const removeProject = (id) => {
-    const remaining = projects.filter((project) => project.id !== id);
-    setProjects(remaining);
-    setSelectedThreadId((current) => (current === id ? remaining[0]?.id ?? null : current));
   };
 
   const openDetails = (project) => {
@@ -470,8 +534,6 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
         const updated = await updateProjectStatus(selectedJobDetails.id, "ACCEPTED");
         patchProject(updated);
       }
-      // Bring the just-accepted thread into focus in the chat pane too.
-      setSelectedThreadId(selectedJobDetails.id);
       closeDetails();
       setToast("Terms locked. Project moved into your workspace.");
       window.setTimeout(() => setToast(""), 2600);
@@ -482,19 +544,17 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
     }
   };
 
-  // Previously purely cosmetic — closed the modal and showed a toast, but
-  // never touched the project's real status, so a "declined" invitation
-  // stayed sitting in INVITED forever and never actually disappeared on
-  // reload. Now a real CANCELLED transition (already an allowed FSM move
-  // from INVITED for either participant — see backend's canTransition).
+  // A real CANCELLED transition (an allowed FSM move from INVITED for
+  // either participant — see backend's canTransition), patched in place
+  // rather than removed from the list — a declined invite becomes history,
+  // same as any other closed project, not something that just vanishes.
   const handleDecline = async () => {
     if (!selectedJobDetails) return;
-    const declinedId = selectedJobDetails.id;
     setActionBusy(true);
     setActionError("");
     try {
-      await updateProjectStatus(declinedId, "CANCELLED");
-      removeProject(declinedId);
+      const updated = await updateProjectStatus(selectedJobDetails.id, "CANCELLED");
+      patchProject(updated);
       closeDetails();
       setToast("Invitation declined.");
       window.setTimeout(() => setToast(""), 2200);
@@ -524,7 +584,7 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
     );
   }
 
-  if (!selectedProject) {
+  if (!selectedThread) {
     return (
       <div className="flex h-full items-center justify-center bg-slate-50 p-7">
         <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
@@ -540,14 +600,14 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
     <div className="relative flex h-full min-h-0 overflow-hidden bg-white" style={{ fontFamily: "'DM Sans', sans-serif" }}>
       <aside className="flex h-full min-h-0 w-[360px] flex-shrink-0 flex-col border-r border-slate-200 bg-white">
         <ThreadNavigator
-          threads={projects}
+          threads={threads}
+          groupsByCounterparty={projectsByCounterparty}
           selectedThreadId={selectedThreadId}
           onSelect={setSelectedThreadId}
-          onViewDetails={openDetails}
         />
       </aside>
 
-      <ChatPanel project={selectedProject} />
+      <ChatPanel thread={selectedThread} projects={selectedGroup} onViewDetails={openDetails} />
 
       <JobDetailsModal
         project={selectedJobDetails}
