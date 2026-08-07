@@ -192,6 +192,16 @@ function NoThreadSelected({ hasThreads, onFindTalent }) {
   );
 }
 
+// A horizontal strip like the project-chip row only scrolls via a mouse
+// wheel if the cursor happens to be exactly over its own scrollbar thumb —
+// a plain vertical wheel does nothing over the cards themselves. This
+// redirects that vertical scroll into horizontal movement so hovering
+// anywhere on the strip scrolls it, the same as any real card carousel.
+function handleHorizontalWheelScroll(event) {
+  if (event.deltaY === 0) return;
+  event.currentTarget.scrollLeft += event.deltaY;
+}
+
 // One project chip per real project with this worker — active ones full
 // contrast, closed ones muted but still clickable. Replaced the old header's
 // single project's budget/deadline/escrow strip, which no longer makes
@@ -278,7 +288,7 @@ function HubHeader({ thread, projects, onViewContractTerms }) {
       )}
 
       {projects.length > 0 && (
-        <div className="wb-scroll-thin flex gap-2 overflow-x-auto px-6 pb-4">
+        <div className="wb-scroll-clean flex gap-2 overflow-x-auto px-6 pb-4" onWheel={handleHorizontalWheelScroll}>
           {projects.map((project) => (
             <ProjectChip key={project.id} project={project} onClick={onViewContractTerms} />
           ))}

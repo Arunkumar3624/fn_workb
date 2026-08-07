@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   AlertCircle,
@@ -33,6 +33,7 @@ import { applyToProject, listMyCandidates, respondToCandidate } from "../../lib/
 import { ApiError } from "../../lib/apiClient";
 import { getSocket } from "../../lib/socketClient";
 import ApplicationQuizModal from "./ApplicationQuizModal";
+import JobFilters from "./JobFilters";
 
 function formatINR(amount) {
   return `₹${Number(amount || 0).toLocaleString("en-IN")}`;
@@ -259,6 +260,9 @@ export default function WorkerJobFeed() {
   // to needs its own state here).
   const [pendingMessage, setPendingMessage] = useState("");
   const [quizJob, setQuizJob] = useState(null);
+  const [selectedSkills, setSelectedSkills] = useState([]);
+  const [budgetRange, setBudgetRange] = useState({ min: "", max: "" });
+  const [urgentOnly, setUrgentOnly] = useState(false);
 
   const loadJobs = () => {
     listOpenProjects()
@@ -296,10 +300,42 @@ export default function WorkerJobFeed() {
   const pendingInvites = myCandidates.filter((c) => c.source === "INVITE" && c.status === "PENDING");
   const appliedProjectIds = new Set(myCandidates.filter((c) => c.source === "APPLICATION").map((c) => c.project_id));
 
+  // Every real skill currently posted across open jobs, not a fixed guessed
+  // taxonomy — see JobFilters.jsx. Recomputed whenever the feed reloads, so
+  // a skill nobody's hiring for right now never shows as a dead filter.
+  const allSkills = useMemo(() => {
+    const skills = new Set();
+    for (const job of jobs) {
+      for (const skill of job.required_skills ?? []) skills.add(skill);
+    }
+    return Array.from(skills).sort((a, b) => a.localeCompare(b));
+  }, [jobs]);
+
+  const hasActiveFilters =
+    Boolean(query.trim()) || selectedSkills.length > 0 || urgentOnly || budgetRange.min !== "" || budgetRange.max !== "";
+
+  const toggleSkill = (skill) => {
+    setSelectedSkills((current) => (current.includes(skill) ? current.filter((s) => s !== skill) : [...current, skill]));
+  };
+
+  const clearFilters = () => {
+    setQuery("");
+    setSelectedSkills([]);
+    setBudgetRange({ min: "", max: "" });
+    setUrgentOnly(false);
+  };
+
   const filteredJobs = jobs.filter((job) => {
-    if (!query.trim()) return true;
-    const searchable = `${job.title} ${job.description ?? ""} ${job.business_name}`.toLowerCase();
-    return searchable.includes(query.trim().toLowerCase());
+    if (query.trim()) {
+      const searchable = `${job.title} ${job.description ?? ""} ${job.business_name}`.toLowerCase();
+      if (!searchable.includes(query.trim().toLowerCase())) return false;
+    }
+    if (urgentOnly && !job.is_urgent) return false;
+    const budget = Number(job.budget);
+    if (budgetRange.min !== "" && budget < Number(budgetRange.min)) return false;
+    if (budgetRange.max !== "" && budget > Number(budgetRange.max)) return false;
+    if (selectedSkills.length > 0 && !selectedSkills.some((skill) => job.required_skills?.includes(skill))) return false;
+    return true;
   });
 
   // JobDetailModal's "Apply Now" no longer applies directly — it opens the
@@ -350,7 +386,7 @@ export default function WorkerJobFeed() {
 
   return (
     <div className="relative h-full min-h-screen overflow-y-auto bg-gradient-to-br from-[#dbe4ff] via-[#eef1ff] to-[#ffe4d2] pb-20 text-slate-900">
-      <section className="relative mx-auto max-w-6xl px-6 py-8">
+      <section className="relative mx-auto max-w-7xl px-6 py-8">
         <div className="mb-8 rounded-2xl border border-white/70 bg-white/60 backdrop-blur-xl p-6 shadow-lg shadow-slate-200/40">
           <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">WorkBridge Job Feed</p>
           <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-900">Open jobs, live right now</h1>
@@ -384,6 +420,22 @@ export default function WorkerJobFeed() {
           </div>
         )}
 
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
+          <div className="lg:col-span-1">
+            <JobFilters
+              allSkills={allSkills}
+              selectedSkills={selectedSkills}
+              onToggleSkill={toggleSkill}
+              budgetRange={budgetRange}
+              onBudgetChange={setBudgetRange}
+              urgentOnly={urgentOnly}
+              onToggleUrgent={() => setUrgentOnly((value) => !value)}
+              onClear={clearFilters}
+              hasActiveFilters={hasActiveFilters}
+            />
+          </div>
+
+          <div className="lg:col-span-3">
         {loading ? (
           <div className="flex justify-center py-16">
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[#1B3FAB]" />
@@ -396,11 +448,26 @@ export default function WorkerJobFeed() {
         ) : filteredJobs.length === 0 ? (
           <div className="rounded-2xl border border-white/70 bg-white/60 backdrop-blur-xl p-10 text-center shadow-lg shadow-slate-200/40">
             <Briefcase className="mx-auto h-10 w-10 text-slate-300" />
-            <h2 className="mt-4 text-lg font-bold text-slate-900">No open jobs right now</h2>
-            <p className="mt-1 text-sm text-slate-500">New posts show up here as businesses hire — check back soon.</p>
+            <h2 className="mt-4 text-lg font-bold text-slate-900">
+              {hasActiveFilters ? "No jobs match your filters" : "No open jobs right now"}
+            </h2>
+            <p className="mt-1 text-sm text-slate-500">
+              {hasActiveFilters
+                ? "Try widening your budget range or clearing a skill filter."
+                : "New posts show up here as businesses hire — check back soon."}
+            </p>
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="mt-4 inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
+              >
+                Clear Filters
+              </button>
+            )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
             {filteredJobs.map((job) => {
               const alreadyApplied = appliedProjectIds.has(job.id);
 
@@ -547,6 +614,8 @@ export default function WorkerJobFeed() {
             })}
           </div>
         )}
+          </div>
+        </div>
       </section>
 
       <JobDetailModal

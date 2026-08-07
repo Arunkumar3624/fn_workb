@@ -366,6 +366,16 @@ function JobDetailsModal({ project, onClose, onDecline, onAccept, actionBusy, ac
   );
 }
 
+// A horizontal strip like the project-chip row only scrolls via a mouse
+// wheel if the cursor happens to be exactly over its own scrollbar thumb —
+// a plain vertical wheel does nothing over the cards themselves. This
+// redirects that vertical scroll into horizontal movement so hovering
+// anywhere on the strip scrolls it, the same as any real card carousel.
+function handleHorizontalWheelScroll(event) {
+  if (event.deltaY === 0) return;
+  event.currentTarget.scrollLeft += event.deltaY;
+}
+
 // One small pill per project under this counterparty — active ones full
 // contrast, closed ones muted but still clickable (the merged view keeps
 // the whole relationship's history visible, nothing just vanishes).
@@ -456,7 +466,7 @@ function ChatPanel({ thread, projects, onViewDetails }) {
         )}
 
         {projects.length > 0 && (
-          <div className="wb-scroll-thin flex gap-2 overflow-x-auto px-6 pb-4">
+          <div className="wb-scroll-clean flex gap-2 overflow-x-auto px-6 pb-4" onWheel={handleHorizontalWheelScroll}>
             {activeProjects.map((project) => (
               <ProjectChip key={project.id} project={project} onClick={onViewDetails} />
             ))}
