@@ -15,6 +15,7 @@ import { useAuth } from "../context/AuthContext";
 import { getTierData } from "../utils/gamification";
 import { getInitials } from "../utils/formValidation";
 import EconomyInfoTooltip from "../components/shared/EconomyInfoTooltip";
+import NotificationBell from "../components/shared/NotificationBell";
 
 export default function BusinessDashboard({ onLogout, onVerify, isVerified = false }) {
   const { currentUser } = useAuth();
@@ -103,15 +104,20 @@ export default function BusinessDashboard({ onLogout, onVerify, isVerified = fal
 
           <div className="flex items-center gap-3">
             <div className="hidden items-center gap-3 rounded-2xl border border-white/20 bg-[#0F172A]/90 px-4 py-2 shadow-sm backdrop-blur-md sm:flex">
-              <span className="flex items-center gap-1.5 text-sm font-bold text-white">
+              <button
+                type="button"
+                onClick={() => setTab("perks")}
+                title="Go to the Perks Shop"
+                className="flex items-center gap-1.5 text-sm font-bold text-white transition-colors hover:text-amber-300"
+              >
                 <Coins className="h-4 w-4 text-amber-400" />
                 {currentUser?.bridge_tokens ?? 0}
                 <span className="hidden font-normal text-slate-300 md:inline">Credits</span>
-                <EconomyInfoTooltip title="How Corporate Credits work">
-                  <p>Corporate Credits are your spendable balance — use them in the Perks Shop on hiring visibility boosts.</p>
-                  <p className="mt-2">You earn <strong>+15 Credits</strong> automatically every time a project you posted completes with no dispute. Your Enterprise Tier below is separate — based on your total real spend, not Credits.</p>
-                </EconomyInfoTooltip>
-              </span>
+              </button>
+              <EconomyInfoTooltip title="How Corporate Credits work">
+                <p>Corporate Credits are your spendable balance — use them in the Perks Shop on hiring visibility boosts.</p>
+                <p className="mt-2">You earn <strong>+15 Credits</strong> automatically every time a project you posted completes with no dispute. Your Enterprise Tier below is separate — based on your total real spend, not Credits.</p>
+              </EconomyInfoTooltip>
               <span className="h-4 w-px bg-white/20" />
               <span className="flex items-center gap-1.5 text-sm font-bold text-white">
                 <Building2 className="h-4 w-4 text-[#FF6B35]" />
@@ -119,6 +125,7 @@ export default function BusinessDashboard({ onLogout, onVerify, isVerified = fal
                 <span className="hidden font-normal text-slate-300 md:inline">Tier</span>
               </span>
             </div>
+            <NotificationBell />
             <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
               <div
                 className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl text-sm font-semibold text-white ${

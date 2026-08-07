@@ -17,6 +17,7 @@ import { getMyCandidateStats } from "../lib/candidatesApi";
 import { getInitials } from "../utils/formValidation";
 import { getSocket } from "../lib/socketClient";
 import EconomyInfoTooltip from "../components/shared/EconomyInfoTooltip";
+import NotificationBell from "../components/shared/NotificationBell";
 
 export default function WorkerDashboard({ onLogout }) {
   const navigate = useNavigate();
@@ -120,16 +121,22 @@ export default function WorkerDashboard({ onLogout }) {
                   <span className="hidden font-normal text-slate-300 md:inline">Day Streak</span>
                 </span>
                 <span className="h-4 w-px bg-white/20" />
-                <span className="flex items-center gap-1.5 text-sm font-bold text-white">
+                <button
+                  type="button"
+                  onClick={() => navigate("/worker/economy?tab=shop")}
+                  title="Go to the Token Shop"
+                  className="flex items-center gap-1.5 text-sm font-bold text-white transition-colors hover:text-amber-300"
+                >
                   <Coins className="h-4 w-4 text-amber-400" />
                   {currentUser?.bridge_tokens ?? 0}
                   <span className="hidden font-normal text-slate-300 md:inline">Tokens</span>
-                  <EconomyInfoTooltip title="How Tokens work">
-                    <p>Bridge Tokens are your spendable balance — use them in the Token Shop on visibility perks.</p>
-                    <p className="mt-2">You earn <strong>+25 Tokens</strong> automatically every time a project you complete gets approved and paid. Nothing else grants Tokens today.</p>
-                  </EconomyInfoTooltip>
-                </span>
+                </button>
+                <EconomyInfoTooltip title="How Tokens work">
+                  <p>Bridge Tokens are your spendable balance — use them in the Token Shop on visibility perks.</p>
+                  <p className="mt-2">You earn <strong>+25 Tokens</strong> automatically every time a project you complete gets approved and paid. Nothing else grants Tokens today.</p>
+                </EconomyInfoTooltip>
               </div>
+              <NotificationBell />
               <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
                 <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#0f172a] text-sm font-semibold text-white">
                   {getInitials(currentUser?.name)}

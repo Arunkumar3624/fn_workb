@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { Coins, Store, Trophy } from "lucide-react";
 import WorkerMilestones from "../components/worker/WorkerMilestones";
@@ -19,9 +20,16 @@ const TABS = [
   { id: "ledger", label: "Ledger History", icon: Coins },
 ];
 
+const TAB_IDS = new Set(TABS.map((t) => t.id));
+
 export default function EconomyHub() {
   useDocumentTitle("Economy Hub — WorkBridge");
-  const [activeTab, setActiveTab] = useState("milestones");
+  const [searchParams] = useSearchParams();
+  // Lets the dashboard header's Tokens HUD chip link straight to
+  // /worker/economy?tab=shop instead of always landing on the default
+  // "milestones" tab and making the worker click again.
+  const requestedTab = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState(TAB_IDS.has(requestedTab) ? requestedTab : "milestones");
   const [scrolled, setScrolled] = useState(false);
   const [scrollPct, setScrollPct] = useState(0);
   const rootRef = useRef(null);

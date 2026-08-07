@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   Edit3,
   ExternalLink,
+  FileText,
   Globe,
   Loader2,
   Mail,
@@ -522,74 +523,97 @@ function EditForm({ draft, onChange, onSave, onCancel, saving, saveError }) {
           </div>
         )}
 
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-5">
-          <Field label="Company Name">
-            <p className="mb-1.5 -mt-1 text-xs text-slate-400">
-              Shown to workers everywhere your job posts appear — separate from your own account name.
-            </p>
-            <input value={draft.name ?? ""} onChange={(e) => onChange("name", e.target.value)}
-              placeholder="e.g. RetailX Pvt Ltd"
-              className="w-full px-4 py-2.5 bg-[#F4F6FF] border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB]" />
-          </Field>
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8">
+          <EditFormSection icon={Building2} title="Company Identity">
+            <Field label="Company Name">
+              <p className="mb-1.5 -mt-1 text-xs text-slate-400">
+                Shown to workers everywhere your job posts appear — separate from your own account name.
+              </p>
+              <input value={draft.name ?? ""} onChange={(e) => onChange("name", e.target.value)}
+                placeholder="e.g. RetailX Pvt Ltd"
+                className="w-full px-4 py-2.5 bg-[#F4F6FF] border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB]" />
+            </Field>
 
-          <Field label="Header Image">
-            <div className="overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
-              <EditableCoverPhoto
-                coverUrl={draft.coverImage}
-                onUpload={(dataUrl) => onChange("coverImage", dataUrl)}
-                heightClass="h-[clamp(180px,22vh,260px)]"
-              />
+            <Field label="Tagline">
+              <input value={draft.tagline ?? ""} onChange={(e) => onChange("tagline", e.target.value)}
+                maxLength={100} placeholder="One-line description of your company"
+                className="w-full px-4 py-2.5 bg-[#F4F6FF] border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB]" />
+            </Field>
+
+            <Field label="Header Image">
+              <div className="overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
+                <EditableCoverPhoto
+                  coverUrl={draft.coverImage}
+                  onUpload={(dataUrl) => onChange("coverImage", dataUrl)}
+                  heightClass="h-[clamp(180px,22vh,260px)]"
+                />
+              </div>
+            </Field>
+          </EditFormSection>
+
+          <EditFormSection icon={FileText} title="About">
+            <Field label="Company Bio">
+              <textarea rows={4} value={draft.bio} onChange={(e) => onChange("bio", e.target.value)}
+                className="w-full px-4 py-3 bg-[#F4F6FF] border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB] resize-none" />
+            </Field>
+
+            <Field label="Culture & Work Style">
+              <textarea rows={3} value={draft.culture} onChange={(e) => onChange("culture", e.target.value)}
+                className="w-full px-4 py-3 bg-[#F4F6FF] border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB] resize-none" />
+            </Field>
+          </EditFormSection>
+
+          <EditFormSection icon={Users} title="Company Details">
+            <div className="grid grid-cols-2 gap-4">
+              {[
+                { key: "industry", label: "Industry"     },
+                { key: "location", label: "Location"     },
+                { key: "size",     label: "Team Size"    },
+                { key: "founded",  label: "Founded Year" },
+              ].map(({ key, label }) => (
+                <Field key={key} label={label}>
+                  <input value={draft[key] ?? ""} onChange={(e) => onChange(key, e.target.value)}
+                    className="w-full px-4 py-2.5 bg-[#F4F6FF] border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB]" />
+                </Field>
+              ))}
             </div>
-          </Field>
+          </EditFormSection>
 
-          <Field label="Company Bio">
-            <textarea rows={4} value={draft.bio} onChange={(e) => onChange("bio", e.target.value)}
-              className="w-full px-4 py-3 bg-[#F4F6FF] border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB] resize-none" />
-          </Field>
+          <EditFormSection icon={Mail} title="Contact" last>
+            <Field label={<>Official Website <span className="normal-case font-normal text-slate-400">(optional)</span></>}>
+              <div className="relative">
+                <Globe className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input value={draft.website ?? ""} onChange={(e) => onChange("website", e.target.value)}
+                  placeholder="https://yourcompany.com"
+                  className="w-full pl-10 pr-4 py-2.5 bg-[#F4F6FF] border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB]" />
+              </div>
+            </Field>
 
-          <Field label="Culture & Work Style">
-            <textarea rows={3} value={draft.culture} onChange={(e) => onChange("culture", e.target.value)}
-              className="w-full px-4 py-3 bg-[#F4F6FF] border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB] resize-none" />
-          </Field>
-
-          <div className="grid grid-cols-2 gap-4">
-            {[
-              { key: "industry", label: "Industry"     },
-              { key: "location", label: "Location"     },
-              { key: "size",     label: "Team Size"    },
-              { key: "founded",  label: "Founded Year" },
-            ].map(({ key, label }) => (
-              <Field key={key} label={label}>
-                <input value={draft[key] ?? ""} onChange={(e) => onChange(key, e.target.value)}
-                  className="w-full px-4 py-2.5 bg-[#F4F6FF] border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB]" />
-              </Field>
-            ))}
-          </div>
-
-          <Field label={<>Official Website <span className="normal-case font-normal text-slate-400">(optional)</span></>}>
-            <div className="relative">
-              <Globe className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input value={draft.website ?? ""} onChange={(e) => onChange("website", e.target.value)}
-                placeholder="https://yourcompany.com"
-                className="w-full pl-10 pr-4 py-2.5 bg-[#F4F6FF] border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB]" />
-            </div>
-          </Field>
-
-          <Field label="HR / Contact Email">
-            <div className="relative">
-              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input type="email" value={draft.email ?? ""} onChange={(e) => onChange("email", e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-[#F4F6FF] border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB]" />
-            </div>
-          </Field>
-
-          <Field label="Tagline">
-            <input value={draft.tagline ?? ""} onChange={(e) => onChange("tagline", e.target.value)}
-              maxLength={100} placeholder="One-line description of your company"
-              className="w-full px-4 py-2.5 bg-[#F4F6FF] border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB]" />
-          </Field>
+            <Field label="HR / Contact Email">
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input type="email" value={draft.email ?? ""} onChange={(e) => onChange("email", e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 bg-[#F4F6FF] border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB]" />
+              </div>
+            </Field>
+          </EditFormSection>
         </div>
       </div>
+    </div>
+  );
+}
+
+// Same "distinct block, not one long stack" shape as WorkerProfile.jsx's
+// EditSection — icon + real heading, divider between sections, generous
+// spacing between fields within a section.
+function EditFormSection({ icon: Icon, title, last = false, children }) {
+  return (
+    <div className={`${last ? "" : "mb-8 border-b border-slate-100 pb-8"}`}>
+      <h3 className="mb-4 flex items-center gap-2 text-sm font-bold text-slate-900">
+        <Icon className="h-4 w-4 text-[#1B3FAB]" />
+        {title}
+      </h3>
+      <div className="space-y-5">{children}</div>
     </div>
   );
 }

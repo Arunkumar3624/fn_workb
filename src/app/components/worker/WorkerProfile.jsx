@@ -2,16 +2,21 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
   AlertCircle,
+  Award,
+  Briefcase,
   Camera,
   ExternalLink,
+  GraduationCap,
   Loader2,
   MapPin,
   Pencil,
   Phone,
+  Plus,
   Save,
   ShieldCheck,
   Star,
   Trash2,
+  User,
   X,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
@@ -37,6 +42,39 @@ function ProfileCard({ children, className = "" }) {
       {children}
     </section>
   );
+}
+
+// One section shape for the whole Edit Profile modal — an icon + real
+// heading (not just another field label at the same visual weight as
+// "Title"/"Location"), a top divider so sections read as distinct blocks
+// instead of one long undifferentiated stack, and a proper pill "+Add"
+// button instead of a bare text link.
+function EditSection({ icon: Icon, title, onAdd, addLabel, last = false, children }) {
+  return (
+    <div className={`${last ? "" : "mb-8 border-b border-slate-100 pb-8"}`}>
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h3 className="flex items-center gap-2 text-sm font-bold text-slate-900">
+          <Icon className="h-4 w-4 text-[#1B3FAB]" />
+          {title}
+        </h3>
+        {onAdd && (
+          <button
+            type="button"
+            onClick={onAdd}
+            className="flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-200"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            {addLabel}
+          </button>
+        )}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function EmptySectionHint({ text }) {
+  return <p className="rounded-xl border border-dashed border-slate-200 px-4 py-3 text-xs text-slate-400">{text}</p>;
 }
 
 function ReviewCard({ review }) {
@@ -568,82 +606,83 @@ export default function WorkerProfile() {
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <div className="wb-scroll-clean min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-5">
+            <div className="wb-scroll-clean min-h-0 flex-1 overflow-y-auto px-6 py-6 sm:px-8">
               {saveError && (
-                <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+                <div className="mb-6 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
                   <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                   <span>{saveError}</span>
                 </div>
               )}
-              <label className="block">
-                <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Title</span>
-                <input
-                  value={draft.title}
-                  onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))}
-                  placeholder="e.g. Full-Stack Developer"
-                  className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
-                />
-              </label>
-              <label className="block">
-                <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Mobile Number</span>
-                <p className="mb-1 mt-1 text-xs text-slate-400">Kept up to date so the WorkBridge support team can reach you.</p>
-                <div className="flex gap-2">
-                  <span className="flex h-10 items-center rounded-xl border border-slate-200 bg-slate-100 px-3 text-sm font-semibold text-slate-600">+91</span>
-                  <input
-                    type="tel"
-                    inputMode="numeric"
-                    maxLength={10}
-                    value={draft.phone}
-                    onChange={(e) => setDraft((d) => ({ ...d, phone: e.target.value.replace(/\D/g, "") }))}
-                    placeholder="9876543210"
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
-                  />
+
+              <EditSection icon={User} title="Basic Info">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <label className="block">
+                    <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Title</span>
+                    <input
+                      value={draft.title}
+                      onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))}
+                      placeholder="e.g. Full-Stack Developer"
+                      className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Location</span>
+                    <input
+                      value={draft.location}
+                      onChange={(e) => setDraft((d) => ({ ...d, location: e.target.value }))}
+                      placeholder="e.g. Mumbai, India"
+                      className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
+                    />
+                  </label>
+                  <label className="block sm:col-span-2">
+                    <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Mobile Number</span>
+                    <p className="mb-1.5 mt-1 text-xs text-slate-400">Kept up to date so the WorkBridge support team can reach you.</p>
+                    <div className="flex gap-2">
+                      <span className="flex h-10 items-center rounded-xl border border-slate-200 bg-slate-100 px-3 text-sm font-semibold text-slate-600">+91</span>
+                      <input
+                        type="tel"
+                        inputMode="numeric"
+                        maxLength={10}
+                        value={draft.phone}
+                        onChange={(e) => setDraft((d) => ({ ...d, phone: e.target.value.replace(/\D/g, "") }))}
+                        placeholder="9876543210"
+                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
+                      />
+                    </div>
+                  </label>
+                  <label className="block">
+                    <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Hourly Rate (₹)</span>
+                    <input
+                      type="number"
+                      min="0"
+                      value={draft.hourlyRate}
+                      onChange={(e) => setDraft((d) => ({ ...d, hourlyRate: e.target.value }))}
+                      placeholder="850"
+                      className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Skills (comma separated)</span>
+                    <input
+                      value={draft.skillsText}
+                      onChange={(e) => setDraft((d) => ({ ...d, skillsText: e.target.value }))}
+                      placeholder="React, Node.js, PostgreSQL"
+                      className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
+                    />
+                  </label>
                 </div>
-              </label>
-              <label className="block">
-                <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Location</span>
-                <input
-                  value={draft.location}
-                  onChange={(e) => setDraft((d) => ({ ...d, location: e.target.value }))}
-                  placeholder="e.g. Mumbai, India"
-                  className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
-                />
-              </label>
-              <label className="block">
-                <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Hourly Rate (₹)</span>
-                <input
-                  type="number"
-                  min="0"
-                  value={draft.hourlyRate}
-                  onChange={(e) => setDraft((d) => ({ ...d, hourlyRate: e.target.value }))}
-                  placeholder="850"
-                  className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
-                />
-              </label>
-              <label className="block">
-                <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Skills (comma separated)</span>
-                <input
-                  value={draft.skillsText}
-                  onChange={(e) => setDraft((d) => ({ ...d, skillsText: e.target.value }))}
-                  placeholder="React, Node.js, PostgreSQL"
-                  className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
-                />
-              </label>
-              <div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Projects</span>
-                  <button
-                    type="button"
-                    onClick={() => addDraftListItem("projects", { title: "", link: "", description: "" })}
-                    className="text-xs font-bold text-[#1B3FAB] hover:underline"
-                  >
-                    + Add
-                  </button>
-                </div>
-                <div className="mt-2 space-y-2">
-                  {draft.projects.length === 0 && <p className="text-xs text-slate-400">No projects added yet.</p>}
+              </EditSection>
+
+              <EditSection
+                icon={Briefcase}
+                title="Portfolio Projects"
+                onAdd={() => addDraftListItem("projects", { title: "", link: "", description: "" })}
+                addLabel="Add project"
+              >
+                <div className="space-y-3">
+                  {draft.projects.length === 0 && <EmptySectionHint text="No projects added yet." />}
                   {draft.projects.map((entry, index) => (
-                    <div key={index} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                    <div key={index} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                       <div className="flex items-start gap-2">
                         <div className="grid min-w-0 flex-1 grid-cols-1 gap-2 md:grid-cols-2">
                           <input
@@ -678,23 +717,18 @@ export default function WorkerProfile() {
                     </div>
                   ))}
                 </div>
-              </div>
+              </EditSection>
 
-              <div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Education</span>
-                  <button
-                    type="button"
-                    onClick={() => addDraftListItem("education", { degree: "", school: "", year: "" })}
-                    className="text-xs font-bold text-[#1B3FAB] hover:underline"
-                  >
-                    + Add
-                  </button>
-                </div>
-                <div className="mt-2 space-y-2">
-                  {draft.education.length === 0 && <p className="text-xs text-slate-400">No education added yet.</p>}
+              <EditSection
+                icon={GraduationCap}
+                title="Education"
+                onAdd={() => addDraftListItem("education", { degree: "", school: "", year: "" })}
+                addLabel="Add education"
+              >
+                <div className="space-y-3">
+                  {draft.education.length === 0 && <EmptySectionHint text="No education added yet." />}
                   {draft.education.map((entry, index) => (
-                    <div key={index} className="flex items-start gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                    <div key={index} className="flex items-start gap-2 rounded-xl border border-slate-200 bg-slate-50 p-4">
                       <div className="grid min-w-0 flex-1 grid-cols-1 gap-2 md:grid-cols-[1fr_1fr_90px]">
                         <input
                           value={entry.degree}
@@ -726,23 +760,18 @@ export default function WorkerProfile() {
                     </div>
                   ))}
                 </div>
-              </div>
+              </EditSection>
 
-              <div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Courses &amp; Certifications</span>
-                  <button
-                    type="button"
-                    onClick={() => addDraftListItem("certifications", { name: "", issuer: "", year: "" })}
-                    className="text-xs font-bold text-[#1B3FAB] hover:underline"
-                  >
-                    + Add
-                  </button>
-                </div>
-                <div className="mt-2 space-y-2">
-                  {draft.certifications.length === 0 && <p className="text-xs text-slate-400">No certifications added yet.</p>}
+              <EditSection
+                icon={Award}
+                title="Courses & Certifications"
+                onAdd={() => addDraftListItem("certifications", { name: "", issuer: "", year: "" })}
+                addLabel="Add certification"
+              >
+                <div className="space-y-3">
+                  {draft.certifications.length === 0 && <EmptySectionHint text="No certifications added yet." />}
                   {draft.certifications.map((entry, index) => (
-                    <div key={index} className="flex items-start gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                    <div key={index} className="flex items-start gap-2 rounded-xl border border-slate-200 bg-slate-50 p-4">
                       <div className="grid min-w-0 flex-1 grid-cols-1 gap-2 md:grid-cols-[1fr_1fr_90px]">
                         <input
                           value={entry.name}
@@ -774,17 +803,16 @@ export default function WorkerProfile() {
                     </div>
                   ))}
                 </div>
-              </div>
+              </EditSection>
 
-              <label className="block">
-                <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">About Me</span>
+              <EditSection icon={Pencil} title="About Me" last>
                 <textarea
                   rows={4}
                   value={draft.bio}
                   onChange={(e) => setDraft((d) => ({ ...d, bio: e.target.value }))}
-                  className="mt-2 w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
+                  className="w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
                 />
-              </label>
+              </EditSection>
             </div>
             <div className="flex flex-shrink-0 justify-end gap-2 border-t border-slate-100 px-6 py-4">
               <button

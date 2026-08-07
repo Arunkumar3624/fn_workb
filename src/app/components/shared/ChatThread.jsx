@@ -27,7 +27,11 @@ const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 // source of truth (see messages.controller.js's sendMessage), so a message
 // that slips past this can never slip past the API.
 const EMAIL_PATTERN = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
-const PHONE_PATTERN = /(?:\d[\s.\-()]?){7,}\d/;
+// Kept identical to backend/src/utils/contactFilter.js's PHONE_PATTERN —
+// the separator class was broadened after "9/3/6/1/7/4/3/9/4/5" (slash
+// between every digit) got past the old space/dash/dot/parenthesis-only
+// version. Keep these two in sync if either changes.
+const PHONE_PATTERN = /(?:\d[\s.\-()/_|,:]?){7,}\d/;
 function looksLikeContactInfo(text) {
   return EMAIL_PATTERN.test(text) || PHONE_PATTERN.test(text);
 }
