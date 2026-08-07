@@ -56,11 +56,20 @@ const REGISTER_BENEFITS = {
 const OTP_LENGTH = 6;
 const AUTH_INPUT_CLASS = "h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-[#1B3FAB] focus:bg-white focus:ring-4 focus:ring-[#1B3FAB]/10";
 
+// Only set in real deployments that have created a Google OAuth client —
+// see .env.example. Every Google-Sign-In bit below is a no-op when this is
+// empty, same pattern Sentry/PostHog already use for optional integrations.
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+const GOOGLE_SCRIPT_SRC = "https://accounts.google.com/gsi/client";
+
 export default function AuthPage({ userType, onSuccess, onBack }) {
   const isAdmin = userType === "admin";
   const cfg = USER_CONFIG[userType] ?? USER_CONFIG.worker;
   const [authStep, setAuthStep] = useState("input");
   const [authMode, setAuthMode] = useState("signin");
+  const [googleScriptReady, setGoogleScriptReady] = useState(false);
+  const [googleSubmitting, setGoogleSubmitting] = useState(false);
+  const googleButtonRef = useRef(null);
   const [pendingCredentials, setPendingCredentials] = useState(null);
   const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(""));
   const [otpError, setOtpError] = useState("");
@@ -125,6 +134,71 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
     );
     return () => window.clearTimeout(timer);
   }, [resendCountdown]);
+
+  // Loads Google's own script once, only if a client ID is actually
+  // configured — an unconfigured deployment never touches google.com at
+  // all. A second AuthPage instance mounting later (e.g. switching from
+  // /auth/worker to /auth/business) reuses the same tag instead of
+  // injecting it twice.
+  useEffect(() => {
+    if (!GOOGLE_CLIENT_ID) return;
+    const existing = document.querySelector(`script[src="${GOOGLE_SCRIPT_SRC}"]`);
+    if (existing) {
+      if (window.google?.accounts?.id) setGoogleScriptReady(true);
+      else existing.addEventListener("load", () => setGoogleScriptReady(true), { once: true });
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = GOOGLE_SCRIPT_SRC;
+    script.async = true;
+    script.defer = true;
+    script.addEventListener("load", () => setGoogleScriptReady(true), { once: true });
+    document.head.appendChild(script);
+  }, []);
+
+  // The ID token Google Identity Services hands back after the user picks
+  // an account — verified server-side in POST /api/auth/google, never
+  // trusted here. `role: userType` only matters if this is a brand-new
+  // account; an existing user's real role always wins server-side.
+  const handleGoogleCredential = async (response) => {
+    setGoogleSubmitting(true);
+    setFormError("");
+    try {
+      const { token, user } = await apiFetch("/api/auth/google", {
+        method: "POST",
+        body: { credential: response.credential, role: userType },
+      });
+      authenticate(token, user);
+      onSuccess(user);
+    } catch (error) {
+      setFormError(error.message ?? "Could not sign in with Google. Please try again.");
+    } finally {
+      setGoogleSubmitting(false);
+    }
+  };
+
+  // Renders Google's own button into googleButtonRef once the script is
+  // ready — skipped entirely for admin (no Google sign-in for staff
+  // accounts) and while mid-OTP or on the forgot-password screen, where a
+  // second "log in another way" option doesn't make sense.
+  useEffect(() => {
+    if (!googleScriptReady || isAdmin || authStep !== "input" || authMode === "forgot") return;
+    if (!googleButtonRef.current || !window.google?.accounts?.id) return;
+
+    window.google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: handleGoogleCredential,
+    });
+    googleButtonRef.current.innerHTML = "";
+    window.google.accounts.id.renderButton(googleButtonRef.current, {
+      type: "standard",
+      theme: "outline",
+      size: "large",
+      shape: "pill",
+      width: 336,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [googleScriptReady, isAdmin, authStep, authMode, userType]);
 
   const changeMode = (mode) => {
     if (mode === authMode) return;
@@ -639,6 +713,24 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
                     <div className="mb-5 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
                       <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
                       <span>{formError}</span>
+                    </div>
+                  )}
+
+                  {/* Google's own button renders into this div once its
+                      script loads — empty and invisible when
+                      VITE_GOOGLE_CLIENT_ID isn't set, not a placeholder
+                      that looks live but does nothing. */}
+                  {!isAdmin && authMode !== "forgot" && GOOGLE_CLIENT_ID && (
+                    <div className="mb-5">
+                      <div className="flex min-h-11 items-center justify-center" ref={googleButtonRef} />
+                      {googleSubmitting && (
+                        <p className="mt-2 text-center text-xs font-semibold text-slate-500">Signing you in…</p>
+                      )}
+                      <div className="mt-5 flex items-center gap-3">
+                        <span className="h-px flex-1 bg-slate-200" />
+                        <span className="text-xs font-semibold text-slate-400">or continue with email</span>
+                        <span className="h-px flex-1 bg-slate-200" />
+                      </div>
                     </div>
                   )}
 
