@@ -980,6 +980,25 @@ body {
   display: none;            /* Chrome, Safari, modern Edge */
 }
 
+/* The opposite of wb-scroll-clean — a slim, visible scrollbar for strips
+   (e.g. the Negotiations project-chip row) where hiding the scrollbar
+   entirely left no hint that more content sits off-screen. */
+.wb-scroll-thin {
+  scrollbar-width: thin;             /* Firefox */
+  scrollbar-color: #cbd5e1 transparent;
+}
+.wb-scroll-thin::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+.wb-scroll-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.wb-scroll-thin::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 9999px;
+}
+
 /* Milestone progress bar animated fill */
 .wb-milestone-fill {
   transition: width 700ms cubic-bezier(0.4, 0, 0.2, 1);

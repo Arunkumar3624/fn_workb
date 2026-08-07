@@ -278,7 +278,7 @@ function HubHeader({ thread, projects, onViewContractTerms }) {
       )}
 
       {projects.length > 0 && (
-        <div className="wb-scroll-clean flex gap-2 overflow-x-auto px-6 pb-4">
+        <div className="wb-scroll-thin flex gap-2 overflow-x-auto px-6 pb-4">
           {projects.map((project) => (
             <ProjectChip key={project.id} project={project} onClick={onViewContractTerms} />
           ))}

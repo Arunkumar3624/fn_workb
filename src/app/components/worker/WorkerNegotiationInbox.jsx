@@ -408,7 +408,7 @@ function ChatPanel({ thread, projects, onViewDetails }) {
   const isCancelled = mostUrgent?.status === "CANCELLED";
 
   return (
-    <section className="flex h-full min-h-0 flex-1 flex-col bg-slate-50">
+    <section className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
       <header className="sticky top-0 z-10 flex-shrink-0 border-b border-slate-200 bg-white/95 backdrop-blur-xl">
         <div className="flex items-center justify-between gap-4 pr-6">
           <div className="min-w-0 flex-1 [&>div]:border-b-0 [&>div]:bg-transparent">
@@ -456,7 +456,7 @@ function ChatPanel({ thread, projects, onViewDetails }) {
         )}
 
         {projects.length > 0 && (
-          <div className="wb-scroll-clean flex gap-2 overflow-x-auto px-6 pb-4">
+          <div className="wb-scroll-thin flex gap-2 overflow-x-auto px-6 pb-4">
             {activeProjects.map((project) => (
               <ProjectChip key={project.id} project={project} onClick={onViewDetails} />
             ))}

@@ -40,7 +40,7 @@ export function HeroSection({ onSelect }) {
             </span>
             <span className="wb-pill">
               <Lock size={18} /> SECURE
-            </span>
+            </span> 
           </div>
 
           <h1>
