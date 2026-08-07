@@ -25,15 +25,42 @@ const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 // A soft client-side mirror of the backend's contactFilter.js — purely for
 // instant feedback before the round trip; the server is still the one
 // source of truth (see messages.controller.js's sendMessage), so a message
-// that slips past this can never slip past the API.
+// that slips past this can never slip past the API. Keep this logic
+// identical to contactFilter.js if either changes.
 const EMAIL_PATTERN = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
-// Kept identical to backend/src/utils/contactFilter.js's PHONE_PATTERN —
-// the separator class was broadened after "9/3/6/1/7/4/3/9/4/5" (slash
-// between every digit) got past the old space/dash/dot/parenthesis-only
-// version. Keep these two in sync if either changes.
-const PHONE_PATTERN = /(?:\d[\s.\-()/_|,:]?){7,}\d/;
+const SPELLED_EMAIL_PATTERN = /[a-zA-Z0-9._%-]+\s+at\s+[a-zA-Z0-9.-]+\s+dot\s+(com|in|org|net|co|io)\b/i;
+
+const DIGIT_WORDS = {
+  zero: "0", oh: "0", one: "1", two: "2", three: "3", four: "4",
+  five: "5", six: "6", seven: "7", eight: "8", nine: "9",
+};
+function spellOutDigitsToNumerals(text) {
+  return text.replace(/[A-Za-z]+/g, (word) => DIGIT_WORDS[word.toLowerCase()] ?? word);
+}
+
+const MAX_NOISE_GAP = 5;
+const MIN_DIGIT_RUN = 10;
+function hasEvasiveDigitRun(text) {
+  let runLength = 0;
+  let gap = "";
+  for (const ch of text) {
+    if (ch >= "0" && ch <= "9") {
+      const gapContinuesRun =
+        gap === "" || gap === " " || (gap.length <= MAX_NOISE_GAP && !/[\s,;]/.test(gap));
+      runLength = gapContinuesRun ? runLength + 1 : 1;
+      gap = "";
+      if (runLength >= MIN_DIGIT_RUN) return true;
+    } else {
+      gap += ch;
+    }
+  }
+  return false;
+}
+
 function looksLikeContactInfo(text) {
-  return EMAIL_PATTERN.test(text) || PHONE_PATTERN.test(text);
+  if (!text) return false;
+  if (EMAIL_PATTERN.test(text) || SPELLED_EMAIL_PATTERN.test(text)) return true;
+  return hasEvasiveDigitRun(spellOutDigitsToNumerals(text));
 }
 
 function isInternalLink(url) {
