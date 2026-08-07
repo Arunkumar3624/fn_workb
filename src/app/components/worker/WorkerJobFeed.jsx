@@ -34,6 +34,7 @@ import { ApiError } from "../../lib/apiClient";
 import { getSocket } from "../../lib/socketClient";
 import ApplicationQuizModal from "./ApplicationQuizModal";
 import JobFilters from "./JobFilters";
+import { EDUCATION_LABELS } from "../../utils/educationLevels";
 
 function formatINR(amount) {
   return `₹${Number(amount || 0).toLocaleString("en-IN")}`;
@@ -52,13 +53,14 @@ function timeAgo(dateString) {
 // is a real future timestamp set at posting time (see
 // projects.controller.js's resolveApplicationDeadline); this only formats
 // it, it doesn't invent one.
-const EDUCATION_LABELS = {
-  HIGH_SCHOOL: "High School",
-  DIPLOMA: "Diploma",
-  BACHELORS: "Bachelor's Degree",
-  MASTERS: "Master's Degree",
-  PHD: "PhD",
-};
+function formatApplicationWindow(applicationDeadline) {
+  if (!applicationDeadline) return null;
+  const ms = new Date(applicationDeadline).getTime() - Date.now();
+  if (ms <= 0) return "Closed";
+  const hours = Math.ceil(ms / (60 * 60 * 1000));
+  if (hours < 24) return `Closes in ${hours}h`;
+  return `Closes in ${Math.ceil(hours / 24)}d`;
+}
 
 // ANY (no requirement) and unset both render nothing — a qualifications
 // chip only ever shows a real requirement the business actually set.
@@ -73,15 +75,6 @@ function formatExperience(job) {
 
 function formatEducation(job) {
   return EDUCATION_LABELS[job.education_level] ?? null;
-}
-
-function formatApplicationWindow(applicationDeadline) {
-  if (!applicationDeadline) return null;
-  const ms = new Date(applicationDeadline).getTime() - Date.now();
-  if (ms <= 0) return "Closed";
-  const hours = Math.ceil(ms / (60 * 60 * 1000));
-  if (hours < 24) return `Closes in ${hours}h`;
-  return `Closes in ${Math.ceil(hours / 24)}d`;
 }
 
 // The real apply flow — a proposal note + submit, straight to
@@ -263,6 +256,11 @@ export default function WorkerJobFeed() {
   const [selectedSkills, setSelectedSkills] = useState([]);
   const [budgetRange, setBudgetRange] = useState({ min: "", max: "" });
   const [urgentOnly, setUrgentOnly] = useState(false);
+  const [selectedEducationLevels, setSelectedEducationLevels] = useState([]);
+  // The worker's OWN years of experience, not a job-side range — a single
+  // number answers "which jobs am I actually eligible for" directly,
+  // checked against each job's real min/max_experience_years below.
+  const [yourExperience, setYourExperience] = useState("");
 
   const loadJobs = () => {
     listOpenProjects()
@@ -312,10 +310,22 @@ export default function WorkerJobFeed() {
   }, [jobs]);
 
   const hasActiveFilters =
-    Boolean(query.trim()) || selectedSkills.length > 0 || urgentOnly || budgetRange.min !== "" || budgetRange.max !== "";
+    Boolean(query.trim()) ||
+    selectedSkills.length > 0 ||
+    urgentOnly ||
+    budgetRange.min !== "" ||
+    budgetRange.max !== "" ||
+    selectedEducationLevels.length > 0 ||
+    yourExperience !== "";
 
   const toggleSkill = (skill) => {
     setSelectedSkills((current) => (current.includes(skill) ? current.filter((s) => s !== skill) : [...current, skill]));
+  };
+
+  const toggleEducationLevel = (level) => {
+    setSelectedEducationLevels((current) =>
+      current.includes(level) ? current.filter((l) => l !== level) : [...current, level]
+    );
   };
 
   const clearFilters = () => {
@@ -323,6 +333,8 @@ export default function WorkerJobFeed() {
     setSelectedSkills([]);
     setBudgetRange({ min: "", max: "" });
     setUrgentOnly(false);
+    setSelectedEducationLevels([]);
+    setYourExperience("");
   };
 
   const filteredJobs = jobs.filter((job) => {
@@ -335,6 +347,20 @@ export default function WorkerJobFeed() {
     if (budgetRange.min !== "" && budget < Number(budgetRange.min)) return false;
     if (budgetRange.max !== "" && budget > Number(budgetRange.max)) return false;
     if (selectedSkills.length > 0 && !selectedSkills.some((skill) => job.required_skills?.includes(skill))) return false;
+    // ANY means the business set no real requirement, so it always
+    // qualifies regardless of which levels are checked.
+    if (
+      selectedEducationLevels.length > 0 &&
+      job.education_level !== "ANY" &&
+      !selectedEducationLevels.includes(job.education_level)
+    ) {
+      return false;
+    }
+    if (yourExperience !== "") {
+      const years = Number(yourExperience);
+      if (job.min_experience_years != null && years < job.min_experience_years) return false;
+      if (job.max_experience_years != null && years > job.max_experience_years) return false;
+    }
     return true;
   });
 
@@ -420,7 +446,7 @@ export default function WorkerJobFeed() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[280px_1fr]">
+        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[280px_1fr]">
           <JobFilters
             allSkills={allSkills}
             selectedSkills={selectedSkills}
@@ -429,6 +455,10 @@ export default function WorkerJobFeed() {
             onBudgetChange={setBudgetRange}
             urgentOnly={urgentOnly}
             onToggleUrgent={() => setUrgentOnly((value) => !value)}
+            selectedEducationLevels={selectedEducationLevels}
+            onToggleEducationLevel={toggleEducationLevel}
+            yourExperience={yourExperience}
+            onExperienceChange={setYourExperience}
             onClear={clearFilters}
             hasActiveFilters={hasActiveFilters}
           />
@@ -465,7 +495,12 @@ export default function WorkerJobFeed() {
                 )}
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 2xl:grid-cols-3">
+              // auto-fit (not auto-fill) so a sparse feed doesn't leave a
+              // card squeezed into one skinny track next to empty phantom
+              // ones — with few jobs, existing cards claim their real
+              // 320-400px width and leave the leftover space trailing after
+              // them instead of splitting it into unused equal-width tracks.
+              <div className="grid gap-6 [grid-template-columns:repeat(auto-fit,minmax(320px,400px))]">
                 {filteredJobs.map((job) => {
               const alreadyApplied = appliedProjectIds.has(job.id);
 
