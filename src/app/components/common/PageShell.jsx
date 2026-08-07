@@ -48,7 +48,7 @@ function RoleModal({ onSelect, onClose }) {
             </div>
             <div>
               <div className="font-bold text-[#0A1128] text-sm">Freelancer</div>
-              <div className="text-slate-400 text-xs">Find Freelance Work · Get Paid Instantly</div>
+              <div className="text-slate-400 text-xs">Find Freelance Work · Escrow-Protected Payouts</div>
             </div>
             <ArrowRight className="w-4 h-4 text-slate-300 ml-auto group-hover:text-[#FF6B2C] transition-colors" />
           </button>
@@ -115,20 +115,52 @@ export function PageShell({ children, onSelect }) {
 
       <main>{children}</main>
 
-      <footer className="wb-footer">
-        <button
-          type="button"
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="wb-brand wb-brand--muted"
-        >
-          <span className="wb-brand-mark wb-brand-mark--small">
-            <img src={logoSrc} alt="" />
-          </span>
-          <span>WorkBridge Technologies Pvt. Ltd.</span>
-        </button>
-        <Link to="/privacy">Privacy</Link>
-        <Link to="/terms">Terms</Link>
-        <span>Help</span>
+      <footer className="bg-[#0A1128] text-slate-400">
+        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+          <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="lg:col-span-2">
+              <button
+                type="button"
+                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                className="flex items-center gap-2.5"
+              >
+                <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg">
+                  <img src={logoSrc} alt="" className="h-full w-full object-contain" />
+                </span>
+                <span className="text-lg font-extrabold text-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                  WorkBridge
+                </span>
+              </button>
+              <p className="mt-4 max-w-sm text-sm leading-relaxed text-slate-400">
+                A real two-sided marketplace connecting freelancers with businesses — open jobs, escrow-protected
+                payments, and a trust system built from actual work, not star ratings alone.
+              </p>
+            </div>
+
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Platform</p>
+              <ul className="mt-4 space-y-3 text-sm">
+                <li><Link to="/find-work" className="transition-colors hover:text-white">Find Work</Link></li>
+                <li><Link to="/hire-talent" className="transition-colors hover:text-white">Hire Talent</Link></li>
+                <li><Link to="/enterprise" className="transition-colors hover:text-white">Enterprise</Link></li>
+                <li><Link to="/jobs" className="transition-colors hover:text-white">Browse Open Jobs</Link></li>
+              </ul>
+            </div>
+
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Legal</p>
+              <ul className="mt-4 space-y-3 text-sm">
+                <li><Link to="/privacy" className="transition-colors hover:text-white">Privacy Policy</Link></li>
+                <li><Link to="/terms" className="transition-colors hover:text-white">Terms &amp; Conditions</Link></li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-8 text-xs text-slate-500 sm:flex-row">
+            <p>© {new Date().getFullYear()} WorkBridge Technologies Pvt. Ltd. All rights reserved.</p>
+            <p>Need help? Sign in and open Support — it's a real, staff-monitored conversation.</p>
+          </div>
+        </div>
       </footer>
     </div>
   );

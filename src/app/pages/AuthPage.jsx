@@ -8,6 +8,7 @@ import {
   Award,
   Briefcase,
   Building2,
+  Check,
   ChevronRight,
   Eye,
   EyeOff,
@@ -34,6 +35,23 @@ const BRAND_FEATURES = [
   { Icon: Shield, text: "Verified freelancers with trust scores you can actually check" },
   { Icon: Award, text: "Real badges and recognition for the work you deliver" },
 ];
+
+// Signup-only checklist — shown instead of BRAND_FEATURES while creating an
+// account, same "here's what you get" pattern as a job board's registration
+// page. Grounded in what actually exists today (real job feed, real escrow,
+// real badges) — no invented perks.
+const REGISTER_BENEFITS = {
+  worker: [
+    "Build a real profile businesses can find and hire you from",
+    "Apply to open jobs the moment they're posted",
+    "Get paid through escrow once your work is approved",
+  ],
+  business: [
+    "Post real jobs and browse verified freelancer profiles",
+    "Fund projects through escrow — pay only when you approve the work",
+    "Track every project from application to payout in one place",
+  ],
+};
 
 const OTP_LENGTH = 6;
 const AUTH_INPUT_CLASS = "h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-[#1B3FAB] focus:bg-white focus:ring-4 focus:ring-[#1B3FAB]/10";
@@ -400,16 +418,32 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
             {userType === "admin" && "Manage verifications, resolve disputes, and keep the platform running safely."}
           </p>
 
-          <div className="space-y-4">
-            {BRAND_FEATURES.map(({ Icon, text }) => (
-              <div key={text} className="flex items-center gap-3">
-                <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-white/[0.08]">
-                  <Icon className="h-3.5 w-3.5 text-[#FF6B2C]" />
-                </div>
-                <span className="text-sm text-slate-300">{text}</span>
+          {!isAdmin && authMode === "signup" ? (
+            <div>
+              <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-slate-500">On signing up, you can</p>
+              <div className="space-y-3">
+                {REGISTER_BENEFITS[userType].map((text) => (
+                  <div key={text} className="flex items-start gap-3">
+                    <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500/15">
+                      <Check className="h-3 w-3 text-emerald-400" />
+                    </div>
+                    <span className="text-sm text-slate-300">{text}</span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {BRAND_FEATURES.map(({ Icon, text }) => (
+                <div key={text} className="flex items-center gap-3">
+                  <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-white/[0.08]">
+                    <Icon className="h-3.5 w-3.5 text-[#FF6B2C]" />
+                  </div>
+                  <span className="text-sm text-slate-300">{text}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 animate-pulse rounded-full bg-[#FF6B2C]/[0.05]" />
