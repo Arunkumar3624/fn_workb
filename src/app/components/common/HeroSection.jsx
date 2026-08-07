@@ -44,7 +44,7 @@ export function HeroSection({ onSelect }) {
           </div>
 
           <h1>
-            Talent<span>Meets</span> &amp; <span>Opportunity.</span>
+            Talent<span>Meets</span> <span>Opportunity.</span>
           </h1>
           <p>Hire verified talent in minutes. Pay only after the work is completed.</p>
 

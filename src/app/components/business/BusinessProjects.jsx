@@ -1064,6 +1064,17 @@ export default function BusinessProjects({ onOpenChat }) {
           break;
         case "COMPLETED":
           setProjects((prev) => prev.map((p) => (p.id === event.projectId ? { ...p, status: "COMPLETED" } : p)));
+          // The actual COMPLETED transition (and the real Corporate Credits
+          // + XP it awards — completeProject in projects.controller.js) only
+          // runs once WorkBridge staff process the release, asynchronously
+          // after this business's own "Approve & Release" click — so this
+          // socket event, not that earlier click, is the only place this
+          // business ever finds out it happened. Previously silent.
+          if (event.businessTokenDelta > 0 || event.businessXpDelta > 0) {
+            toast.success(
+              `"${project.title}" is complete — +${event.businessTokenDelta} Corporate Credits, +${event.businessXpDelta} XP earned.`
+            );
+          }
           break;
         case "STATUS_CHANGED":
           setProjects((prev) => prev.map((p) => (p.id === event.projectId ? { ...p, status: event.status } : p)));

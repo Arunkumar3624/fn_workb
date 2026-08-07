@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import confetti from "canvas-confetti";
 import { motion } from "motion/react";
-import { ShieldCheck, Trophy, Wallet, X, Zap } from "lucide-react";
+import { Coins, ShieldCheck, Trophy, Wallet, X, Zap } from "lucide-react";
 
 // One celebration system, three tuned moments.
 // Layer 3 of the Z-Index Master Protocol: overlay sits at z-[70],
@@ -73,6 +73,7 @@ export default function CelebrationOverlay({
   title,
   message,
   amount,
+  rewards,
   primaryLabel = "Continue",
   onPrimary,
   onClose,
@@ -197,6 +198,24 @@ export default function CelebrationOverlay({
           >
             ₹{displayAmount.toLocaleString("en-IN")}
           </p>
+        )}
+
+        {/* The real, fixed XP/token amounts this completion actually
+            credited (see projects.controller.js's completeProject) —
+            previously earned silently with nothing on screen to show it. */}
+        {(rewards?.xp > 0 || rewards?.tokens > 0) && (
+          <div className="mt-4 flex items-center justify-center gap-2">
+            {rewards.xp > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-[#1B3FAB]/10 px-3 py-1 text-xs font-bold text-[#1B3FAB]">
+                <Zap className="h-3 w-3" /> +{rewards.xp} XP
+              </span>
+            )}
+            {rewards.tokens > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700">
+                <Coins className="h-3 w-3" /> +{rewards.tokens} Tokens
+              </span>
+            )}
+          </div>
         )}
 
         {message && (

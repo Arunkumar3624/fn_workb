@@ -132,8 +132,7 @@ export function PageShell({ children, onSelect }) {
                 </span>
               </button>
               <p className="mt-4 max-w-sm text-sm leading-relaxed text-slate-400">
-                A real two-sided marketplace connecting freelancers with businesses — open jobs, escrow-protected
-                payments, and a trust system built from actual work, not star ratings alone.
+                More than a freelance marketplace—WorkBridge helps businesses hire with confidence through open jobs, protected payments, and trust built from real project outcomes
               </p>
             </div>
 
@@ -143,7 +142,7 @@ export function PageShell({ children, onSelect }) {
                 <li><Link to="/find-work" className="transition-colors hover:text-white">Find Work</Link></li>
                 <li><Link to="/hire-talent" className="transition-colors hover:text-white">Hire Talent</Link></li>
                 <li><Link to="/enterprise" className="transition-colors hover:text-white">Enterprise</Link></li>
-                <li><Link to="/jobs" className="transition-colors hover:text-white">Browse Open Jobs</Link></li>
+                {/* <li><Link to="/jobs" className="transition-colors hover:text-white">Browse Open Jobs</Link></li> */}
               </ul>
             </div>
 

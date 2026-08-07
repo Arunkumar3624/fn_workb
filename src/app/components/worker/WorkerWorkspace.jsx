@@ -229,6 +229,7 @@ export default function WorkerWorkspace() {
             title: "Payment received",
             message: `${project.business_name} approved "${project.title}" — the funds are in your wallet.`,
             amount: event.earnings,
+            rewards: { xp: event.workerXpDelta, tokens: event.workerTokenDelta },
           });
           if (event.leveledUp) setPendingLevelUp(event.newLevel);
           break;
@@ -633,6 +634,7 @@ export default function WorkerWorkspace() {
           title={celebration.title}
           message={celebration.message}
           amount={celebration.amount}
+          rewards={celebration.rewards}
           primaryLabel="Keep Working"
           onPrimary={() => dismissCelebration()}
           onClose={() => dismissCelebration()}

@@ -14,6 +14,7 @@ import SettingsPage from "./SettingsPage";
 import { useAuth } from "../context/AuthContext";
 import { getTierData } from "../utils/gamification";
 import { getInitials } from "../utils/formValidation";
+import EconomyInfoTooltip from "../components/shared/EconomyInfoTooltip";
 
 export default function BusinessDashboard({ onLogout, onVerify, isVerified = false }) {
   const { currentUser } = useAuth();
@@ -106,6 +107,10 @@ export default function BusinessDashboard({ onLogout, onVerify, isVerified = fal
                 <Coins className="h-4 w-4 text-amber-400" />
                 {currentUser?.bridge_tokens ?? 0}
                 <span className="hidden font-normal text-slate-300 md:inline">Credits</span>
+                <EconomyInfoTooltip title="How Corporate Credits work">
+                  <p>Corporate Credits are your spendable balance — use them in the Perks Shop on hiring visibility boosts.</p>
+                  <p className="mt-2">You earn <strong>+15 Credits</strong> automatically every time a project you posted completes with no dispute. Your Enterprise Tier below is separate — based on your total real spend, not Credits.</p>
+                </EconomyInfoTooltip>
               </span>
               <span className="h-4 w-px bg-white/20" />
               <span className="flex items-center gap-1.5 text-sm font-bold text-white">

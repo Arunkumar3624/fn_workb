@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   Clock,
   Clock3,
+  Coins,
   Flame,
   GraduationCap,
   IndianRupee,
@@ -19,6 +20,14 @@ import {
   Users,
   X,
 } from "lucide-react";
+
+// The real, fixed reward every completed job pays out — see
+// projects.controller.js's completeProject (xpDelta: 50,
+// tokenDelta: COMPLETION_TOKEN_REWARD = 25). Flat per completion, not tied
+// to this job's budget, so it's safe to show the same number on every
+// card rather than computing/guessing a per-job figure.
+const COMPLETION_XP_REWARD = 50;
+const COMPLETION_TOKEN_REWARD = 25;
 import { listOpenProjects } from "../../lib/projectsApi";
 import { applyToProject, listMyCandidates, respondToCandidate } from "../../lib/candidatesApi";
 import { ApiError } from "../../lib/apiClient";
@@ -430,6 +439,13 @@ export default function WorkerJobFeed() {
                             Urgent
                           </span>
                         )}
+                        <span
+                          title={`Completing this job pays out +${COMPLETION_XP_REWARD} XP and +${COMPLETION_TOKEN_REWARD} Tokens, on top of the ₹${Number(job.budget).toLocaleString("en-IN")} budget`}
+                          className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-700"
+                        >
+                          <Coins className="h-3 w-3" />
+                          +{COMPLETION_TOKEN_REWARD} on completion
+                        </span>
                       </div>
                       <h2 className="mt-2 text-lg font-black leading-snug text-slate-900">{job.title}</h2>
                       <div className="mt-2 flex flex-wrap items-center gap-1.5">

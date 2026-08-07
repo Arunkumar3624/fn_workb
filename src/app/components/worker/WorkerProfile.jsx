@@ -20,6 +20,7 @@ import { listReviewsFor } from "../../lib/reviewsApi";
 import { getInitials } from "../../utils/formValidation";
 import { calculateLevel, calculateProgressBar, getNextTier, getTierData } from "../../utils/gamification";
 import PinnedBadgeOverlay from "../shared/PinnedBadgeOverlay";
+import EconomyInfoTooltip from "../shared/EconomyInfoTooltip";
 import { ApiError } from "../../lib/apiClient";
 import { getSocket } from "../../lib/socketClient";
 import EditableCoverPhoto from "../shared/EditableCoverPhoto";
@@ -78,7 +79,17 @@ function BehaviorLevelBento({ behaviorScore, verified }) {
     <section className="mt-6 rounded-lg bg-white p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
       <div className="flex items-end justify-between gap-4">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">Trust &amp; Behavior Level</p>
+          <p className="flex items-center gap-1 text-xs font-bold uppercase tracking-[0.18em] text-slate-400">
+            Trust &amp; Behavior Level
+            <EconomyInfoTooltip title="How Behavior Score works">
+              <p>Starts at 1000 and moves from your real conduct as a freelancer — not your skill or job outcomes.</p>
+              <ul className="mt-2 list-disc space-y-1 pl-4">
+                <li>+15 for answering the pre-application quiz honestly when you apply</li>
+                <li>-5 if you skip the quiz and apply directly instead</li>
+                <li>WorkBridge staff can deduct points for real policy violations (e.g. trying to move payment off-platform)</li>
+              </ul>
+            </EconomyInfoTooltip>
+          </p>
           <h2 className="mt-1 text-2xl font-black text-slate-900">{tier}</h2>
         </div>
         <p className="text-lg font-bold text-slate-900">{score} / 1000 Score</p>
