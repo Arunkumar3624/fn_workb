@@ -41,7 +41,7 @@ export default function BusinessSidebar({
     <aside className="flex h-screen w-[260px] flex-shrink-0 flex-col bg-[#0F172A]">
       <div className="border-b border-white/5 p-5">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FF6B35]">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#ffffff]">
             <img src={brandLogo} alt="" className="h-5 w-5 object-contain" />
           </div>
           <span
