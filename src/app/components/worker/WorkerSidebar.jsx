@@ -43,7 +43,7 @@ export default function WorkerSidebar({ tab, onTabChange, onLogout }) {
     <aside className="flex h-screen w-[260px] flex-shrink-0 flex-col border-r border-white/10 bg-[#0F172A] text-slate-100">
       <div className="border-b border-white/10 px-5 py-6">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#FF6B35] shadow-lg shadow-[#FF6B35]/25">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#ffffff] shadow-lg shadow-[#FF6B35]/25">
             <img src={brandLogo} alt="" className="h-6 w-6 object-contain" />
           </div>
           <div>
