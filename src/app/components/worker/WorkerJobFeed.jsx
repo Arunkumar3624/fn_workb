@@ -420,55 +420,53 @@ export default function WorkerJobFeed() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
-          <div className="lg:col-span-1">
-            <JobFilters
-              allSkills={allSkills}
-              selectedSkills={selectedSkills}
-              onToggleSkill={toggleSkill}
-              budgetRange={budgetRange}
-              onBudgetChange={setBudgetRange}
-              urgentOnly={urgentOnly}
-              onToggleUrgent={() => setUrgentOnly((value) => !value)}
-              onClear={clearFilters}
-              hasActiveFilters={hasActiveFilters}
-            />
-          </div>
+        <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[280px_1fr]">
+          <JobFilters
+            allSkills={allSkills}
+            selectedSkills={selectedSkills}
+            onToggleSkill={toggleSkill}
+            budgetRange={budgetRange}
+            onBudgetChange={setBudgetRange}
+            urgentOnly={urgentOnly}
+            onToggleUrgent={() => setUrgentOnly((value) => !value)}
+            onClear={clearFilters}
+            hasActiveFilters={hasActiveFilters}
+          />
 
-          <div className="lg:col-span-3">
-        {loading ? (
-          <div className="flex justify-center py-16">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[#1B3FAB]" />
-          </div>
-        ) : loadError ? (
-          <div className="flex items-start gap-2 rounded-2xl border border-red-100 bg-white/70 px-4 py-3 text-sm text-red-600">
-            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-            <span>{loadError}</span>
-          </div>
-        ) : filteredJobs.length === 0 ? (
-          <div className="rounded-2xl border border-white/70 bg-white/60 backdrop-blur-xl p-10 text-center shadow-lg shadow-slate-200/40">
-            <Briefcase className="mx-auto h-10 w-10 text-slate-300" />
-            <h2 className="mt-4 text-lg font-bold text-slate-900">
-              {hasActiveFilters ? "No jobs match your filters" : "No open jobs right now"}
-            </h2>
-            <p className="mt-1 text-sm text-slate-500">
-              {hasActiveFilters
-                ? "Try widening your budget range or clearing a skill filter."
-                : "New posts show up here as businesses hire — check back soon."}
-            </p>
-            {hasActiveFilters && (
-              <button
-                type="button"
-                onClick={clearFilters}
-                className="mt-4 inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
-              >
-                Clear Filters
-              </button>
-            )}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-            {filteredJobs.map((job) => {
+          <div className="min-w-0">
+            {loading ? (
+              <div className="flex justify-center py-16">
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[#1B3FAB]" />
+              </div>
+            ) : loadError ? (
+              <div className="flex items-start gap-2 rounded-2xl border border-red-100 bg-white/70 px-4 py-3 text-sm text-red-600">
+                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                <span>{loadError}</span>
+              </div>
+            ) : filteredJobs.length === 0 ? (
+              <div className="rounded-2xl border border-white/70 bg-white/60 backdrop-blur-xl p-10 text-center shadow-lg shadow-slate-200/40">
+                <Briefcase className="mx-auto h-10 w-10 text-slate-300" />
+                <h2 className="mt-4 text-lg font-bold text-slate-900">
+                  {hasActiveFilters ? "No jobs match your filters" : "No open jobs right now"}
+                </h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  {hasActiveFilters
+                    ? "Try widening your budget range or clearing a skill filter."
+                    : "New posts show up here as businesses hire — check back soon."}
+                </p>
+                {hasActiveFilters && (
+                  <button
+                    type="button"
+                    onClick={clearFilters}
+                    className="mt-4 inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
+                  >
+                    Clear Filters
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 2xl:grid-cols-3">
+                {filteredJobs.map((job) => {
               const alreadyApplied = appliedProjectIds.has(job.id);
 
               return (
@@ -612,8 +610,8 @@ export default function WorkerJobFeed() {
                 </article>
               );
             })}
-          </div>
-        )}
+              </div>
+            )}
           </div>
         </div>
       </section>
