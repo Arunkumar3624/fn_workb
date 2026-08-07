@@ -330,7 +330,11 @@ export default function BusinessNegotiationHub({ onFindTalent, onViewContractTer
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([listThreads(), listProjects({ role: "business" })])
+    // pageSize: 100 (the API's max) rather than the default 20 — a business
+    // with several workers can easily have more than 20 projects combined,
+    // and the default page would silently drop an individual worker's older
+    // projects from their own thread's history here.
+    Promise.all([listThreads(), listProjects({ role: "business", pageSize: 100 })])
       .then(([threadsData, projectsData]) => {
         if (cancelled) return;
         setThreads(threadsData);
@@ -364,7 +368,7 @@ export default function BusinessNegotiationHub({ onFindTalent, onViewContractTer
       if (event.type === "MESSAGE_CREATED") {
         listThreads().then(setThreads).catch(() => {});
       } else if (event.type === "CANDIDATE_ACCEPTED") {
-        Promise.all([listThreads(), listProjects({ role: "business" })])
+        Promise.all([listThreads(), listProjects({ role: "business", pageSize: 100 })])
           .then(([t, p]) => {
             setThreads(t);
             setProjects(p);

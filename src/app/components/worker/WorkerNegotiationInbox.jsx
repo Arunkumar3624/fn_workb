@@ -16,6 +16,7 @@ import {
   X,
 } from "lucide-react";
 import Avatar from "../shared/Avatar";
+import IdentityHeader from "../shared/IdentityHeader";
 import DeliverablesPanel from "../shared/DeliverablesPanel";
 import ChatThread from "../shared/ChatThread";
 import { listProjects, updateProjectStatus } from "../../lib/projectsApi";
@@ -42,6 +43,11 @@ const ACTIVE_THREAD_STATUSES = new Set([
 ]);
 const CLOSED_STATUSES = new Set(["COMPLETED", "CANCELLED"]);
 
+// PENDING_FUNDS deliberately excluded — funds aren't secured yet, only
+// submitted for verification (see EscrowFundingDrawer.jsx). Mirrors
+// BusinessNegotiationHub.jsx's identical constant.
+const FUNDS_SECURED_STATUSES = new Set(["FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_SUBMITTED", "PENDING_RELEASE"]);
+
 function formatINR(amount) {
   return `INR ${Number(amount || 0).toLocaleString("en-IN")}`;
 }
@@ -50,11 +56,20 @@ function isActiveThread(project) {
   return ACTIVE_THREAD_STATUSES.has(project.status);
 }
 
+// The Job Details modal's own "how long the work takes" field — distinct
+// from formatDueDate below (the chat header's "due by" pill).
 function formatDuration(deadline) {
   if (!deadline) return "Flexible timeline";
   const ms = new Date(deadline).getTime() - Date.now();
   const days = Math.max(1, Math.ceil(ms / (24 * 60 * 60 * 1000)));
   return `${days} day${days === 1 ? "" : "s"}`;
+}
+
+// Matches BusinessNegotiationHub.jsx's formatDueDate exactly, for the same
+// absolute-date "Due 19 Aug" pill on both sides of one conversation.
+function formatDueDate(deadline) {
+  if (!deadline) return "Flexible timeline";
+  return new Date(deadline).toLocaleDateString("en-IN", { month: "short", day: "numeric" });
 }
 
 function getProjectStatus(project) {
@@ -377,29 +392,71 @@ function ProjectChip({ project, onClick }) {
 }
 
 // The Right Pane — unconditionally flex-1, fills whatever width the thread
-// list leaves behind. The project chip strip is what replaced the old
-// single-project header ("Chat with X") now that one merged conversation
-// (ChatThread, shared/ChatThread.jsx) can span several projects with the
-// same business at once.
+// list leaves behind. Mirrors BusinessNegotiationHub.jsx's HubHeader exactly
+// (IdentityHeader + due/budget pills + an escrow-status pill for whichever
+// project needs attention most) so both sides of one conversation present
+// the same information density — previously this side was a plain "Chat
+// with X" label with none of that. The project chip strip is what replaced
+// the old single-project header now that one merged conversation
+// (ChatThread, shared/ChatThread.jsx) can span several projects at once.
 function ChatPanel({ thread, projects, onViewDetails }) {
   const activeProjects = useMemo(() => projects.filter((p) => !CLOSED_STATUSES.has(p.status)), [projects]);
   const historyProjects = useMemo(() => projects.filter((p) => CLOSED_STATUSES.has(p.status)), [projects]);
+  const mostUrgent = projects.find((p) => !CLOSED_STATUSES.has(p.status)) ?? projects[0] ?? null;
+  const fundsSecured = mostUrgent ? FUNDS_SECURED_STATUSES.has(mostUrgent.status) : false;
+  const isPaidOut = mostUrgent?.status === "COMPLETED";
+  const isCancelled = mostUrgent?.status === "CANCELLED";
 
   return (
     <section className="flex h-full min-h-0 flex-1 flex-col bg-slate-50">
-      <header className="sticky top-0 z-10 flex-shrink-0 border-b border-slate-200 bg-white/95 px-6 py-3 backdrop-blur-xl">
-        <div className="flex min-h-[44px] items-center justify-between gap-4">
-          <div className="min-w-0">
-            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Chat History</p>
-            <h2 className="mt-0.5 truncate text-lg font-bold text-slate-900">Chat with {thread.other_name}</h2>
+      <header className="sticky top-0 z-10 flex-shrink-0 border-b border-slate-200 bg-white/95 backdrop-blur-xl">
+        <div className="flex items-center justify-between gap-4 pr-6">
+          <div className="min-w-0 flex-1 [&>div]:border-b-0 [&>div]:bg-transparent">
+            <IdentityHeader
+              name={thread.other_name}
+              subtitle={projects.length === 1 ? projects[0].title : `${projects.length} project${projects.length === 1 ? "" : "s"} together`}
+              initials={getInitials(thread.other_name)}
+              avatarUrl={thread.other_avatar_url}
+              avatarBg="bg-[#1B3FAB]"
+              verified
+            />
           </div>
-          <span className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
-            <BadgeCheck className="h-3.5 w-3.5" />
-            On WorkBridge
-          </span>
+          {mostUrgent ? (
+            <span
+              className={`inline-flex flex-shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold ${
+                isCancelled
+                  ? "border-slate-200 bg-slate-100 text-slate-500"
+                  : isPaidOut || fundsSecured
+                    ? "border-green-200 bg-green-50 text-green-700"
+                    : "border-amber-200 bg-amber-50 text-amber-700"
+              }`}
+            >
+              <ShieldCheck className="h-3.5 w-3.5" />
+              {isCancelled ? "Cancelled" : isPaidOut ? "Paid Out" : fundsSecured ? "Escrow Secure" : "Awaiting Escrow"}
+            </span>
+          ) : (
+            <span className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700">
+              <BadgeCheck className="h-3.5 w-3.5" />
+              On WorkBridge
+            </span>
+          )}
         </div>
+
+        {mostUrgent && (
+          <div className="flex flex-wrap items-center gap-3 px-6 pb-3">
+            <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-500">
+              <Clock3 className="h-3.5 w-3.5" />
+              Due {formatDueDate(mostUrgent.deadline)}
+            </span>
+            <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-500">
+              <IndianRupee className="h-3.5 w-3.5 text-[#FF6B35]" />
+              {formatINR(mostUrgent.budget)}
+            </span>
+          </div>
+        )}
+
         {projects.length > 0 && (
-          <div className="wb-scroll-clean mt-3 flex gap-2 overflow-x-auto pb-1">
+          <div className="wb-scroll-clean flex gap-2 overflow-x-auto px-6 pb-4">
             {activeProjects.map((project) => (
               <ProjectChip key={project.id} project={project} onClick={onViewDetails} />
             ))}
@@ -437,7 +494,11 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([listThreads(), listProjects({ role: "worker" })])
+    // pageSize: 100 (the API's max) rather than the default 20 — Negotiations
+    // needs every project with every counterparty, not just the 20 most
+    // recent across the whole account, or an older project could silently
+    // fall off a thread's own history here.
+    Promise.all([listThreads(), listProjects({ role: "worker", pageSize: 100 })])
       .then(([threadsData, projectsData]) => {
         if (cancelled) return;
         setThreads(threadsData);
@@ -476,7 +537,7 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
       if (event.type === "MESSAGE_CREATED") {
         listThreads().then(setThreads).catch(() => {});
       } else if (event.type === "PROJECT_CREATED" || event.type === "CANDIDATE_ACCEPTED") {
-        Promise.all([listThreads(), listProjects({ role: "worker" })])
+        Promise.all([listThreads(), listProjects({ role: "worker", pageSize: 100 })])
           .then(([t, p]) => {
             setThreads(t);
             setProjects(p);
