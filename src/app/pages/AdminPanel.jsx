@@ -1,8 +1,9 @@
 import { Suspense, lazy, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { BarChart3, Shield, AlertTriangle, ShieldAlert, UserCog, Receipt, Banknote, Landmark, ShieldCheck, Send, Zap, LogOut, Image as ImageIcon, Users, Headphones } from "lucide-react";
+import { BarChart3, Shield, AlertTriangle, ShieldAlert, UserCog, Receipt, Banknote, Landmark, ShieldCheck, Send, LogOut, Image as ImageIcon, Users, Headphones } from "lucide-react";
 import SuspenseFallback from "../components/common/SuspenseFallback";
 import { useAuth } from "../context/AuthContext";
+import brandLogo from "../assets/logo.png";
 
 // Only the active tab's code ever needs to load — this panel previously
 // pulled in all 12 tabs' code up front, which is most of why the AdminPanel
@@ -108,7 +109,7 @@ export default function AdminPanel({ onLogout }) {
         <div className="flex items-center justify-between px-6 py-3.5">
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FF6B35]">
-              <Zap className="h-4 w-4 text-white" />
+              <img src={brandLogo} alt="" className="h-5 w-5 object-contain" />
             </div>
             <span className="font-semibold text-slate-900" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
               WorkBridge

@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { Briefcase, Search, Wallet, User, LogOut, ShieldCheck, Zap, Handshake, Settings, Sparkles } from "lucide-react";
+import { Briefcase, Search, Wallet, User, LogOut, ShieldCheck, Handshake, Settings, Sparkles } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { listProjects } from "../../lib/projectsApi";
 import { getInitials } from "../../utils/formValidation";
 import PinnedBadgeOverlay from "../shared/PinnedBadgeOverlay";
+import brandLogo from "../../assets/logo.png";
 
 // Every one of these is fully real: Job Feed is the real Open Job Board
 // (listOpenProjects/applyToProject), Negotiations is the permanent chat
@@ -43,7 +44,7 @@ export default function WorkerSidebar({ tab, onTabChange, onLogout }) {
       <div className="border-b border-white/10 px-5 py-6">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#FF6B35] shadow-lg shadow-[#FF6B35]/25">
-            <Zap className="h-5 w-5 text-white" />
+            <img src={brandLogo} alt="" className="h-6 w-6 object-contain" />
           </div>
           <div>
             <p className="text-base font-semibold text-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>

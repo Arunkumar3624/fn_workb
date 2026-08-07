@@ -10,9 +10,9 @@ import {
   ShieldCheck,
   Store,
   Users,
-  Zap,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import brandLogo from "../../assets/logo.png";
 import { getInitials } from "../../utils/formValidation";
 
 // Support moved into Settings (its own tab there) rather than sitting as a
@@ -42,7 +42,7 @@ export default function BusinessSidebar({
       <div className="border-b border-white/5 p-5">
         <div className="flex items-center gap-2.5">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FF6B35]">
-            <Zap className="h-4 w-4 text-white" />
+            <img src={brandLogo} alt="" className="h-5 w-5 object-contain" />
           </div>
           <span
             className="font-extrabold text-white"
