@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { Bell, Loader2, X } from "lucide-react";
@@ -88,7 +89,8 @@ export default function NotificationBell() {
         )}
       </button>
 
-      <AnimatePresence>
+      {createPortal(
+        <AnimatePresence>
         {open && (
           <>
             <motion.div
@@ -155,7 +157,9 @@ export default function NotificationBell() {
             </motion.aside>
           </>
         )}
-      </AnimatePresence>
+        </AnimatePresence>,
+        document.body
+      )}
     </>
   );
 }

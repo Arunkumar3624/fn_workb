@@ -1,25 +1,45 @@
+import { AnimatePresence, motion } from "motion/react";
 import { Check, Flame, GraduationCap, IndianRupee, SlidersHorizontal, Tag, X } from "lucide-react";
 import { EDUCATION_LABELS } from "../../utils/educationLevels";
 
 // A single labelled checkbox — shared by the Skills and Education sections
 // (skills come from real posted data, education levels from the same fixed
-// enum the job cards themselves already render via EDUCATION_LABELS).
+// enum the job cards themselves already render via EDUCATION_LABELS). The
+// checkbox itself crossfades color via motion's animate (a plain CSS
+// transition on an arbitrary hex background looks fine but never quite as
+// smooth as this), and the checkmark springs in rather than just appearing.
 function OptionCheckbox({ label, checked, onToggle }) {
   return (
-    <button
+    <motion.button
       type="button"
       onClick={onToggle}
+      whileHover={{ scale: 1.02, x: 4 }}
+      whileTap={{ scale: 0.98 }}
       className="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-slate-50"
     >
-      <span
-        className={`flex h-[18px] w-[18px] flex-shrink-0 items-center justify-center rounded-[5px] border transition-colors ${
-          checked ? "border-[#FF6B35] bg-[#FF6B35]" : "border-slate-300 bg-white"
-        }`}
+      <motion.span
+        animate={{
+          backgroundColor: checked ? "#FF6B35" : "#ffffff",
+          borderColor: checked ? "#FF6B35" : "#cbd5e1",
+        }}
+        transition={{ duration: 0.15 }}
+        className="flex h-[18px] w-[18px] flex-shrink-0 items-center justify-center rounded-[5px] border"
       >
-        {checked && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
-      </span>
+        <AnimatePresence>
+          {checked && (
+            <motion.span
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            >
+              <Check className="h-3 w-3 text-white" strokeWidth={3} />
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </motion.span>
       <span className={`truncate text-sm ${checked ? "font-semibold text-slate-900" : "text-slate-600"}`}>{label}</span>
-    </button>
+    </motion.button>
   );
 }
 
@@ -33,6 +53,16 @@ function SectionHeader({ icon: Icon, label }) {
 }
 
 const EDUCATION_LEVELS = Object.entries(EDUCATION_LABELS);
+
+// Shared input styling — a subtle hover shadow so the field reads as
+// interactive before it's even focused, plus a slower, smoother focus
+// transition. Focus color stays the app's usual blue ([#1B3FAB]/blue-100),
+// matching every other text input in the app (search bar, composer, etc.) —
+// orange is this app's action/selection color (buttons, active pills,
+// checked checkboxes), not its input-focus color, so switching just these
+// two fields to an orange ring would be inconsistent rather than premium.
+const INPUT_CLASSES =
+  "w-full rounded-lg border border-slate-200 bg-slate-50 text-sm text-slate-900 outline-none transition-all duration-300 hover:shadow-sm focus:border-[#1B3FAB] focus:bg-white focus:shadow-sm focus:ring-2 focus:ring-blue-100";
 
 // The Job Feed's filter sidebar — every option here is real, live data
 // (real budgets, the real is_urgent flag, skills pulled straight from what
@@ -68,16 +98,29 @@ export default function JobFilters({
     (yourExperience !== "" ? 1 : 0);
 
   return (
-    <aside className="wb-scroll-clean sticky top-24 max-h-[calc(100vh-6rem)] overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-sm shadow-slate-200/60">
+    <motion.aside
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="wb-scroll-clean sticky top-24 max-h-[calc(100vh-6rem)] overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-sm shadow-slate-200/60"
+    >
       <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
         <div className="flex items-center gap-2">
           <SlidersHorizontal className="h-4 w-4 text-slate-400" />
           <h2 className="text-sm font-black text-slate-900">Filters</h2>
-          {activeCount > 0 && (
-            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#FF6B35] px-1.5 text-[11px] font-bold text-white">
-              {activeCount}
-            </span>
-          )}
+          <AnimatePresence>
+            {activeCount > 0 && (
+              <motion.span
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#FF6B35] px-1.5 text-[11px] font-bold text-white"
+              >
+                {activeCount}
+              </motion.span>
+            )}
+          </AnimatePresence>
         </div>
         {hasActiveFilters && (
           <button
@@ -94,18 +137,22 @@ export default function JobFilters({
       <div className="space-y-6 p-5">
         <div>
           <SectionHeader icon={Flame} label="Urgency" />
-          <button
+          <motion.button
             type="button"
             onClick={onToggleUrgent}
-            className={`mt-3 flex w-full items-center justify-center gap-2 rounded-xl border px-3.5 py-2.5 text-sm font-bold transition-colors ${
-              urgentOnly
-                ? "border-[#FF6B35] bg-[#FF6B35] text-white shadow-sm shadow-orange-200"
-                : "border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100"
-            }`}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            animate={{
+              backgroundColor: urgentOnly ? "#FF6B35" : "#f8fafc",
+              borderColor: urgentOnly ? "#FF6B35" : "#e2e8f0",
+              color: urgentOnly ? "#ffffff" : "#475569",
+            }}
+            transition={{ duration: 0.2 }}
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border px-3.5 py-2.5 text-sm font-bold shadow-sm"
           >
             <Flame className="h-4 w-4" />
             Urgent only
-          </button>
+          </motion.button>
         </div>
 
         <div>
@@ -120,7 +167,7 @@ export default function JobFilters({
                 placeholder="Min"
                 value={budgetRange.min}
                 onChange={(event) => onBudgetChange({ ...budgetRange, min: event.target.value })}
-                className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-6 pr-2 text-sm text-slate-900 outline-none transition-colors focus:border-[#1B3FAB] focus:bg-white focus:ring-2 focus:ring-blue-100"
+                className={`${INPUT_CLASSES} py-2 pl-6 pr-2`}
               />
             </div>
             <span className="flex-shrink-0 text-slate-300">–</span>
@@ -133,7 +180,7 @@ export default function JobFilters({
                 placeholder="Max"
                 value={budgetRange.max}
                 onChange={(event) => onBudgetChange({ ...budgetRange, max: event.target.value })}
-                className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-6 pr-2 text-sm text-slate-900 outline-none transition-colors focus:border-[#1B3FAB] focus:bg-white focus:ring-2 focus:ring-blue-100"
+                className={`${INPUT_CLASSES} py-2 pl-6 pr-2`}
               />
             </div>
           </div>
@@ -153,7 +200,7 @@ export default function JobFilters({
             placeholder="e.g. 3"
             value={yourExperience}
             onChange={(event) => onExperienceChange(event.target.value)}
-            className="mt-1.5 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none transition-colors focus:border-[#1B3FAB] focus:bg-white focus:ring-2 focus:ring-blue-100"
+            className={`${INPUT_CLASSES} mt-1.5 px-3 py-2`}
           />
 
           <div className="mt-3 space-y-0.5">
@@ -184,6 +231,6 @@ export default function JobFilters({
           </div>
         )}
       </div>
-    </aside>
+    </motion.aside>
   );
 }
