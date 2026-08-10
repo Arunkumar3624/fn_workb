@@ -160,7 +160,7 @@ function SubscriptionTierCard({ tier, isYearly, isUpgrading, upgradeResult, onUp
         {tier.name}
       </p>
       <p className="mt-1 flex items-baseline gap-1">
-        <span className="text-3xl font-black">{amount}</span>
+        <span className={`text-3xl font-black ${tier.premium ? "text-white" : "text-slate-900 dark:text-white"}`}>{amount}</span>
         <span className="text-sm text-slate-400 dark:text-slate-500">{period}</span>
       </p>
 
@@ -528,13 +528,13 @@ export default function WorkerWallet() {
                       value={watch("amount")}
                       onChange={(value) => setValue("amount", value, { shouldValidate: true })}
                       placeholder="10000"
-                      inputClassName="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                      inputClassName="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 dark:bg-slate-950 dark:border-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500 focus:dark:border-[#FF6B35]"
                     />
                     {errors.amount && <p className="mt-1 text-xs font-semibold text-red-500">{errors.amount.message}</p>}
                   </div>
                   <div>
                     <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Payout Method</label>
-                    <select {...register("payoutMethod")} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none dark:bg-slate-800 dark:border-slate-700 dark:text-white">
+                    <select {...register("payoutMethod")} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 dark:bg-slate-950 dark:border-slate-700 dark:text-slate-100 focus:dark:border-[#FF6B35]">
                       <option value="UPI">UPI</option>
                       <option value="BANK_TRANSFER">Bank Transfer</option>
                     </select>
@@ -547,7 +547,7 @@ export default function WorkerWallet() {
                   <input
                     {...register("payoutDetails")}
                     placeholder={watch("payoutMethod") === "BANK_TRANSFER" ? "e.g. 004501234567 · HDFC0000045" : "e.g. yourname@upi"}
-                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 dark:bg-slate-950 dark:border-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500 focus:dark:border-[#FF6B35]"
                   />
                   {errors.payoutDetails && <p className="mt-1 text-xs font-semibold text-red-500">{errors.payoutDetails.message}</p>}
                 </div>
@@ -620,7 +620,7 @@ export default function WorkerWallet() {
                             {new Date(t.created_at).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}
                           </div>
                         </div>
-                        <div className={`flex-shrink-0 text-sm font-bold ${isWorkerCredit ? "text-emerald-600" : "text-slate-500 dark:text-slate-400"}`}>
+                        <div className={`flex-shrink-0 text-sm font-bold ${isWorkerCredit ? "text-emerald-600 dark:text-emerald-400" : "text-slate-500 dark:text-slate-400"}`}>
                           {isWorkerCredit ? "+" : "–"}{formatINR(t.amount)}
                         </div>
                       </div>
@@ -660,7 +660,7 @@ export default function WorkerWallet() {
                         </div>
                         <button
                           onClick={() => navigate(`/invoice?id=${project.id}`)}
-                          className="flex flex-shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800"
+                          className="flex flex-shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
                         >
                           <FileText className="h-3.5 w-3.5" />
                           Download PDF
