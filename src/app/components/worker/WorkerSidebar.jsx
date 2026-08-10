@@ -105,7 +105,13 @@ export default function WorkerSidebar({ tab, onTabChange, onLogout }) {
         )}
       </div>
 
-      <nav className={`flex-1 space-y-1 py-4 ${isCollapsed ? "px-2" : "px-3"}`}>
+      <nav
+        onClick={(e) => {
+          if (e.target === e.currentTarget) setIsCollapsed((v) => !v);
+        }}
+        title="Click empty space to collapse/expand"
+        className={`flex-1 cursor-pointer space-y-1 py-4 ${isCollapsed ? "px-2" : "px-3"}`}
+      >
         {NAV.map(({ id, label, icon: Icon }) => {
           const active = tab === id;
           return (

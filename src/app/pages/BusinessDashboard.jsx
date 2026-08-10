@@ -249,7 +249,7 @@ export default function BusinessDashboard({ onLogout, onVerify, isVerified = fal
         </div>
         )}
 
-        <div className={`flex-1 ${tab === "negotiations" ? "overflow-hidden" : "overflow-auto"}`}>
+        <div className={`flex-1 ${tab === "negotiations" ? "overflow-hidden" : "wb-scroll-clean overflow-auto"}`}>
           {tab === "overview" && (
             <BusinessOverview
               onPostJob={handlePostJob}
