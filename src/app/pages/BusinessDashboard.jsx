@@ -25,7 +25,7 @@ function getGreeting() {
   const hour = new Date().getHours();
   if (hour < 12) return { text: "Good Morning", emoji: "☀️" };
   if (hour < 17) return { text: "Good Afternoon", emoji: "🌤️" };
-  return { text: "Good Evening", emoji: "🌙" };
+  return { text: "Good Evening", emoji: "👏" };
 }
 
 const BUSINESS_TAB_IDS = new Set([
