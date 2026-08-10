@@ -38,7 +38,7 @@ const defaultAvatarUrl =
 
 function ProfileCard({ children, className = "" }) {
   return (
-    <section className={`rounded-xl border border-slate-200 bg-white p-6 shadow-sm ${className}`}>
+    <section className={`rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 ${className}`}>
       {children}
     </section>
   );
@@ -51,9 +51,9 @@ function ProfileCard({ children, className = "" }) {
 // button instead of a bare text link.
 function EditSection({ icon: Icon, title, onAdd, addLabel, last = false, children }) {
   return (
-    <div className={`${last ? "" : "mb-8 border-b border-slate-100 pb-8"}`}>
+    <div className={`${last ? "" : "mb-8 border-b border-slate-100 dark:border-slate-800 pb-8"}`}>
       <div className="mb-4 flex items-center justify-between gap-3">
-        <h3 className="flex items-center gap-2 text-sm font-bold text-slate-900">
+        <h3 className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white">
           <Icon className="h-4 w-4 text-[#1B3FAB]" />
           {title}
         </h3>
@@ -61,7 +61,7 @@ function EditSection({ icon: Icon, title, onAdd, addLabel, last = false, childre
           <button
             type="button"
             onClick={onAdd}
-            className="flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-200"
+            className="flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 transition hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700"
           >
             <Plus className="h-3.5 w-3.5" />
             {addLabel}
@@ -74,19 +74,19 @@ function EditSection({ icon: Icon, title, onAdd, addLabel, last = false, childre
 }
 
 function EmptySectionHint({ text }) {
-  return <p className="rounded-xl border border-dashed border-slate-200 px-4 py-3 text-xs text-slate-400">{text}</p>;
+  return <p className="rounded-xl border border-dashed border-slate-200 px-4 py-3 text-xs text-slate-400 dark:text-slate-500 dark:border-slate-700">{text}</p>;
 }
 
 function ReviewCard({ review }) {
   return (
-    <article className="rounded-lg bg-slate-50 p-5 ring-1 ring-slate-100">
+    <article className="rounded-lg bg-slate-50 p-5 ring-1 ring-slate-100 dark:bg-slate-800 dark:ring-slate-700">
       <div className="flex items-center gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-sm font-bold text-slate-700 shadow-sm">
+        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-sm font-bold text-slate-700 dark:text-slate-200 shadow-sm">
           {getInitials(review.reviewer_name)}
         </div>
         <div>
-          <h3 className="text-sm font-bold text-slate-900">{review.reviewer_name}</h3>
-          <p className="text-xs font-medium text-slate-500">
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white">{review.reviewer_name}</h3>
+          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
             {new Date(review.created_at).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}
           </p>
         </div>
@@ -96,7 +96,7 @@ function ReviewCard({ review }) {
           <Star key={index} className={`h-4 w-4 ${index < review.rating ? "fill-current" : "text-slate-200"}`} />
         ))}
       </div>
-      {review.feedback && <p className="mt-4 text-sm italic leading-6 text-slate-500">"{review.feedback}"</p>}
+      {review.feedback && <p className="mt-4 text-sm italic leading-6 text-slate-500 dark:text-slate-400">"{review.feedback}"</p>}
     </article>
   );
 }
@@ -114,10 +114,10 @@ function BehaviorLevelBento({ behaviorScore, verified }) {
   const tier = score >= 750 ? "Elite" : score >= 500 ? "Trusted" : "Building Trust";
 
   return (
-    <section className="mt-6 rounded-lg bg-white p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
+    <section className="mt-6 rounded-lg bg-white p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)] dark:bg-slate-900">
       <div className="flex items-end justify-between gap-4">
         <div>
-          <p className="flex items-center gap-1 text-xs font-bold uppercase tracking-[0.18em] text-slate-400">
+          <p className="flex items-center gap-1 text-xs font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">
             Trust &amp; Behavior Level
             <EconomyInfoTooltip title="How Behavior Score works">
               <p>Starts at 1000 and moves from your real conduct as a freelancer — not your skill or job outcomes.</p>
@@ -128,17 +128,17 @@ function BehaviorLevelBento({ behaviorScore, verified }) {
               </ul>
             </EconomyInfoTooltip>
           </p>
-          <h2 className="mt-1 text-2xl font-black text-slate-900">{tier}</h2>
+          <h2 className="mt-1 text-2xl font-black text-slate-900 dark:text-white">{tier}</h2>
         </div>
-        <p className="text-lg font-bold text-slate-900">{score} / 1000 Score</p>
+        <p className="text-lg font-bold text-slate-900 dark:text-white">{score} / 1000 Score</p>
       </div>
-      <div className="mt-3 h-4 w-full overflow-hidden rounded-full bg-slate-200">
+      <div className="mt-3 h-4 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
         <div
           className="h-full rounded-full bg-gradient-to-r from-orange-400 to-[#FF6B35] transition-all duration-1000 ease-out"
           style={{ width: mounted ? `${pct}%` : "0%" }}
         />
       </div>
-      <p className="mt-3 flex items-center gap-1.5 text-sm leading-6 text-slate-500">
+      <p className="mt-3 flex items-center gap-1.5 text-sm leading-6 text-slate-500 dark:text-slate-400">
         <ShieldCheck className={`h-4 w-4 flex-shrink-0 ${verified ? "text-emerald-500" : "text-slate-300"}`} />
         {verified ? "Identity verified" : "Not yet verified — verification badge coming soon"}
       </p>
@@ -335,10 +335,10 @@ export default function WorkerProfile() {
   const projects = profile.projects ?? [];
 
   return (
-    <div className="h-full overflow-y-auto bg-[#F8FAFC]">
-      <main className="min-h-screen bg-[#F8FAFC] pb-20 text-slate-900">
+    <div className="h-full overflow-y-auto bg-[#F8FAFC] dark:bg-slate-950">
+      <main className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 pb-20 text-slate-900 dark:text-white">
         <div className="mx-auto max-w-5xl px-4 pt-8">
-          <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_20px_55px_rgba(15,23,42,0.06)]">
+          <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_20px_55px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-900">
             <EditableCoverPhoto
               coverUrl={profile.coverUrl}
               onUpload={handleCoverUpload}
@@ -346,7 +346,7 @@ export default function WorkerProfile() {
               onError={setCoverError}
             />
             <div className="px-6 pb-7 sm:px-8">
-              <div className="relative z-10 -mt-14 flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_18px_45px_rgba(15,23,42,0.08)] lg:flex-row lg:items-start lg:justify-between">
+              <div className="relative z-10 -mt-14 flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_18px_45px_rgba(15,23,42,0.08)] lg:flex-row lg:items-start lg:justify-between dark:border-slate-800 dark:bg-slate-900">
                 <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
                   <input
                     type="file"
@@ -402,18 +402,18 @@ export default function WorkerProfile() {
                     )}
                   </label>
                   <div className="pb-1">
-                    <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">{currentUser?.name}</h1>
-                    <p className="mt-1 text-lg font-medium text-slate-500">{currentUser?.title || "Freelancer"}</p>
-                    <div className="mt-3 flex flex-wrap items-center gap-3 text-sm font-medium text-slate-500">
+                    <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">{currentUser?.name}</h1>
+                    <p className="mt-1 text-lg font-medium text-slate-500 dark:text-slate-400">{currentUser?.title || "Freelancer"}</p>
+                    <div className="mt-3 flex flex-wrap items-center gap-3 text-sm font-medium text-slate-500 dark:text-slate-400">
                       {profile.location && (
                         <span className="inline-flex items-center gap-1.5">
-                          <MapPin className="h-4 w-4 text-slate-400" />
+                          <MapPin className="h-4 w-4 text-slate-400 dark:text-slate-500" />
                           {profile.location}
                         </span>
                       )}
                       {currentUser?.phone && (
                         <span className="inline-flex items-center gap-1.5">
-                          <Phone className="h-4 w-4 text-slate-400" />
+                          <Phone className="h-4 w-4 text-slate-400 dark:text-slate-500" />
                           +91 {currentUser.phone}
                         </span>
                       )}
@@ -424,7 +424,7 @@ export default function WorkerProfile() {
                         </span>
                       )}
                     </div>
-                    <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600">
+                    <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 dark:text-slate-300">
                       {profile.bio || "No bio yet — add one so businesses know who they're hiring."}
                     </p>
 
@@ -432,14 +432,14 @@ export default function WorkerProfile() {
                         line (not a chunky game-style bar), tier name only,
                         never a raw XP count or fee percentage. */}
                     <div className="mt-5 max-w-md">
-                      <div className="h-1 w-full overflow-hidden rounded-full bg-slate-100">
+                      <div className="h-1 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                         <div
                           className="h-full rounded-full bg-gradient-to-r from-[#FF6B35] to-yellow-500 transition-all duration-1000 ease-out"
                           style={{ width: `${progressPct}%` }}
                         />
                       </div>
-                      <p className="mt-1.5 text-xs font-semibold text-slate-500">
-                        Current Tier: <span className="text-slate-700">{tier}</span>
+                      <p className="mt-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                        Current Tier: <span className="text-slate-700 dark:text-slate-200">{tier}</span>
                         {nextTier && ` · Progress to ${nextTier.tier}-Tier Fee Discount`}
                       </p>
                     </div>
@@ -450,7 +450,7 @@ export default function WorkerProfile() {
                     url={shareUrl}
                     title={currentUser?.name}
                     text={`Check out ${currentUser?.name}'s profile on WorkBridge`}
-                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 transition hover:-translate-y-0.5 hover:bg-slate-50"
+                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 dark:text-slate-200 transition hover:-translate-y-0.5 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700"
                   />
                   <button
                     type="button"
@@ -476,15 +476,15 @@ export default function WorkerProfile() {
           <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(280px,3fr)]">
             <div className="space-y-8">
               <ProfileCard>
-                <h2 className="text-lg font-bold text-slate-900">Projects</h2>
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white">Projects</h2>
                 {projects.length === 0 ? (
-                  <p className="mt-4 text-sm text-slate-400">No projects added yet — click Edit Profile to showcase your work.</p>
+                  <p className="mt-4 text-sm text-slate-400 dark:text-slate-500">No projects added yet — click Edit Profile to showcase your work.</p>
                 ) : (
                   <div className="mt-5 grid gap-4 md:grid-cols-2">
                     {projects.map((p, index) => (
-                      <article key={index} className="rounded-lg bg-slate-50 p-5 ring-1 ring-slate-100">
-                        <h3 className="text-sm font-bold text-slate-900">{p.title}</h3>
-                        {p.description && <p className="mt-2 text-sm leading-6 text-slate-500">{p.description}</p>}
+                      <article key={index} className="rounded-lg bg-slate-50 p-5 ring-1 ring-slate-100 dark:bg-slate-800 dark:ring-slate-700">
+                        <h3 className="text-sm font-bold text-slate-900 dark:text-white">{p.title}</h3>
+                        {p.description && <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">{p.description}</p>}
                         {p.link && (
                           <a
                             href={p.link}
@@ -502,21 +502,21 @@ export default function WorkerProfile() {
               </ProfileCard>
 
               <ProfileCard>
-                <h2 className="text-lg font-bold text-slate-900">Education</h2>
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white">Education</h2>
                 {education.length === 0 ? (
-                  <p className="mt-4 text-sm text-slate-400">No education added yet — click Edit Profile to add some.</p>
+                  <p className="mt-4 text-sm text-slate-400 dark:text-slate-500">No education added yet — click Edit Profile to add some.</p>
                 ) : (
                   <div className="mt-4 space-y-4">
                     {education.map((entry, index) => (
                       <div
                         key={index}
-                        className="flex items-start justify-between gap-3 border-b border-slate-100 pb-4 last:border-0 last:pb-0"
+                        className="flex items-start justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4 last:border-0 last:pb-0"
                       >
                         <div>
-                          <p className="text-sm font-bold text-slate-900">{entry.degree}</p>
-                          <p className="text-sm text-slate-500">{entry.school}</p>
+                          <p className="text-sm font-bold text-slate-900 dark:text-white">{entry.degree}</p>
+                          <p className="text-sm text-slate-500 dark:text-slate-400">{entry.school}</p>
                         </div>
-                        {entry.year && <span className="flex-shrink-0 text-xs font-semibold text-slate-400">{entry.year}</span>}
+                        {entry.year && <span className="flex-shrink-0 text-xs font-semibold text-slate-400 dark:text-slate-500">{entry.year}</span>}
                       </div>
                     ))}
                   </div>
@@ -524,15 +524,15 @@ export default function WorkerProfile() {
               </ProfileCard>
 
               <ProfileCard>
-                <h2 className="text-lg font-bold text-slate-900">Courses &amp; Certifications</h2>
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white">Courses &amp; Certifications</h2>
                 {certifications.length === 0 ? (
-                  <p className="mt-4 text-sm text-slate-400">No certifications added yet — click Edit Profile to add some.</p>
+                  <p className="mt-4 text-sm text-slate-400 dark:text-slate-500">No certifications added yet — click Edit Profile to add some.</p>
                 ) : (
                   <div className="mt-4 flex flex-wrap gap-3">
                     {certifications.map((c, index) => (
-                      <div key={index} className="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
-                        <p className="text-sm font-bold text-slate-900">{c.name}</p>
-                        <p className="text-xs text-slate-500">{[c.issuer, c.year].filter(Boolean).join(" · ")}</p>
+                      <div key={index} className="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-800">
+                        <p className="text-sm font-bold text-slate-900 dark:text-white">{c.name}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">{[c.issuer, c.year].filter(Boolean).join(" · ")}</p>
                       </div>
                     ))}
                   </div>
@@ -540,13 +540,13 @@ export default function WorkerProfile() {
               </ProfileCard>
 
               <ProfileCard>
-                <h2 className="text-lg font-bold text-slate-900">Client Reviews</h2>
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white">Client Reviews</h2>
                 {reviewsLoading ? (
                   <div className="mt-6 flex justify-center">
-                    <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-200 border-t-[#1B3FAB]" />
+                    <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-200 border-t-[#1B3FAB] dark:border-slate-700" />
                   </div>
                 ) : reviews.length === 0 ? (
-                  <p className="mt-4 text-sm text-slate-400">No reviews yet — they'll show up here once a project completes.</p>
+                  <p className="mt-4 text-sm text-slate-400 dark:text-slate-500">No reviews yet — they'll show up here once a project completes.</p>
                 ) : (
                   <div className="mt-5 grid gap-5 md:grid-cols-2">
                     {reviews.map((review) => (
@@ -559,20 +559,20 @@ export default function WorkerProfile() {
 
             <aside className="space-y-6 lg:sticky lg:top-6 lg:self-start">
               <ProfileCard>
-                <h2 className="text-lg font-bold text-slate-900">Skills</h2>
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white">Skills</h2>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {skills.length === 0 ? (
-                    <p className="text-sm text-slate-400">No skills added yet.</p>
+                    <p className="text-sm text-slate-400 dark:text-slate-500">No skills added yet.</p>
                   ) : (
                     skills.map((skill) => (
-                      <span key={skill} className="rounded-full bg-slate-100 px-3.5 py-2 text-xs font-semibold text-slate-700">
+                      <span key={skill} className="rounded-full bg-slate-100 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 dark:bg-slate-800">
                         {skill}
                       </span>
                     ))
                   )}
                 </div>
                 {profile.hourlyRate && (
-                  <p className="mt-4 text-sm font-bold text-slate-700">₹{Number(profile.hourlyRate).toLocaleString("en-IN")}/hr</p>
+                  <p className="mt-4 text-sm font-bold text-slate-700 dark:text-slate-200">₹{Number(profile.hourlyRate).toLocaleString("en-IN")}/hr</p>
                 )}
               </ProfileCard>
             </aside>
@@ -590,25 +590,25 @@ export default function WorkerProfile() {
             transition={{ duration: 0.2, ease: "easeOut" }}
           >
           <motion.div
-            className="flex max-h-[85vh] w-full max-w-3xl flex-col rounded-2xl bg-white shadow-2xl"
+            className="flex max-h-[85vh] w-full max-w-3xl flex-col rounded-2xl bg-white shadow-2xl dark:bg-slate-900"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
           >
-            <div className="flex flex-shrink-0 items-center justify-between border-b border-slate-100 px-6 py-4">
-              <h2 className="text-lg font-bold text-slate-900">Edit Profile</h2>
+            <div className="flex flex-shrink-0 items-center justify-between border-b border-slate-100 dark:border-slate-800 px-6 py-4">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">Edit Profile</h2>
               <button
                 type="button"
                 onClick={() => setEditing(false)}
-                className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 dark:text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
             <div className="wb-scroll-clean min-h-0 flex-1 overflow-y-auto px-6 py-6 sm:px-8">
               {saveError && (
-                <div className="mb-6 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+                <div className="mb-6 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400">
                   <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                   <span>{saveError}</span>
                 </div>
@@ -617,28 +617,28 @@ export default function WorkerProfile() {
               <EditSection icon={User} title="Basic Info">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <label className="block">
-                    <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Title</span>
+                    <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Title</span>
                     <input
                       value={draft.title}
                       onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))}
                       placeholder="e.g. Full-Stack Developer"
-                      className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
+                      className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800"
                     />
                   </label>
                   <label className="block">
-                    <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Location</span>
+                    <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Location</span>
                     <input
                       value={draft.location}
                       onChange={(e) => setDraft((d) => ({ ...d, location: e.target.value }))}
                       placeholder="e.g. Mumbai, India"
-                      className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
+                      className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800"
                     />
                   </label>
                   <label className="block sm:col-span-2">
-                    <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Mobile Number</span>
-                    <p className="mb-1.5 mt-1 text-xs text-slate-400">Kept up to date so the WorkBridge support team can reach you.</p>
+                    <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Mobile Number</span>
+                    <p className="mb-1.5 mt-1 text-xs text-slate-400 dark:text-slate-500">Kept up to date so the WorkBridge support team can reach you.</p>
                     <div className="flex gap-2">
-                      <span className="flex h-10 items-center rounded-xl border border-slate-200 bg-slate-100 px-3 text-sm font-semibold text-slate-600">+91</span>
+                      <span className="flex h-10 items-center rounded-xl border border-slate-200 bg-slate-100 px-3 text-sm font-semibold text-slate-600 dark:text-slate-300 dark:border-slate-700 dark:bg-slate-800">+91</span>
                       <input
                         type="tel"
                         inputMode="numeric"
@@ -646,28 +646,28 @@ export default function WorkerProfile() {
                         value={draft.phone}
                         onChange={(e) => setDraft((d) => ({ ...d, phone: e.target.value.replace(/\D/g, "") }))}
                         placeholder="9876543210"
-                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
+                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800"
                       />
                     </div>
                   </label>
                   <label className="block">
-                    <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Hourly Rate (₹)</span>
+                    <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Hourly Rate (₹)</span>
                     <input
                       type="number"
                       min="0"
                       value={draft.hourlyRate}
                       onChange={(e) => setDraft((d) => ({ ...d, hourlyRate: e.target.value }))}
                       placeholder="850"
-                      className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
+                      className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800"
                     />
                   </label>
                   <label className="block">
-                    <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Skills (comma separated)</span>
+                    <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Skills (comma separated)</span>
                     <input
                       value={draft.skillsText}
                       onChange={(e) => setDraft((d) => ({ ...d, skillsText: e.target.value }))}
                       placeholder="React, Node.js, PostgreSQL"
-                      className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
+                      className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800"
                     />
                   </label>
                 </div>
@@ -682,27 +682,27 @@ export default function WorkerProfile() {
                 <div className="space-y-3">
                   {draft.projects.length === 0 && <EmptySectionHint text="No projects added yet." />}
                   {draft.projects.map((entry, index) => (
-                    <div key={index} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <div key={index} className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800">
                       <div className="flex items-start gap-2">
                         <div className="grid min-w-0 flex-1 grid-cols-1 gap-2 md:grid-cols-2">
                           <input
                             value={entry.title}
                             onChange={(e) => updateDraftListItem("projects", index, { title: e.target.value })}
                             placeholder="Project title"
-                            className="w-full min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
+                            className="w-full min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800"
                           />
                           <input
                             value={entry.link}
                             onChange={(e) => updateDraftListItem("projects", index, { link: e.target.value })}
                             placeholder="Link (optional)"
-                            className="w-full min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
+                            className="w-full min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800"
                           />
                         </div>
                         <button
                           type="button"
                           onClick={() => removeDraftListItem("projects", index)}
                           aria-label="Remove this project"
-                          className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-500"
+                          className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-slate-400 dark:text-slate-500 hover:bg-rose-50 hover:text-rose-500 dark:hover:bg-rose-500/10"
                         >
                           <X className="h-3.5 w-3.5" />
                         </button>
@@ -712,7 +712,7 @@ export default function WorkerProfile() {
                         value={entry.description}
                         onChange={(e) => updateDraftListItem("projects", index, { description: e.target.value })}
                         placeholder="What did you build / your role"
-                        className="mt-2 w-full resize-none rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
+                        className="mt-2 w-full resize-none rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800"
                       />
                     </div>
                   ))}
@@ -728,32 +728,32 @@ export default function WorkerProfile() {
                 <div className="space-y-3">
                   {draft.education.length === 0 && <EmptySectionHint text="No education added yet." />}
                   {draft.education.map((entry, index) => (
-                    <div key={index} className="flex items-start gap-2 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <div key={index} className="flex items-start gap-2 rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800">
                       <div className="grid min-w-0 flex-1 grid-cols-1 gap-2 md:grid-cols-[1fr_1fr_90px]">
                         <input
                           value={entry.degree}
                           onChange={(e) => updateDraftListItem("education", index, { degree: e.target.value })}
                           placeholder="Degree (e.g. B.Tech CSE)"
-                          className="w-full min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
+                          className="w-full min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800"
                         />
                         <input
                           value={entry.school}
                           onChange={(e) => updateDraftListItem("education", index, { school: e.target.value })}
                           placeholder="School / University"
-                          className="w-full min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
+                          className="w-full min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800"
                         />
                         <input
                           value={entry.year}
                           onChange={(e) => updateDraftListItem("education", index, { year: e.target.value })}
                           placeholder="Year"
-                          className="w-full min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
+                          className="w-full min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800"
                         />
                       </div>
                       <button
                         type="button"
                         onClick={() => removeDraftListItem("education", index)}
                         aria-label="Remove this education entry"
-                        className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-500"
+                        className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-slate-400 dark:text-slate-500 hover:bg-rose-50 hover:text-rose-500 dark:hover:bg-rose-500/10"
                       >
                         <X className="h-3.5 w-3.5" />
                       </button>
@@ -771,32 +771,32 @@ export default function WorkerProfile() {
                 <div className="space-y-3">
                   {draft.certifications.length === 0 && <EmptySectionHint text="No certifications added yet." />}
                   {draft.certifications.map((entry, index) => (
-                    <div key={index} className="flex items-start gap-2 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <div key={index} className="flex items-start gap-2 rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800">
                       <div className="grid min-w-0 flex-1 grid-cols-1 gap-2 md:grid-cols-[1fr_1fr_90px]">
                         <input
                           value={entry.name}
                           onChange={(e) => updateDraftListItem("certifications", index, { name: e.target.value })}
                           placeholder="Course / certification name"
-                          className="w-full min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
+                          className="w-full min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800"
                         />
                         <input
                           value={entry.issuer}
                           onChange={(e) => updateDraftListItem("certifications", index, { issuer: e.target.value })}
                           placeholder="Issued by (e.g. Coursera)"
-                          className="w-full min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
+                          className="w-full min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800"
                         />
                         <input
                           value={entry.year}
                           onChange={(e) => updateDraftListItem("certifications", index, { year: e.target.value })}
                           placeholder="Year"
-                          className="w-full min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
+                          className="w-full min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800"
                         />
                       </div>
                       <button
                         type="button"
                         onClick={() => removeDraftListItem("certifications", index)}
                         aria-label="Remove this certification"
-                        className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-500"
+                        className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-slate-400 dark:text-slate-500 hover:bg-rose-50 hover:text-rose-500 dark:hover:bg-rose-500/10"
                       >
                         <X className="h-3.5 w-3.5" />
                       </button>
@@ -810,15 +810,15 @@ export default function WorkerProfile() {
                   rows={4}
                   value={draft.bio}
                   onChange={(e) => setDraft((d) => ({ ...d, bio: e.target.value }))}
-                  className="w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
+                  className="w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800"
                 />
               </EditSection>
             </div>
-            <div className="flex flex-shrink-0 justify-end gap-2 border-t border-slate-100 px-6 py-4">
+            <div className="flex flex-shrink-0 justify-end gap-2 border-t border-slate-100 dark:border-slate-800 px-6 py-4">
               <button
                 type="button"
                 onClick={() => setEditing(false)}
-                className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+                className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 dark:text-slate-300 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700"
               >
                 Cancel
               </button>

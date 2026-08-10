@@ -62,14 +62,14 @@ function resolveDeadlinePreview(days) {
 // ── Style helpers ─────────────────────────────────────────────────────────
 
 const inputCls =
-  "w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm text-[#0F172A] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB] transition-colors";
+  "w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm text-[#0F172A] dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB] transition-colors dark:bg-slate-800 dark:border-slate-700 dark:placeholder-slate-500";
 
 const currencyInputCls =
-  "w-full pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB] transition-colors";
+  "w-full pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm text-[#0F172A] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB] transition-colors dark:bg-slate-800 dark:border-slate-700";
 
 function FieldLabel({ children }) {
   return (
-    <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">
+    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wide">
       {children}
     </label>
   );
@@ -87,19 +87,19 @@ function FieldError({ message }) {
 
 function SectionCard({ icon: Icon, title, sub, children }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-8">
-      <div className="flex items-center gap-3 mb-6 pb-5 border-b border-slate-100">
-        <div className="w-9 h-9 rounded-xl bg-[#F4F6FF] flex items-center justify-center flex-shrink-0">
+    <div className="bg-white rounded-2xl border border-slate-200 p-8 dark:bg-slate-900 dark:border-slate-800">
+      <div className="flex items-center gap-3 mb-6 pb-5 border-b border-slate-100 dark:border-slate-800">
+        <div className="w-9 h-9 rounded-xl bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 flex items-center justify-center flex-shrink-0">
           <Icon className="w-4 h-4 text-[#1B3FAB]" />
         </div>
         <div>
           <h2
-            className="font-bold text-[#0F172A] text-sm"
+            className="font-bold text-[#0F172A] dark:text-white text-sm"
             style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
           >
             {title}
           </h2>
-          {sub && <p className="text-xs text-slate-400 mt-0.5">{sub}</p>}
+          {sub && <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{sub}</p>}
         </div>
       </div>
       <div className="space-y-5">{children}</div>
@@ -247,18 +247,18 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-7 wb-tab-enter">
+    <div className="min-h-screen bg-slate-50 p-7 wb-tab-enter dark:bg-slate-950">
       <div className="max-w-6xl mx-auto">
 
         {/* Page Header */}
         <div className="mb-8">
           <h1
-            className="text-2xl font-extrabold text-[#0F172A]"
+            className="text-2xl font-extrabold text-[#0F172A] dark:text-white"
             style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
           >
             Post a New Job
           </h1>
-          <p className="text-slate-500 text-sm mt-1">
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
             Your payment is held securely and only released after you approve the work.
           </p>
         </div>
@@ -351,7 +351,7 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                     {...register("skills", { setValueAs: (v) => v.trim() })}
                     className={inputCls}
                   />
-                  <p className="mt-1.5 text-xs text-slate-400">
+                  <p className="mt-1.5 text-xs text-slate-400 dark:text-slate-500">
                     Short tags only, comma separated — longer requirements (Agile process, cloud experience, etc.) belong in the Project Brief above.
                   </p>
                   <FieldError message={errors.skills?.message} />
@@ -391,7 +391,7 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                       <FieldError message={errors.maxExperienceYears?.message} />
                     </div>
                   </div>
-                  <p className="mt-1.5 text-xs text-slate-400">Leave both blank if experience level doesn't matter.</p>
+                  <p className="mt-1.5 text-xs text-slate-400 dark:text-slate-500">Leave both blank if experience level doesn't matter.</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -437,7 +437,7 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                       {...register("durationDays")}
                       className={inputCls}
                     />
-                    <p className="mt-1.5 text-xs text-slate-400">
+                    <p className="mt-1.5 text-xs text-slate-400 dark:text-slate-500">
                       {watchedDurationDays > 0
                         ? `Due ${resolveDeadlinePreview(watchedDurationDays)} — this is the one deadline workers see.`
                         : "How many days does the worker have to deliver, once they start?"}
@@ -454,7 +454,7 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                       inputClassName={currencyInputCls}
                     />
                     {rawBudget === 0 && (
-                      <p className="mt-1.5 text-xs text-slate-400">
+                      <p className="mt-1.5 text-xs text-slate-400 dark:text-slate-500">
                         Showing tier minimum ₹{TIER_BUDGET[watchedTier].toLocaleString("en-IN")} in summary
                       </p>
                     )}
@@ -473,7 +473,7 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                     {...register("applicationWindow")}
                     className={`${inputCls} sm:w-1/2`}
                   />
-                  <p className="mt-1.5 text-xs text-slate-400">How long this post stays open to new applicants — separate from the project duration above.</p>
+                  <p className="mt-1.5 text-xs text-slate-400 dark:text-slate-500">How long this post stays open to new applicants — separate from the project duration above.</p>
                   <FieldError message={errors.applicationWindow?.message} />
                 </div>
 
@@ -484,16 +484,16 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                     promise, no subscription-tier claim (deferred). */}
                 <div
                   className={`flex items-center justify-between rounded-xl border p-4 transition-colors ${
-                    urgent ? "border-[#FF6B35]/40 bg-orange-50" : "border-slate-200 bg-slate-50"
+                    urgent ? "border-[#FF6B35]/40 bg-orange-50 dark:bg-orange-500/10" : "border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800"
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <span className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl ${urgent ? "bg-[#FF6B35]/10" : "bg-white"}`}>
-                      <Flame className={`h-4 w-4 ${urgent ? "text-[#FF6B35]" : "text-slate-400"}`} />
+                    <span className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl ${urgent ? "bg-[#FF6B35]/10" : "bg-white dark:bg-slate-700"}`}>
+                      <Flame className={`h-4 w-4 ${urgent ? "text-[#FF6B35]" : "text-slate-400 dark:text-slate-500"}`} />
                     </span>
                     <div>
-                      <div className={`text-sm font-bold ${urgent ? "text-[#0F172A]" : "text-slate-700"}`}>Urgent Matching</div>
-                      <div className="mt-0.5 text-xs text-slate-500">
+                      <div className={`text-sm font-bold ${urgent ? "text-[#0F172A] dark:text-white" : "text-slate-700 dark:text-slate-300"}`}>Urgent Matching</div>
+                      <div className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
                         Sorts to the top of the Job Board; Silver-tier+ workers see it immediately, others after 3 hours.
                       </div>
                     </div>
@@ -526,21 +526,21 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                 <div className="space-y-3">
                   {refLinks.map((link, idx) => (
                     <div key={idx} className="flex gap-2 items-center">
-                      <div className="flex items-center gap-2 flex-1 px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus-within:ring-2 focus-within:ring-[#1B3FAB]/20 focus-within:border-[#1B3FAB] transition-colors">
-                        <Link2 className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                      <div className="flex items-center gap-2 flex-1 px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus-within:ring-2 focus-within:ring-[#1B3FAB]/20 focus-within:border-[#1B3FAB] transition-colors dark:bg-slate-800 dark:border-slate-700">
+                        <Link2 className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 flex-shrink-0" />
                         <input
                           type="url"
                           value={link}
                           onChange={(e) => updateRefLink(idx, e.target.value)}
                           placeholder="https://drive.google.com/… or YouTube link, Figma, Notion…"
-                          className="flex-1 bg-transparent text-sm text-[#0F172A] placeholder-slate-400 outline-none"
+                          className="flex-1 bg-transparent text-sm text-[#0F172A] dark:text-white placeholder-slate-400 outline-none"
                         />
                       </div>
                       {refLinks.length > 1 && (
                         <button
                           type="button"
                           onClick={() => removeRefLink(idx)}
-                          className="w-9 h-9 flex items-center justify-center rounded-xl border border-slate-200 text-slate-400 hover:border-red-200 hover:text-red-500 hover:bg-red-50 transition-colors flex-shrink-0"
+                          className="w-9 h-9 flex items-center justify-center rounded-xl border border-slate-200 text-slate-400 dark:border-slate-700 dark:text-slate-500 hover:border-red-200 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors flex-shrink-0"
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>
@@ -561,11 +561,11 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                 </div>
 
                 {/* Privacy notice */}
-                <div className="flex items-start gap-2.5 p-4 bg-blue-50 border border-blue-100 rounded-xl mt-2">
+                <div className="flex items-start gap-2.5 p-4 bg-blue-50 border border-blue-100 rounded-xl mt-2 dark:bg-blue-500/10 dark:border-blue-900/40">
                   <Eye className="w-3.5 h-3.5 text-blue-500 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-xs font-bold text-blue-800">Private by default</p>
-                    <p className="text-xs text-blue-600 mt-0.5 leading-relaxed">
+                    <p className="text-xs font-bold text-blue-800 dark:text-blue-400">Private by default</p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400/80 mt-0.5 leading-relaxed">
                       Workers will <strong>not</strong> see these links when browsing job listings.
                       Once someone is assigned to this job, each link is sent for a quick WorkBridge review before
                       it's shared with them — the same check every submitted file goes through.
@@ -579,11 +579,15 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
             <div className="lg:col-span-1">
               <div className="sticky top-6 space-y-4">
 
-                {/* ── Job Preview Card (styled exactly like WorkerJobFeed) ── */}
-                <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+                {/* ── Job Preview Card (styled exactly like WorkerJobFeed) — the
+                    outer chrome adapts to the business's theme, but the inner
+                    `article` below stays a fixed light card on purpose: it's
+                    a preview of what a worker sees, not this business's own
+                    page. */}
+                <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm dark:bg-slate-900 dark:border-slate-800">
                   <div className="flex items-center justify-between mb-4">
                     <h3
-                      className="text-xs font-bold uppercase tracking-widest text-slate-400"
+                      className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500"
                     >
                       Worker Preview
                     </h3>
@@ -634,13 +638,13 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                     {(experienceLabel || EDUCATION_LABELS[watchedEducationLevel]) && (
                       <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] font-semibold text-[#1B3FAB]">
                         {experienceLabel && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-[#F4F6FF] px-2.5 py-1">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 px-2.5 py-1">
                             <Clock className="h-3 w-3" />
                             {experienceLabel} exp
                           </span>
                         )}
                         {EDUCATION_LABELS[watchedEducationLevel] && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-[#F4F6FF] px-2.5 py-1">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 px-2.5 py-1">
                             <GraduationCap className="h-3 w-3" />
                             {EDUCATION_LABELS[watchedEducationLevel]}
                           </span>
@@ -724,19 +728,19 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                     </div>
                   </article>
 
-                  <p className="mt-3 text-center text-[11px] text-slate-400">
+                  <p className="mt-3 text-center text-[11px] text-slate-400 dark:text-slate-500">
                     This is exactly how workers see your listing
                   </p>
                 </div>
 
                 {/* ── Payment Summary + CTA ── */}
-                <div className="bg-white rounded-2xl border border-slate-200 p-6">
+                <div className="bg-white rounded-2xl border border-slate-200 p-6 dark:bg-slate-900 dark:border-slate-800">
                   <div className="flex items-center gap-2.5 mb-5">
-                    <div className="w-8 h-8 rounded-lg bg-[#F4F6FF] flex items-center justify-center flex-shrink-0">
+                    <div className="w-8 h-8 rounded-lg bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 flex items-center justify-center flex-shrink-0">
                       <ShieldCheck className="w-4 h-4 text-[#1B3FAB]" />
                     </div>
                     <h3
-                      className="text-sm font-bold text-[#0F172A]"
+                      className="text-sm font-bold text-[#0F172A] dark:text-white"
                       style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
                     >
                       Payment Summary
@@ -748,20 +752,20 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                     style={{ fontFamily: "'DM Mono', monospace" }}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-slate-500">Project Budget</span>
-                      <span className="font-semibold text-[#0F172A]">
+                      <span className="text-slate-500 dark:text-slate-400">Project Budget</span>
+                      <span className="font-semibold text-[#0F172A] dark:text-white">
                         {formatINR(summaryBudget)}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-slate-500">Platform Fee</span>
-                      <span className="font-semibold text-[#0F172A]">
+                      <span className="text-slate-500 dark:text-slate-400">Platform Fee</span>
+                      <span className="font-semibold text-[#0F172A] dark:text-white">
                         {formatINR(platformFee)}
                       </span>
                     </div>
-                    <div className="h-px bg-slate-100 my-1" />
+                    <div className="h-px bg-slate-100 dark:bg-slate-800 my-1" />
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-[#0F172A]">Total to Deposit</span>
+                      <span className="font-bold text-[#0F172A] dark:text-white">Total to Deposit</span>
                       <span
                         className="font-extrabold text-[#FF6B35] text-base"
                         style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
@@ -771,9 +775,9 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100 mb-5">
+                  <div className="flex items-start gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100 mb-5 dark:bg-slate-800 dark:border-slate-700">
                     <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                    <p className="text-xs text-slate-500 leading-relaxed">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                       Your job goes live on the Job Feed right away so any worker can apply — funds are only held once you
                       accept someone, and released after you approve the delivered work. You can also invite a specific
                       worker directly from Find Workers at any time while it's open.
@@ -781,7 +785,7 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                   </div>
 
                   {postError && (
-                    <div className="mb-4 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+                    <div className="mb-4 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400">
                       <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                       <span>{postError}</span>
                     </div>
@@ -812,9 +816,9 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
 // DO NOT MODIFY: gates unverified businesses from posting jobs.
 function PostJobGate({ onVerify }) {
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-10 text-center min-h-[80vh] wb-tab-enter">
+    <div className="flex-1 flex flex-col items-center justify-center p-10 text-center min-h-[80vh] wb-tab-enter dark:bg-slate-950">
       <div className="relative mb-8">
-        <div className="w-24 h-24 bg-orange-50 border-2 border-orange-100 rounded-3xl flex items-center justify-center">
+        <div className="w-24 h-24 bg-orange-50 border-2 border-orange-100 rounded-3xl flex items-center justify-center dark:bg-orange-500/10 dark:border-orange-900/40">
           <Lock className="w-10 h-10 text-[#FF6B2C]" />
         </div>
         <div className="absolute -top-1 -right-1 w-7 h-7 bg-[#FF6B2C] rounded-full flex items-center justify-center shadow-md shadow-orange-200">
@@ -823,18 +827,18 @@ function PostJobGate({ onVerify }) {
       </div>
 
       <h2
-        className="text-2xl font-extrabold text-[#0A1128] mb-3"
+        className="text-2xl font-extrabold text-[#0A1128] dark:text-white mb-3"
         style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
       >
         Verify your business first
       </h2>
-      <p className="text-slate-500 text-sm max-w-sm mb-8 leading-relaxed">
+      <p className="text-slate-500 dark:text-slate-400 text-sm max-w-sm mb-8 leading-relaxed">
         You need to verify your business before you can post jobs on WorkBridge.
-        It's a <strong className="text-slate-700">one-time process</strong> that protects freelancers
+        It's a <strong className="text-slate-700 dark:text-slate-200">one-time process</strong> that protects freelancers
         and keeps the platform limited to real, legitimate companies.
       </p>
 
-      <div className="bg-white border border-slate-100 rounded-2xl p-6 max-w-sm w-full mb-8 shadow-sm text-left space-y-3">
+      <div className="bg-white border border-slate-100 rounded-2xl p-6 max-w-sm w-full mb-8 shadow-sm text-left space-y-3 dark:bg-slate-900 dark:border-slate-800">
         {[
           { emoji: "Shield", text: "Keeps fake and fraudulent job listings off the platform" },
           { emoji: "Trust", text: "Gives freelancers a reason to trust your listing" },
@@ -847,7 +851,7 @@ function PostJobGate({ onVerify }) {
             style={{ animationDelay: `${i * 80}ms` }}
           >
             <span className="text-xs font-bold text-[#FF6B2C] flex-shrink-0">{emoji}</span>
-            <span className="text-sm text-slate-600">{text}</span>
+            <span className="text-sm text-slate-600 dark:text-slate-400">{text}</span>
           </div>
         ))}
       </div>
@@ -861,7 +865,7 @@ function PostJobGate({ onVerify }) {
         Verify My Business - ₹470.82
         <span className="text-white/70 text-sm font-normal">one-time</span>
       </button>
-      <p className="text-xs text-slate-400 mt-3">
+      <p className="text-xs text-slate-400 dark:text-slate-500 mt-3">
         Lifetime verified status - No recurring fees - Review in 24-48 hrs
       </p>
     </div>

@@ -24,9 +24,9 @@ const ACTIVE_STATUSES = new Set(["ACCEPTED", "PENDING_FUNDS", "FUNDS_SECURED", "
 // ACCEPTED never actually shows here (accepting turns it into a real
 // project, which immediately appears under Active Tasks instead).
 const APPLICATION_STATUS_META = {
-  PENDING: { label: "Pending Review", tone: "border-amber-200 bg-amber-50 text-amber-700" },
-  DECLINED: { label: "Declined", tone: "border-slate-200 bg-slate-50 text-slate-500" },
-  CLOSED: { label: "Filled by Someone Else", tone: "border-slate-200 bg-slate-50 text-slate-500" },
+  PENDING: { label: "Pending Review", tone: "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-400" },
+  DECLINED: { label: "Declined", tone: "border-slate-200 bg-slate-50 text-slate-500 dark:text-slate-400 dark:border-slate-700 dark:bg-slate-800" },
+  CLOSED: { label: "Filled by Someone Else", tone: "border-slate-200 bg-slate-50 text-slate-500 dark:text-slate-400 dark:border-slate-700 dark:bg-slate-800" },
 };
 
 export default function WorkerWorkspace() {
@@ -306,16 +306,16 @@ export default function WorkerWorkspace() {
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[#1B3FAB]" />
+      <div className="flex h-full items-center justify-center dark:bg-slate-950">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[#1B3FAB] dark:border-slate-700" />
       </div>
     );
   }
 
   if (loadError) {
     return (
-      <div className="p-7">
-        <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+      <div className="p-7 dark:bg-slate-950">
+        <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400">
           <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
           <span>{loadError}</span>
         </div>
@@ -330,27 +330,27 @@ export default function WorkerWorkspace() {
           ChatThread.jsx) so a chat-banned worker sees this the moment they
           land in their workspace, before they even open a conversation. */}
       {currentUser?.is_chat_banned && (
-        <div className="flex flex-shrink-0 items-start gap-2 border-b border-amber-200 bg-amber-50 px-5 py-3">
+        <div className="flex flex-shrink-0 items-start gap-2 border-b border-amber-200 bg-amber-50 px-5 py-3 dark:border-amber-900/40 dark:bg-amber-950/30">
           <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600" />
-          <p className="text-sm font-semibold text-amber-800">
+          <p className="text-sm font-semibold text-amber-800 dark:text-amber-400">
             Your chat privileges have been temporarily suspended due to a policy violation. You can still submit
             active deliverables to receive payment.
           </p>
         </div>
       )}
-      <div className="flex min-h-0 flex-1 overflow-hidden overflow-x-hidden bg-slate-50 md:flex-row">
-      <aside className="flex max-h-[45vh] min-h-0 w-full flex-col border-b border-slate-200 bg-slate-50 p-4 sm:p-5 md:max-h-none md:w-[40%] md:min-w-[320px] md:max-w-[440px] md:border-b-0 md:border-r">
+      <div className="flex min-h-0 flex-1 overflow-hidden overflow-x-hidden bg-slate-50 dark:bg-slate-950 md:flex-row">
+      <aside className="flex max-h-[45vh] min-h-0 w-full flex-col border-b border-slate-200 bg-slate-50 p-4 sm:p-5 md:max-h-none md:w-[40%] md:min-w-[320px] md:max-w-[440px] md:border-b-0 md:border-r dark:border-slate-800 dark:bg-slate-950">
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Pipeline</p>
-            <h2 className="text-lg font-semibold text-slate-900">Your active work</h2>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400 dark:text-slate-500">Pipeline</p>
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Your active work</h2>
           </div>
-          <div className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-500 shadow-sm">
+          <div className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-500 dark:text-slate-400 shadow-sm dark:bg-slate-800">
             {tasks.length} live
           </div>
         </div>
 
-        <div className="mb-4 flex gap-1 rounded-2xl bg-slate-100 p-1">
+        <div className="mb-4 flex gap-1 rounded-2xl bg-slate-100 dark:bg-slate-800 p-1">
           {[
             { id: "applied", label: "Applied", count: pendingApplicationCount, icon: Clock3 },
             { id: "tasks", label: "Active Tasks", count: tasks.length, icon: Briefcase },
@@ -362,12 +362,12 @@ export default function WorkerWorkspace() {
                 key={id}
                 onClick={() => handlePipelineTab(id)}
                 className={`flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-xl px-2 py-2 text-xs font-semibold transition-all ${
-                  active ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
+                  active ? "bg-white text-slate-900 dark:text-white shadow-sm dark:bg-slate-700" : "text-slate-500 dark:text-slate-400"
                 }`}
               >
                 <Icon className="h-3.5 w-3.5" />
                 <span>{label}</span>
-                <span className={`rounded-full px-2 py-0.5 text-[10px] ${active ? "bg-[#ff6b35] text-white" : "bg-slate-200 text-slate-600"}`}>
+                <span className={`rounded-full px-2 py-0.5 text-[10px] ${active ? "bg-[#ff6b35] text-white" : "bg-slate-200 text-slate-600 dark:text-slate-300 dark:bg-slate-700"}`}>
                   {count}
                 </span>
               </button>
@@ -378,7 +378,7 @@ export default function WorkerWorkspace() {
         <div className="flex-1 space-y-3 overflow-y-auto pr-1">
           {pipelineTab === "applied" ? (
             visibleApplications.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-slate-300 bg-white/60 p-6 text-center text-xs text-slate-400">
+              <div className="rounded-xl border border-dashed border-slate-300 bg-white/60 p-6 text-center text-xs text-slate-400 dark:text-slate-500 dark:border-slate-700 dark:bg-slate-900/60">
                 No pending applications — jobs you apply to on the Job Feed show up here.
               </div>
             ) : (
@@ -397,8 +397,8 @@ export default function WorkerWorkspace() {
                     onKeyDown={(e) => e.key === "Enter" && handleSelectApplication(application.id)}
                     className={`relative w-full cursor-pointer rounded-xl border p-4 text-left transition-all ${
                       selectedApplicationId === application.id
-                        ? "border-slate-200 border-l-4 border-l-[#FF6B35] bg-white shadow-sm"
-                        : "border-slate-200/80 bg-white/50 hover:border-slate-300 hover:bg-white hover:shadow-sm"
+                        ? "border-slate-200 border-l-4 border-l-[#FF6B35] bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800"
+                        : "border-slate-200/80 bg-white/50 hover:border-slate-300 hover:bg-white hover:shadow-sm dark:border-slate-800 dark:bg-slate-900/50 dark:hover:border-slate-700 dark:hover:bg-slate-800"
                     }`}
                   >
                     {isResolved && (
@@ -410,20 +410,20 @@ export default function WorkerWorkspace() {
                         }}
                         aria-label="Dismiss this application"
                         title="Dismiss"
-                        className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full text-slate-300 transition-colors hover:bg-slate-100 hover:text-slate-500"
+                        className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full text-slate-300 transition-colors hover:bg-slate-100 hover:text-slate-500 dark:text-slate-400 dark:hover:bg-slate-800"
                       >
                         <X className="h-3.5 w-3.5" />
                       </button>
                     )}
                     <div className="min-w-0 pr-5">
-                      <p className="truncate text-sm font-semibold text-slate-900">{application.project_title}</p>
-                      <p className="mt-1 text-xs text-slate-500">{application.business_name}</p>
+                      <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">{application.project_title}</p>
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{application.business_name}</p>
                     </div>
                     <div className="mt-3 flex items-center justify-between gap-2">
                       <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${statusMeta.tone}`}>
                         {statusMeta.label}
                       </span>
-                      <span className="text-sm font-semibold text-slate-900">
+                      <span className="text-sm font-semibold text-slate-900 dark:text-white">
                         ₹{Number(application.budget).toLocaleString("en-IN")}
                       </span>
                     </div>
@@ -434,7 +434,7 @@ export default function WorkerWorkspace() {
           ) : (
             <>
               {activeList.length === 0 && (
-                <div className="rounded-xl border border-dashed border-slate-300 bg-white/60 p-6 text-center text-xs text-slate-400">
+                <div className="rounded-xl border border-dashed border-slate-300 bg-white/60 p-6 text-center text-xs text-slate-400 dark:text-slate-500 dark:border-slate-700 dark:bg-slate-900/60">
                   {pipelineTab === "tasks" ? "No active tasks yet." : "No completed projects yet."}
                 </div>
               )}
@@ -449,14 +449,14 @@ export default function WorkerWorkspace() {
                     onClick={() => handleSelectTask(task.id)}
                     className={`w-full rounded-xl border p-4 text-left transition-all ${
                       selectedTaskId === task.id
-                        ? "border-slate-200 border-l-4 border-l-[#FF6B35] bg-white shadow-sm"
-                        : "border-slate-200/80 bg-white/50 hover:border-slate-300 hover:bg-white hover:shadow-sm"
+                        ? "border-slate-200 border-l-4 border-l-[#FF6B35] bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800"
+                        : "border-slate-200/80 bg-white/50 hover:border-slate-300 hover:bg-white hover:shadow-sm dark:border-slate-800 dark:bg-slate-900/50 dark:hover:border-slate-700 dark:hover:bg-slate-800"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-slate-900">{task.title}</p>
-                        <p className="mt-1 text-xs text-slate-500">{task.business_name}</p>
+                        <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">{task.title}</p>
+                        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{task.business_name}</p>
                       </div>
                       {task.new_deliverables_count > 0 && (
                         <span
@@ -472,13 +472,13 @@ export default function WorkerWorkspace() {
                       <span
                         className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${
                           task.status === "COMPLETED"
-                            ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                            : "border-slate-200 bg-slate-50 text-slate-600"
+                            ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-400"
+                            : "border-slate-200 bg-slate-50 text-slate-600 dark:text-slate-300 dark:border-slate-700 dark:bg-slate-800"
                         }`}
                       >
                         {meta?.label}
                       </span>
-                      <span className="text-sm font-semibold text-slate-900">₹{Number(task.budget).toLocaleString("en-IN")}</span>
+                      <span className="text-sm font-semibold text-slate-900 dark:text-white">₹{Number(task.budget).toLocaleString("en-IN")}</span>
                     </div>
                   </motion.button>
                 );
@@ -488,7 +488,7 @@ export default function WorkerWorkspace() {
         </div>
       </aside>
 
-      <main className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50/50">
+      <main className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50/50 dark:bg-slate-950">
         {pipelineTab === "applied" ? (
           selectedApplication ? (
             <ApplicationDetail application={selectedApplication} navigate={navigate} />
@@ -498,12 +498,12 @@ export default function WorkerWorkspace() {
         ) : selectedTask?.status === "COMPLETED" ? (
           existingReview === undefined ? (
             <div className="flex h-full items-center justify-center">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[#1B3FAB]" />
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[#1B3FAB] dark:border-slate-700" />
             </div>
           ) : (
             <>
               {reviewError && (
-                <div className="m-6 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+                <div className="m-6 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400">
                   <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                   <span>{reviewError}</span>
                 </div>
@@ -529,15 +529,15 @@ export default function WorkerWorkspace() {
           )
         ) : selectedTask ? (
           <>
-            <header className="sticky top-0 z-10 flex flex-col gap-4 border-b border-slate-200 bg-white p-4 sm:p-6 md:flex-row md:items-start md:justify-between">
+            <header className="sticky top-0 z-10 flex flex-col gap-4 border-b border-slate-200 bg-white p-4 sm:p-6 md:flex-row md:items-start md:justify-between dark:border-slate-800 dark:bg-slate-900">
                 <div className="min-w-0">
-                  <span className="inline-flex rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-semibold text-slate-600">
+                  <span className="inline-flex rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-semibold text-slate-600 dark:text-slate-300 dark:border-slate-700 dark:bg-slate-800">
                     {PROJECT_STATUS_META[selectedTask.status]?.label}
                   </span>
-                  <h3 className="mt-3 text-xl font-bold text-slate-900 sm:text-2xl" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                  <h3 className="mt-3 text-xl font-bold text-slate-900 dark:text-white sm:text-2xl" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                     {selectedTask.title}
                   </h3>
-                  <p className="mt-2 text-sm font-medium text-slate-500">
+                  <p className="mt-2 text-sm font-medium text-slate-500 dark:text-slate-400">
                     {selectedTask.business_name}
                     {selectedTask.deadline && ` / Due ${new Date(selectedTask.deadline).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}`}
                   </p>
@@ -547,7 +547,7 @@ export default function WorkerWorkspace() {
                 </div>
                 <div className="flex flex-col items-start gap-3 md:items-end">
                   <div className="md:text-right">
-                    <p className="text-xl font-bold text-slate-900 sm:text-2xl">₹{Number(selectedTask.budget).toLocaleString("en-IN")}</p>
+                    <p className="text-xl font-bold text-slate-900 dark:text-white sm:text-2xl">₹{Number(selectedTask.budget).toLocaleString("en-IN")}</p>
                     {selectedTask.status !== "ACCEPTED" && (
                       <p className="mt-0.5 text-xs font-bold text-emerald-600">Funds Secured</p>
                     )}
@@ -557,7 +557,7 @@ export default function WorkerWorkspace() {
 
             <div className="flex-1 space-y-6 overflow-y-auto p-4 pb-40 sm:p-8">
               {actionError && (
-                <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+                <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400">
                   <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                   <span>{actionError}</span>
                 </div>
@@ -566,14 +566,14 @@ export default function WorkerWorkspace() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25, delay: 0.05 }}
-              className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6"
+              className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6 dark:border-slate-800 dark:bg-slate-900"
             >
               <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <h4 className="text-base font-bold text-slate-900">Project Lifecycle</h4>
-                  <p className="mt-1 text-sm text-slate-500">Connected delivery timeline for payment release.</p>
+                  <h4 className="text-base font-bold text-slate-900 dark:text-white">Project Lifecycle</h4>
+                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Connected delivery timeline for payment release.</p>
                 </div>
-                <span className="self-start rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 sm:self-auto">Secure delivery</span>
+                <span className="self-start rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 sm:self-auto dark:bg-emerald-950/30 dark:text-emerald-400">Secure delivery</span>
               </div>
               <div className="-mx-4 sm:-mx-6">
                 <TimelineTracker status={selectedTask.status} />
@@ -602,7 +602,7 @@ export default function WorkerWorkspace() {
                underneath it (e.g. the "Open Chat in Negotiations" button),
                blocking clicks on empty space that isn't even part of this
                action. */
-            <div className="absolute bottom-3 right-3 z-20 flex max-w-[calc(100%-1.5rem)] flex-wrap items-center justify-end gap-2 rounded-xl border border-slate-200 bg-white/95 p-2 shadow-[0_16px_40px_rgba(15,23,42,0.12)] backdrop-blur sm:bottom-5 sm:right-8 sm:gap-3 sm:p-2.5">
+            <div className="absolute bottom-3 right-3 z-20 flex max-w-[calc(100%-1.5rem)] flex-wrap items-center justify-end gap-2 rounded-xl border border-slate-200 bg-white/95 p-2 shadow-[0_16px_40px_rgba(15,23,42,0.12)] backdrop-blur sm:bottom-5 sm:right-8 sm:gap-3 sm:p-2.5 dark:border-slate-700 dark:bg-slate-900/95">
               {selectedTask.status === "FILES_SUBMITTED" && (
                 <span className="flex min-h-[36px] items-center gap-2 whitespace-nowrap text-xs font-semibold text-amber-600">
                   <span className="h-2 w-2 flex-shrink-0 animate-pulse rounded-full bg-amber-500" />
@@ -661,13 +661,13 @@ export default function WorkerWorkspace() {
 
 function WorkspaceEmptyState() {
   return (
-    <div className="flex h-full items-center justify-center rounded-[28px] border border-dashed border-slate-300 bg-slate-50/70 p-10 text-center">
+    <div className="flex h-full items-center justify-center rounded-[28px] border border-dashed border-slate-300 bg-slate-50/70 p-10 text-center dark:border-slate-700 dark:bg-slate-900/70">
       <div>
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-sm">
-          <Briefcase className="h-8 w-8 text-slate-400" />
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-sm dark:bg-slate-800">
+          <Briefcase className="h-8 w-8 text-slate-400 dark:text-slate-500" />
         </div>
-        <h3 className="mt-4 text-lg font-semibold text-slate-900">Pick a project</h3>
-        <p className="mt-2 max-w-xs text-sm text-slate-500">Choose a task from your pipeline and its workspace opens up here.</p>
+        <h3 className="mt-4 text-lg font-semibold text-slate-900 dark:text-white">Pick a project</h3>
+        <p className="mt-2 max-w-xs text-sm text-slate-500 dark:text-slate-400">Choose a task from your pipeline and its workspace opens up here.</p>
       </div>
     </div>
   );
@@ -675,13 +675,13 @@ function WorkspaceEmptyState() {
 
 function ApplicationEmptyState() {
   return (
-    <div className="flex h-full items-center justify-center rounded-[28px] border border-dashed border-slate-300 bg-slate-50/70 p-10 text-center">
+    <div className="flex h-full items-center justify-center rounded-[28px] border border-dashed border-slate-300 bg-slate-50/70 p-10 text-center dark:border-slate-700 dark:bg-slate-900/70">
       <div>
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-sm">
-          <Clock3 className="h-8 w-8 text-slate-400" />
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-sm dark:bg-slate-800">
+          <Clock3 className="h-8 w-8 text-slate-400 dark:text-slate-500" />
         </div>
-        <h3 className="mt-4 text-lg font-semibold text-slate-900">Pick an application</h3>
-        <p className="mt-2 max-w-xs text-sm text-slate-500">Choose one from the list to see what you sent and where it stands.</p>
+        <h3 className="mt-4 text-lg font-semibold text-slate-900 dark:text-white">Pick an application</h3>
+        <p className="mt-2 max-w-xs text-sm text-slate-500 dark:text-slate-400">Choose one from the list to see what you sent and where it stands.</p>
       </div>
     </div>
   );
@@ -702,36 +702,36 @@ function ApplicationDetail({ application, navigate }) {
 
   return (
     <div className="flex-1 space-y-6 overflow-y-auto p-4 pb-40 sm:p-8">
-      <header className="border-b border-slate-200 bg-white p-4 sm:p-6">
+      <header className="border-b border-slate-200 bg-white p-4 sm:p-6 dark:border-slate-800 dark:bg-slate-900">
         <span className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold ${statusMeta.tone}`}>
           {statusMeta.label}
         </span>
-        <h3 className="mt-3 text-xl font-bold text-slate-900 sm:text-2xl" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+        <h3 className="mt-3 text-xl font-bold text-slate-900 dark:text-white sm:text-2xl" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
           {application.project_title}
         </h3>
-        <p className="mt-2 text-sm font-medium text-slate-500">
+        <p className="mt-2 text-sm font-medium text-slate-500 dark:text-slate-400">
           {application.business_name} · Applied {appliedDate}
         </p>
-        <p className="mt-2 text-xl font-bold text-slate-900">₹{Number(application.budget).toLocaleString("en-IN")}</p>
+        <p className="mt-2 text-xl font-bold text-slate-900 dark:text-white">₹{Number(application.budget).toLocaleString("en-IN")}</p>
       </header>
 
       {application.description && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-5">
-          <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Job Brief</p>
-          <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-600">{application.description}</p>
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+          <p className="text-xs font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">Job Brief</p>
+          <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-600 dark:text-slate-300">{application.description}</p>
         </div>
       )}
 
       {application.message && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-5">
-          <p className="text-xs font-bold uppercase tracking-wide text-slate-400">What you sent them</p>
-          <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-600">{application.message}</p>
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+          <p className="text-xs font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">What you sent them</p>
+          <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-600 dark:text-slate-300">{application.message}</p>
         </div>
       )}
 
-      <div className="flex items-start gap-2.5 rounded-xl border border-blue-100 bg-blue-50 p-3.5">
+      <div className="flex items-start gap-2.5 rounded-xl border border-blue-100 bg-blue-50 p-3.5 dark:border-blue-900/40 dark:bg-blue-500/10">
         <MessageSquare className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-blue-500" />
-        <p className="text-xs leading-relaxed text-blue-700">
+        <p className="text-xs leading-relaxed text-blue-700 dark:text-blue-400">
           {application.status === "PENDING"
             ? "This business hasn't decided yet — messaging opens up automatically here if they accept you."
             : application.status === "DECLINED"
@@ -743,7 +743,7 @@ function ApplicationDetail({ application, navigate }) {
       <button
         type="button"
         onClick={() => navigate("/worker")}
-        className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50"
+        className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700"
       >
         <Briefcase className="h-3.5 w-3.5" />
         Back to Job Feed

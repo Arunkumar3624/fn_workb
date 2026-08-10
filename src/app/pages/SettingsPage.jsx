@@ -127,9 +127,9 @@ function GeneralProfileTab() {
           <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" disabled={avatarUploading} />
         </label>
         <div>
-          <p className="text-sm font-bold text-[#0A1128]">Profile photo</p>
+          <p className="text-sm font-bold text-[#0A1128] dark:text-white">Profile photo</p>
           <p className="text-xs text-slate-400">JPG or PNG, under 1.5MB.</p>
-          {avatarError && <p className="mt-1 text-xs text-red-500">{avatarError}</p>}
+          {avatarError && <p className="mt-1 text-xs text-red-500 dark:text-red-400">{avatarError}</p>}
         </div>
       </div>
 
@@ -139,7 +139,7 @@ function GeneralProfileTab() {
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-[#FF6B35] focus:ring-2 focus:ring-orange-500/30"
+            className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-[#FF6B35] focus:ring-2 focus:ring-orange-500/30 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
           />
         </div>
         <div>
@@ -148,18 +148,18 @@ function GeneralProfileTab() {
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder="10-digit number"
-            className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-[#FF6B35] focus:ring-2 focus:ring-orange-500/30"
+            className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-[#FF6B35] focus:ring-2 focus:ring-orange-500/30 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500"
           />
         </div>
 
         {saveError && (
-          <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-2.5 text-sm text-red-600">
+          <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-2.5 text-sm text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400">
             <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
             <span>{saveError}</span>
           </div>
         )}
         {saved && (
-          <div className="flex items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700">
+          <div className="flex items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-400">
             <CheckCircle2 className="h-4 w-4 flex-shrink-0" />
             Saved.
           </div>
@@ -169,14 +169,14 @@ function GeneralProfileTab() {
           <button
             type="button"
             onClick={() => navigate(fullProfilePath)}
-            className="text-xs font-bold text-[#1B3FAB] hover:underline"
+            className="text-xs font-bold text-[#1B3FAB] hover:underline dark:text-blue-400"
           >
             Edit bio, skills &amp; more on your full profile →
           </button>
           <button
             type="submit"
             disabled={saving}
-            className="rounded-xl bg-[#0A1128] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#1a2547] disabled:opacity-60"
+            className="rounded-xl bg-[#0A1128] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#1a2547] disabled:opacity-60 dark:bg-white dark:text-[#0A1128] dark:hover:bg-slate-200"
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save changes"}
           </button>
@@ -226,46 +226,46 @@ function SecurityTab() {
     <div className="space-y-6">
       <SectionCard>
         <div className="flex items-center gap-2">
-          <ShieldCheck className={`h-4 w-4 ${currentUser?.email_verified ? "text-emerald-500" : "text-slate-300"}`} />
-          <p className="text-sm font-semibold text-slate-700">
+          <ShieldCheck className={`h-4 w-4 ${currentUser?.email_verified ? "text-emerald-500" : "text-slate-300 dark:text-slate-600"}`} />
+          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
             Email {currentUser?.email_verified ? "verified" : "not verified"}
           </p>
         </div>
       </SectionCard>
 
       <SectionCard>
-        <p className="mb-4 text-sm font-bold text-[#0A1128]">Change Password</p>
+        <p className="mb-4 text-sm font-bold text-[#0A1128] dark:text-white">Change Password</p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="password"
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
             placeholder="Current password"
-            className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-[#FF6B35] focus:ring-2 focus:ring-orange-500/30"
+            className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-[#FF6B35] focus:ring-2 focus:ring-orange-500/30 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500"
           />
           <input
             type="password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             placeholder="New password (min. 8 characters)"
-            className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-[#FF6B35] focus:ring-2 focus:ring-orange-500/30"
+            className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-[#FF6B35] focus:ring-2 focus:ring-orange-500/30 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500"
           />
           <input
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             placeholder="Confirm new password"
-            className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-[#FF6B35] focus:ring-2 focus:ring-orange-500/30"
+            className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-[#FF6B35] focus:ring-2 focus:ring-orange-500/30 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500"
           />
 
           {error && (
-            <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-2.5 text-sm text-red-600">
+            <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-2.5 text-sm text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400">
               <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
               <span>{error}</span>
             </div>
           )}
           {success && (
-            <div className="flex items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700">
+            <div className="flex items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-400">
               <CheckCircle2 className="h-4 w-4 flex-shrink-0" />
               Password updated.
             </div>
@@ -274,7 +274,7 @@ function SecurityTab() {
           <button
             type="submit"
             disabled={submitting || !currentPassword || !newPassword}
-            className="rounded-xl bg-[#0A1128] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#1a2547] disabled:opacity-60"
+            className="rounded-xl bg-[#0A1128] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#1a2547] disabled:opacity-60 dark:bg-white dark:text-[#0A1128] dark:hover:bg-slate-200"
           >
             {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Update password"}
           </button>
@@ -289,12 +289,12 @@ function SecurityTab() {
 // the browser level — only fixable from the browser's own site settings),
 // "subscribed", "unsubscribed", or "checking" while getPushStatus resolves.
 const PUSH_STATUS_COPY = {
-  checking: { label: "Checking…", dot: "bg-slate-300", tone: "text-slate-400 bg-slate-50 border-slate-200" },
-  unsupported: { label: "Not supported on this browser", dot: "bg-slate-300", tone: "text-slate-400 bg-slate-50 border-slate-200" },
-  "not-configured": { label: "Not available yet", dot: "bg-slate-300", tone: "text-slate-400 bg-slate-50 border-slate-200" },
-  denied: { label: "Blocked in browser settings", dot: "bg-red-500", tone: "text-red-600 bg-red-50 border-red-100" },
-  subscribed: { label: "Enabled on this device", dot: "bg-emerald-500", tone: "text-emerald-600 bg-emerald-50 border-emerald-100" },
-  unsubscribed: { label: "Off on this device", dot: "bg-slate-300", tone: "text-slate-500 bg-slate-50 border-slate-200" },
+  checking: { label: "Checking…", dot: "bg-slate-300", tone: "text-slate-400 bg-slate-50 border-slate-200 dark:text-slate-500 dark:bg-slate-800 dark:border-slate-700" },
+  unsupported: { label: "Not supported on this browser", dot: "bg-slate-300", tone: "text-slate-400 bg-slate-50 border-slate-200 dark:text-slate-500 dark:bg-slate-800 dark:border-slate-700" },
+  "not-configured": { label: "Not available yet", dot: "bg-slate-300", tone: "text-slate-400 bg-slate-50 border-slate-200 dark:text-slate-500 dark:bg-slate-800 dark:border-slate-700" },
+  denied: { label: "Blocked in browser settings", dot: "bg-red-500", tone: "text-red-600 bg-red-50 border-red-100 dark:text-red-400 dark:bg-red-950/30 dark:border-red-900/40" },
+  subscribed: { label: "Enabled on this device", dot: "bg-emerald-500", tone: "text-emerald-600 bg-emerald-50 border-emerald-100 dark:text-emerald-400 dark:bg-emerald-950/30 dark:border-emerald-900/40" },
+  unsubscribed: { label: "Off on this device", dot: "bg-slate-300", tone: "text-slate-500 bg-slate-50 border-slate-200 dark:text-slate-400 dark:bg-slate-800 dark:border-slate-700" },
 };
 
 function NotificationsTab() {
@@ -340,12 +340,12 @@ function NotificationsTab() {
       <SectionCard>
         <div className="flex items-start justify-between gap-5">
           <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-50 to-amber-50 text-[#FF6B35] ring-1 ring-orange-100">
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-50 to-amber-50 text-[#FF6B35] ring-1 ring-orange-100 dark:from-orange-500/10 dark:to-amber-500/10 dark:ring-orange-500/20">
               <Bell className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-[#0A1128]">Push Notifications</h3>
-              <p className="mt-1 max-w-md text-sm leading-6 text-slate-500">
+              <h3 className="text-sm font-bold text-[#0A1128] dark:text-white">Push Notifications</h3>
+              <p className="mt-1 max-w-md text-sm leading-6 text-slate-500 dark:text-slate-400">
                 Get a real notification on this device for new messages, invites, applications, and project updates —
                 even when WorkBridge isn't open in a tab.
               </p>
@@ -355,7 +355,7 @@ function NotificationsTab() {
                 <span className={`h-1.5 w-1.5 rounded-full ${copy.dot} ${status === "subscribed" ? "animate-pulse" : ""}`} />
                 {copy.label}
               </span>
-              {error && <p className="mt-2 text-xs font-semibold text-red-500">{error}</p>}
+              {error && <p className="mt-2 text-xs font-semibold text-red-500 dark:text-red-400">{error}</p>}
             </div>
           </div>
           {canToggle && (
@@ -366,7 +366,7 @@ function NotificationsTab() {
               aria-checked={isOn}
               aria-label="Toggle push notifications"
               className={`relative h-8 w-14 flex-shrink-0 rounded-full shadow-inner transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${
-                isOn ? "bg-[#FF6B35]" : "bg-slate-200"
+                isOn ? "bg-[#FF6B35]" : "bg-slate-200 dark:bg-slate-700"
               }`}
             >
               <span
@@ -406,14 +406,14 @@ function BillingTab() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-50 to-white p-6">
+      <div className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-50 to-white p-6 dark:border-slate-800 dark:from-slate-800/60 dark:to-slate-900">
         <div>
           <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Current Plan</p>
-          <p className="mt-1 text-2xl font-black text-[#0A1128]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          <p className="mt-1 text-2xl font-black text-[#0A1128] dark:text-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
             Standard
           </p>
         </div>
-        <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+        <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
           <ShieldCheck className="h-5 w-5" />
         </span>
       </div>
@@ -423,8 +423,8 @@ function BillingTab() {
           const cardCls = tier.premium
             ? "bg-[#0F172A] text-white border border-white/10 shadow-lg shadow-slate-900/20"
             : tier.highlight
-              ? "bg-white border-2 border-[#FF6B35] shadow-md shadow-orange-500/10"
-              : "bg-white border border-slate-200";
+              ? "bg-white border-2 border-[#FF6B35] shadow-md shadow-orange-500/10 dark:bg-slate-900"
+              : "bg-white border border-slate-200 dark:bg-slate-900 dark:border-slate-800";
 
           return (
             <div key={tier.name} className={`relative flex flex-col rounded-2xl p-6 transition-transform duration-300 hover:-translate-y-1 ${cardCls}`}>
@@ -443,7 +443,7 @@ function BillingTab() {
                 {tier.name}
               </p>
               <p className="mt-1.5 flex items-baseline gap-1">
-                <span className="text-2xl font-black" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                <span className={`text-2xl font-black ${tier.premium ? "" : "text-[#0A1128] dark:text-white"}`} style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                   {tier.price}
                 </span>
                 {tier.period && <span className={`text-xs font-semibold ${tier.premium ? "text-slate-400" : "text-slate-400"}`}>{tier.period}</span>}
@@ -454,12 +454,12 @@ function BillingTab() {
                   <li key={perk} className="flex items-start gap-2 text-xs leading-5">
                     <span
                       className={`mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full ${
-                        tier.premium ? "bg-emerald-400/20 text-emerald-300" : "bg-emerald-50 text-emerald-600"
+                        tier.premium ? "bg-emerald-400/20 text-emerald-300" : "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400"
                       }`}
                     >
                       <Check className="h-2.5 w-2.5" />
                     </span>
-                    <span className={tier.premium ? "text-slate-300" : "text-slate-600"}>{perk}</span>
+                    <span className={tier.premium ? "text-slate-300" : "text-slate-600 dark:text-slate-300"}>{perk}</span>
                   </li>
                 ))}
               </ul>
@@ -467,7 +467,11 @@ function BillingTab() {
               <button
                 disabled
                 className={`mt-6 w-full cursor-not-allowed rounded-xl py-2.5 text-xs font-bold ${
-                  tier.premium ? "bg-white/10 text-slate-300" : tier.name === "Standard" ? "bg-slate-100 text-slate-500" : "border border-slate-200 text-slate-400"
+                  tier.premium
+                    ? "bg-white/10 text-slate-300"
+                    : tier.name === "Standard"
+                      ? "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+                      : "border border-slate-200 text-slate-400 dark:border-slate-700 dark:text-slate-500"
                 }`}
               >
                 {tier.name === "Standard" ? "Current Plan" : "Coming soon"}
@@ -506,9 +510,9 @@ function DangerZoneTab() {
 
   return (
     <SectionCard>
-      <div className="rounded-xl border border-red-200 bg-red-50 p-5">
-        <p className="text-sm font-bold text-red-700">Deactivate My Account</p>
-        <p className="mt-1.5 text-xs leading-relaxed text-red-600">
+      <div className="rounded-xl border border-red-200 bg-red-50 p-5 dark:border-red-900/40 dark:bg-red-950/20">
+        <p className="text-sm font-bold text-red-700 dark:text-red-400">Deactivate My Account</p>
+        <p className="mt-1.5 text-xs leading-relaxed text-red-600 dark:text-red-400/80">
           Your account will be immediately signed out and blocked from signing back in. This is reversible —
           contact support if you change your mind. This does not permanently delete your data.
         </p>
@@ -517,10 +521,10 @@ function DangerZoneTab() {
             value={confirmation}
             onChange={(e) => setConfirmation(e.target.value)}
             placeholder='Type "DEACTIVATE" to confirm'
-            className="w-full rounded-xl border border-red-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-red-400 focus:ring-4 focus:ring-red-100"
+            className="w-full rounded-xl border border-red-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-red-400 focus:ring-4 focus:ring-red-100 dark:border-red-900/40 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
           />
           {error && (
-            <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-white px-4 py-2.5 text-sm text-red-600">
+            <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-white px-4 py-2.5 text-sm text-red-600 dark:border-red-900/40 dark:bg-slate-900 dark:text-red-400">
               <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
               <span>{error}</span>
             </div>
@@ -579,8 +583,8 @@ export default function SettingsPage() {
                 onClick={() => setActiveTab(id)}
                 className={`flex flex-shrink-0 items-center gap-2.5 rounded-xl px-4 py-3 text-left text-sm font-bold transition-colors md:w-full ${
                   activeTab === id
-                    ? "bg-[#0A1128] text-white shadow-sm"
-                    : "text-slate-500 hover:bg-white hover:text-slate-800 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+                    ? "bg-[#0A1128] text-white shadow-sm dark:bg-white dark:text-[#0A1128]"
+                    : "text-slate-500 hover:bg-white hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
                 }`}
               >
                 <Icon className="h-4 w-4 flex-shrink-0" />

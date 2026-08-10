@@ -29,7 +29,7 @@ export default function WorkerLevelRing({ level, currentXp, nextLevelXp, progres
             cy={SIZE / 2}
             r={RADIUS}
             fill="none"
-            className="stroke-slate-200"
+            className="stroke-slate-200 dark:stroke-slate-800"
             strokeWidth={STROKE}
           />
           <motion.circle
@@ -48,14 +48,14 @@ export default function WorkerLevelRing({ level, currentXp, nextLevelXp, progres
         </svg>
 
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Level</span>
-          <span className="text-5xl font-extrabold leading-none text-slate-900" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          <span className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Level</span>
+          <span className="text-5xl font-extrabold leading-none text-slate-900 dark:text-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
             {level}
           </span>
         </div>
       </div>
 
-      <div className="rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs font-bold text-slate-600 shadow-sm">
+      <div className="rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs font-bold text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
         {isMaxLevel ? "Max level reached" : `${currentXp.toLocaleString("en-IN")} / ${nextLevelXp.toLocaleString("en-IN")} XP to next level`}
       </div>
     </div>

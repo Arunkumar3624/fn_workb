@@ -73,15 +73,15 @@ function formatDueDate(deadline) {
 }
 
 function getProjectStatus(project) {
-  if (project.status === "INVITED") return { label: "Pending Invite", className: "bg-orange-50 text-orange-700 border-orange-100" };
-  if (project.status === "ACCEPTED") return { label: "Negotiating", className: "bg-blue-50 text-blue-700 border-blue-100" };
-  if (project.status === "PENDING_FUNDS") return { label: "Verifying Funds", className: "bg-amber-50 text-amber-700 border-amber-100" };
-  if (project.status === "FUNDS_SECURED") return { label: "Escrow Locked", className: "bg-emerald-50 text-emerald-700 border-emerald-100" };
-  if (project.status === "WORK_IN_PROGRESS") return { label: "In Progress", className: "bg-slate-100 text-slate-700 border-slate-200" };
-  if (project.status === "FILES_SUBMITTED") return { label: "In Review", className: "bg-amber-50 text-amber-700 border-amber-100" };
-  if (project.status === "COMPLETED") return { label: "Completed", className: "bg-emerald-50 text-emerald-700 border-emerald-100" };
-  if (project.status === "CANCELLED") return { label: "Cancelled", className: "bg-slate-100 text-slate-500 border-slate-200" };
-  return { label: project.status ?? "Active", className: "bg-slate-100 text-slate-600 border-slate-200" };
+  if (project.status === "INVITED") return { label: "Pending Invite", className: "bg-orange-50 text-orange-700 border-orange-100 dark:bg-orange-500/10 dark:text-orange-400 dark:border-orange-900/40" };
+  if (project.status === "ACCEPTED") return { label: "Negotiating", className: "bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-900/40" };
+  if (project.status === "PENDING_FUNDS") return { label: "Verifying Funds", className: "bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900/40" };
+  if (project.status === "FUNDS_SECURED") return { label: "Escrow Locked", className: "bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/40" };
+  if (project.status === "WORK_IN_PROGRESS") return { label: "In Progress", className: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700" };
+  if (project.status === "FILES_SUBMITTED") return { label: "In Review", className: "bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900/40" };
+  if (project.status === "COMPLETED") return { label: "Completed", className: "bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/40" };
+  if (project.status === "CANCELLED") return { label: "Cancelled", className: "bg-slate-100 text-slate-500 dark:text-slate-400 border-slate-200 dark:bg-slate-800 dark:border-slate-700" };
+  return { label: project.status ?? "Active", className: "bg-slate-100 text-slate-600 dark:text-slate-300 border-slate-200 dark:bg-slate-800 dark:border-slate-700" };
 }
 
 // The sidebar row's own summary badge — one counterparty can be behind
@@ -90,13 +90,13 @@ function getProjectStatus(project) {
 // otherwise it's pure history.
 function getThreadBadge(group) {
   if (group.some((p) => p.status === "INVITED")) {
-    return { label: "Pending Invite", className: "bg-orange-50 text-orange-700 border-orange-100" };
+    return { label: "Pending Invite", className: "bg-orange-50 text-orange-700 border-orange-100 dark:bg-orange-500/10 dark:text-orange-400 dark:border-orange-900/40" };
   }
   const activeCount = group.filter((p) => !CLOSED_STATUSES.has(p.status)).length;
   if (activeCount > 0) {
-    return { label: activeCount === 1 ? "Active" : `${activeCount} Active`, className: "bg-blue-50 text-blue-700 border-blue-100" };
+    return { label: activeCount === 1 ? "Active" : `${activeCount} Active`, className: "bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-900/40" };
   }
-  return { label: "History", className: "bg-slate-100 text-slate-500 border-slate-200" };
+  return { label: "History", className: "bg-slate-100 text-slate-500 dark:text-slate-400 border-slate-200 dark:bg-slate-800 dark:border-slate-700" };
 }
 
 function MotionPanel({ children, panelKey }) {
@@ -119,16 +119,16 @@ function FieldPill({ icon: Icon, label, value, dark = false }) {
       className={`rounded-2xl border px-4 py-3 shadow-sm ${
         dark
           ? "border-emerald-900 bg-slate-900 text-white"
-          : "border-slate-200 bg-white text-slate-900"
+          : "border-slate-200 bg-white text-slate-900 dark:text-white dark:border-slate-700 dark:bg-slate-800"
       }`}
     >
       <div className="flex items-center gap-2">
-        <Icon className={`h-4 w-4 ${dark ? "text-emerald-300" : "text-slate-400"}`} />
-        <p className={`text-[11px] font-bold uppercase tracking-wide ${dark ? "text-emerald-200" : "text-slate-500"}`}>
+        <Icon className={`h-4 w-4 ${dark ? "text-emerald-300" : "text-slate-400 dark:text-slate-500"}`} />
+        <p className={`text-[11px] font-bold uppercase tracking-wide ${dark ? "text-emerald-200" : "text-slate-500 dark:text-slate-400"}`}>
           {label}
         </p>
       </div>
-      <p className={`mt-1 text-sm font-bold ${dark ? "text-emerald-100" : "text-slate-900"}`}>{value}</p>
+      <p className={`mt-1 text-sm font-bold ${dark ? "text-emerald-100" : "text-slate-900 dark:text-white"}`}>{value}</p>
     </div>
   );
 }
@@ -142,14 +142,14 @@ function FieldPill({ icon: Icon, label, value, dark = false }) {
 // which one it means.
 function ThreadNavigator({ threads, groupsByCounterparty, selectedThreadId, onSelect }) {
   return (
-    <section className="flex h-full min-h-0 flex-col bg-white">
-      <div className="flex-shrink-0 border-b border-slate-200 px-5 py-3">
+    <section className="flex h-full min-h-0 flex-col bg-white dark:bg-slate-950">
+      <div className="flex-shrink-0 border-b border-slate-200 px-5 py-3 dark:border-slate-800">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">All Conversations</p>
-            <h2 className="text-base font-bold text-slate-900">{threads.length} conversation{threads.length === 1 ? "" : "s"}</h2>
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">All Conversations</p>
+            <h2 className="text-base font-bold text-slate-900 dark:text-white">{threads.length} conversation{threads.length === 1 ? "" : "s"}</h2>
           </div>
-          <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-slate-500">
+          <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-slate-500 dark:text-slate-400 dark:border-slate-700 dark:bg-slate-800">
             Live
           </span>
         </div>
@@ -169,8 +169,8 @@ function ThreadNavigator({ threads, groupsByCounterparty, selectedThreadId, onSe
               onClick={() => onSelect(thread.id)}
               className={`mb-2 flex w-full items-center gap-3 rounded-2xl border p-3 text-left shadow-sm transition ${
                 selected
-                  ? "border-slate-200 border-l-4 border-l-[#FF6B35] bg-slate-100"
-                  : "border-transparent border-l-4 border-l-transparent bg-white hover:border-slate-200 hover:bg-slate-50"
+                  ? "border-slate-200 border-l-4 border-l-[#FF6B35] bg-slate-100 dark:border-slate-700 dark:bg-slate-800"
+                  : "border-transparent border-l-4 border-l-transparent bg-white hover:border-slate-200 hover:bg-slate-50 dark:bg-slate-950 dark:hover:border-slate-800 dark:hover:bg-slate-900"
               }`}
             >
               {thread.other_avatar_url ? (
@@ -184,12 +184,12 @@ function ThreadNavigator({ threads, groupsByCounterparty, selectedThreadId, onSe
               )}
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="truncate text-sm font-bold text-slate-900">{thread.other_name}</p>
+                  <p className="truncate text-sm font-bold text-slate-900 dark:text-white">{thread.other_name}</p>
                   <span className={`flex-shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold ${badge.className}`}>
                     {badge.label}
                   </span>
                 </div>
-                <p className="mt-0.5 truncate text-xs font-semibold text-slate-500">{preview}</p>
+                <p className="mt-0.5 truncate text-xs font-semibold text-slate-500 dark:text-slate-400">{preview}</p>
               </div>
             </button>
           );
@@ -204,12 +204,12 @@ function JobDetailsPanel({ project }) {
     <div>
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-400">Job invitation</p>
-          <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-slate-900">
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-400 dark:text-slate-500">Job invitation</p>
+          <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
             {project.title}
           </h2>
         </div>
-        <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-orange-50 text-[#FF6B35] ring-1 ring-orange-100">
+        <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-orange-50 text-[#FF6B35] ring-1 ring-orange-100 dark:bg-orange-500/10 dark:ring-orange-900/40">
           <Briefcase className="h-5 w-5" />
         </div>
       </div>
@@ -219,19 +219,19 @@ function JobDetailsPanel({ project }) {
         <FieldPill icon={Clock3} label="Duration" value={formatDuration(project.deadline)} />
       </div>
 
-      <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Description</p>
-        <p className="mt-2 max-h-44 overflow-y-auto pr-1 text-sm leading-6 text-slate-600 wb-scroll-clean">
+      <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800">
+        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">Description</p>
+        <p className="mt-2 max-h-44 overflow-y-auto pr-1 text-sm leading-6 text-slate-600 dark:text-slate-300 wb-scroll-clean">
           {project.description || "The client didn't add any extra details for this project."}
         </p>
       </div>
 
-      <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/70 p-4">
+      <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/70 p-4 dark:border-blue-900/40 dark:bg-blue-500/10">
         <div className="flex items-start gap-3">
           <ShieldCheck className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#1B3FAB]" />
           <div>
-            <p className="text-sm font-bold text-slate-900">Terms stay protected</p>
-            <p className="mt-1 text-xs leading-5 text-slate-500">
+            <p className="text-sm font-bold text-slate-900 dark:text-white">Terms stay protected</p>
+            <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">
               Accepting locks in the scope, budget, and timeline — no surprises later.
             </p>
           </div>
@@ -279,11 +279,11 @@ function JobDetailsModal({ project, onClose, onDecline, onAccept, actionBusy, ac
       </button>
 
       <div
-        className="relative max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl wb-scroll-clean"
+        className="relative max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl wb-scroll-clean dark:bg-slate-900"
         onClick={(event) => event.stopPropagation()}
       >
         {actionError && (
-          <div className="mb-4 flex items-start gap-2 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+          <div className="mb-4 flex items-start gap-2 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400">
             <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
             <span>{actionError}</span>
           </div>
@@ -316,8 +316,8 @@ function JobDetailsModal({ project, onClose, onDecline, onAccept, actionBusy, ac
                   // Declining cancels the project outright — one extra
                   // confirmation click so it can't be triggered by the same
                   // fat-finger tap that was aiming for Accept right above it.
-                  <div className="flex items-center gap-2 rounded-2xl border border-red-100 bg-red-50 px-4 py-3">
-                    <span className="flex-1 text-xs font-bold text-red-700">Decline this invitation?</span>
+                  <div className="flex items-center gap-2 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 dark:border-red-900/40 dark:bg-red-950/30">
+                    <span className="flex-1 text-xs font-bold text-red-700 dark:text-red-400">Decline this invitation?</span>
                     <button
                       type="button"
                       onClick={onDecline}
@@ -331,7 +331,7 @@ function JobDetailsModal({ project, onClose, onDecline, onAccept, actionBusy, ac
                       type="button"
                       onClick={() => setConfirmingDecline(false)}
                       disabled={actionBusy}
-                      className="rounded-xl border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="rounded-xl border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-900/40 dark:bg-slate-900 dark:hover:bg-red-950/30"
                     >
                       Cancel
                     </button>
@@ -341,7 +341,7 @@ function JobDetailsModal({ project, onClose, onDecline, onAccept, actionBusy, ac
                     type="button"
                     onClick={() => setConfirmingDecline(true)}
                     disabled={actionBusy}
-                    className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-600 dark:text-slate-300 shadow-sm transition hover:bg-slate-50 hover:text-slate-900 dark:text-white disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700"
                   >
                     <X className="h-4 w-4" />
                     Decline
@@ -353,7 +353,7 @@ function JobDetailsModal({ project, onClose, onDecline, onAccept, actionBusy, ac
               // on a still-INVITED project. Re-opening "View Details" on a
               // thread you've already accepted used to show the exact same
               // Accept button again, as if nothing had happened.
-              <div className="mt-6 flex items-center gap-2 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700">
+              <div className="mt-6 flex items-center gap-2 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-400">
                 <Check className="h-4 w-4 flex-shrink-0" />
                 You've already accepted this invitation — track it in Active Workspace.
               </div>
@@ -394,12 +394,12 @@ function ProjectChip({ project, onClick }) {
       type="button"
       onClick={() => onClick(project)}
       className={`flex flex-shrink-0 items-center gap-2 rounded-xl border px-3 py-2 text-left transition hover:-translate-y-0.5 hover:shadow-sm ${
-        isClosed ? "border-slate-200 bg-slate-50 opacity-70" : "border-slate-200 bg-white shadow-sm"
+        isClosed ? "border-slate-200 bg-slate-50 opacity-70 dark:border-slate-700 dark:bg-slate-800/60" : "border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800"
       }`}
     >
-      <FileText className="h-3.5 w-3.5 flex-shrink-0 text-slate-400" />
+      <FileText className="h-3.5 w-3.5 flex-shrink-0 text-slate-400 dark:text-slate-500" />
       <div className="min-w-0">
-        <p className="max-w-[140px] truncate text-xs font-bold text-slate-900">{project.title}</p>
+        <p className="max-w-[140px] truncate text-xs font-bold text-slate-900 dark:text-white">{project.title}</p>
         <span className={`mt-0.5 inline-block rounded-full border px-1.5 py-0.5 text-[9px] font-bold ${status.className}`}>
           {status.label}
         </span>
@@ -425,8 +425,8 @@ function ChatPanel({ thread, projects, onViewDetails }) {
   const isCancelled = mostUrgent?.status === "CANCELLED";
 
   return (
-    <section className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
-      <header className="sticky top-0 z-10 flex-shrink-0 border-b border-slate-200 bg-white/95 backdrop-blur-xl">
+    <section className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-slate-50 dark:bg-slate-950">
+      <header className="sticky top-0 z-10 flex-shrink-0 border-b border-slate-200 bg-white/95 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/95">
         <div className="flex items-center justify-between gap-4 pr-6">
           <div className="min-w-0 flex-1 [&>div]:border-b-0 [&>div]:bg-transparent">
             <IdentityHeader
@@ -442,17 +442,17 @@ function ChatPanel({ thread, projects, onViewDetails }) {
             <span
               className={`inline-flex flex-shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold ${
                 isCancelled
-                  ? "border-slate-200 bg-slate-100 text-slate-500"
+                  ? "border-slate-200 bg-slate-100 text-slate-500 dark:text-slate-400 dark:border-slate-700 dark:bg-slate-800"
                   : isPaidOut || fundsSecured
-                    ? "border-green-200 bg-green-50 text-green-700"
-                    : "border-amber-200 bg-amber-50 text-amber-700"
+                    ? "border-green-200 bg-green-50 text-green-700 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-400"
+                    : "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-400"
               }`}
             >
               <ShieldCheck className="h-3.5 w-3.5" />
               {isCancelled ? "Cancelled" : isPaidOut ? "Paid Out" : fundsSecured ? "Escrow Secure" : "Awaiting Escrow"}
             </span>
           ) : (
-            <span className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700">
+            <span className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-400">
               <BadgeCheck className="h-3.5 w-3.5" />
               On WorkBridge
             </span>
@@ -461,11 +461,11 @@ function ChatPanel({ thread, projects, onViewDetails }) {
 
         {mostUrgent && (
           <div className="flex flex-wrap items-center gap-3 px-6 pb-3">
-            <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-500">
+            <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-500 dark:text-slate-400 dark:border-slate-700 dark:bg-slate-800">
               <Clock3 className="h-3.5 w-3.5" />
               Due {formatDueDate(mostUrgent.deadline)}
             </span>
-            <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-500">
+            <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-500 dark:text-slate-400 dark:border-slate-700 dark:bg-slate-800">
               <IndianRupee className="h-3.5 w-3.5 text-[#FF6B35]" />
               {formatINR(mostUrgent.budget)}
             </span>
@@ -645,16 +645,16 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center bg-slate-50">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[#1B3FAB]" />
+      <div className="flex h-full items-center justify-center bg-slate-50 dark:bg-slate-950">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[#1B3FAB] dark:border-slate-700" />
       </div>
     );
   }
 
   if (loadError) {
     return (
-      <div className="flex h-full items-center justify-center bg-slate-50 p-7">
-        <div className="flex max-w-md items-start gap-2 rounded-2xl border border-red-100 bg-white px-4 py-3 text-sm text-red-600 shadow-sm">
+      <div className="flex h-full items-center justify-center bg-slate-50 p-7 dark:bg-slate-950">
+        <div className="flex max-w-md items-start gap-2 rounded-2xl border border-red-100 bg-white px-4 py-3 text-sm text-red-600 shadow-sm dark:border-red-900/40 dark:bg-slate-900 dark:text-red-400">
           <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
           <span>{loadError}</span>
         </div>
@@ -664,19 +664,19 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
 
   if (!selectedThread) {
     return (
-      <div className="flex h-full items-center justify-center bg-slate-50 p-7">
-        <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+      <div className="flex h-full items-center justify-center bg-slate-50 p-7 dark:bg-slate-950">
+        <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <MessageSquare className="mx-auto h-10 w-10 text-slate-300" />
-          <h2 className="mt-4 text-lg font-bold text-slate-900">No conversations yet</h2>
-          <p className="mt-1 text-sm text-slate-500">Your Hub for Invites, Active Projects, and Past Chats</p>
+          <h2 className="mt-4 text-lg font-bold text-slate-900 dark:text-white">No conversations yet</h2>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Your Hub for Invites, Active Projects, and Past Chats</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="relative flex h-full min-h-0 overflow-hidden bg-white" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-      <aside className="flex h-full min-h-0 w-[360px] flex-shrink-0 flex-col border-r border-slate-200 bg-white">
+    <div className="relative flex h-full min-h-0 overflow-hidden bg-white dark:bg-slate-950" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+      <aside className="flex h-full min-h-0 w-[360px] flex-shrink-0 flex-col border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
         <ThreadNavigator
           threads={threads}
           groupsByCounterparty={projectsByCounterparty}
@@ -697,7 +697,7 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
       />
 
       {toast && (
-        <div className="absolute bottom-6 left-1/2 z-20 -translate-x-1/2 rounded-2xl border border-emerald-200 bg-white px-5 py-3 text-sm font-bold text-emerald-700 shadow-md">
+        <div className="absolute bottom-6 left-1/2 z-20 -translate-x-1/2 rounded-2xl border border-emerald-200 bg-white px-5 py-3 text-sm font-bold text-emerald-700 shadow-md dark:border-emerald-900/40 dark:bg-slate-900 dark:text-emerald-400">
           <span className="flex items-center gap-2">
             <Check className="h-4 w-4" />
             {toast}

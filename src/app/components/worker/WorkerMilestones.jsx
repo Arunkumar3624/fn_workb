@@ -168,7 +168,7 @@ export default function WorkerMilestones({ embedded = false }) {
   if (loadError) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-10">
-        <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+        <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400">
           <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
           <span>{loadError}</span>
         </div>
@@ -181,11 +181,11 @@ export default function WorkerMilestones({ embedded = false }) {
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           {!embedded && (
-            <h1 className="text-xl font-extrabold text-[#0A1128]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            <h1 className="text-xl font-extrabold text-[#0A1128] dark:text-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
               Badges
             </h1>
           )}
-          <p className={embedded ? "text-sm text-slate-500" : "mt-1 text-sm text-slate-500"}>
+          <p className={embedded ? "text-sm text-slate-500 dark:text-slate-400" : "mt-1 text-sm text-slate-500 dark:text-slate-400"}>
             {unlockedCount} of {MILESTONES.length} earned — Level {currentLevel} ({ledger.tier}).
             {nextMilestone
               ? ` ${nextMilestone.level - currentLevel} level${nextMilestone.level - currentLevel === 1 ? "" : "s"} to ${nextMilestone.name}.`
@@ -193,13 +193,13 @@ export default function WorkerMilestones({ embedded = false }) {
           </p>
         </div>
 
-        <div className="flex gap-1 rounded-full border border-slate-200 bg-white p-1">
+        <div className="flex gap-1 rounded-full border border-slate-200 bg-white p-1 dark:border-slate-700 dark:bg-slate-900">
           {TABS.map((t) => (
             <button
               key={t}
               onClick={() => setActiveTab(t)}
               className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition-colors ${
-                activeTab === t ? "bg-slate-900 text-white shadow-sm" : "text-slate-500 hover:text-slate-800"
+                activeTab === t ? "bg-slate-900 text-white shadow-sm dark:bg-white dark:text-slate-900" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
               }`}
             >
               {t} Badges
@@ -208,7 +208,7 @@ export default function WorkerMilestones({ embedded = false }) {
         </div>
       </div>
 
-      <div className="mb-6 flex items-start gap-2 rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-700">
+      <div className="mb-6 flex items-start gap-2 rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-700 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-400">
         <AlertCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
         <span>
           Your level is real. Most rewards below are still the platform's documented plan, not fully wired up
@@ -219,14 +219,14 @@ export default function WorkerMilestones({ embedded = false }) {
       </div>
 
       {pinError && (
-        <div className="mb-6 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-xs leading-5 text-red-600">
+        <div className="mb-6 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-xs leading-5 text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400">
           <AlertCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
           <span>{pinError}</span>
         </div>
       )}
 
       {visibleMilestones.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-300 bg-white/40 py-16 text-center text-sm text-slate-400">
+        <div className="rounded-xl border border-dashed border-slate-300 bg-white/40 py-16 text-center text-sm text-slate-400 dark:border-slate-700 dark:bg-slate-900/40 dark:text-slate-500">
           {activeTab === "Unlocked" ? "No badges earned yet — complete jobs to start unlocking them." : "Every badge is unlocked."}
         </div>
       ) : (

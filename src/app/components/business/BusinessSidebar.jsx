@@ -23,7 +23,7 @@ const NAV = [
   { id: "workers", label: "Find Workers", icon: Users },
   { id: "projects", label: "Active Projects", icon: Briefcase },
   { id: "negotiations", label: "Negotiations", icon: MessageSquare },
-  { id: "company", label: "Company Page", icon: Building2 },
+  { id: "company", label: "Company Profile", icon: Building2 },
   { id: "perks", label: "Perks Shop", icon: Store },
   { id: "settings", label: "Settings", icon: Settings },
 ];

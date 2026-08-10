@@ -85,7 +85,7 @@ const VERIFICATIONS = [
 ];
 
 const STATS = [
-  { label: "Jobs Posted",    value: "42",   Icon: Briefcase,  color: "text-[#1B3FAB]",   bg: "bg-[#F4F6FF]"  },
+  { label: "Jobs Posted",    value: "42",   Icon: Briefcase,  color: "text-[#1B3FAB]",   bg: "bg-[#F4F6FF] dark:bg-[#1B3FAB]/10"  },
   { label: "Workers Hired",  value: "28",   Icon: Users,      color: "text-emerald-600", bg: "bg-emerald-50" },
   { label: "Avg. Rating",    value: "4.7",  Icon: Star,       color: "text-amber-600",   bg: "bg-amber-50"   },
   { label: "Success Rate",   value: "94%",  Icon: TrendingUp, color: "text-[#FF6B35]",   bg: "bg-orange-50"  },
@@ -99,11 +99,11 @@ function RatingBar({ label, value, total = 28 }) {
   const pct = total > 0 ? Math.round((value / total) * 100) : 0;
   return (
     <div className="flex items-center gap-3">
-      <span className="text-xs text-slate-500 w-10 text-right flex-shrink-0">{label}</span>
+      <span className="text-xs text-slate-500 dark:text-slate-400 w-10 text-right flex-shrink-0">{label}</span>
       <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
         <div className="h-full bg-amber-400 rounded-full transition-all" style={{ width: `${pct}%` }} />
       </div>
-      <span className="text-xs text-slate-400 w-5 flex-shrink-0">{value}</span>
+      <span className="text-xs text-slate-400 dark:text-slate-500 w-5 flex-shrink-0">{value}</span>
     </div>
   );
 }
@@ -114,7 +114,7 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
   const shareUrl = typeof window !== "undefined" ? window.location.href : undefined;
 
   return (
-    <div className="bg-slate-50 wb-tab-enter">
+    <div className="bg-slate-50 wb-tab-enter dark:bg-slate-950">
 
       {/* ── Hero ── same structure as WorkerProfile.jsx: one section clips
           the cover photo's top corners via overflow-hidden (full-bleed, no
@@ -123,7 +123,7 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
           the Body section further down — otherwise the cover spans the
           full page width while everything below it is centered/narrower. */}
       <div className="max-w-[1200px] mx-auto px-1 pt-1">
-      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_20px_55px_rgba(15,23,42,0.06)]">
+      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_20px_55px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-900">
         {/* No heightClass override — same default as WorkerProfile.jsx's
             cover (h-40 sm:h-48), so the two pages' banners always match
             instead of drifting out of sync from independent height picks. */}
@@ -146,10 +146,10 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
               positioned element) despite the negative margin pulling it up
               into the same space — see WorkerProfile.jsx for the identical
               stacking-order fix. */}
-          <div className="relative z-10 -mt-14 flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-xl sm:flex-row sm:items-start sm:justify-between">
+          <div className="relative z-10 -mt-14 flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-xl sm:flex-row sm:items-start sm:justify-between dark:border-slate-800 dark:bg-slate-900">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
               {/* Company logo */}
-              <div className="w-[84px] h-[84px] rounded-2xl bg-white p-[4px] shadow-xl ring-1 ring-slate-200 flex-shrink-0">
+              <div className="w-[84px] h-[84px] rounded-2xl bg-white p-[4px] shadow-xl ring-1 ring-slate-200 flex-shrink-0 dark:bg-slate-900 dark:ring-slate-700">
                 <div
                   className="w-full h-full bg-[#1B3FAB] rounded-xl flex items-center justify-center text-white font-extrabold text-xl"
                   style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
@@ -162,7 +162,7 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap mb-1">
                   <h1
-                    className="font-extrabold text-[#0F172A] text-xl leading-tight"
+                    className="font-extrabold text-[#0F172A] dark:text-white text-xl leading-tight"
                     style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
                   >
                     {profile.name}
@@ -175,7 +175,7 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
                   </span>
                 </div>
 
-                <p className="text-slate-500 text-sm italic mb-2">{profile.tagline}</p>
+                <p className="text-slate-500 dark:text-slate-400 text-sm italic mb-2">{profile.tagline}</p>
 
                 {/* Meta chips */}
                 <div className="flex items-center gap-x-3 gap-y-1 flex-wrap">
@@ -185,7 +185,7 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
                     { Icon: Users,     val: profile.size      },
                     { Icon: Calendar,  val: `Est. ${profile.founded}` },
                   ].map(({ Icon, val }) => (
-                    <span key={val} className="flex items-center gap-1 text-xs text-slate-500">
+                    <span key={val} className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
                       <Icon className="w-3 h-3 flex-shrink-0" />
                       {val}
                     </span>
@@ -206,7 +206,7 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
 
                 {/* Bio, merged into the header — no separate "About" card
                     further down the page for HR visitors to hunt for. */}
-                <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">{profile.bio}</p>
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">{profile.bio}</p>
               </div>
             </div>
 
@@ -233,7 +233,7 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
             review-based rating already live via reviewsApi) — honestly
             labeled per the same "real data or clearly-labeled preview"
             rule the rest of this app follows. */}
-        <div className="mb-4 flex items-start gap-2 rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-700">
+        <div className="mb-4 flex items-start gap-2 rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-700 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-400">
           <AlertCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
           <span>
             Preview mode — the stats and badges below are examples, not your real account data.
@@ -245,7 +245,7 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
           {STATS.map(({ label, value, Icon, color, bg }, i) => (
             <div
               key={label}
-              className="bg-white rounded-2xl border border-slate-200 p-5 flex items-center gap-3 wb-card-enter"
+              className="bg-white rounded-2xl border border-slate-200 dark:bg-slate-900 dark:border-slate-800 p-5 flex items-center gap-3 wb-card-enter"
               style={{ animationDelay: `${i * 60}ms` }}
             >
               <div className={`w-11 h-11 ${bg} rounded-xl flex items-center justify-center flex-shrink-0`}>
@@ -258,7 +258,7 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
                     : value
                   }
                 </div>
-                <div className="text-xs text-slate-500 mt-1">{label}</div>
+                <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">{label}</div>
               </div>
             </div>
           ))}
@@ -271,13 +271,13 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
           <div className="lg:col-span-2 space-y-5">
 
             {/* Culture */}
-            <div className="bg-white rounded-2xl border border-slate-200 p-6">
-              <h2 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3"
+            <div className="bg-white rounded-2xl border border-slate-200 dark:bg-slate-900 dark:border-slate-800 p-6">
+              <h2 className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-3"
                 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Culture &amp; Work Style</h2>
-              <p className="text-slate-600 text-sm leading-relaxed mb-4">{profile.culture}</p>
+              <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed mb-4">{profile.culture}</p>
               <div className="flex flex-wrap gap-2">
                 {CULTURE_TAGS.map((tag) => (
-                  <span key={tag} className="px-3 py-1 bg-[#F4F6FF] text-[#1B3FAB] text-xs font-semibold rounded-full border border-[#1B3FAB]/10">
+                  <span key={tag} className="px-3 py-1 bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 text-[#1B3FAB] text-xs font-semibold rounded-full border border-[#1B3FAB]/10">
                     {tag}
                   </span>
                 ))}
@@ -285,11 +285,11 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
             </div>
 
             {/* Current Openings */}
-            <div className="bg-white rounded-2xl border border-slate-200 p-6">
+            <div className="bg-white rounded-2xl border border-slate-200 dark:bg-slate-900 dark:border-slate-800 p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-[10px] font-black uppercase tracking-widest text-slate-400"
+                <h2 className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500"
                   style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Current Openings (Preview)</h2>
-                <span className="text-xs font-bold text-[#1B3FAB] bg-[#F4F6FF] px-2.5 py-1 rounded-full border border-[#1B3FAB]/10">
+                <span className="text-xs font-bold text-[#1B3FAB] bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 px-2.5 py-1 rounded-full border border-[#1B3FAB]/10">
                   {COMPANY_JOBS.length} Open
                 </span>
               </div>
@@ -297,15 +297,15 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
                 {COMPANY_JOBS.map((job) => (
                   <div
                     key={job.id}
-                    className="flex items-center gap-4 p-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-[#F4F6FF] hover:border-[#1B3FAB]/20 transition-all group cursor-pointer"
+                    className="flex items-center gap-4 p-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-[#F4F6FF] hover:border-[#1B3FAB]/20 transition-all group cursor-pointer dark:border-slate-800 dark:bg-slate-800/60 dark:hover:bg-[#1B3FAB]/10"
                   >
                     <div className="w-10 h-10 bg-[#1B3FAB] rounded-xl flex items-center justify-center text-white text-xs font-extrabold flex-shrink-0"
                       style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                       {profile.initials}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-[#0F172A] truncate group-hover:text-[#1B3FAB] transition-colors">{job.title}</p>
-                      <p className="text-xs text-slate-400 mt-0.5">{job.tier} · {job.workload} · Posted {job.posted}</p>
+                      <p className="text-sm font-bold text-[#0F172A] dark:text-white truncate group-hover:text-[#1B3FAB] transition-colors">{job.title}</p>
+                      <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{job.tier} · {job.workload} · Posted {job.posted}</p>
                     </div>
                     {job.urgent && (
                       <span className="flex-shrink-0 text-[10px] font-bold text-red-600 bg-red-50 border border-red-100 px-2 py-0.5 rounded-full">
@@ -318,9 +318,9 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
             </div>
 
             {/* Worker Reviews */}
-            <div className="bg-white rounded-2xl border border-slate-200 p-6">
+            <div className="bg-white rounded-2xl border border-slate-200 dark:bg-slate-900 dark:border-slate-800 p-6">
               <div className="flex items-center justify-between mb-5">
-                <h2 className="text-[10px] font-black uppercase tracking-widest text-slate-400"
+                <h2 className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500"
                   style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Worker Reviews (Preview)</h2>
                 <div className="flex items-center gap-2">
                   <div className="flex gap-0.5">
@@ -328,13 +328,13 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
                       <Star key={n} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                     ))}
                   </div>
-                  <span className="text-sm font-extrabold text-[#0F172A]">4.7</span>
-                  <span className="text-xs text-slate-400">(sample)</span>
+                  <span className="text-sm font-extrabold text-[#0F172A] dark:text-white">4.7</span>
+                  <span className="text-xs text-slate-400 dark:text-slate-500">(sample)</span>
                 </div>
               </div>
 
               {/* Rating breakdown */}
-              <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 mb-5 space-y-2.5">
+              <div className="bg-slate-50 border border-slate-100 dark:bg-slate-800 dark:border-slate-700 rounded-xl p-4 mb-5 space-y-2.5">
                 <RatingBar label="5 ★" value={22} />
                 <RatingBar label="4 ★" value={4}  />
                 <RatingBar label="3 ★" value={1}  />
@@ -345,13 +345,13 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
               {/* Review cards */}
               <div className="space-y-4">
                 {WORKER_REVIEWS.map((rev) => (
-                  <div key={rev.id} className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
+                  <div key={rev.id} className="p-4 bg-slate-50 border border-slate-100 dark:bg-slate-800 dark:border-slate-700 rounded-xl">
                     <div className="flex items-start gap-3">
                       <Avatar initials={rev.initials} bg={rev.bg} size="w-9 h-9" text="text-xs" />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                          <span className="font-bold text-[#0F172A] text-sm">{rev.name}</span>
-                          <span className="text-xs text-slate-400">{rev.role}</span>
+                          <span className="font-bold text-[#0F172A] dark:text-white text-sm">{rev.name}</span>
+                          <span className="text-xs text-slate-400 dark:text-slate-500">{rev.role}</span>
                           <div className="ml-auto flex gap-0.5 flex-shrink-0">
                             {Array.from({ length: 5 }).map((_, i) => (
                               <Star key={i} className={`w-3 h-3 ${i < rev.rating ? "fill-amber-400 text-amber-400" : "fill-slate-200 text-slate-200"}`} />
@@ -359,8 +359,8 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
                           </div>
                         </div>
                         <p className="text-[11px] font-bold text-[#1B3FAB] mb-1.5">{rev.project}</p>
-                        <p className="text-xs text-slate-600 leading-relaxed">{rev.text}</p>
-                        <p className="text-[10px] text-slate-400 mt-1.5">{rev.date}</p>
+                        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">{rev.text}</p>
+                        <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1.5">{rev.date}</p>
                       </div>
                     </div>
                   </div>
@@ -373,8 +373,8 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
           <div className="space-y-5">
 
             {/* Company Details */}
-            <div className="bg-white rounded-2xl border border-slate-200 p-5">
-              <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4"
+            <div className="bg-white rounded-2xl border border-slate-200 dark:bg-slate-900 dark:border-slate-800 p-5">
+              <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-4"
                 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Company Details</h3>
               <div className="space-y-4">
                 {[
@@ -384,22 +384,22 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
                   { Icon: Calendar,  label: "Founded",   val: profile.founded   },
                 ].map(({ Icon, label, val }) => (
                   <div key={label} className="flex items-start gap-3">
-                    <div className="w-8 h-8 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Icon className="w-3.5 h-3.5 text-slate-500" />
+                    <div className="w-8 h-8 bg-slate-50 border border-slate-200 rounded-lg dark:bg-slate-800 dark:border-slate-700 flex items-center justify-center flex-shrink-0">
+                      <Icon className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{label}</p>
-                      <p className="text-sm font-semibold text-[#0F172A] mt-0.5">{val}</p>
+                      <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide">{label}</p>
+                      <p className="text-sm font-semibold text-[#0F172A] dark:text-white mt-0.5">{val}</p>
                     </div>
                   </div>
                 ))}
                 {profile.website && (
                   <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Globe className="w-3.5 h-3.5 text-slate-500" />
+                    <div className="w-8 h-8 bg-slate-50 border border-slate-200 rounded-lg dark:bg-slate-800 dark:border-slate-700 flex items-center justify-center flex-shrink-0">
+                      <Globe className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Website</p>
+                      <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide">Website</p>
                       <a href={profile.website} target="_blank" rel="noopener noreferrer"
                         className="text-sm font-semibold text-[#1B3FAB] hover:underline flex items-center gap-1 mt-0.5">
                         {profile.website.replace("https://", "")}
@@ -410,12 +410,12 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
                 )}
                 {profile.email && (
                   <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Mail className="w-3.5 h-3.5 text-slate-500" />
+                    <div className="w-8 h-8 bg-slate-50 border border-slate-200 rounded-lg dark:bg-slate-800 dark:border-slate-700 flex items-center justify-center flex-shrink-0">
+                      <Mail className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Contact Email</p>
-                      <p className="text-sm font-semibold text-[#0F172A] mt-0.5">{profile.email}</p>
+                      <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide">Contact Email</p>
+                      <p className="text-sm font-semibold text-[#0F172A] dark:text-white mt-0.5">{profile.email}</p>
                     </div>
                   </div>
                 )}
@@ -423,8 +423,8 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
             </div>
 
             {/* Trust & Verification */}
-            <div className="bg-white rounded-2xl border border-slate-200 p-5">
-              <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4"
+            <div className="bg-white rounded-2xl border border-slate-200 dark:bg-slate-900 dark:border-slate-800 p-5">
+              <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-4"
                 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Trust &amp; Verification (Preview)</h3>
               <div className="space-y-3">
                 {VERIFICATIONS.map(({ label, ok }) => (
@@ -432,7 +432,7 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
                     <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${ok ? "bg-emerald-50 border border-emerald-200" : "bg-slate-100 border border-slate-200"}`}>
                       <CheckCircle2 className={`w-3 h-3 ${ok ? "text-emerald-500" : "text-slate-300"}`} />
                     </div>
-                    <span className={`text-sm flex-1 ${ok ? "font-semibold text-[#0F172A]" : "text-slate-400"}`}>
+                    <span className={`text-sm flex-1 ${ok ? "font-semibold text-[#0F172A] dark:text-white" : "text-slate-400 dark:text-slate-500"}`}>
                       {label}
                     </span>
                     {!ok && (
@@ -443,7 +443,7 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
                   </div>
                 ))}
               </div>
-              <div className="mt-4 pt-4 border-t border-slate-100 flex items-center gap-2">
+              <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
                 <span className="text-xs font-bold text-emerald-700">Verified &amp; trusted employer</span>
               </div>
@@ -493,19 +493,19 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
 
 function EditForm({ draft, onChange, onSave, onCancel, saving, saveError }) {
   return (
-    <div className="h-full min-h-0 overflow-y-auto bg-slate-50 p-7 pb-12 wb-tab-enter">
+    <div className="h-full min-h-0 overflow-y-auto bg-slate-50 p-7 pb-12 wb-tab-enter dark:bg-slate-950">
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-extrabold text-[#0F172A]"
+            <h1 className="text-2xl font-extrabold text-[#0F172A] dark:text-white"
               style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
               Edit Company Profile
             </h1>
-            <p className="text-sm text-slate-400 mt-0.5">Changes visible to workers on your public profile</p>
+            <p className="text-sm text-slate-400 dark:text-slate-500 mt-0.5">Changes visible to workers on your public profile</p>
           </div>
           <div className="flex gap-2">
             <button onClick={onCancel} disabled={saving}
-              className="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-colors disabled:opacity-60">
+              className="px-4 py-2 bg-white border border-slate-200 text-slate-600 dark:text-slate-300 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-colors disabled:opacity-60 dark:bg-slate-800 dark:border-slate-700 dark:hover:bg-slate-700">
               Cancel
             </button>
             <button onClick={onSave} disabled={saving}
@@ -517,27 +517,27 @@ function EditForm({ draft, onChange, onSave, onCancel, saving, saveError }) {
         </div>
 
         {saveError && (
-          <div className="mb-5 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+          <div className="mb-5 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400">
             <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
             <span>{saveError}</span>
           </div>
         )}
 
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8">
+        <div className="bg-white rounded-2xl border border-slate-200 dark:bg-slate-900 dark:border-slate-800 p-6 sm:p-8">
           <EditFormSection icon={Building2} title="Company Identity">
             <Field label="Company Name">
-              <p className="mb-1.5 -mt-1 text-xs text-slate-400">
+              <p className="mb-1.5 -mt-1 text-xs text-slate-400 dark:text-slate-500">
                 Shown to workers everywhere your job posts appear — separate from your own account name.
               </p>
               <input value={draft.name ?? ""} onChange={(e) => onChange("name", e.target.value)}
                 placeholder="e.g. RetailX Pvt Ltd"
-                className="w-full px-4 py-2.5 bg-[#F4F6FF] border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB]" />
+                className="w-full px-4 py-2.5 bg-[#F4F6FF] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 dark:text-white rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB]" />
             </Field>
 
             <Field label="Tagline">
               <input value={draft.tagline ?? ""} onChange={(e) => onChange("tagline", e.target.value)}
                 maxLength={100} placeholder="One-line description of your company"
-                className="w-full px-4 py-2.5 bg-[#F4F6FF] border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB]" />
+                className="w-full px-4 py-2.5 bg-[#F4F6FF] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 dark:text-white rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB]" />
             </Field>
 
             <Field label="Header Image">
@@ -554,12 +554,12 @@ function EditForm({ draft, onChange, onSave, onCancel, saving, saveError }) {
           <EditFormSection icon={FileText} title="About">
             <Field label="Company Bio">
               <textarea rows={4} value={draft.bio} onChange={(e) => onChange("bio", e.target.value)}
-                className="w-full px-4 py-3 bg-[#F4F6FF] border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB] resize-none" />
+                className="w-full px-4 py-3 bg-[#F4F6FF] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 dark:text-white rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB] resize-none" />
             </Field>
 
             <Field label="Culture & Work Style">
               <textarea rows={3} value={draft.culture} onChange={(e) => onChange("culture", e.target.value)}
-                className="w-full px-4 py-3 bg-[#F4F6FF] border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB] resize-none" />
+                className="w-full px-4 py-3 bg-[#F4F6FF] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 dark:text-white rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB] resize-none" />
             </Field>
           </EditFormSection>
 
@@ -573,27 +573,27 @@ function EditForm({ draft, onChange, onSave, onCancel, saving, saveError }) {
               ].map(({ key, label }) => (
                 <Field key={key} label={label}>
                   <input value={draft[key] ?? ""} onChange={(e) => onChange(key, e.target.value)}
-                    className="w-full px-4 py-2.5 bg-[#F4F6FF] border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB]" />
+                    className="w-full px-4 py-2.5 bg-[#F4F6FF] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 dark:text-white rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB]" />
                 </Field>
               ))}
             </div>
           </EditFormSection>
 
           <EditFormSection icon={Mail} title="Contact" last>
-            <Field label={<>Official Website <span className="normal-case font-normal text-slate-400">(optional)</span></>}>
+            <Field label={<>Official Website <span className="normal-case font-normal text-slate-400 dark:text-slate-500">(optional)</span></>}>
               <div className="relative">
-                <Globe className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Globe className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
                 <input value={draft.website ?? ""} onChange={(e) => onChange("website", e.target.value)}
                   placeholder="https://yourcompany.com"
-                  className="w-full pl-10 pr-4 py-2.5 bg-[#F4F6FF] border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB]" />
+                  className="w-full pl-10 pr-4 py-2.5 bg-[#F4F6FF] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 dark:text-white rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB]" />
               </div>
             </Field>
 
             <Field label="HR / Contact Email">
               <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
                 <input type="email" value={draft.email ?? ""} onChange={(e) => onChange("email", e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-[#F4F6FF] border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB]" />
+                  className="w-full pl-10 pr-4 py-2.5 bg-[#F4F6FF] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 dark:text-white rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3FAB]/20 focus:border-[#1B3FAB]" />
               </div>
             </Field>
           </EditFormSection>
@@ -608,8 +608,8 @@ function EditForm({ draft, onChange, onSave, onCancel, saving, saveError }) {
 // spacing between fields within a section.
 function EditFormSection({ icon: Icon, title, last = false, children }) {
   return (
-    <div className={`${last ? "" : "mb-8 border-b border-slate-100 pb-8"}`}>
-      <h3 className="mb-4 flex items-center gap-2 text-sm font-bold text-slate-900">
+    <div className={`${last ? "" : "mb-8 border-b border-slate-100 dark:border-slate-800 pb-8"}`}>
+      <h3 className="mb-4 flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white">
         <Icon className="h-4 w-4 text-[#1B3FAB]" />
         {title}
       </h3>
@@ -621,7 +621,7 @@ function EditFormSection({ icon: Icon, title, last = false, children }) {
 function Field({ label, children }) {
   return (
     <div>
-      <label className="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wide">{label}</label>
+      <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1.5 uppercase tracking-wide">{label}</label>
       {children}
     </div>
   );

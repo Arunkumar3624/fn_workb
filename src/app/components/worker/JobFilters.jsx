@@ -14,7 +14,7 @@ function OptionCheckbox({ label, checked, onToggle }) {
       onClick={onToggle}
       whileHover={{ scale: 1.02, x: 4 }}
       whileTap={{ scale: 0.98 }}
-      className="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-slate-50"
+      className="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800"
     >
       <motion.span
         animate={{
@@ -37,7 +37,7 @@ function OptionCheckbox({ label, checked, onToggle }) {
           )}
         </AnimatePresence>
       </motion.span>
-      <span className={`truncate text-sm ${checked ? "font-semibold text-slate-900" : "text-slate-600"}`}>{label}</span>
+      <span className={`truncate text-sm ${checked ? "font-semibold text-slate-900 dark:text-white" : "text-slate-600 dark:text-slate-400"}`}>{label}</span>
     </motion.button>
   );
 }
@@ -45,8 +45,8 @@ function OptionCheckbox({ label, checked, onToggle }) {
 function SectionHeader({ icon: Icon, label }) {
   return (
     <div className="flex items-center gap-2">
-      <Icon className="h-3.5 w-3.5 text-slate-400" />
-      <p className="text-xs font-bold uppercase tracking-wide text-slate-900">{label}</p>
+      <Icon className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" />
+      <p className="text-xs font-bold uppercase tracking-wide text-slate-900 dark:text-white">{label}</p>
     </div>
   );
 }
@@ -60,7 +60,7 @@ const EDUCATION_LEVELS = Object.entries(EDUCATION_LABELS);
 // color (buttons, active pills, checked checkboxes), not its input-focus
 // color.
 const INPUT_CLASSES =
-  "w-full rounded-lg border border-slate-200 bg-slate-50 text-sm text-slate-900 outline-none transition-all duration-300 hover:shadow-sm focus:border-[#1B3FAB] focus:bg-white focus:shadow-sm focus:ring-2 focus:ring-blue-100";
+  "w-full rounded-lg border border-slate-200 bg-slate-50 text-sm text-slate-900 outline-none transition-all duration-300 hover:shadow-sm focus:border-[#1B3FAB] focus:bg-white focus:shadow-sm focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:bg-slate-800";
 
 // The Job Feed's collapsible filter drawer's content — every option here is
 // real, live data (real budgets, the real is_urgent flag, skills pulled
@@ -85,7 +85,7 @@ export default function JobFilters({
   onExperienceChange,
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/60">
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/60 dark:border-slate-800 dark:bg-slate-900">
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <SectionHeader icon={Flame} label="Urgency" />
@@ -111,7 +111,7 @@ export default function JobFilters({
           <SectionHeader icon={IndianRupee} label="Budget" />
           <div className="mt-3 flex items-center gap-2">
             <div className="relative flex-1">
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">₹</span>
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 dark:text-slate-500">₹</span>
               <input
                 type="number"
                 min="0"
@@ -124,7 +124,7 @@ export default function JobFilters({
             </div>
             <span className="flex-shrink-0 text-slate-300">–</span>
             <div className="relative flex-1">
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">₹</span>
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 dark:text-slate-500">₹</span>
               <input
                 type="number"
                 min="0"
@@ -144,7 +144,7 @@ export default function JobFilters({
           {/* Worker's own years of experience — checked against each job's
               real min/max_experience_years, not a job-side range, since a
               worker only ever has one number to give. */}
-          <label className="mt-3 block text-[11px] font-semibold text-slate-500">Your experience (yrs)</label>
+          <label className="mt-3 block text-[11px] font-semibold text-slate-500 dark:text-slate-400">Your experience (yrs)</label>
           <input
             type="number"
             min="0"

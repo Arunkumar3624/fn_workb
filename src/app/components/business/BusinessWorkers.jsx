@@ -33,14 +33,14 @@ function rank(a, b) {
 }
 
 const scoreTone = (score) => {
-  if (score == null) return "bg-slate-50 text-slate-400 border-slate-200";
+  if (score == null) return "bg-slate-50 text-slate-400 dark:text-slate-500 border-slate-200";
   if (score >= 700) return "bg-emerald-50 text-emerald-700 border-emerald-200";
   if (score >= 500) return "bg-amber-50 text-amber-700 border-amber-200";
   return "bg-rose-50 text-rose-600 border-rose-200";
 };
 
 const INPUT_CLASS =
-  "mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/20";
+  "mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:bg-slate-800";
 
 // Unified invite entry point — a business either sends this worker to one of
 // their OWN already-public OPEN job board posts (creates a real
@@ -76,23 +76,23 @@ function InviteWorkerModal({ worker, openJobs, onClose, onSubmitExisting, onSubm
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md rounded-2xl border border-slate-200/60 bg-white/90 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl"
+        className="w-full max-w-md rounded-2xl border border-slate-200/60 bg-white/90 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl dark:border-slate-700/60 dark:bg-slate-900/95"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-          <h2 className="text-lg font-extrabold tracking-tight text-slate-900">Invite {worker.name}</h2>
-          <button onClick={onClose} className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100">
+        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 dark:border-slate-800">
+          <h2 className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">Invite {worker.name}</h2>
+          <button onClick={onClose} className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
             <X className="h-4 w-4" />
           </button>
         </div>
 
         <div className="px-6 pt-5">
-          <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1">
+          <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 dark:bg-slate-800 p-1">
             <button
               type="button"
               onClick={() => setMode("existing")}
               className={`rounded-lg px-3 py-2 text-xs font-bold transition-colors ${
-                mode === "existing" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                mode === "existing" ? "bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white" : "text-slate-500 dark:text-slate-400 hover:text-slate-700"
               }`}
             >
               Select Existing Project
@@ -101,7 +101,7 @@ function InviteWorkerModal({ worker, openJobs, onClose, onSubmitExisting, onSubm
               type="button"
               onClick={() => setMode("new")}
               className={`rounded-lg px-3 py-2 text-xs font-bold transition-colors ${
-                mode === "new" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                mode === "new" ? "bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white" : "text-slate-500 dark:text-slate-400 hover:text-slate-700"
               }`}
             >
               Draft New Project
@@ -111,7 +111,7 @@ function InviteWorkerModal({ worker, openJobs, onClose, onSubmitExisting, onSubm
 
         <div className="space-y-4 px-6 py-5">
           {error && (
-            <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+            <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400">
               <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
@@ -119,14 +119,14 @@ function InviteWorkerModal({ worker, openJobs, onClose, onSubmitExisting, onSubm
 
           {mode === "existing" ? (
             openJobs.length === 0 ? (
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-slate-500 dark:text-slate-400">
                 You don't have any open job posts right now. Switch to "Draft New Project" above, or post a job first and
                 come back to invite {worker.name} to it directly while it's still open.
               </p>
             ) : (
               <>
                 <label className="block">
-                  <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Which open job?</span>
+                  <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Which open job?</span>
                   <select
                     value={selectedProjectId}
                     onChange={(e) => setSelectedProjectId(e.target.value)}
@@ -140,7 +140,7 @@ function InviteWorkerModal({ worker, openJobs, onClose, onSubmitExisting, onSubm
                   </select>
                 </label>
                 <label className="block">
-                  <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Note (optional)</span>
+                  <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Note (optional)</span>
                   <textarea
                     rows={3}
                     value={message}
@@ -149,7 +149,7 @@ function InviteWorkerModal({ worker, openJobs, onClose, onSubmitExisting, onSubm
                     className={`${INPUT_CLASS} resize-none`}
                   />
                 </label>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-400 dark:text-slate-500">
                   The job post stays live on the public feed in case {worker.name} says no — it only comes down once someone
                   actually accepts.
                 </p>
@@ -158,7 +158,7 @@ function InviteWorkerModal({ worker, openJobs, onClose, onSubmitExisting, onSubm
           ) : (
             <>
               <label className="block">
-                <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Job Title</span>
+                <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Job Title</span>
                 <input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
@@ -167,7 +167,7 @@ function InviteWorkerModal({ worker, openJobs, onClose, onSubmitExisting, onSubm
                 />
               </label>
               <label className="block">
-                <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Description</span>
+                <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Description</span>
                 <textarea
                   rows={3}
                   value={description}
@@ -178,7 +178,7 @@ function InviteWorkerModal({ worker, openJobs, onClose, onSubmitExisting, onSubm
               </label>
               <div className="grid grid-cols-2 gap-3">
                 <label className="block">
-                  <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Budget (₹)</span>
+                  <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Budget (₹)</span>
                   <input
                     type="number"
                     min="1"
@@ -189,7 +189,7 @@ function InviteWorkerModal({ worker, openJobs, onClose, onSubmitExisting, onSubm
                   />
                 </label>
                 <label className="block">
-                  <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Deadline</span>
+                  <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Deadline</span>
                   <input
                     type="date"
                     value={deadline}
@@ -200,7 +200,7 @@ function InviteWorkerModal({ worker, openJobs, onClose, onSubmitExisting, onSubm
                 </label>
               </div>
               <label className="block">
-                <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Reference Link (optional)</span>
+                <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Reference Link (optional)</span>
                 <input
                   type="url"
                   value={referenceLink}
@@ -208,7 +208,7 @@ function InviteWorkerModal({ worker, openJobs, onClose, onSubmitExisting, onSubm
                   placeholder="https://drive.google.com/… or a video/doc link for context"
                   className={INPUT_CLASS}
                 />
-                <span className="mt-1.5 block text-xs text-slate-400">
+                <span className="mt-1.5 block text-xs text-slate-400 dark:text-slate-500">
                   Sent for a quick WorkBridge review before {worker.name} can see it.
                 </span>
               </label>
@@ -216,8 +216,8 @@ function InviteWorkerModal({ worker, openJobs, onClose, onSubmitExisting, onSubm
           )}
         </div>
 
-        <div className="flex justify-end gap-2 border-t border-slate-100 px-6 py-4">
-          <button onClick={onClose} className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50">
+        <div className="flex justify-end gap-2 border-t border-slate-100 dark:border-slate-800 px-6 py-4">
+          <button onClick={onClose} className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 dark:text-slate-400 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700">
             Cancel
           </button>
           <button
@@ -377,16 +377,16 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center p-7">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[#1B3FAB]" />
+      <div className="flex h-full items-center justify-center p-7 dark:bg-slate-950">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[#1B3FAB] dark:border-slate-700" />
       </div>
     );
   }
 
   if (loadError) {
     return (
-      <div className="p-7">
-        <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+      <div className="p-7 dark:bg-slate-950">
+        <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400">
           <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
           <span>{loadError}</span>
         </div>
@@ -396,28 +396,28 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
 
   return (
     <>
-    <div className="min-h-screen bg-slate-50 p-7 wb-tab-enter">
+    <div className="min-h-screen bg-slate-50 p-7 wb-tab-enter dark:bg-slate-950">
       <div className="max-w-6xl mx-auto">
 
         <div className="mb-4 flex items-start justify-between gap-4 flex-wrap">
           <div>
             <h1
-              className="text-2xl font-extrabold text-[#0F172A]"
+              className="text-2xl font-extrabold text-[#0F172A] dark:text-white"
               style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
             >
               Talent Directory
             </h1>
-            <p className="text-slate-500 text-sm mt-1">Showing {rankedWorkers.length} verified workers</p>
+            <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Showing {rankedWorkers.length} verified workers</p>
           </div>
         </div>
 
         {pendingJob && (
-          <div className="mb-6 flex items-center gap-3 rounded-2xl border border-[#1B3FAB]/20 bg-[#F4F6FF] px-5 py-3.5">
-            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-white">
+          <div className="mb-6 flex items-center gap-3 rounded-2xl border border-[#1B3FAB]/20 bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 px-5 py-3.5">
+            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-white dark:bg-slate-800">
               <Briefcase className="h-4 w-4 text-[#1B3FAB]" />
             </div>
-            <p className="text-xs leading-5 text-slate-600">
-              <span className="font-bold text-slate-800">Selecting a worker for "{pendingJob.title}".</span>{" "}
+            <p className="text-xs leading-5 text-slate-600 dark:text-slate-400">
+              <span className="font-bold text-slate-800 dark:text-slate-200">Selecting a worker for "{pendingJob.title}".</span>{" "}
               <span className="inline-flex items-center gap-1"><IndianRupee className="h-3 w-3" />{Number(pendingJob.budget).toLocaleString("en-IN")}</span>
               {pendingJob.deadline && (
                 <span className="ml-2 inline-flex items-center gap-1"><Timer className="h-3 w-3" />Due {new Date(pendingJob.deadline).toLocaleDateString("en-IN", { month: "short", day: "numeric" })}</span>
@@ -428,12 +428,12 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
         )}
 
         {!pendingJob && (
-          <div className="mb-6 flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-3.5 shadow-sm">
-            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[#F4F6FF]">
+          <div className="mb-6 flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-3.5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[#F4F6FF] dark:bg-[#1B3FAB]/10">
               <ShieldCheck className="h-4 w-4 text-[#1B3FAB]" />
             </div>
-            <p className="text-xs leading-5 text-slate-500">
-              <span className="font-bold text-slate-700">Fairness-first ranking.</span>{" "}
+            <p className="text-xs leading-5 text-slate-500 dark:text-slate-400">
+              <span className="font-bold text-slate-700 dark:text-slate-200">Fairness-first ranking.</span>{" "}
               Workers are ordered by Behavior Score, then rating — nobody can buy their way past better talent.
             </p>
           </div>
@@ -448,7 +448,7 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
             return (
               <div
                 key={w.id}
-                className="flex flex-col overflow-hidden rounded-2xl border border-slate-200/60 bg-white/90 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-lg wb-card-enter"
+                className="flex flex-col overflow-hidden rounded-2xl border border-slate-200/60 bg-white/90 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-lg wb-card-enter dark:border-slate-800 dark:bg-slate-900/90"
                 style={{ animationDelay: `${i * 100}ms` }}
               >
                 <div className="p-5 flex flex-col flex-1">
@@ -464,23 +464,23 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
                       </div>
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-1.5 mb-0.5">
-                          <h3 className="font-extrabold tracking-tight text-slate-900 text-sm leading-tight" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                          <h3 className="font-extrabold tracking-tight text-slate-900 dark:text-white text-sm leading-tight" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                             {w.name}
                           </h3>
                           {w.verified && <ShieldCheck className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />}
                         </div>
-                        <p className="text-xs text-slate-500 truncate">{w.title || "Freelancer"}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{w.title || "Freelancer"}</p>
                         {w.rating != null && (
                           <div className="flex items-center gap-1 mt-1">
                             <Star className="w-3 h-3 text-amber-400 fill-amber-400 flex-shrink-0" />
-                            <span className="text-xs text-slate-700 font-semibold">{w.rating}</span>
-                            <span className="text-xs text-slate-400">({w.reviews_count})</span>
+                            <span className="text-xs text-slate-700 dark:text-slate-300 font-semibold">{w.rating}</span>
+                            <span className="text-xs text-slate-400 dark:text-slate-500">({w.reviews_count})</span>
                           </div>
                         )}
                       </div>
                     </div>
                     {isTopRated && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-[#F4F6FF] border border-[#1B3FAB]/15 px-2 py-1 text-[10px] font-bold text-[#1B3FAB] flex-shrink-0 ml-2">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 border border-[#1B3FAB]/15 px-2 py-1 text-[10px] font-bold text-[#1B3FAB] flex-shrink-0 ml-2">
                         Top Rated
                       </span>
                     )}
@@ -493,14 +493,14 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
                         {w.behavior_score ?? "—"}
                       </span>
                       {w.profile?.hourlyRate && (
-                        <span className="text-xs font-bold text-slate-600 ml-auto">₹{Number(w.profile.hourlyRate).toLocaleString("en-IN")}/hr</span>
+                        <span className="text-xs font-bold text-slate-600 dark:text-slate-400 ml-auto">₹{Number(w.profile.hourlyRate).toLocaleString("en-IN")}/hr</span>
                       )}
                     </div>
 
                     {skills.length > 0 && (
                       <div className="flex flex-wrap gap-1.5">
                         {skills.slice(0, 6).map((s) => (
-                          <span key={s} className="px-2.5 py-0.5 bg-slate-50 border border-slate-100 text-slate-600 text-xs font-medium rounded-full">
+                          <span key={s} className="px-2.5 py-0.5 bg-slate-50 border border-slate-100 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 text-xs font-medium rounded-full">
                             {s}
                           </span>
                         ))}
@@ -508,10 +508,10 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
                     )}
                   </div>
 
-                  <div className="border-t border-slate-100 pt-4 mt-4 flex items-center justify-end gap-2">
+                  <div className="border-t border-slate-100 pt-4 mt-4 flex items-center justify-end gap-2 dark:border-slate-800">
                     <button
                       onClick={() => setSelectedWorker(w)}
-                      className="bg-slate-50 text-slate-700 hover:bg-slate-100 px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors"
+                      className="bg-slate-50 text-slate-700 hover:bg-slate-100 px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
                     >
                       View Profile
                     </button>
@@ -519,7 +519,7 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
                     {alreadyInvited ? (
                       <button
                         onClick={() => onViewProjects?.()}
-                        className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-1.5 rounded-lg text-sm font-bold"
+                        className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-1.5 rounded-lg text-sm font-bold dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-400"
                       >
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         Invited
@@ -537,7 +537,7 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
                       <button
                         onClick={() => handleInviteClick(w)}
                         title="Verify your business to invite workers"
-                        className="flex items-center gap-1.5 bg-slate-100 text-slate-500 hover:bg-slate-200 px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors"
+                        className="flex items-center gap-1.5 bg-slate-100 text-slate-500 dark:text-slate-400 hover:bg-slate-200 px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors dark:bg-slate-800 dark:hover:bg-slate-700"
                       >
                         <Lock className="w-3.5 h-3.5" />
                         Verify to Invite
@@ -586,7 +586,7 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
       )}
 
       {toast && (
-        <div className="fixed bottom-6 right-6 z-20 rounded-2xl border border-emerald-200 bg-white px-5 py-4 text-sm font-bold text-emerald-700 shadow-2xl animate-in fade-in slide-in-from-bottom-2">
+        <div className="fixed bottom-6 right-6 z-20 rounded-2xl border border-emerald-200 bg-white px-5 py-4 text-sm font-bold text-emerald-700 shadow-2xl animate-in fade-in slide-in-from-bottom-2 dark:border-emerald-900/40 dark:bg-slate-900 dark:text-emerald-400">
           <span className="flex items-center gap-2">
             <CheckCircle2 className="w-5 h-5" />
             {toast}

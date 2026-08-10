@@ -61,7 +61,7 @@ const PERKS = [
   {
     id: "featured-employer",
     name: "Featured Employer Spotlight",
-    description: "Puts your company page in front of active freelancers",
+    description: "Puts your Company Profile in front of active freelancers",
     icon: Star,
     color: "violet",
     tiers: [
@@ -72,11 +72,11 @@ const PERKS = [
 ];
 
 const COLOR_STYLES = {
-  teal: "bg-teal-50 text-teal-600",
-  slate: "bg-slate-100 text-slate-600",
-  amber: "bg-amber-50 text-amber-600",
-  rose: "bg-rose-50 text-rose-600",
-  violet: "bg-violet-50 text-violet-600",
+  teal: "bg-teal-50 text-teal-600 dark:bg-teal-500/10 dark:text-teal-400",
+  slate: "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300",
+  amber: "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400",
+  rose: "bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400",
+  violet: "bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-400",
 };
 
 function PerkCard({ perk, balance, onPurchase, index, isPurchasing, purchaseDisabled }) {
@@ -91,7 +91,7 @@ function PerkCard({ perk, balance, onPurchase, index, isPurchasing, purchaseDisa
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: index * 0.08, ease: "easeOut" }}
       whileHover={{ y: -4 }}
-      className="group relative flex flex-col overflow-hidden rounded-xl border border-slate-100 bg-white p-5 shadow-sm transition-all duration-300 ease-out hover:shadow-lg"
+      className="group relative flex flex-col overflow-hidden rounded-xl border border-slate-100 bg-white p-5 shadow-sm transition-all duration-300 ease-out hover:shadow-lg dark:border-slate-800 dark:bg-slate-900"
     >
       <div
         className="pointer-events-none absolute inset-0 -translate-x-full skew-x-12 bg-gradient-to-r from-transparent via-white/60 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full"
@@ -101,8 +101,8 @@ function PerkCard({ perk, balance, onPurchase, index, isPurchasing, purchaseDisa
       <div className={`relative flex h-10 w-10 items-center justify-center rounded-xl ${COLOR_STYLES[perk.color]}`}>
         <Icon className="h-5 w-5" />
       </div>
-      <p className="relative mt-3 text-sm font-bold text-slate-900">{perk.name}</p>
-      <p className="relative mt-1 flex-1 text-xs leading-5 text-slate-500">{perk.description}</p>
+      <p className="relative mt-3 text-sm font-bold text-slate-900 dark:text-white">{perk.name}</p>
+      <p className="relative mt-1 flex-1 text-xs leading-5 text-slate-500 dark:text-slate-400">{perk.description}</p>
 
       {perk.tiers.length > 1 && (
         <div className="relative mt-3 flex flex-wrap gap-1.5">
@@ -111,7 +111,7 @@ function PerkCard({ perk, balance, onPurchase, index, isPurchasing, purchaseDisa
               key={t.label}
               onClick={() => setTierIndex(i)}
               className={`rounded-full px-2.5 py-1 text-[11px] font-bold transition-all duration-200 ${
-                i === tierIndex ? "bg-[#0A1128] text-white shadow-sm" : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                i === tierIndex ? "bg-[#0A1128] text-white shadow-sm dark:bg-white dark:text-[#0A1128]" : "bg-slate-100 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700"
               }`}
             >
               {t.label}
@@ -127,11 +127,11 @@ function PerkCard({ perk, balance, onPurchase, index, isPurchasing, purchaseDisa
         transition={{ duration: 0.2 }}
         className="relative mt-3 flex items-center gap-2"
       >
-        <span className="flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700">
+        <span className="flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
           <Coins className="h-3.5 w-3.5" />
           {tier.cost}
         </span>
-        {perk.tiers.length === 1 && <span className="text-xs font-semibold text-slate-400">{tier.label}</span>}
+        {perk.tiers.length === 1 && <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">{tier.label}</span>}
       </motion.div>
 
       {!canAfford && (
@@ -147,7 +147,7 @@ function PerkCard({ perk, balance, onPurchase, index, isPurchasing, purchaseDisa
         className={`relative mt-4 flex w-full items-center justify-center gap-1.5 rounded-lg py-2.5 text-xs font-bold transition-all duration-200 active:scale-95 ${
           canAfford
             ? "bg-[#FF6B35] text-white shadow-md hover:bg-[#e55a2b]"
-            : "cursor-not-allowed bg-slate-100 text-slate-400"
+            : "cursor-not-allowed bg-slate-100 text-slate-400 dark:text-slate-500 dark:bg-slate-800"
         } ${purchaseDisabled && canAfford ? "opacity-60" : ""}`}
       >
         {isPurchasing && <Loader2 className="h-3 w-3 animate-spin" />}
@@ -196,7 +196,7 @@ export default function BusinessPerksShop() {
   if (loadError) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-10">
-        <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+        <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400">
           <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
           <span>{loadError}</span>
         </div>
@@ -225,22 +225,22 @@ export default function BusinessPerksShop() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
-      <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-6 shadow-sm backdrop-blur-xl">
+      <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-6 shadow-sm backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/60">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-extrabold text-[#0A1128]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          <h1 className="text-xl font-extrabold text-[#0A1128] dark:text-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
             Business Perks Shop
           </h1>
-          <p className="mt-1 text-sm text-slate-500">Spend Corporate Credits on visibility boosts for your hiring.</p>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Spend Corporate Credits on visibility boosts for your hiring.</p>
         </div>
-        <div className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-[#0A1128] shadow-sm">
+        <div className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-[#0A1128] dark:text-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
           <Coins className="h-4 w-4 text-amber-500" />
           {balance}
         </div>
       </div>
 
       {notice && (
-        <div className="mb-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-500">
+        <div className="mb-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-500 dark:text-slate-400 dark:border-slate-700 dark:bg-slate-800/60">
           {notice}
         </div>
       )}
@@ -261,12 +261,12 @@ export default function BusinessPerksShop() {
 
       {purchases.length > 0 && (
         <div className="mt-8">
-          <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Recent Purchases</p>
-          <div className="mt-2 divide-y divide-slate-100 rounded-xl border border-slate-100">
+          <p className="text-xs font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">Recent Purchases</p>
+          <div className="mt-2 divide-y divide-slate-100 rounded-xl border border-slate-100 dark:divide-slate-800 dark:border-slate-800">
             {purchases.slice(0, 5).map((p) => (
               <div key={p.id} className="flex items-center justify-between px-4 py-2.5 text-sm">
-                <span className="text-slate-700">{p.label}</span>
-                <span className="flex items-center gap-1 font-semibold text-slate-500">
+                <span className="text-slate-700 dark:text-slate-300">{p.label}</span>
+                <span className="flex items-center gap-1 font-semibold text-slate-500 dark:text-slate-400">
                   <Coins className="h-3.5 w-3.5 text-amber-500" />
                   {p.token_cost}
                 </span>
@@ -276,7 +276,7 @@ export default function BusinessPerksShop() {
         </div>
       )}
 
-      <p className="mt-6 text-center text-[11px] text-slate-400">
+      <p className="mt-6 text-center text-[11px] text-slate-400 dark:text-slate-500">
         Your credit balance is real (earned when a project closes with no dispute), and purchases here really
         debit it and are recorded — the visibility boost itself isn't wired into job-feed ranking yet.
       </p>

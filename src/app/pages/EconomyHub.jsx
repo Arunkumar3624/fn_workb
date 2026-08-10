@@ -71,13 +71,13 @@ export default function EconomyHub() {
   }, []);
 
   return (
-    <div ref={rootRef} className="h-full min-h-0 overflow-y-auto overflow-x-hidden bg-[#f8fafc]">
+    <div ref={rootRef} className="h-full min-h-0 overflow-y-auto overflow-x-hidden bg-[#f8fafc] dark:bg-slate-950">
       <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
         <div className="mb-6">
-          <h1 className="text-xl font-extrabold text-[#0A1128]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          <h1 className="text-xl font-extrabold text-[#0A1128] dark:text-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
             Economy Hub
           </h1>
-          <p className="mt-1 text-sm text-slate-500">Everything you've earned so far — level, tokens, and rewards — lives here.</p>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Everything you've earned so far — level, tokens, and rewards — lives here.</p>
         </div>
 
         {ledger && (
@@ -94,8 +94,8 @@ export default function EconomyHub() {
         <div
           className={`sticky top-0 z-20 mb-6 flex w-fit flex-wrap gap-1.5 rounded-full border p-1.5 transition-all duration-300 ${
             scrolled
-              ? "border-slate-200/80 bg-white/80 shadow-lg shadow-slate-200/50 backdrop-blur-xl"
-              : "border-slate-200 bg-white"
+              ? "border-slate-200/80 bg-white/80 shadow-lg shadow-slate-200/50 backdrop-blur-xl dark:border-slate-800/80 dark:bg-slate-900/80"
+              : "border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
           }`}
         >
           {TABS.map(({ id, label, icon: Icon }) => (
@@ -103,7 +103,7 @@ export default function EconomyHub() {
               key={id}
               onClick={() => setActiveTab(id)}
               className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition-colors ${
-                activeTab === id ? "bg-slate-900 text-white shadow-sm" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+                activeTab === id ? "bg-slate-900 text-white shadow-sm dark:bg-white dark:text-slate-900" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
               }`}
             >
               <Icon className="h-4 w-4" />

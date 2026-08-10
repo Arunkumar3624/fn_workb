@@ -54,11 +54,11 @@ const DATA_FONT = { fontFamily: "'Inter', sans-serif" };
 // hardcoded red-vs-blue logic that only ever knew about the fake local
 // "frozen" state, not real statuses like DISPUTED/CANCELLED.
 const STATUS_TONE_CLASSES = {
-  slate: "border-slate-200 bg-slate-50 text-slate-600",
-  blue: "border-blue-100 bg-blue-50 text-blue-700",
-  emerald: "border-emerald-100 bg-emerald-50 text-emerald-700",
-  amber: "border-amber-100 bg-amber-50 text-amber-700",
-  red: "border-red-200 bg-red-50 text-red-600",
+  slate: "border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300",
+  blue: "border-blue-100 bg-blue-50 text-blue-700 dark:border-blue-900/40 dark:bg-blue-500/10 dark:text-blue-400",
+  emerald: "border-emerald-100 bg-emerald-50 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-400",
+  amber: "border-amber-100 bg-amber-50 text-amber-700 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-400",
+  red: "border-red-200 bg-red-50 text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400",
 };
 
 function formatINR(amount) {
@@ -176,19 +176,19 @@ function WorkerDetailDrawer({ project, onClose, onOpenChat }) {
                 </div>
 
                 <div className="mt-3 pb-4 border-b border-slate-100">
-                  <h2 className="text-xl font-extrabold text-[#0F172A]" style={HEADING_FONT}>
+                  <h2 className="text-xl font-extrabold text-[#0F172A] dark:text-white" style={HEADING_FONT}>
                     {project.worker_name}
                   </h2>
-                  <p className="mt-0.5 text-sm text-slate-500" style={DATA_FONT}>
+                  <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400" style={DATA_FONT}>
                     {profile?.title ?? "Freelancer"}
                   </p>
                   {profile?.rating != null && (
                     <div className="mt-1.5 flex items-center gap-1.5">
                       <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                      <span className="text-sm font-bold text-[#0F172A]" style={DATA_FONT}>
+                      <span className="text-sm font-bold text-[#0F172A] dark:text-white" style={DATA_FONT}>
                         {profile.rating}
                       </span>
-                      <span className="text-sm text-slate-400" style={DATA_FONT}>
+                      <span className="text-sm text-slate-400 dark:text-slate-500" style={DATA_FONT}>
                         ({profile.reviews_count} reviews)
                       </span>
                     </div>
@@ -199,7 +199,7 @@ function WorkerDetailDrawer({ project, onClose, onOpenChat }) {
 
             <div className="flex-1 overflow-y-auto">
               {isLoading && (
-                <div className="flex items-center justify-center gap-2 py-10 text-sm text-slate-400" style={DATA_FONT}>
+                <div className="flex items-center justify-center gap-2 py-10 text-sm text-slate-400 dark:text-slate-500" style={DATA_FONT}>
                   <Loader2 className="h-4 w-4 animate-spin" />
                   Loading profile…
                 </div>
@@ -215,7 +215,7 @@ function WorkerDetailDrawer({ project, onClose, onOpenChat }) {
                 <div className="p-6 space-y-5">
                   {profile?.behavior_score != null && (
                     <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                      <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-slate-400" style={HEADING_FONT}>
+                      <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500" style={HEADING_FONT}>
                         Behavior Score
                       </p>
                       <div className="flex items-center gap-3">
@@ -233,17 +233,17 @@ function WorkerDetailDrawer({ project, onClose, onOpenChat }) {
                   )}
 
                   <div className="rounded-2xl border border-slate-200 bg-white/80 p-5">
-                    <p className="mb-3 text-[10px] font-black uppercase tracking-widest text-slate-400" style={HEADING_FONT}>
+                    <p className="mb-3 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500" style={HEADING_FONT}>
                       Project Progress
                     </p>
-                    <p className="mb-3 truncate text-sm font-bold text-[#0F172A]" style={DATA_FONT}>
+                    <p className="mb-3 truncate text-sm font-bold text-[#0F172A] dark:text-white" style={DATA_FONT}>
                       {project.title}
                     </p>
                     <div className="-mx-5 mb-3">
                       <TimelineTracker status={project.status} />
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-slate-400" style={DATA_FONT}>
+                      <span className="text-xs text-slate-400 dark:text-slate-500" style={DATA_FONT}>
                         Due: {formatDate(project.deadline)}
                       </span>
                       <span className="text-base font-extrabold text-[#1B3FAB]" style={DATA_FONT}>
@@ -277,7 +277,7 @@ function WorkerDetailDrawer({ project, onClose, onOpenChat }) {
             <div className="flex flex-shrink-0 gap-3 border-t border-slate-100 bg-white p-5">
               <button
                 onClick={onClose}
-                className="flex-1 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50"
+                className="flex-1 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-600 dark:text-slate-400 transition-colors hover:bg-slate-50"
               >
                 Close
               </button>
@@ -325,7 +325,7 @@ function PaymentApprovalModal({ project, isSubmitting, submitError, onClose, onC
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 16 }}
             transition={{ type: "spring", stiffness: 320, damping: 26 }}
-            className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white/90 shadow-2xl backdrop-blur-xl"
+            className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white/90 shadow-2xl backdrop-blur-xl dark:border-slate-700 dark:bg-slate-900/95"
           >
             <div className="p-6">
               <div className="mb-5 flex items-center gap-3">
@@ -333,10 +333,10 @@ function PaymentApprovalModal({ project, isSubmitting, submitError, onClose, onC
                   <Lock className="h-5 w-5 text-emerald-600" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-base font-extrabold text-[#0F172A]" style={HEADING_FONT}>
+                  <h3 className="text-base font-extrabold text-[#0F172A] dark:text-white" style={HEADING_FONT}>
                     Request Release from Escrow
                   </h3>
-                  <p className="mt-0.5 truncate text-xs text-slate-400" style={DATA_FONT}>
+                  <p className="mt-0.5 truncate text-xs text-slate-400 dark:text-slate-500" style={DATA_FONT}>
                     {project.title}
                   </p>
                 </div>
@@ -344,32 +344,32 @@ function PaymentApprovalModal({ project, isSubmitting, submitError, onClose, onC
                   <button
                     onClick={onClose}
                     aria-label="Cancel"
-                    className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                    className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-slate-400 dark:text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
                   >
                     <X className="h-4 w-4" />
                   </button>
                 )}
               </div>
 
-              <div className="mb-4 space-y-2.5 rounded-xl bg-slate-50 p-4 font-mono text-sm">
+              <div className="mb-4 space-y-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 p-4 font-mono text-sm">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500">Worker</span>
-                  <span className="font-bold text-[#0F172A]">{project.worker_name}</span>
+                  <span className="text-slate-500 dark:text-slate-400">Worker</span>
+                  <span className="font-bold text-[#0F172A] dark:text-white">{project.worker_name}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500">Amount</span>
-                  <span className="font-bold text-[#0F172A]">{formatINR(project.budget)}</span>
+                  <span className="text-slate-500 dark:text-slate-400">Amount</span>
+                  <span className="font-bold text-[#0F172A] dark:text-white">{formatINR(project.budget)}</span>
                 </div>
-                <div className="h-px bg-slate-200" />
+                <div className="h-px bg-slate-200 dark:bg-slate-700" />
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500">Processing</span>
+                  <span className="text-slate-500 dark:text-slate-400">Processing</span>
                   <span className="font-bold text-amber-600">WorkBridge Review</span>
                 </div>
               </div>
 
-              <div className="mb-5 flex items-start gap-2.5 rounded-xl border border-blue-100 bg-blue-50 p-3.5">
+              <div className="mb-5 flex items-start gap-2.5 rounded-xl border border-blue-100 bg-blue-50 p-3.5 dark:border-blue-900/40 dark:bg-blue-500/10">
                 <ShieldCheck className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-blue-500" />
-                <p className="text-xs leading-relaxed text-blue-700" style={DATA_FONT}>
+                <p className="text-xs leading-relaxed text-blue-700 dark:text-blue-400" style={DATA_FONT}>
                   This tells WorkBridge to pay {project.worker_name} out of the funds you already
                   secured in escrow — our team completes the transfer shortly after you confirm.
                 </p>
@@ -378,7 +378,7 @@ function PaymentApprovalModal({ project, isSubmitting, submitError, onClose, onC
               {submitError && (
                 <div
                   role="alert"
-                  className="mb-4 rounded-xl border border-red-100 bg-red-50 p-3.5 text-xs font-semibold text-red-600"
+                  className="mb-4 rounded-xl border border-red-100 bg-red-50 p-3.5 text-xs font-semibold text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400"
                 >
                   {submitError}
                 </div>
@@ -388,7 +388,7 @@ function PaymentApprovalModal({ project, isSubmitting, submitError, onClose, onC
                 <button
                   onClick={onClose}
                   disabled={isSubmitting}
-                  className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-600 dark:text-slate-400 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700"
                 >
                   Cancel
                 </button>
@@ -437,7 +437,7 @@ function RequestRevisionModal({ project, note, onNoteChange, isSubmitting, submi
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 16 }}
             transition={{ type: "spring", stiffness: 320, damping: 26 }}
-            className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white/90 shadow-2xl backdrop-blur-xl"
+            className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white/90 shadow-2xl backdrop-blur-xl dark:border-slate-700 dark:bg-slate-900/95"
           >
             <div className="p-6">
               <div className="mb-5 flex items-center gap-3">
@@ -445,10 +445,10 @@ function RequestRevisionModal({ project, note, onNoteChange, isSubmitting, submi
                   <RotateCcw className="h-5 w-5 text-amber-600" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-base font-extrabold text-[#0F172A]" style={HEADING_FONT}>
+                  <h3 className="text-base font-extrabold text-[#0F172A] dark:text-white" style={HEADING_FONT}>
                     Request Revision
                   </h3>
-                  <p className="mt-0.5 truncate text-xs text-slate-400" style={DATA_FONT}>
+                  <p className="mt-0.5 truncate text-xs text-slate-400 dark:text-slate-500" style={DATA_FONT}>
                     {project.title}
                   </p>
                 </div>
@@ -456,15 +456,15 @@ function RequestRevisionModal({ project, note, onNoteChange, isSubmitting, submi
                   <button
                     onClick={onClose}
                     aria-label="Cancel"
-                    className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                    className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-slate-400 dark:text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
                   >
                     <X className="h-4 w-4" />
                   </button>
                 )}
               </div>
 
-              <p className="mb-3 text-[13px] leading-relaxed text-slate-700" style={DATA_FONT}>
-                This sends the project back to <span className="font-semibold text-slate-900">In Progress</span> so{" "}
+              <p className="mb-3 text-[13px] leading-relaxed text-slate-700 dark:text-slate-300" style={DATA_FONT}>
+                This sends the project back to <span className="font-semibold text-slate-900 dark:text-white">In Progress</span> so{" "}
                 {project.worker_name} can upload a new file. Let them know what to fix.
               </p>
 
@@ -475,13 +475,13 @@ function RequestRevisionModal({ project, note, onNoteChange, isSubmitting, submi
                 rows={3}
                 maxLength={1000}
                 placeholder="e.g. Could you make the logo blue and resend? (optional)"
-                className="mb-4 w-full resize-none rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-amber-400 focus:bg-white focus:ring-4 focus:ring-amber-400/10 disabled:opacity-60"
+                className="mb-4 w-full resize-none rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-amber-400 focus:bg-white focus:ring-4 focus:ring-amber-400/10 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:bg-slate-800"
               />
 
               {submitError && (
                 <div
                   role="alert"
-                  className="mb-4 rounded-xl border border-red-100 bg-red-50 p-3.5 text-xs font-semibold text-red-600"
+                  className="mb-4 rounded-xl border border-red-100 bg-red-50 p-3.5 text-xs font-semibold text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400"
                 >
                   {submitError}
                 </div>
@@ -491,7 +491,7 @@ function RequestRevisionModal({ project, note, onNoteChange, isSubmitting, submi
                 <button
                   onClick={onClose}
                   disabled={isSubmitting}
-                  className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-600 dark:text-slate-400 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700"
                 >
                   Cancel
                 </button>
@@ -538,7 +538,7 @@ function DisputeConfirmModal({ project, isSubmitting, submitError, onClose, onCo
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 16 }}
             transition={{ type: "spring", stiffness: 320, damping: 26 }}
-            className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white/90 shadow-2xl backdrop-blur-xl"
+            className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white/90 shadow-2xl backdrop-blur-xl dark:border-slate-700 dark:bg-slate-900/95"
           >
             <div className="p-6">
               <div className="mb-5 flex items-center gap-3">
@@ -546,10 +546,10 @@ function DisputeConfirmModal({ project, isSubmitting, submitError, onClose, onCo
                   <AlertTriangle className="h-5 w-5 text-red-600" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-base font-extrabold text-[#0F172A]" style={HEADING_FONT}>
+                  <h3 className="text-base font-extrabold text-[#0F172A] dark:text-white" style={HEADING_FONT}>
                     Raise a Dispute
                   </h3>
-                  <p className="mt-0.5 truncate text-xs text-slate-400" style={DATA_FONT}>
+                  <p className="mt-0.5 truncate text-xs text-slate-400 dark:text-slate-500" style={DATA_FONT}>
                     {project.title}
                   </p>
                 </div>
@@ -557,14 +557,14 @@ function DisputeConfirmModal({ project, isSubmitting, submitError, onClose, onCo
                   <button
                     onClick={onClose}
                     aria-label="Cancel"
-                    className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                    className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-slate-400 dark:text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
                   >
                     <X className="h-4 w-4" />
                   </button>
                 )}
               </div>
 
-              <p className="mb-5 text-[13px] leading-relaxed text-slate-700" style={DATA_FONT}>
+              <p className="mb-5 text-[13px] leading-relaxed text-slate-700 dark:text-slate-300" style={DATA_FONT}>
                 This pauses the project and hands it to WorkBridge for review — funds stay held until
                 an admin resolves the dispute. Use this only when a revision request isn't enough.
               </p>
@@ -572,7 +572,7 @@ function DisputeConfirmModal({ project, isSubmitting, submitError, onClose, onCo
               {submitError && (
                 <div
                   role="alert"
-                  className="mb-4 rounded-xl border border-red-100 bg-red-50 p-3.5 text-xs font-semibold text-red-600"
+                  className="mb-4 rounded-xl border border-red-100 bg-red-50 p-3.5 text-xs font-semibold text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400"
                 >
                   {submitError}
                 </div>
@@ -582,7 +582,7 @@ function DisputeConfirmModal({ project, isSubmitting, submitError, onClose, onCo
                 <button
                   onClick={onClose}
                   disabled={isSubmitting}
-                  className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-600 dark:text-slate-400 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700"
                 >
                   Cancel
                 </button>
@@ -627,7 +627,7 @@ function CancelRefundConfirmModal({ project, isSubmitting, submitError, onClose,
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 16 }}
             transition={{ type: "spring", stiffness: 320, damping: 26 }}
-            className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white/90 shadow-2xl backdrop-blur-xl"
+            className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white/90 shadow-2xl backdrop-blur-xl dark:border-slate-700 dark:bg-slate-900/95"
           >
             <div className="p-6">
               <div className="mb-5 flex items-center gap-3">
@@ -635,10 +635,10 @@ function CancelRefundConfirmModal({ project, isSubmitting, submitError, onClose,
                   <AlertTriangle className="h-5 w-5 text-red-600" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-base font-extrabold text-[#0F172A]" style={HEADING_FONT}>
+                  <h3 className="text-base font-extrabold text-[#0F172A] dark:text-white" style={HEADING_FONT}>
                     Cancel &amp; Refund
                   </h3>
-                  <p className="mt-0.5 truncate text-xs text-slate-400" style={DATA_FONT}>
+                  <p className="mt-0.5 truncate text-xs text-slate-400 dark:text-slate-500" style={DATA_FONT}>
                     {project.title}
                   </p>
                 </div>
@@ -646,25 +646,25 @@ function CancelRefundConfirmModal({ project, isSubmitting, submitError, onClose,
                   <button
                     onClick={onClose}
                     aria-label="Cancel"
-                    className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                    className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-slate-400 dark:text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
                   >
                     <X className="h-4 w-4" />
                   </button>
                 )}
               </div>
 
-              <div className="mb-4 space-y-2.5 rounded-xl bg-slate-50 p-4 font-mono text-sm">
+              <div className="mb-4 space-y-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 p-4 font-mono text-sm">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500">Worker</span>
-                  <span className="font-bold text-[#0F172A]">{project.worker_name}</span>
+                  <span className="text-slate-500 dark:text-slate-400">Worker</span>
+                  <span className="font-bold text-[#0F172A] dark:text-white">{project.worker_name}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500">Refund Amount</span>
-                  <span className="font-bold text-[#0F172A]">{formatINR(project.budget)}</span>
+                  <span className="text-slate-500 dark:text-slate-400">Refund Amount</span>
+                  <span className="font-bold text-[#0F172A] dark:text-white">{formatINR(project.budget)}</span>
                 </div>
               </div>
 
-              <p className="mb-5 text-[13px] leading-relaxed text-slate-700" style={DATA_FONT}>
+              <p className="mb-5 text-[13px] leading-relaxed text-slate-700 dark:text-slate-300" style={DATA_FONT}>
                 {project.worker_name} never delivered by the deadline — this cancels the project and
                 refunds the full amount back to you immediately. This can't be undone; if the worker
                 actually did submit work, use Raise Dispute instead so WorkBridge can review it.
@@ -673,7 +673,7 @@ function CancelRefundConfirmModal({ project, isSubmitting, submitError, onClose,
               {submitError && (
                 <div
                   role="alert"
-                  className="mb-4 rounded-xl border border-red-100 bg-red-50 p-3.5 text-xs font-semibold text-red-600"
+                  className="mb-4 rounded-xl border border-red-100 bg-red-50 p-3.5 text-xs font-semibold text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400"
                 >
                   {submitError}
                 </div>
@@ -683,7 +683,7 @@ function CancelRefundConfirmModal({ project, isSubmitting, submitError, onClose,
                 <button
                   onClick={onClose}
                   disabled={isSubmitting}
-                  className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-600 dark:text-slate-400 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700"
                 >
                   Nevermind
                 </button>
@@ -732,7 +732,7 @@ const TIER_CARD_STYLES = {
 function StandingBadge({ standingDoor, currentLevel }) {
   if (standingDoor === "span") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-600">
+      <span className="inline-flex items-center gap-1 rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-600 dark:text-slate-400">
         <Sparkles className="h-2.5 w-2.5" />
         Rising — On the Bridge
       </span>
@@ -771,15 +771,15 @@ function ApplicantsModal({ project, candidates, isLoading, respondingId, onClose
           >
             <div className="flex flex-shrink-0 items-center justify-between border-b border-slate-100 px-6 py-4">
               <div className="min-w-0">
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Applicants &amp; Invites</p>
-                <h3 className="truncate text-base font-extrabold text-[#0F172A]" style={HEADING_FONT}>
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">Applicants &amp; Invites</p>
+                <h3 className="truncate text-base font-extrabold text-[#0F172A] dark:text-white" style={HEADING_FONT}>
                   {project.title}
                 </h3>
               </div>
               <button
                 onClick={onClose}
                 aria-label="Close"
-                className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg text-slate-400 dark:text-slate-500 hover:bg-slate-100 hover:text-slate-700"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -791,7 +791,7 @@ function ApplicantsModal({ project, candidates, isLoading, respondingId, onClose
                   <Loader2 className="h-6 w-6 animate-spin text-slate-300" />
                 </div>
               ) : candidates.length === 0 ? (
-                <p className="py-8 text-center text-sm text-slate-400">
+                <p className="py-8 text-center text-sm text-slate-400 dark:text-slate-500">
                   No applicants or invites yet — this post is still live on the Job Feed.
                 </p>
               ) : (
@@ -808,29 +808,29 @@ function ApplicantsModal({ project, candidates, isLoading, respondingId, onClose
                       )}
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-1.5">
-                          <p className="text-sm font-bold text-[#0F172A]">{c.worker_name}</p>
+                          <p className="text-sm font-bold text-[#0F172A] dark:text-white">{c.worker_name}</p>
                           <StandingBadge standingDoor={c.standing_door} currentLevel={c.current_level} />
                           <span
                             className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                              c.source === "INVITE" ? "bg-[#F4F6FF] text-[#1B3FAB]" : "bg-slate-200 text-slate-600"
+                              c.source === "INVITE" ? "bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 text-[#1B3FAB]" : "bg-slate-200 text-slate-600 dark:text-slate-400"
                             }`}
                           >
                             {c.source === "INVITE" ? "You invited" : "Applied"}
                           </span>
                           {c.status !== "PENDING" && (
-                            <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-500">
+                            <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-500 dark:text-slate-400">
                               {c.status}
                             </span>
                           )}
                         </div>
-                        {c.worker_title && <p className="text-xs text-slate-500">{c.worker_title}</p>}
+                        {c.worker_title && <p className="text-xs text-slate-500 dark:text-slate-400">{c.worker_title}</p>}
                         {c.rating != null && (
-                          <div className="mt-1 flex items-center gap-1 text-xs text-slate-500">
+                          <div className="mt-1 flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
                             <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
                             {c.rating} ({c.reviews_count ?? 0})
                           </div>
                         )}
-                        {c.message && <p className="mt-2 text-xs leading-5 text-slate-600">"{c.message}"</p>}
+                        {c.message && <p className="mt-2 text-xs leading-5 text-slate-600 dark:text-slate-400">"{c.message}"</p>}
                       </div>
                       {c.status === "PENDING" && (
                         <div className="flex flex-shrink-0 flex-col gap-1.5">
@@ -845,7 +845,7 @@ function ApplicantsModal({ project, candidates, isLoading, respondingId, onClose
                           <button
                             onClick={() => onRespond(c.id, false)}
                             disabled={respondingId === c.id}
-                            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-60"
+                            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 disabled:opacity-60"
                           >
                             Decline
                           </button>
@@ -897,7 +897,7 @@ function RatingModal({ project, currentUserId, onClose, onRehire, onRated }) {
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/80 text-slate-500 hover:bg-slate-100"
+          className="absolute top-4 right-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/80 text-slate-500 dark:text-slate-400 hover:bg-slate-100"
         >
           <X className="h-4 w-4" />
         </button>
@@ -1269,17 +1269,17 @@ export default function BusinessProjects({ onOpenChat }) {
   };
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-slate-50 p-4 sm:p-7 wb-tab-enter" style={DATA_FONT}>
+    <div className="min-h-screen overflow-x-hidden bg-slate-50 p-4 sm:p-7 wb-tab-enter dark:bg-slate-950" style={DATA_FONT}>
       <div className="mx-auto max-w-5xl">
         <div className="mb-5 flex items-center justify-between gap-3">
-          <h1 className="text-2xl font-extrabold text-[#0F172A]" style={HEADING_FONT}>
+          <h1 className="text-2xl font-extrabold text-[#0F172A] dark:text-white" style={HEADING_FONT}>
             Active Projects
           </h1>
           <button
             onClick={loadProjects}
             disabled={isLoading}
             aria-label="Refresh projects"
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-50"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 dark:text-slate-400 transition-colors hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800"
           >
             <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
           </button>
@@ -1288,17 +1288,17 @@ export default function BusinessProjects({ onOpenChat }) {
         {/* Secondary, non-text-heavy trust panel — the one deliberately
             translucent glass surface on this page; financial data below
             stays on solid/near-solid backgrounds for readability. */}
-        <div className="mb-6 flex items-center gap-2.5 rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-slate-600 shadow-sm backdrop-blur-2xl">
+        <div className="mb-6 flex items-center gap-2.5 rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-slate-600 dark:text-slate-400 shadow-sm backdrop-blur-2xl dark:border-slate-800 dark:bg-slate-900/40">
           <ShieldCheck className="h-4 w-4 flex-shrink-0 text-emerald-600" />
           <p className="text-xs font-semibold">Every payment release goes through WorkBridge in one clean step — nothing is ever left half-transferred.</p>
         </div>
 
         {loadError && (
-          <div role="alert" className="mb-6 flex items-center justify-between gap-3 rounded-2xl border border-red-100 bg-red-50 p-4">
-            <p className="text-sm font-semibold text-red-600">{loadError}</p>
+          <div role="alert" className="mb-6 flex items-center justify-between gap-3 rounded-2xl border border-red-100 bg-red-50 p-4 dark:border-red-900/40 dark:bg-red-950/30">
+            <p className="text-sm font-semibold text-red-600 dark:text-red-400">{loadError}</p>
             <button
               onClick={loadProjects}
-              className="flex-shrink-0 rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-red-600 shadow-sm hover:bg-red-50"
+              className="flex-shrink-0 rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-red-600 shadow-sm hover:bg-red-50 dark:bg-slate-900 dark:hover:bg-red-950/30"
             >
               Retry
             </button>
@@ -1307,7 +1307,7 @@ export default function BusinessProjects({ onOpenChat }) {
 
 
         {!isLoading && !loadError && (
-          <div className="mb-6 flex gap-1 rounded-2xl bg-slate-100 p-1">
+          <div className="mb-6 flex gap-1 rounded-2xl bg-slate-100 dark:bg-slate-800 p-1">
             {[
               { id: "ongoing", label: "Ongoing", count: ongoingProjects.length, icon: RefreshCw },
               { id: "posted", label: "Posted", count: postedProjects.length, icon: Briefcase },
@@ -1319,12 +1319,12 @@ export default function BusinessProjects({ onOpenChat }) {
                   key={id}
                   onClick={() => setProjectsTab(id)}
                   className={`flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition-all ${
-                    active ? "bg-white text-[#0F172A] shadow-sm" : "text-slate-500 hover:text-slate-700"
+                    active ? "bg-white text-[#0F172A] dark:text-white shadow-sm dark:bg-slate-700" : "text-slate-500 dark:text-slate-400 hover:text-slate-700"
                   }`}
                 >
                   <Icon className="h-3.5 w-3.5" />
                   <span>{label}</span>
-                  <span className={`rounded-full px-2 py-0.5 text-[10px] ${active ? "bg-[#1B3FAB] text-white" : "bg-slate-200 text-slate-600"}`}>
+                  <span className={`rounded-full px-2 py-0.5 text-[10px] ${active ? "bg-[#1B3FAB] text-white" : "bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-400"}`}>
                     {count}
                   </span>
                 </button>
@@ -1336,7 +1336,7 @@ export default function BusinessProjects({ onOpenChat }) {
         {isLoading && (
           <div className="space-y-5">
             {[0, 1, 2].map((i) => (
-              <div key={i} className="h-40 animate-pulse rounded-2xl border border-slate-200 bg-white/90" />
+              <div key={i} className="h-40 animate-pulse rounded-2xl border border-slate-200 bg-white/90 dark:border-slate-800 dark:bg-slate-900/90" />
             ))}
           </div>
         )}
@@ -1358,18 +1358,18 @@ export default function BusinessProjects({ onOpenChat }) {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.97 }}
                   transition={{ duration: 0.25, delay: i * 0.05 }}
-                  className="overflow-hidden rounded-2xl border border-[#1B3FAB]/20 bg-white/90 p-4 backdrop-blur-sm sm:p-5"
+                  className="overflow-hidden rounded-2xl border border-[#1B3FAB]/20 bg-white/90 dark:bg-slate-900/90 p-4 backdrop-blur-sm sm:p-5 dark:border-[#1B3FAB]/30"
                 >
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0">
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-[#F4F6FF] px-2.5 py-1 text-[11px] font-bold text-[#1B3FAB]">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 px-2.5 py-1 text-[11px] font-bold text-[#1B3FAB]">
                         <Briefcase className="h-3 w-3" />
                         Live on Job Feed
                       </span>
-                      <h3 className="mt-2 truncate text-[15px] font-extrabold text-[#0F172A]" style={HEADING_FONT}>
+                      <h3 className="mt-2 truncate text-[15px] font-extrabold text-[#0F172A] dark:text-white" style={HEADING_FONT}>
                         {p.title}
                       </h3>
-                      <p className="mt-0.5 text-sm text-slate-500">No worker assigned yet — anyone can apply, or invite someone directly.</p>
+                      <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">No worker assigned yet — anyone can apply, or invite someone directly.</p>
                     </div>
                     <div className="flex-shrink-0 sm:text-right">
                       <div className="text-lg font-extrabold text-[#1B3FAB]">{formatINR(p.budget)}</div>
@@ -1384,7 +1384,7 @@ export default function BusinessProjects({ onOpenChat }) {
                       View Applicants
                     </button>
                     {confirmWithdrawId === p.id ? (
-                      <div className="flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600">
+                      <div className="flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400">
                         Withdraw this post?
                         <button
                           onClick={() => handleWithdrawPost(p.id)}
@@ -1395,7 +1395,7 @@ export default function BusinessProjects({ onOpenChat }) {
                         </button>
                         <button
                           onClick={() => setConfirmWithdrawId(null)}
-                          className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 font-semibold text-slate-600 hover:bg-slate-50"
+                          className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700"
                         >
                           Cancel
                         </button>
@@ -1403,7 +1403,7 @@ export default function BusinessProjects({ onOpenChat }) {
                     ) : (
                       <button
                         onClick={() => setConfirmWithdrawId(p.id)}
-                        className="flex min-h-[44px] items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50"
+                        className="flex min-h-[44px] items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800"
                       >
                         <X className="h-3.5 w-3.5" />
                         Withdraw Post
@@ -1414,7 +1414,7 @@ export default function BusinessProjects({ onOpenChat }) {
               ))}
             </AnimatePresence>
             {postedProjects.length === 0 && (
-              <div className="rounded-2xl border border-dashed border-slate-300 bg-white/90 p-10 text-center text-sm text-slate-400">
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-white/90 dark:border-slate-700 dark:bg-slate-900/90 p-10 text-center text-sm text-slate-400 dark:text-slate-500">
                 No open posts right now — click "Post a Job" to put one live on the Job Feed.
               </div>
             )}
@@ -1456,14 +1456,14 @@ export default function BusinessProjects({ onOpenChat }) {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.97 }}
                     transition={{ duration: 0.25, delay: i * 0.05 }}
-                    className={`overflow-hidden rounded-2xl border bg-white/90 backdrop-blur-sm transition-shadow duration-200 ${
-                      isDisputed ? "border-red-200 shadow-sm shadow-red-100/60" : "border-slate-200 hover:shadow-md"
+                    className={`overflow-hidden rounded-2xl border bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm transition-shadow duration-200 ${
+                      isDisputed ? "border-red-200 dark:border-red-900/40 shadow-sm shadow-red-100/60 dark:shadow-none" : "border-slate-200 dark:border-slate-800 hover:shadow-md"
                     }`}
                   >
                     {isDisputed && (
-                      <div className="flex items-center gap-2 border-b border-red-100 bg-red-50 px-5 py-2.5">
+                      <div className="flex items-center gap-2 border-b border-red-100 bg-red-50 px-5 py-2.5 dark:border-red-900/40 dark:bg-red-950/30">
                         <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0 text-red-500" />
-                        <p className="text-xs font-bold text-red-600">
+                        <p className="text-xs font-bold text-red-600 dark:text-red-400">
                           Dispute raised · Funds stay held until WorkBridge reviews this project.
                         </p>
                       </div>
@@ -1474,17 +1474,17 @@ export default function BusinessProjects({ onOpenChat }) {
                         <div className="flex min-w-0 items-center gap-3">
                           <Avatar initials={getInitials(p.worker_name)} bg="bg-[#1B3FAB]" size="w-12 h-12" text="text-xs" />
                           <div className="min-w-0">
-                            <h3 className="truncate text-[15px] font-extrabold text-[#0F172A]" style={HEADING_FONT}>
+                            <h3 className="truncate text-[15px] font-extrabold text-[#0F172A] dark:text-white" style={HEADING_FONT}>
                               {p.title}
                             </h3>
-                            <p className="mt-0.5 truncate text-sm text-slate-500">
+                            <p className="mt-0.5 truncate text-sm text-slate-500 dark:text-slate-400">
                               with {p.worker_name} · Due {formatDate(p.deadline)}
                             </p>
                           </div>
                         </div>
                         <div className="flex-shrink-0 sm:ml-4 sm:text-right">
                           <div className="text-lg font-extrabold text-[#1B3FAB]">{formatINR(p.budget)}</div>
-                          <div className="mt-0.5 font-mono text-xs text-slate-400">Secured: {formatINR(p.budget)}</div>
+                          <div className="mt-0.5 font-mono text-xs text-slate-400 dark:text-slate-500">Secured: {formatINR(p.budget)}</div>
                         </div>
                       </div>
 
@@ -1507,7 +1507,7 @@ export default function BusinessProjects({ onOpenChat }) {
                       <div className="flex flex-wrap items-center gap-2.5">
                         <button
                           onClick={() => setWorkerDrawerProject(p)}
-                          className="flex min-h-[44px] items-center gap-1.5 rounded-xl border border-[#1B3FAB]/15 bg-[#F4F6FF] px-4 py-2 text-xs font-semibold text-[#1B3FAB] transition-colors hover:bg-[#1B3FAB]/10"
+                          className="flex min-h-[44px] items-center gap-1.5 rounded-xl border border-[#1B3FAB]/15 bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 px-4 py-2 text-xs font-semibold text-[#1B3FAB] transition-colors hover:bg-[#1B3FAB]/10"
                         >
                           <UserCheck className="h-3.5 w-3.5" />
                           View Worker
@@ -1518,8 +1518,8 @@ export default function BusinessProjects({ onOpenChat }) {
                           disabled={downloadingId === p.id}
                           className={`relative flex min-h-[44px] items-center gap-1.5 rounded-xl border px-4 py-2 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
                             p.new_deliverables_count > 0
-                              ? "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                              : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                              ? "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-400 dark:hover:bg-emerald-950/50"
+                              : "border-slate-200 bg-white text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800"
                           }`}
                         >
                           {downloadingId === p.id ? (
@@ -1545,7 +1545,7 @@ export default function BusinessProjects({ onOpenChat }) {
                               setRevisionNote("");
                               setRevisionError(null);
                             }}
-                            className="flex min-h-[44px] items-center gap-1.5 rounded-xl border border-amber-100 bg-amber-50 px-4 py-2 text-xs font-semibold text-amber-700 transition-colors hover:bg-amber-100"
+                            className="flex min-h-[44px] items-center gap-1.5 rounded-xl border border-amber-100 bg-amber-50 px-4 py-2 text-xs font-semibold text-amber-700 transition-colors hover:bg-amber-100 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-400 dark:hover:bg-amber-950/50"
                           >
                             <RotateCcw className="h-3.5 w-3.5" />
                             Request Revision
@@ -1558,7 +1558,7 @@ export default function BusinessProjects({ onOpenChat }) {
                               setRefundProject(p);
                               setRefundError(null);
                             }}
-                            className="flex min-h-[44px] items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-bold text-red-700 transition-colors hover:bg-red-100"
+                            className="flex min-h-[44px] items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-bold text-red-700 transition-colors hover:bg-red-100 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-950/50"
                           >
                             <AlertTriangle className="h-3.5 w-3.5" />
                             Cancel &amp; Refund — Deadline Missed
@@ -1571,7 +1571,7 @@ export default function BusinessProjects({ onOpenChat }) {
                               setDisputeProject(p);
                               setDisputeError(null);
                             }}
-                            className="flex min-h-[44px] items-center gap-1.5 rounded-xl border border-red-100 bg-red-50 px-4 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-100"
+                            className="flex min-h-[44px] items-center gap-1.5 rounded-xl border border-red-100 bg-red-50 px-4 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-100 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-950/50"
                           >
                             <AlertTriangle className="h-3.5 w-3.5" />
                             Raise Dispute
@@ -1589,7 +1589,7 @@ export default function BusinessProjects({ onOpenChat }) {
                         )}
 
                         {p.status === "PENDING_FUNDS" && (
-                          <span className="flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-5 py-2 text-xs font-bold text-amber-700 sm:ml-auto sm:w-auto sm:justify-start">
+                          <span className="flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-5 py-2 text-xs font-bold text-amber-700 sm:ml-auto sm:w-auto sm:justify-start dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-400">
                             <ShieldCheck className="h-3.5 w-3.5" />
                             Awaiting WorkBridge Verification
                           </span>
@@ -1619,7 +1619,7 @@ export default function BusinessProjects({ onOpenChat }) {
                         )}
 
                         {p.status === "PENDING_RELEASE" && (
-                          <span className="flex min-h-[44px] items-center gap-1.5 rounded-xl border border-amber-100 bg-amber-50 px-4 py-2 text-xs font-semibold text-amber-700 sm:ml-auto">
+                          <span className="flex min-h-[44px] items-center gap-1.5 rounded-xl border border-amber-100 bg-amber-50 px-4 py-2 text-xs font-semibold text-amber-700 sm:ml-auto dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-400">
                             <Loader2 className="h-3.5 w-3.5" />
                             Release requested — WorkBridge is processing this payout
                           </span>
@@ -1641,7 +1641,7 @@ export default function BusinessProjects({ onOpenChat }) {
             </AnimatePresence>
 
             {ongoingProjects.length === 0 && (
-              <div className="rounded-2xl border border-dashed border-slate-300 bg-white/90 p-10 text-center text-sm text-slate-400">
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-white/90 dark:border-slate-700 dark:bg-slate-900/90 p-10 text-center text-sm text-slate-400 dark:text-slate-500">
                 No ongoing projects right now.
               </div>
             )}
@@ -1656,7 +1656,7 @@ export default function BusinessProjects({ onOpenChat }) {
             transition={{ duration: 0.2, ease: "easeInOut" }}
           >
             {historyProjects.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-slate-300 bg-white/90 p-10 text-center text-sm text-slate-400">
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-white/90 dark:border-slate-700 dark:bg-slate-900/90 p-10 text-center text-sm text-slate-400 dark:text-slate-500">
                 No completed or cancelled projects yet.
               </div>
             ) : (
@@ -1668,14 +1668,14 @@ export default function BusinessProjects({ onOpenChat }) {
                   <div
                     key={p.id}
                     className={`flex flex-col gap-3 rounded-xl border px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-5 ${
-                      isCancelled ? "border-slate-200 bg-slate-50" : "border-emerald-100 bg-emerald-50/50"
+                      isCancelled ? "border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900" : "border-emerald-100 bg-emerald-50/50 dark:border-emerald-900/40 dark:bg-emerald-950/20"
                     }`}
                   >
                     <div className="flex min-w-0 items-center gap-3">
                       <Avatar initials={getInitials(p.worker_name)} bg="bg-[#1B3FAB]" size="w-10 h-10" text="text-xs" />
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-bold text-[#0F172A]">{p.title}</p>
-                        <p className="text-xs text-slate-500">with {p.worker_name || "a freelancer"}</p>
+                        <p className="truncate text-sm font-bold text-[#0F172A] dark:text-white">{p.title}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">with {p.worker_name || "a freelancer"}</p>
                       </div>
                     </div>
                     {/* Cancelled projects never had funds secured or a
@@ -1684,12 +1684,12 @@ export default function BusinessProjects({ onOpenChat }) {
                         option to invite the same worker again. */}
                     {isCancelled ? (
                       <div className="flex flex-shrink-0 flex-wrap items-center gap-3">
-                        <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-500">
+                        <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-500 dark:text-slate-400 dark:border-slate-700 dark:bg-slate-800">
                           Cancelled
                         </span>
                         <button
                           onClick={() => setWorkerDrawerProject(p)}
-                          className="flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-600 hover:bg-slate-50"
+                          className="flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700"
                         >
                           <MessageSquare className="h-3 w-3" />
                           View Chat
@@ -1708,7 +1708,7 @@ export default function BusinessProjects({ onOpenChat }) {
 
                         <button
                           onClick={() => setWorkerDrawerProject(p)}
-                          className="flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-600 hover:bg-slate-50"
+                          className="flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700"
                         >
                           <MessageSquare className="h-3 w-3" />
                           View Chat
@@ -1726,7 +1726,7 @@ export default function BusinessProjects({ onOpenChat }) {
                         ) : (
                           <button
                             onClick={() => setRatingProject(p)}
-                            className="flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-600 hover:bg-slate-50"
+                            className="flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700"
                           >
                             <Star className="h-3 w-3" />
                             Rate

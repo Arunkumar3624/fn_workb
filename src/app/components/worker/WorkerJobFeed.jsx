@@ -122,36 +122,36 @@ function JobDetailModal({ job, onClose, onApply, applying, applyError, alreadyAp
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4" onClick={onClose}>
       <div
-        className="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+        className="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-slate-900"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex flex-shrink-0 items-start justify-between gap-4 border-b border-slate-100 px-6 py-5">
+        <div className="flex flex-shrink-0 items-start justify-between gap-4 border-b border-slate-100 px-6 py-5 dark:border-slate-800">
           <div className="min-w-0">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">{job.business_name}</p>
-            <h2 className="mt-1 text-xl font-black text-slate-900">{job.title}</h2>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">{job.business_name}</p>
+            <h2 className="mt-1 text-xl font-black text-slate-900 dark:text-white">{job.title}</h2>
           </div>
-          <button onClick={onClose} className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100">
+          <button onClick={onClose} className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
             <X className="h-4 w-4" />
           </button>
         </div>
 
         <div className="wb-scroll-clean min-h-0 flex-1 overflow-y-auto px-6 py-5">
-          <div className="grid grid-cols-4 gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-center">
+          <div className="grid grid-cols-4 gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-center dark:border-slate-700 dark:bg-slate-800">
             <div>
-              <p className="text-xs font-semibold text-slate-600">Budget</p>
-              <p className="mt-1 text-sm font-black text-slate-900">{formatINR(job.budget)}</p>
+              <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">Budget</p>
+              <p className="mt-1 text-sm font-black text-slate-900 dark:text-white">{formatINR(job.budget)}</p>
             </div>
-            <div className="border-x border-slate-200">
-              <p className="text-xs font-semibold text-slate-600">Applicants</p>
-              <p className="mt-1 text-sm font-black text-slate-900">{job.applicant_count ?? 0}</p>
+            <div className="border-x border-slate-200 dark:border-slate-700">
+              <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">Applicants</p>
+              <p className="mt-1 text-sm font-black text-slate-900 dark:text-white">{job.applicant_count ?? 0}</p>
             </div>
-            <div className="border-r border-slate-200">
-              <p className="text-xs font-semibold text-slate-600">Posted</p>
-              <p className="mt-1 text-sm font-black text-slate-900">{timeAgo(job.created_at)}</p>
+            <div className="border-r border-slate-200 dark:border-slate-700">
+              <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">Posted</p>
+              <p className="mt-1 text-sm font-black text-slate-900 dark:text-white">{timeAgo(job.created_at)}</p>
             </div>
             <div>
-              <p className="text-xs font-semibold text-slate-600">Deadline</p>
-              <p className="mt-1 text-sm font-black text-slate-900">
+              <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">Deadline</p>
+              <p className="mt-1 text-sm font-black text-slate-900 dark:text-white">
                 {job.deadline ? new Date(job.deadline).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "Flexible"}
               </p>
             </div>
@@ -159,16 +159,16 @@ function JobDetailModal({ job, onClose, onApply, applying, applyError, alreadyAp
 
           {(formatExperience(job) || formatEducation(job) || job.required_skills?.length > 0) && (
             <>
-              <h3 className="mt-6 text-sm font-bold text-slate-900">Qualifications</h3>
+              <h3 className="mt-6 text-sm font-bold text-slate-900 dark:text-white">Qualifications</h3>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {formatExperience(job) && (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-[#1B3FAB]/15 bg-[#F4F6FF] px-2.5 py-1 text-xs font-semibold text-[#1B3FAB]">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-[#1B3FAB]/15 bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 px-2.5 py-1 text-xs font-semibold text-[#1B3FAB]">
                     <Clock className="h-3 w-3" />
                     {formatExperience(job)}
                   </span>
                 )}
                 {formatEducation(job) && (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-[#1B3FAB]/15 bg-[#F4F6FF] px-2.5 py-1 text-xs font-semibold text-[#1B3FAB]">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-[#1B3FAB]/15 bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 px-2.5 py-1 text-xs font-semibold text-[#1B3FAB]">
                     <GraduationCap className="h-3 w-3" />
                     {formatEducation(job)}
                     {job.education_notes ? ` — ${job.education_notes}` : ""}
@@ -178,7 +178,7 @@ function JobDetailModal({ job, onClose, onApply, applying, applyError, alreadyAp
               {job.required_skills?.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {job.required_skills.map((skill) => (
-                    <span key={skill} className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-600">
+                    <span key={skill} className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:text-slate-300 dark:border-slate-700 dark:bg-slate-800">
                       {skill}
                     </span>
                   ))}
@@ -187,38 +187,38 @@ function JobDetailModal({ job, onClose, onApply, applying, applyError, alreadyAp
             </>
           )}
 
-          <h3 className="mt-6 text-sm font-bold text-slate-900">Brief</h3>
-          <p className="mt-2 whitespace-pre-line text-[15px] leading-7 text-slate-700">
+          <h3 className="mt-6 text-sm font-bold text-slate-900 dark:text-white">Brief</h3>
+          <p className="mt-2 whitespace-pre-line text-[15px] leading-7 text-slate-700 dark:text-slate-300">
             {job.description || "No further details were added to this post."}
           </p>
 
           {!alreadyApplied && (
             <>
-              <h3 className="mt-6 text-sm font-bold text-slate-900">Your proposal note (optional)</h3>
+              <h3 className="mt-6 text-sm font-bold text-slate-900 dark:text-white">Your proposal note (optional)</h3>
               <textarea
                 rows={4}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="Briefly say why you're a good fit, and any questions about scope or timeline."
-                className="mt-2 w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
+                className="mt-2 w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800"
               />
             </>
           )}
 
           {applyError && (
-            <div className="mt-4 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+            <div className="mt-4 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400">
               <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
               <span>{applyError}</span>
             </div>
           )}
         </div>
 
-        <div className="flex flex-shrink-0 justify-end gap-2 border-t border-slate-100 px-6 py-4">
-          <button onClick={onClose} className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50">
+        <div className="flex flex-shrink-0 justify-end gap-2 border-t border-slate-100 px-6 py-4 dark:border-slate-800">
+          <button onClick={onClose} className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700">
             Close
           </button>
           {alreadyApplied ? (
-            <span className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 px-4 py-2.5 text-sm font-bold text-emerald-700">
+            <span className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 px-4 py-2.5 text-sm font-bold text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400">
               <CheckCircle2 className="h-4 w-4" />
               Already applied
             </span>
@@ -242,20 +242,20 @@ function JobDetailModal({ job, onClose, onApply, applying, applyError, alreadyAp
 // distinct from an application the worker sent out themselves.
 function InviteCard({ candidate, onRespond, responding }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#1B3FAB]/20 bg-[#F4F6FF] px-5 py-4">
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#1B3FAB]/20 bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 px-5 py-4 dark:border-[#1B3FAB]/30">
       <div className="min-w-0">
         <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.16em] text-[#1B3FAB]">
           <Sparkles className="h-3.5 w-3.5" />
           Direct invite from {candidate.business_name}
         </p>
-        <p className="mt-1 text-sm font-bold text-slate-900">{candidate.project_title}</p>
-        <p className="text-xs text-slate-500">{formatINR(candidate.budget)}</p>
+        <p className="mt-1 text-sm font-bold text-slate-900 dark:text-white">{candidate.project_title}</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400">{formatINR(candidate.budget)}</p>
       </div>
       <div className="flex flex-shrink-0 gap-2">
         <button
           onClick={() => onRespond(candidate.id, false)}
           disabled={responding}
-          className="rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-60"
+          className="rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700"
         >
           Decline
         </button>
@@ -454,32 +454,32 @@ export default function WorkerJobFeed() {
   };
 
   return (
-    <div className="relative h-full min-h-screen overflow-y-auto bg-gradient-to-br from-[#dbe4ff] via-[#eef1ff] to-[#ffe4d2] pb-20 text-slate-900">
+    <div className="relative h-full min-h-screen overflow-y-auto bg-gradient-to-br from-[#dbe4ff] via-[#eef1ff] to-[#ffe4d2] pb-20 text-slate-900 dark:text-white dark:from-slate-950 dark:via-slate-950 dark:to-slate-950">
       <section className="relative mx-auto max-w-7xl px-6 py-8">
         <SubscriptionBanner onUpgrade={() => navigate("/worker/wallet?tab=subscription")} />
 
-        <div className="mb-8 rounded-2xl border border-white/70 bg-white/60 backdrop-blur-xl p-6 shadow-lg shadow-slate-200/40">
-          <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">WorkBridge Job Feed</p>
-          <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-900">Open jobs, live right now</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+        <div className="mb-8 rounded-2xl border border-white/70 bg-white/60 backdrop-blur-xl p-6 shadow-lg shadow-slate-200/40 dark:border-slate-800 dark:bg-slate-900/60">
+          <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400 dark:text-slate-500">WorkBridge Job Feed</p>
+          <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">Open jobs, live right now</h1>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-400">
             Every job here is real and unassigned — apply, and the business decides who to bring on. A business can also
             invite you directly to one of these while it's still open.
           </p>
 
           <div className="relative mt-6">
-            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search title, business, or skill"
-              className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-11 pr-4 text-sm text-slate-900 outline-none transition-all duration-300 placeholder:text-slate-400 focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100"
+              className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-11 pr-4 text-sm text-slate-900 dark:text-white outline-none transition-all duration-300 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800"
             />
           </div>
         </div>
 
         {pendingInvites.length > 0 && (
           <div className="mb-8 space-y-3">
-            <h2 className="text-sm font-bold uppercase tracking-[0.16em] text-slate-500">Invites for you</h2>
+            <h2 className="text-sm font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Invites for you</h2>
             {pendingInvites.map((candidate) => (
               <InviteCard
                 key={candidate.id}
@@ -498,7 +498,7 @@ export default function WorkerJobFeed() {
           <button
             type="button"
             onClick={() => setFiltersOpen((open) => !open)}
-            className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-100"
+            className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-300 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800"
           >
             <SlidersHorizontal className="h-4 w-4" />
             Filters
@@ -515,7 +515,7 @@ export default function WorkerJobFeed() {
             <button
               type="button"
               onClick={clearFilters}
-              className="text-xs font-bold text-slate-400 transition-colors hover:text-[#FF6B35]"
+              className="text-xs font-bold text-slate-400 dark:text-slate-500 transition-colors hover:text-[#FF6B35]"
             >
               Clear all
             </button>
@@ -553,20 +553,20 @@ export default function WorkerJobFeed() {
         <div className="min-w-0">
             {loading ? (
               <div className="flex justify-center py-16">
-                <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[#1B3FAB]" />
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[#1B3FAB] dark:border-slate-700" />
               </div>
             ) : loadError ? (
-              <div className="flex items-start gap-2 rounded-2xl border border-red-100 bg-white/70 px-4 py-3 text-sm text-red-600">
+              <div className="flex items-start gap-2 rounded-2xl border border-red-100 bg-white/70 px-4 py-3 text-sm text-red-600 dark:border-red-900/40 dark:bg-slate-900/70 dark:text-red-400">
                 <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                 <span>{loadError}</span>
               </div>
             ) : filteredJobs.length === 0 ? (
-              <div className="rounded-2xl border border-white/70 bg-white/60 backdrop-blur-xl p-10 text-center shadow-lg shadow-slate-200/40">
+              <div className="rounded-2xl border border-white/70 bg-white/60 backdrop-blur-xl p-10 text-center shadow-lg shadow-slate-200/40 dark:border-slate-800 dark:bg-slate-900/60">
                 <Briefcase className="mx-auto h-10 w-10 text-slate-300" />
-                <h2 className="mt-4 text-lg font-bold text-slate-900">
+                <h2 className="mt-4 text-lg font-bold text-slate-900 dark:text-white">
                   {hasActiveFilters ? "No jobs match your filters" : "No open jobs right now"}
                 </h2>
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                   {hasActiveFilters
                     ? "Try widening your budget range or clearing a skill filter."
                     : "New posts show up here as businesses hire — check back soon."}
@@ -575,7 +575,7 @@ export default function WorkerJobFeed() {
                   <button
                     type="button"
                     onClick={clearFilters}
-                    className="mt-4 inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
+                    className="mt-4 inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 dark:text-slate-200 shadow-sm transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700"
                   >
                     Clear Filters
                   </button>
@@ -605,18 +605,18 @@ export default function WorkerJobFeed() {
                   }}
                   className={`cursor-pointer rounded-2xl border p-5 shadow-lg backdrop-blur-xl transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl ${
                     job.is_urgent
-                      ? "border-[#FF6B35]/40 bg-orange-50/50 shadow-orange-200/40"
-                      : "border-white/70 bg-white/60 shadow-slate-200/40"
+                      ? "border-[#FF6B35]/40 bg-orange-50/50 shadow-orange-200/40 dark:bg-orange-500/10"
+                      : "border-white/70 bg-white/60 shadow-slate-200/40 dark:border-slate-800 dark:bg-slate-900/60"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-1.5">
-                        <p className="flex items-center gap-1 text-xs font-bold uppercase tracking-[0.18em] text-slate-400">
+                        <p className="flex items-center gap-1 text-xs font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">
                           <Briefcase className="h-3 w-3" />
                           {job.business_name}
                         </p>
-                        <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-600">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-600 dark:text-slate-300 dark:bg-slate-800">
                           <IndianRupee className="h-3 w-3" />
                           {Number(job.budget).toLocaleString("en-IN")}
                         </span>
@@ -634,28 +634,28 @@ export default function WorkerJobFeed() {
                           +{COMPLETION_TOKEN_REWARD} on completion
                         </span>
                       </div>
-                      <h2 className="mt-2 text-lg font-black leading-snug text-slate-900">{job.title}</h2>
+                      <h2 className="mt-2 text-lg font-black leading-snug text-slate-900 dark:text-white">{job.title}</h2>
                       <div className="mt-2 flex flex-wrap items-center gap-1.5">
                         {formatApplicationWindow(job.application_deadline) && (
-                          <span className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs text-slate-700">
+                          <span className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
                             <Clock className="h-3 w-3" />
                             {formatApplicationWindow(job.application_deadline)}
                           </span>
                         )}
                         {job.estimated_duration && (
-                          <span className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs text-slate-700">
+                          <span className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
                             <Calendar className="h-3 w-3" />
                             Est. {job.estimated_duration}
                           </span>
                         )}
                         {formatExperience(job) && (
-                          <span className="inline-flex items-center gap-1 rounded-md border border-[#1B3FAB]/15 bg-[#F4F6FF] px-2.5 py-1 text-xs font-semibold text-[#1B3FAB]">
+                          <span className="inline-flex items-center gap-1 rounded-md border border-[#1B3FAB]/15 bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 px-2.5 py-1 text-xs font-semibold text-[#1B3FAB]">
                             <Clock className="h-3 w-3" />
                             {formatExperience(job)}
                           </span>
                         )}
                         {formatEducation(job) && (
-                          <span className="inline-flex items-center gap-1 rounded-md border border-[#1B3FAB]/15 bg-[#F4F6FF] px-2.5 py-1 text-xs font-semibold text-[#1B3FAB]">
+                          <span className="inline-flex items-center gap-1 rounded-md border border-[#1B3FAB]/15 bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 px-2.5 py-1 text-xs font-semibold text-[#1B3FAB]">
                             <GraduationCap className="h-3 w-3" />
                             {formatEducation(job)}
                           </span>
@@ -664,12 +664,12 @@ export default function WorkerJobFeed() {
                       {job.required_skills?.length > 0 && (
                         <div className="mt-2 flex flex-wrap gap-1">
                           {job.required_skills.slice(0, 4).map((skill) => (
-                            <span key={skill} className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-semibold text-slate-600">
+                            <span key={skill} className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-semibold text-slate-600 dark:text-slate-300 dark:border-slate-700 dark:bg-slate-800">
                               {skill}
                             </span>
                           ))}
                           {job.required_skills.length > 4 && (
-                            <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-semibold text-slate-400">
+                            <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-semibold text-slate-400 dark:text-slate-500">
                               +{job.required_skills.length - 4}
                             </span>
                           )}
@@ -681,21 +681,21 @@ export default function WorkerJobFeed() {
                     </span>
                   </div>
 
-                  <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-600">
+                  <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
                     {job.description || "No further details were added to this post."}
                   </p>
 
-                  <div className="mt-4 grid grid-cols-2 gap-2 rounded-2xl border border-white/20 bg-white/40 backdrop-blur-md p-3 text-center">
+                  <div className="mt-4 grid grid-cols-2 gap-2 rounded-2xl border border-white/20 bg-white/40 backdrop-blur-md p-3 text-center dark:border-slate-800 dark:bg-slate-800/40">
                     <div>
-                      <p className="text-xs text-slate-500">Applicants</p>
-                      <p className="mt-1 flex items-center justify-center gap-1 text-sm font-black text-slate-900">
+                      <p className="text-xs text-slate-500 dark:text-slate-400">Applicants</p>
+                      <p className="mt-1 flex items-center justify-center gap-1 text-sm font-black text-slate-900 dark:text-white">
                         <Users className="h-3.5 w-3.5" />
                         {job.applicant_count ?? 0}
                       </p>
                     </div>
-                    <div className="border-l border-slate-200">
-                      <p className="text-xs text-slate-500">Posted</p>
-                      <p className="mt-1 flex items-center justify-center gap-1 text-sm font-black text-slate-900">
+                    <div className="border-l border-slate-200 dark:border-slate-700">
+                      <p className="text-xs text-slate-500 dark:text-slate-400">Posted</p>
+                      <p className="mt-1 flex items-center justify-center gap-1 text-sm font-black text-slate-900 dark:text-white">
                         <Clock3 className="h-3.5 w-3.5" />
                         {timeAgo(job.created_at)}
                       </p>
@@ -709,7 +709,7 @@ export default function WorkerJobFeed() {
                         event.stopPropagation();
                         setSelectedJob(job);
                       }}
-                      className="flex-1 rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-bold text-slate-700 transition-all duration-300 hover:bg-slate-200"
+                      className="flex-1 rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-bold text-slate-700 transition-all duration-300 hover:bg-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
                     >
                       View Details
                     </button>
@@ -722,7 +722,7 @@ export default function WorkerJobFeed() {
                       }}
                       className={`flex-1 rounded-2xl px-4 py-3 text-sm font-bold shadow-md transition-all duration-300 ${
                         alreadyApplied
-                          ? "cursor-not-allowed bg-slate-200 text-slate-400 shadow-none"
+                          ? "cursor-not-allowed bg-slate-200 text-slate-400 dark:text-slate-500 shadow-none dark:bg-slate-800"
                           : "bg-[#FF6B35] text-white shadow-orange-200 hover:-translate-y-0.5 hover:bg-[#e95c25] hover:shadow-lg"
                       }`}
                     >

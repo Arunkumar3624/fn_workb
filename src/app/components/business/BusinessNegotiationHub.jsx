@@ -56,10 +56,10 @@ const STATUS_META = {
 };
 
 const TONE_CLASSES = {
-  amber: "border-amber-100 bg-amber-50 text-amber-700",
-  blue: "border-blue-100 bg-blue-50 text-blue-700",
-  emerald: "border-emerald-100 bg-emerald-50 text-emerald-700",
-  slate: "border-slate-200 bg-slate-100 text-slate-500",
+  amber: "border-amber-100 bg-amber-50 text-amber-700 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-400",
+  blue: "border-blue-100 bg-blue-50 text-blue-700 dark:border-blue-900/40 dark:bg-blue-500/10 dark:text-blue-400",
+  emerald: "border-emerald-100 bg-emerald-50 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-400",
+  slate: "border-slate-200 bg-slate-100 text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400",
 };
 
 function formatINR(amount) {
@@ -93,21 +93,21 @@ function getThreadBadge(group) {
 
 function ThreadNavigator({ threads, groupsByCounterparty, selectedThreadId, onSelect }) {
   return (
-    <aside className="flex h-full w-[300px] flex-shrink-0 flex-col overflow-hidden border-r border-slate-200 bg-slate-50/80 backdrop-blur-md">
-      <div className="border-b border-slate-200 bg-white/70 px-5 py-5 backdrop-blur-md">
-        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
+    <aside className="flex h-full w-[300px] flex-shrink-0 flex-col overflow-hidden border-r border-slate-200 bg-slate-50/80 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/80">
+      <div className="border-b border-slate-200 bg-white/70 px-5 py-5 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/60">
+        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
           Thread Navigator
         </p>
         <div className="mt-1 flex items-center justify-between gap-3">
-          <h1 className="text-xl font-black tracking-tight text-slate-900">
+          <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">
             Negotiations
           </h1>
-          <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-black text-emerald-700">
+          <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-black text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-400">
             {threads.length} {threads.length === 1 ? "Conversation" : "Conversations"}
           </span>
         </div>
 
-        <div className="mt-5 flex min-h-[44px] items-center gap-2 rounded-2xl border border-slate-200 bg-white/80 px-4 text-slate-400">
+        <div className="mt-5 flex min-h-[44px] items-center gap-2 rounded-2xl border border-slate-200 bg-white/80 px-4 text-slate-400 dark:text-slate-500 dark:border-slate-700 dark:bg-slate-800/60">
           <Search className="h-4 w-4" />
           <span className="text-sm font-semibold">Search threads</span>
         </div>
@@ -127,8 +127,8 @@ function ThreadNavigator({ threads, groupsByCounterparty, selectedThreadId, onSe
               onClick={() => onSelect(thread.id)}
               className={`mb-3 flex w-full items-center gap-3 rounded-2xl border py-3.5 pl-3 pr-3 text-left transition ${
                 selected
-                  ? "border-slate-200 border-l-4 border-l-[#FF6B35] bg-white shadow-sm"
-                  : "border-transparent border-l-4 border-l-transparent bg-transparent hover:border-slate-200 hover:bg-white/70"
+                  ? "border-slate-200 border-l-4 border-l-[#FF6B35] bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800"
+                  : "border-transparent border-l-4 border-l-transparent bg-transparent hover:border-slate-200 hover:bg-white/70 dark:hover:border-slate-700 dark:hover:bg-slate-800/60"
               }`}
             >
               {thread.other_avatar_url ? (
@@ -142,12 +142,12 @@ function ThreadNavigator({ threads, groupsByCounterparty, selectedThreadId, onSe
               )}
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
-                  <p className="truncate text-sm font-black text-slate-900">
+                  <p className="truncate text-sm font-black text-slate-900 dark:text-white">
                     {thread.other_name}
                   </p>
                   <BadgeCheck className="h-3.5 w-3.5 flex-shrink-0 text-blue-500" />
                 </div>
-                <p className="mt-0.5 truncate text-xs font-semibold text-slate-500">
+                <p className="mt-0.5 truncate text-xs font-semibold text-slate-500 dark:text-slate-400">
                   {preview}
                 </p>
               </div>
@@ -164,15 +164,15 @@ function ThreadNavigator({ threads, groupsByCounterparty, selectedThreadId, onSe
 
 function NoThreadSelected({ hasThreads, onFindTalent }) {
   return (
-    <div className="flex h-full flex-1 items-center justify-center bg-white px-8">
+    <div className="flex h-full flex-1 items-center justify-center bg-white px-8 dark:bg-slate-950">
       <div className="max-w-md text-center">
-        <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-[2rem] border border-orange-100 bg-slate-50 shadow-sm">
+        <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-[2rem] border border-orange-100 bg-slate-50 shadow-sm dark:border-orange-900/40 dark:bg-slate-800">
           <Users className="h-11 w-11 text-[#FF6B35]" />
         </div>
-        <h2 className="mt-7 text-2xl font-black tracking-tight text-slate-900">
+        <h2 className="mt-7 text-2xl font-black tracking-tight text-slate-900 dark:text-white">
           {hasThreads ? "Select a conversation to begin" : "No active negotiations"}
         </h2>
-        <p className="mt-3 text-sm leading-6 text-slate-500">
+        <p className="mt-3 text-sm leading-6 text-slate-500 dark:text-slate-400">
           {hasThreads
             ? "Choose a worker thread from the navigator to review contract status and continue the conversation."
             : "Browse candidates to get started. Once you invite a worker, the secure negotiation thread will appear here."}
@@ -221,12 +221,12 @@ function ProjectChip({ project, onClick }) {
       type="button"
       onClick={() => onClick(project)}
       className={`flex flex-shrink-0 items-center gap-2 rounded-xl border px-3 py-2 text-left transition hover:-translate-y-0.5 hover:shadow-sm ${
-        isClosed ? "border-slate-200 bg-white/60 opacity-70" : "border-slate-200 bg-white/80 shadow-sm"
+        isClosed ? "border-slate-200 bg-white/60 opacity-70 dark:border-slate-700 dark:bg-slate-800/60" : "border-slate-200 bg-white/80 shadow-sm dark:border-slate-700 dark:bg-slate-800/80"
       }`}
     >
-      <FileText className="h-3.5 w-3.5 flex-shrink-0 text-slate-400" />
+      <FileText className="h-3.5 w-3.5 flex-shrink-0 text-slate-400 dark:text-slate-500" />
       <div className="min-w-0">
-        <p className="max-w-[140px] truncate text-xs font-bold text-slate-900">{project.title}</p>
+        <p className="max-w-[140px] truncate text-xs font-bold text-slate-900 dark:text-white">{project.title}</p>
         <span className={`mt-0.5 inline-block rounded-full border px-1.5 py-0.5 text-[9px] font-bold ${TONE_CLASSES[status.tone]}`}>
           {status.label}
         </span>
@@ -242,7 +242,7 @@ function HubHeader({ thread, projects, onViewContractTerms }) {
   const isCancelled = mostUrgent?.status === "CANCELLED";
 
   return (
-    <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/80 backdrop-blur-md">
+    <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/80 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/80">
       <div className="flex items-center justify-between gap-5 px-6 py-4">
         <div className="min-w-0 flex-1 [&>div]:border-b-0 [&>div]:bg-transparent [&>div]:px-0 [&>div]:py-0">
           <IdentityHeader
@@ -259,10 +259,10 @@ function HubHeader({ thread, projects, onViewContractTerms }) {
             <span
               className={`inline-flex min-h-[40px] items-center gap-2 rounded-full border px-3.5 text-xs font-black ${
                 isCancelled
-                  ? "border-slate-200 bg-slate-100 text-slate-500"
+                  ? "border-slate-200 bg-slate-100 text-slate-500 dark:text-slate-400 dark:border-slate-700 dark:bg-slate-800"
                   : isPaidOut || fundsSecured
-                    ? "border-green-200 bg-green-50 text-green-700"
-                    : "border-amber-200 bg-amber-50 text-amber-700"
+                    ? "border-green-200 bg-green-50 text-green-700 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-400"
+                    : "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-400"
               }`}
             >
               <ShieldCheck className="h-4 w-4" />
@@ -271,7 +271,7 @@ function HubHeader({ thread, projects, onViewContractTerms }) {
             <button
               type="button"
               onClick={() => onViewContractTerms?.(mostUrgent)}
-              className="inline-flex min-h-[42px] items-center justify-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-4 text-sm font-black text-[#FF6B35] shadow-sm transition hover:-translate-y-0.5 hover:bg-orange-100"
+              className="inline-flex min-h-[42px] items-center justify-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-4 text-sm font-black text-[#FF6B35] shadow-sm transition hover:-translate-y-0.5 hover:bg-orange-100 dark:border-orange-900/40 dark:bg-orange-500/10 dark:hover:bg-orange-500/20"
             >
               <FileText className="h-4 w-4" />
               View Contract
@@ -283,11 +283,11 @@ function HubHeader({ thread, projects, onViewContractTerms }) {
 
       {mostUrgent && (
         <div className="flex flex-wrap items-center gap-3 px-6 pb-3">
-          <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-3 py-1.5 text-xs font-bold text-slate-500">
+          <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-3 py-1.5 text-xs font-bold text-slate-500 dark:text-slate-400 dark:border-slate-700 dark:bg-slate-800/70">
             <Clock3 className="h-3.5 w-3.5" />
             Due {formatDueDate(mostUrgent.deadline)}
           </span>
-          <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-3 py-1.5 text-xs font-bold text-slate-500">
+          <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-3 py-1.5 text-xs font-bold text-slate-500 dark:text-slate-400 dark:border-slate-700 dark:bg-slate-800/70">
             <Sparkles className="h-3.5 w-3.5 text-[#FF6B35]" />
             {formatINR(mostUrgent.budget)}
           </span>
@@ -312,7 +312,7 @@ function FocusHub({ thread, projects, onViewContractTerms }) {
   const activeProjects = useMemo(() => projects.filter((p) => !CLOSED_STATUSES.has(p.status)), [projects]);
 
   return (
-    <main className="flex h-full min-w-0 flex-1 flex-col overflow-hidden bg-white">
+    <main className="flex h-full min-w-0 flex-1 flex-col overflow-hidden bg-white dark:bg-slate-950">
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={thread.id}
@@ -419,16 +419,16 @@ export default function BusinessNegotiationHub({ onFindTalent, onViewContractTer
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center bg-slate-50">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[#FF6B35]" />
+      <div className="flex h-full items-center justify-center bg-slate-50 dark:bg-slate-950">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[#FF6B35] dark:border-slate-700" />
       </div>
     );
   }
 
   if (loadError) {
     return (
-      <div className="flex h-full items-center justify-center bg-slate-50 p-7">
-        <div className="flex max-w-md items-start gap-2 rounded-2xl border border-red-100 bg-white px-4 py-3 text-sm text-red-600 shadow-sm">
+      <div className="flex h-full items-center justify-center bg-slate-50 p-7 dark:bg-slate-950">
+        <div className="flex max-w-md items-start gap-2 rounded-2xl border border-red-100 bg-white px-4 py-3 text-sm text-red-600 shadow-sm dark:border-red-900/40 dark:bg-slate-900 dark:text-red-400">
           <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
           <span>{loadError}</span>
         </div>
@@ -437,7 +437,7 @@ export default function BusinessNegotiationHub({ onFindTalent, onViewContractTer
   }
 
   return (
-    <section className="flex h-full w-full overflow-hidden bg-slate-50">
+    <section className="flex h-full w-full overflow-hidden bg-slate-50 dark:bg-slate-950">
       <ThreadNavigator
         threads={threads}
         groupsByCounterparty={projectsByCounterparty}

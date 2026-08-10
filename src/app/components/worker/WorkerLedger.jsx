@@ -16,10 +16,10 @@ import { ApiError } from "../../lib/apiClient";
 // Span mechanic) isn't wired into any real code path yet, but is mapped
 // here already so the day it is, this list needs zero changes.
 const EVENT_META = {
-  PROJECT_COMPLETED: { label: "Project Completed", icon: TrendingUp, tone: "text-emerald-600 bg-emerald-50" },
-  PROJECT_COMPLETED_NO_DISPUTE: { label: "Project Completed (No Dispute)", icon: TrendingUp, tone: "text-emerald-600 bg-emerald-50" },
-  RESILIENCE_BONUS: { label: "Resilience Bonus", icon: ShieldCheck, tone: "text-[#FF6B35] bg-orange-50" },
-  TEST_GRANT: { label: "Test Grant", icon: Gift, tone: "text-slate-500 bg-slate-100" },
+  PROJECT_COMPLETED: { label: "Project Completed", icon: TrendingUp, tone: "text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10" },
+  PROJECT_COMPLETED_NO_DISPUTE: { label: "Project Completed (No Dispute)", icon: TrendingUp, tone: "text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10" },
+  RESILIENCE_BONUS: { label: "Resilience Bonus", icon: ShieldCheck, tone: "text-[#FF6B35] bg-orange-50 dark:bg-orange-500/10" },
+  TEST_GRANT: { label: "Test Grant", icon: Gift, tone: "text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800" },
 };
 
 function getEventMeta(eventType) {
@@ -27,7 +27,7 @@ function getEventMeta(eventType) {
     EVENT_META[eventType] ?? {
       label: eventType.replaceAll("_", " ").toLowerCase().replace(/^\w/, (c) => c.toUpperCase()),
       icon: Receipt,
-      tone: "text-slate-500 bg-slate-100",
+      tone: "text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800",
     }
   );
 }
@@ -133,7 +133,7 @@ export default function WorkerLedger({ embedded = false }) {
   if (loadError) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-10">
-        <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+        <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400">
           <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
           <span>{loadError}</span>
         </div>
@@ -162,7 +162,7 @@ export default function WorkerLedger({ embedded = false }) {
     <div className={embedded ? "" : "mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10"}>
       <div className="mb-6">
         {!embedded && (
-          <h1 className="text-xl font-extrabold text-[#0A1128]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          <h1 className="text-xl font-extrabold text-[#0A1128] dark:text-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
             Ledger
           </h1>
         )}
@@ -176,10 +176,10 @@ export default function WorkerLedger({ embedded = false }) {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="mb-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+          className="mb-4 rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 p-6 shadow-sm"
         >
-          <p className="mb-1 text-sm font-bold text-[#0A1128]">7-Day Token Trend</p>
-          <p className="mb-3 text-xs text-slate-400">Net Bridge Tokens earned minus spent, per day.</p>
+          <p className="mb-1 text-sm font-bold text-[#0A1128] dark:text-white">7-Day Token Trend</p>
+          <p className="mb-3 text-xs text-slate-400 dark:text-slate-500">Net Bridge Tokens earned minus spent, per day.</p>
           <ResponsiveContainer width="100%" height={160}>
             <AreaChart data={trend} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
               <defs>
@@ -207,30 +207,30 @@ export default function WorkerLedger({ embedded = false }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
           whileHover={{ y: -3 }}
-          className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+          className="rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 p-6 shadow-sm transition-shadow hover:shadow-md"
         >
-          <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-slate-400">
+          <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">
             <Coins className="h-3.5 w-3.5 text-amber-500" />
             Bridge Tokens
           </p>
-          <p className="mt-1 text-3xl font-black text-[#0A1128]">{displayedTokens}</p>
-          <p className="mt-1 text-xs text-slate-400">+{earnedThisWeek} earned this week</p>
+          <p className="mt-1 text-3xl font-black text-[#0A1128] dark:text-white">{displayedTokens}</p>
+          <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">+{earnedThisWeek} earned this week</p>
         </motion.div>
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.05 }}
           whileHover={{ y: -3 }}
-          className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+          className="rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 p-6 shadow-sm transition-shadow hover:shadow-md"
         >
-          <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-slate-400">
+          <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">
             <Zap className="h-3.5 w-3.5 text-[#FF6B35]" />
             {ledger.tier} Tier · Level {ledger.currentLevel}
           </p>
-          <p className="mt-1 text-3xl font-black text-[#0A1128]">
-            {displayedXp} <span className="text-sm font-bold text-slate-400">XP</span>
+          <p className="mt-1 text-3xl font-black text-[#0A1128] dark:text-white">
+            {displayedXp} <span className="text-sm font-bold text-slate-400 dark:text-slate-500">XP</span>
           </p>
-          <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+          <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
             <motion.div
               className="h-full rounded-full bg-gradient-to-r from-[#FF6B35] to-yellow-500"
               initial={{ width: 0 }}
@@ -241,17 +241,17 @@ export default function WorkerLedger({ embedded = false }) {
         </motion.div>
       </div>
 
-      <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6">
-        <p className="mb-4 text-sm font-bold text-[#0A1128]">Recent Activity</p>
+      <div className="mt-6 rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 p-6">
+        <p className="mb-4 text-sm font-bold text-[#0A1128] dark:text-white">Recent Activity</p>
         {activity.length === 0 ? (
           <div className="flex flex-col items-center gap-2 py-10 text-center">
             <Receipt className="h-6 w-6 text-slate-300" />
-            <p className="text-sm font-semibold text-slate-400">
+            <p className="text-sm font-semibold text-slate-400 dark:text-slate-500">
               Nothing here yet — complete a project to start earning tokens and XP.
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-slate-100 dark:divide-slate-800">
             {activity.map((row, index) => {
               if (row.kind === "spend") {
                 const p = row.purchase;
@@ -261,15 +261,15 @@ export default function WorkerLedger({ embedded = false }) {
                     initial={{ opacity: 0, x: -8 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.25, delay: Math.min(index * 0.03, 0.3) }}
-                    className="flex items-center justify-between gap-4 py-3 transition-colors hover:bg-slate-50"
+                    className="flex items-center justify-between gap-4 py-3 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
                   >
                     <div className="flex items-center gap-3">
                       <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-rose-50 text-rose-600">
                         <ShoppingBag className="h-4 w-4" />
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-[#0A1128]">{p.label}</p>
-                        <p className="text-xs text-slate-400">Token Shop purchase · {timeAgo(p.created_at)}</p>
+                        <p className="text-sm font-semibold text-[#0A1128] dark:text-white">{p.label}</p>
+                        <p className="text-xs text-slate-400 dark:text-slate-500">Token Shop purchase · {timeAgo(p.created_at)}</p>
                       </div>
                     </div>
                     <div className="flex flex-shrink-0 items-center gap-3 text-sm font-bold">
@@ -288,15 +288,15 @@ export default function WorkerLedger({ embedded = false }) {
                   initial={{ opacity: 0, x: -8 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.25, delay: Math.min(index * 0.03, 0.3) }}
-                  className="flex items-center justify-between gap-4 py-3 transition-colors hover:bg-slate-50"
+                  className="flex items-center justify-between gap-4 py-3 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
                 >
                   <div className="flex items-center gap-3">
                     <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${meta.tone}`}>
                       <Icon className="h-4 w-4" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-[#0A1128]">{meta.label}</p>
-                      <p className="text-xs text-slate-400">{timeAgo(event.created_at)}</p>
+                      <p className="text-sm font-semibold text-[#0A1128] dark:text-white">{meta.label}</p>
+                      <p className="text-xs text-slate-400 dark:text-slate-500">{timeAgo(event.created_at)}</p>
                     </div>
                   </div>
                   <div className="flex flex-shrink-0 items-center gap-3 text-sm font-bold">
