@@ -290,7 +290,7 @@ function WorkerDetailDrawer({ project, onClose, onOpenChat }) {
                   onOpenChat?.(project.id);
                   onClose?.();
                 }}
-                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#1B3FAB] px-5 py-3 text-sm font-bold text-white shadow-md shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-[#15338d] hover:shadow-lg"
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#1B3FAB]/20 bg-[#F4F6FF] px-5 py-3 text-sm font-bold text-[#1B3FAB] transition hover:bg-[#1B3FAB]/10 dark:border-[#1B3FAB]/30 dark:bg-[#1B3FAB]/10 dark:hover:bg-[#1B3FAB]/15"
               >
                 <MessageSquare className="h-4 w-4" />
                 Open Chat in Negotiations
@@ -837,7 +837,7 @@ function ApplicantsModal({ project, candidates, isLoading, respondingId, onClose
                           <button
                             onClick={() => onRespond(c.id, true)}
                             disabled={respondingId === c.id}
-                            className="inline-flex items-center gap-1 rounded-lg bg-[#1B3FAB] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#15338d] disabled:opacity-60"
+                            className="inline-flex items-center gap-1 rounded-lg bg-[#1B3FAB] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#15338d] disabled:opacity-60 dark:bg-gradient-to-r dark:from-[#16327A] dark:to-[#2b52d6] dark:hover:from-[#1B3FAB] dark:hover:to-[#3a63e0]"
                           >
                             {respondingId === c.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
                             Accept
@@ -1378,7 +1378,7 @@ export default function BusinessProjects({ onOpenChat }) {
                   <div className="mt-4 flex flex-wrap items-center gap-2.5">
                     <button
                       onClick={() => openApplicants(p)}
-                      className="flex min-h-[44px] items-center gap-1.5 rounded-xl bg-[#1B3FAB] px-4 py-2 text-xs font-bold text-white shadow-sm shadow-blue-500/25 transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#1635A0]"
+                      className="flex min-h-[44px] items-center gap-1.5 rounded-xl bg-[#1B3FAB] px-4 py-2 text-xs font-bold text-white shadow-sm shadow-blue-500/25 transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#1635A0] dark:bg-gradient-to-r dark:from-[#16327A] dark:to-[#2b52d6] dark:shadow-none dark:hover:from-[#1B3FAB] dark:hover:to-[#3a63e0]"
                     >
                       <Users className="h-3.5 w-3.5" />
                       View Applicants
@@ -1581,7 +1581,7 @@ export default function BusinessProjects({ onOpenChat }) {
                         {p.status === "ACCEPTED" && (
                           <button
                             onClick={() => setFundingProject(p)}
-                            className="flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-xl bg-[#1B3FAB] px-5 py-2 text-xs font-bold text-white shadow-sm shadow-blue-500/25 transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#1635A0] hover:shadow-md sm:ml-auto sm:w-auto sm:justify-start"
+                            className="flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-xl bg-[#1B3FAB] px-5 py-2 text-xs font-bold text-white shadow-sm shadow-blue-500/25 transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#1635A0] hover:shadow-md dark:bg-gradient-to-r dark:from-[#16327A] dark:to-[#2b52d6] dark:shadow-none dark:hover:from-[#1B3FAB] dark:hover:to-[#3a63e0] sm:ml-auto sm:w-auto sm:justify-start"
                           >
                             <Wallet className="h-3.5 w-3.5" />
                             Secure Funds

@@ -657,7 +657,7 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
                     type="button"
                     onClick={() => (authMode === "forgot" ? submitResetPassword() : verifyCode(otp.join("")))}
                     disabled={!isOtpComplete || verifyingOtp || (authMode === "forgot" && newPassword.length < 8)}
-                    className="mt-2 w-full rounded-xl bg-[#1B3FAB] py-3.5 text-sm font-bold text-white shadow-lg shadow-[#1B3FAB]/20 transition hover:bg-[#163596] disabled:cursor-not-allowed disabled:opacity-50"
+                    className="mt-2 w-full rounded-xl bg-[#1B3FAB] py-3.5 text-sm font-bold text-white shadow-lg shadow-[#1B3FAB]/20 transition hover:bg-[#163596] disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gradient-to-r dark:from-[#16327A] dark:to-[#2b52d6] dark:shadow-[#1B3FAB]/10 dark:hover:from-[#1B3FAB] dark:hover:to-[#3a63e0]"
                   >
                     {authMode === "forgot"
                       ? verifyingOtp ? "Resetting…" : "Reset Password"
@@ -826,7 +826,7 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
                     <button
                       type="submit"
                       disabled={sendingOtp}
-                      className="mt-2 w-full rounded-xl bg-[#1B3FAB] py-3.5 text-sm font-bold text-white shadow-lg shadow-[#1B3FAB]/20 transition hover:bg-[#163596] disabled:cursor-not-allowed disabled:opacity-60"
+                      className="mt-2 w-full rounded-xl bg-[#1B3FAB] py-3.5 text-sm font-bold text-white shadow-lg shadow-[#1B3FAB]/20 transition hover:bg-[#163596] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-gradient-to-r dark:from-[#16327A] dark:to-[#2b52d6] dark:shadow-[#1B3FAB]/10 dark:hover:from-[#1B3FAB] dark:hover:to-[#3a63e0]"
                     >
                       {sendingOtp
                         ? "One moment…"

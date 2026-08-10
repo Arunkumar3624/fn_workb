@@ -623,7 +623,7 @@ export default function WorkerWorkspace() {
                 <button
                   type="button"
                   onClick={() => navigate(`/worker/negotiations?invite=${selectedTask.id}`)}
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#1B3FAB] px-5 py-4 text-sm font-bold text-white shadow-md shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-[#15338d] hover:shadow-lg"
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#1B3FAB]/20 bg-[#F4F6FF] px-5 py-4 text-sm font-bold text-[#1B3FAB] transition hover:bg-[#1B3FAB]/10 dark:border-[#1B3FAB]/30 dark:bg-[#1B3FAB]/10 dark:hover:bg-[#1B3FAB]/15"
                 >
                   <MessageSquare className="h-4 w-4" />
                   Open Chat in Negotiations

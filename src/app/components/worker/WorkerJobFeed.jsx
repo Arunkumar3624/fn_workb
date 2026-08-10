@@ -262,7 +262,7 @@ function InviteCard({ candidate, onRespond, responding }) {
         <button
           onClick={() => onRespond(candidate.id, true)}
           disabled={responding}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-[#1B3FAB] px-3.5 py-2 text-sm font-bold text-white hover:bg-[#15338d] disabled:opacity-60"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-[#1B3FAB] px-3.5 py-2 text-sm font-bold text-white hover:bg-[#15338d] disabled:opacity-60 dark:bg-gradient-to-r dark:from-[#16327A] dark:to-[#2b52d6] dark:hover:from-[#1B3FAB] dark:hover:to-[#3a63e0]"
         >
           {responding ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
           Accept

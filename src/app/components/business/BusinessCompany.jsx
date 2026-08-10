@@ -214,7 +214,7 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
               <ShareProfileButton url={shareUrl} title={profile.name} text={`Check out ${profile.name} on WorkBridge`} />
               <button
                 onClick={onEdit}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-[#1B3FAB] px-4 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-[#1635A0]"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-[#1B3FAB] px-4 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-[#1635A0] dark:bg-gradient-to-r dark:from-[#16327A] dark:to-[#2b52d6] dark:hover:from-[#1B3FAB] dark:hover:to-[#3a63e0]"
               >
                 <Edit3 className="w-3.5 h-3.5" />
                 Edit Profile
@@ -477,7 +477,7 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
             {/* Edit CTA */}
             <button
               onClick={onEdit}
-              className="w-full flex items-center justify-center gap-2 py-3.5 bg-[#1B3FAB] text-white rounded-2xl text-sm font-bold hover:bg-[#1635A0] hover:-translate-y-0.5 transition-all duration-200 shadow-md shadow-[#1B3FAB]/20"
+              className="w-full flex items-center justify-center gap-2 py-3.5 bg-[#1B3FAB] text-white rounded-2xl text-sm font-bold hover:bg-[#1635A0] hover:-translate-y-0.5 transition-all duration-200 shadow-md shadow-[#1B3FAB]/20 dark:bg-gradient-to-r dark:from-[#16327A] dark:to-[#2b52d6] dark:shadow-[#1B3FAB]/10 dark:hover:from-[#1B3FAB] dark:hover:to-[#3a63e0]"
             >
               <Edit3 className="w-4 h-4" />
               Edit Company Profile
@@ -509,7 +509,7 @@ function EditForm({ draft, onChange, onSave, onCancel, saving, saveError }) {
               Cancel
             </button>
             <button onClick={onSave} disabled={saving}
-              className="flex items-center gap-1.5 px-5 py-2 bg-[#1B3FAB] text-white rounded-xl text-sm font-bold hover:bg-[#1635A0] transition-colors shadow-md shadow-[#1B3FAB]/20 disabled:opacity-60">
+              className="flex items-center gap-1.5 px-5 py-2 bg-[#1B3FAB] text-white rounded-xl text-sm font-bold hover:bg-[#1635A0] transition-colors shadow-md shadow-[#1B3FAB]/20 disabled:opacity-60 dark:bg-gradient-to-r dark:from-[#16327A] dark:to-[#2b52d6] dark:shadow-[#1B3FAB]/10 dark:hover:from-[#1B3FAB] dark:hover:to-[#3a63e0]">
               {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
               {saving ? "Saving…" : "Save Changes"}
             </button>

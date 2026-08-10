@@ -455,7 +455,7 @@ export default function WorkerProfile() {
                   <button
                     type="button"
                     onClick={startEdit}
-                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#1B3FAB] px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-[#15338d]"
+                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#1B3FAB] px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-[#15338d] dark:bg-gradient-to-r dark:from-[#16327A] dark:to-[#2b52d6] dark:hover:from-[#1B3FAB] dark:hover:to-[#3a63e0]"
                   >
                     <Pencil className="h-4 w-4" />
                     Edit Profile
@@ -826,7 +826,7 @@ export default function WorkerProfile() {
                 type="button"
                 onClick={saveEdit}
                 disabled={saving}
-                className="inline-flex items-center gap-2 rounded-xl bg-[#1B3FAB] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#15338d] disabled:opacity-60"
+                className="inline-flex items-center gap-2 rounded-xl bg-[#1B3FAB] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#15338d] disabled:opacity-60 dark:bg-gradient-to-r dark:from-[#16327A] dark:to-[#2b52d6] dark:hover:from-[#1B3FAB] dark:hover:to-[#3a63e0]"
               >
                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                 {saving ? "Saving…" : "Save Changes"}
