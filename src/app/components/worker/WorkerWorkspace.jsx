@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import { toast } from "sonner";
-import { AlertCircle, Briefcase, Clock3, History, Loader2, MessageSquare, Send, X } from "lucide-react";
+import { AlertCircle, Briefcase, Clock3, History, Loader2, MessageSquare, Play, X } from "lucide-react";
 import CelebrationOverlay from "../common/CelebrationOverlay";
 import { MILESTONES } from "../../lib/milestones";
 import TimelineTracker from "../shared/TimelineTracker";
@@ -19,6 +19,12 @@ import { ApiError } from "../../lib/apiClient";
 import { getSocket } from "../../lib/socketClient";
 
 const ACTIVE_STATUSES = new Set(["ACCEPTED", "PENDING_FUNDS", "FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_SUBMITTED", "PENDING_RELEASE"]);
+
+// Deliverables are the worker's actual finished (or in-progress) work —
+// sharing one before Start Work has even been clicked doesn't match the
+// real ACCEPTED/PENDING_FUNDS/FUNDS_SECURED -> WORK_IN_PROGRESS flow those
+// files are supposed to prove. See DeliverablesPanel.jsx's `locked` prop.
+const NOT_STARTED_STATUSES = new Set(["ACCEPTED", "PENDING_FUNDS", "FUNDS_SECURED"]);
 
 // job_candidates.status, worker-facing copy for the "Applied" tab —
 // ACCEPTED never actually shows here (accepting turns it into a real
@@ -552,6 +558,30 @@ export default function WorkerWorkspace() {
                       <p className="mt-0.5 text-xs font-bold text-emerald-600">Funds Secured</p>
                     )}
                   </div>
+                  {/* The one action this project actually needs from the
+                      worker right now (Start Work / Submit Work) — anchored
+                      directly under the budget instead of a floating bar at
+                      the bottom of the page, so it reads as "the next thing
+                      to do about this money" rather than a stray button. */}
+                  {PROJECT_STATUS_META[selectedTask.status]?.actionBy === "worker" && (
+                    <button
+                      onClick={handleAdvance}
+                      disabled={advancing}
+                      className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-[#FF6B35] px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-orange-500/20 transition-all active:scale-[0.98] hover:-translate-y-0.5 hover:bg-[#E55A2B] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 md:w-auto"
+                    >
+                      {advancing ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Updating…
+                        </>
+                      ) : (
+                        <>
+                          <Play className="h-4 w-4" />
+                          {PROJECT_STATUS_META[selectedTask.status].nextActionLabel}
+                        </>
+                      )}
+                    </button>
+                  )}
                 </div>
             </header>
 
@@ -582,7 +612,12 @@ export default function WorkerWorkspace() {
 
               <div className="grid gap-5">
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.08 }}>
-                <DeliverablesPanel projectId={selectedTask.id} readOnly={selectedTask.status === "CANCELLED"} />
+                <DeliverablesPanel
+                  projectId={selectedTask.id}
+                  readOnly={selectedTask.status === "CANCELLED"}
+                  locked={NOT_STARTED_STATUSES.has(selectedTask.status)}
+                  lockedMessage='Click "Start Work" above to begin — you can share deliverables once work is underway.'
+                />
               </motion.div>
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.11 }}>
                 <button
@@ -596,12 +631,14 @@ export default function WorkerWorkspace() {
               </motion.div>
               </div>
             </div>
-            {(selectedTask.status === "FILES_SUBMITTED" || selectedTask.status === "PENDING_RELEASE" || PROJECT_STATUS_META[selectedTask.status]?.actionBy === "worker") && (
-            /* Sized to its own content (not left-3/right-3 full-width) — a
-               full-width bar here would sit on top of whatever's scrolled
-               underneath it (e.g. the "Open Chat in Negotiations" button),
-               blocking clicks on empty space that isn't even part of this
-               action. */
+            {(selectedTask.status === "FILES_SUBMITTED" || selectedTask.status === "PENDING_RELEASE") && (
+            /* Just the "what's happening now" status, not an action anymore
+               — the real next action (Start Work / Submit Work) moved to
+               the header, directly under the budget. Sized to its own
+               content (not left-3/right-3 full-width) — a full-width bar
+               here would sit on top of whatever's scrolled underneath it
+               (e.g. the "Open Chat in Negotiations" button), blocking
+               clicks on empty space that isn't even part of this status. */
             <div className="absolute bottom-3 right-3 z-20 flex max-w-[calc(100%-1.5rem)] flex-wrap items-center justify-end gap-2 rounded-xl border border-slate-200 bg-white/95 p-2 shadow-[0_16px_40px_rgba(15,23,42,0.12)] backdrop-blur sm:bottom-5 sm:right-8 sm:gap-3 sm:p-2.5 dark:border-slate-700 dark:bg-slate-900/95">
               {selectedTask.status === "FILES_SUBMITTED" && (
                 <span className="flex min-h-[36px] items-center gap-2 whitespace-nowrap text-xs font-semibold text-amber-600">
@@ -614,25 +651,6 @@ export default function WorkerWorkspace() {
                   <span className="h-2 w-2 flex-shrink-0 animate-pulse rounded-full bg-amber-500" />
                   Release requested — WorkBridge is processing your payout
                 </span>
-              )}
-              {PROJECT_STATUS_META[selectedTask.status]?.actionBy === "worker" && (
-                <button
-                  onClick={handleAdvance}
-                  disabled={advancing}
-                  className="flex min-h-[36px] items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-[#FF6B35] px-5 py-2 text-sm font-bold text-white shadow-md shadow-[#FF6B35]/20 transition-all hover:-translate-y-0.5 hover:bg-[#f05b24] disabled:opacity-60 disabled:hover:translate-y-0"
-                >
-                  {advancing ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Updating…
-                    </>
-                  ) : (
-                    <>
-                      <Send className="h-3.5 w-3.5" />
-                      {PROJECT_STATUS_META[selectedTask.status].nextActionLabel}
-                    </>
-                  )}
-                </button>
               )}
             </div>
             )}

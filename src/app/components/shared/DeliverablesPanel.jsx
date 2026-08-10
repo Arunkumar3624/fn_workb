@@ -48,7 +48,13 @@ function isInternalLink(url) {
 // moderation first; the API itself hides PENDING_REVIEW/REJECTED items from
 // whichever participant didn't submit them, so this component never has to
 // implement that rule client-side.
-export default function DeliverablesPanel({ projectId, readOnly = false }) {
+//
+// `locked` is worker-only (WorkerWorkspace.jsx passes it, keyed off the real
+// project status) — a worker could previously submit "finished work" before
+// ever clicking Start Work, which made no sense against the real
+// ACCEPTED/FUNDS_SECURED -> WORK_IN_PROGRESS flow. Business callers never
+// pass this: reference material is legitimate to share at any stage.
+export default function DeliverablesPanel({ projectId, readOnly = false, locked = false, lockedMessage }) {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -146,15 +152,29 @@ export default function DeliverablesPanel({ projectId, readOnly = false }) {
         <p className="mt-0.5 text-xs text-slate-500">
           {readOnly
             ? "This project is closed — shown here for the record only."
-            : "Share a link (Google Drive, Dropbox, etc.) or a small image — every submission is reviewed by WorkBridge before the other side can see it."}
+            : locked
+              ? "You'll be able to share your work here once you start it."
+              : "Share a link (Google Drive, Dropbox, etc.) or a small image — every submission is reviewed by WorkBridge before the other side can see it."}
         </p>
       </div>
 
-      {/* ── Submit form — hidden once the project is closed. There's no
-          legitimate reason to keep sharing files on a cancelled project;
-          the list below still shows whatever was already shared before it
-          closed. */}
-      {!readOnly && (
+      {/* ── Reminder — the project hasn't been started yet (worker-only
+          gate, see the prop comment above). Points back at the real Start
+          Work action instead of duplicating it here. */}
+      {locked && !readOnly && (
+        <div className="flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 p-4">
+          <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600" />
+          <p className="text-sm font-semibold text-amber-800">
+            {lockedMessage ?? 'Click "Start Work" above to begin — you can share deliverables once work is underway.'}
+          </p>
+        </div>
+      )}
+
+      {/* ── Submit form — hidden once the project is closed or not started
+          yet. There's no legitimate reason to keep sharing files on a
+          cancelled project; the list below still shows whatever was already
+          shared before it closed. */}
+      {!readOnly && !locked && (
       <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
         <div className="mb-3 flex gap-1 rounded-lg bg-white p-1 w-fit border border-slate-200">
           {[

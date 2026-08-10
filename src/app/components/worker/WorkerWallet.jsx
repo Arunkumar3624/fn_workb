@@ -23,6 +23,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion, AnimatePresence } from "motion/react";
 import LockedCurrencyInput from "../common/LockedCurrencyInput";
+import VerificationFeesTable from "../shared/VerificationFeesTable";
 import { positiveCurrencySchema } from "../../utils/formValidation";
 import { getWallet, withdraw, listWithdrawals } from "../../lib/walletApi";
 import { listProjects } from "../../lib/projectsApi";
@@ -60,45 +61,37 @@ const SUBSCRIPTION_TIERS = [
     id: "free",
     name: "Free",
     monthlyPrice: 0,
-    perks: ["Standard job matching", "10 proposals/week", "Standard platform commission"],
+    yearlyPrice: 0,
+    perks: ["3 job requests/day", "Basic profile"],
   },
   {
     id: "pro",
     name: "Pro",
     monthlyPrice: 299,
+    yearlyPrice: 2999,
     highlight: true,
-    perks: [
-      "Priority placement in business applicant lists",
-      "Profile analytics graph",
-      "Reduced platform commission",
-    ],
+    perks: ["Unlimited job requests", "Priority alerts", "Verified badge"],
   },
   {
     id: "elite",
     name: "Elite",
     monthlyPrice: 599,
+    yearlyPrice: 5999,
     premium: true,
-    perks: [
-      "Top placement in the Find Workers directory",
-      "Priority instant verification badge",
-      "Zero commission on your first ₹10,000 earned each month",
-    ],
+    perks: ["Top search placement", "Profile analytics", "Dedicated support"],
   },
 ];
 
 const TIER_ICONS = { free: ShieldCheck, pro: BarChart3, elite: Crown };
 
-const YEARLY_DISCOUNT = 0.2;
-
-// A free tier has no "20% off" to show — same real ₹0 either way. Everything
-// else gets monthly × 12 × 0.8, rounded to a whole rupee (never a fabricated
-// "yearly array" — this is computed straight from the one real monthly price
-// each tier already has).
-function formatTierPrice(monthlyPrice, isYearly) {
-  if (monthlyPrice === 0) return { amount: "₹0", period: "/mo" };
-  if (!isYearly) return { amount: `₹${monthlyPrice.toLocaleString("en-IN")}`, period: "/mo" };
-  const yearlyTotal = Math.round(monthlyPrice * 12 * (1 - YEARLY_DISCOUNT));
-  return { amount: `₹${yearlyTotal.toLocaleString("en-IN")}`, period: "/year, billed annually" };
+// Yearly prices are the real, exact figures WorkBridge is pricing these
+// at (2 months free — 10 months' worth of monthly billing, rounded to a
+// clean ₹X99 figure) — not a computed 20%-off approximation, so the number
+// shown here always matches what a worker would actually be quoted.
+function formatTierPrice(tier, isYearly) {
+  if (tier.monthlyPrice === 0) return { amount: "₹0", period: "/mo" };
+  if (!isYearly) return { amount: `₹${tier.monthlyPrice.toLocaleString("en-IN")}`, period: "/mo" };
+  return { amount: `₹${tier.yearlyPrice.toLocaleString("en-IN")}`, period: "/year (2 months free)" };
 }
 
 // The Monthly/Yearly pill toggle — a real controlled boolean
@@ -132,7 +125,7 @@ function BillingToggle({ isYearly, onChange }) {
         Yearly
       </button>
       <span className="absolute -right-3 -top-3 whitespace-nowrap rounded-full bg-[#FF6B35]/10 px-2 py-1 text-[11px] font-bold text-[#FF6B35]">
-        Save 20%
+        2 Months Free
       </span>
     </div>
   );
@@ -143,7 +136,7 @@ function SubscriptionTierCard({ tier, isYearly, isUpgrading, upgradeResult, onUp
   const isFree = tier.id === "free";
   const isElite = tier.id === "elite";
   const eliteLocked = isElite && behaviorScore < ELITE_GOOD_STANDING;
-  const { amount, period } = formatTierPrice(tier.monthlyPrice, isYearly);
+  const { amount, period } = formatTierPrice(tier, isYearly);
 
   const cardCls = tier.premium
     ? "bg-[#0F172A] text-white border border-white/10"
@@ -288,6 +281,8 @@ function SubscriptionTab() {
           />
         ))}
       </div>
+
+      <VerificationFeesTable />
     </div>
   );
 }
