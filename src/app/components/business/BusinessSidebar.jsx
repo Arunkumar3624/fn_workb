@@ -46,12 +46,15 @@ export default function BusinessSidebar({
       }`}
     >
       <div
-        onDoubleClick={() => setIsCollapsed((v) => !v)}
-        title="Double-click to collapse/expand"
+        onClick={() => setIsCollapsed((v) => !v)}
+        title="Click to collapse/expand"
         className={`cursor-pointer select-none border-b border-white/5 py-5 ${isCollapsed ? "px-0" : "px-5"}`}
       >
         <div className={`flex items-center gap-2.5 ${isCollapsed ? "justify-center" : ""}`}>
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-[#ffffff]">
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="flex h-8 w-8 flex-shrink-0 cursor-default items-center justify-center rounded-lg bg-[#ffffff]"
+          >
             <img src={brandLogo} alt="" className="h-5 w-5 object-contain" />
           </div>
           {!isCollapsed && (

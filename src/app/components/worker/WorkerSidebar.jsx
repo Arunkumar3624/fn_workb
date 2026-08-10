@@ -47,12 +47,15 @@ export default function WorkerSidebar({ tab, onTabChange, onLogout }) {
       }`}
     >
       <div
-        onDoubleClick={() => setIsCollapsed((v) => !v)}
-        title="Double-click to collapse/expand"
+        onClick={() => setIsCollapsed((v) => !v)}
+        title="Click to collapse/expand"
         className={`cursor-pointer select-none border-b border-white/10 py-6 ${isCollapsed ? "px-0" : "px-5"}`}
       >
         <div className={`flex items-center gap-3 ${isCollapsed ? "justify-center" : ""}`}>
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-[#ffffff] shadow-lg shadow-[#FF6B35]/25">
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="flex h-10 w-10 flex-shrink-0 cursor-default items-center justify-center rounded-lg bg-[#ffffff] shadow-lg shadow-[#FF6B35]/25"
+          >
             <img src={brandLogo} alt="" className="h-6 w-6 object-contain" />
           </div>
           {!isCollapsed && (
