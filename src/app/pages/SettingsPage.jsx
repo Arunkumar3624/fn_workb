@@ -24,6 +24,7 @@ import { getInitials } from "../utils/formValidation";
 import { ApiError } from "../lib/apiClient";
 import { getPushStatus, subscribeToPush, unsubscribeFromPush } from "../lib/pushNotifications";
 import SupportChat from "../components/shared/SupportChat";
+import ThemeToggle from "../components/shared/ThemeToggle";
 
 const MAX_AVATAR_BYTES = 1.5 * 1024 * 1024;
 
@@ -37,7 +38,11 @@ const TABS = [
 ];
 
 function SectionCard({ children }) {
-  return <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8">{children}</div>;
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900 sm:p-8">
+      {children}
+    </div>
+  );
 }
 
 function GeneralProfileTab() {
@@ -96,6 +101,16 @@ function GeneralProfileTab() {
   const fullProfilePath = currentUser?.role === "business" ? "/business/company" : "/worker/profile";
 
   return (
+    <div className="space-y-6">
+    <SectionCard>
+      <div>
+        <p className="text-sm font-bold text-[#0A1128] dark:text-white">Appearance</p>
+        <p className="mt-1 text-xs text-slate-400">Choose how WorkBridge looks on this device.</p>
+      </div>
+      <div className="mt-4">
+        <ThemeToggle />
+      </div>
+    </SectionCard>
     <SectionCard>
       <div className="mb-6 flex items-center gap-4">
         <label className="relative flex-shrink-0 cursor-pointer">
@@ -168,6 +183,7 @@ function GeneralProfileTab() {
         </div>
       </form>
     </SectionCard>
+    </div>
   );
 }
 
@@ -549,7 +565,7 @@ export default function SettingsPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
       <div className="mb-6">
-        <h1 className="text-xl font-extrabold text-[#0A1128]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+        <h1 className="text-xl font-extrabold text-[#0A1128] dark:text-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
           Settings
         </h1>
       </div>
@@ -564,7 +580,7 @@ export default function SettingsPage() {
                 className={`flex flex-shrink-0 items-center gap-2.5 rounded-xl px-4 py-3 text-left text-sm font-bold transition-colors md:w-full ${
                   activeTab === id
                     ? "bg-[#0A1128] text-white shadow-sm"
-                    : "text-slate-500 hover:bg-white hover:text-slate-800"
+                    : "text-slate-500 hover:bg-white hover:text-slate-800 dark:hover:bg-slate-800 dark:hover:text-slate-100"
                 }`}
               >
                 <Icon className="h-4 w-4 flex-shrink-0" />
@@ -574,7 +590,7 @@ export default function SettingsPage() {
           </nav>
         </aside>
 
-        <div className="min-w-0 flex-1 rounded-2xl border border-slate-200 bg-white/70 p-6 backdrop-blur-xl sm:p-8">
+        <div className="min-w-0 flex-1 rounded-2xl border border-slate-200 bg-white/70 p-6 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/70 sm:p-8">
           {activeTab === "general" && <GeneralProfileTab />}
           {activeTab === "security" && <SecurityTab />}
           {activeTab === "notifications" && <NotificationsTab />}

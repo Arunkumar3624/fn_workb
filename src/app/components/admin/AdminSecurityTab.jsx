@@ -135,10 +135,6 @@ function MessageMonitor() {
           deduct_points: "points_deducted",
         }[action]
       );
-      if (action === "ban" || action === "unban") {
-        const nowActive = action === "unban";
-        setWorkers((prev) => prev.map((w) => (w.worker_id === selectedWorker.worker_id ? { ...w, worker_is_active: nowActive } : w)));
-      }
       if (action === "ban_chat" || action === "unban_chat") {
         const nowChatBanned = action === "ban_chat";
         setWorkers((prev) =>
@@ -169,18 +165,6 @@ function MessageMonitor() {
       return;
     }
     runAction("deduct_points", { points: amount });
-  };
-
-  const handleBan = () => {
-    if (workerIsBanned || acting) return;
-    if (!window.confirm(`Ban ${selectedWorker.worker_name}? They will be signed out immediately.`)) return;
-    runAction("ban");
-  };
-
-  const handleUnban = () => {
-    if (!workerIsBanned || acting) return;
-    if (!window.confirm(`Unban ${selectedWorker.worker_name}?`)) return;
-    runAction("unban");
   };
 
   // The Dual-Ban Moderation Engine's soft tier — locks their chat composer
@@ -364,24 +348,12 @@ function MessageMonitor() {
                     Ban Chat
                   </button>
                 )}
-                <button
-                  onClick={handleBan}
-                  disabled={acting || workerIsBanned}
-                  title={workerIsBanned ? "Already banned" : "Ban"}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-40 disabled:hover:bg-red-600"
-                >
-                  <Ban className="w-3.5 h-3.5" />
-                  Ban
-                </button>
-                <button
-                  onClick={handleUnban}
-                  disabled={acting || !workerIsBanned}
-                  title={!workerIsBanned ? "Not banned" : "Unban"}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 transition-colors disabled:opacity-40 disabled:hover:bg-slate-100 disabled:hover:text-slate-600"
-                >
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  Unban
-                </button>
+                {workerIsBanned && (
+                  <span className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-red-50 text-red-600 border border-red-200" title="Full account bans now live on the main Users page">
+                    <Ban className="w-3.5 h-3.5" />
+                    Banned — manage on Users page
+                  </span>
+                )}
               </div>
             </div>
 

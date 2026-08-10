@@ -247,7 +247,7 @@ function renderMessageRows(messages, currentUserId, onPreview) {
 // to recognize realtime events from the older per-project routes (an admin
 // warning, a redacted-and-sent message) that don't carry this thread's id.
 export default function ChatThread({ threadId, otherUserId, activeProjects = [], projectIds = [] }) {
-  const { currentUser } = useAuth();
+  const { currentUser, isImpersonating } = useAuth();
   // The Dual-Ban Moderation Engine's soft tier — locks only this side's own
   // composer (server-enforced too, messages.controller.js's
   // assertNotChatBanned); it never affects reading history, deliverables,
@@ -453,21 +453,23 @@ export default function ChatThread({ threadId, otherUserId, activeProjects = [],
             <button
               type="button"
               onClick={handleUnblock}
-              disabled={blockActionBusy}
-              className="flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[11px] font-bold text-emerald-700 shadow-sm transition-colors hover:bg-emerald-100 disabled:opacity-60"
+              disabled={blockActionBusy || isImpersonating}
+              title={isImpersonating ? "Disabled in Impersonation Mode" : undefined}
+              className="flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[11px] font-bold text-emerald-700 shadow-sm transition-colors hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <ShieldOff className="h-3 w-3" />
-              Unblock
+              {isImpersonating ? "Disabled in Impersonation Mode" : "Unblock"}
             </button>
           ) : (
             <button
               type="button"
               onClick={handleBlock}
-              disabled={blockActionBusy}
-              className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-bold text-slate-500 shadow-sm transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:opacity-60"
+              disabled={blockActionBusy || isImpersonating}
+              title={isImpersonating ? "Disabled in Impersonation Mode" : undefined}
+              className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-bold text-slate-500 shadow-sm transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <UserX className="h-3 w-3" />
-              Block
+              {isImpersonating ? "Disabled in Impersonation Mode" : "Block"}
             </button>
           )}
         </div>
@@ -592,11 +594,12 @@ export default function ChatThread({ threadId, otherUserId, activeProjects = [],
           <button
             type="button"
             onClick={handleUnblock}
-            disabled={blockActionBusy}
-            className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-3.5 py-1.5 text-xs font-bold text-emerald-700 transition-colors hover:bg-emerald-100 disabled:opacity-60"
+            disabled={blockActionBusy || isImpersonating}
+            title={isImpersonating ? "Disabled in Impersonation Mode" : undefined}
+            className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-3.5 py-1.5 text-xs font-bold text-emerald-700 transition-colors hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <ShieldOff className="h-3.5 w-3.5" />
-            Unblock
+            {isImpersonating ? "Disabled in Impersonation Mode" : "Unblock"}
           </button>
         </div>
       ) : (

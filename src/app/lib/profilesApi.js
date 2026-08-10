@@ -17,13 +17,13 @@ export function listWorkers() {
   return apiFetch("/api/profiles?role=worker");
 }
 
-// The caller's own profile edit — avatar upload, name, title, phone, and a
-// shallow profile-JSONB patch (skills/rate/bio). Guarded server-side to self
-// only.
-export function updateOwnProfile({ avatarUrl, title, phone, name, profilePatch }) {
+// The caller's own profile edit — avatar upload, name, title, phone, a
+// shallow profile-JSONB patch (skills/rate/bio), and the Onboarding
+// Wizard's completion flag. Guarded server-side to self only.
+export function updateOwnProfile({ avatarUrl, title, phone, name, profilePatch, hasCompletedOnboarding }) {
   return apiFetch("/api/profiles/me", {
     method: "PATCH",
-    body: { avatarUrl, title, phone, name, profilePatch },
+    body: { avatarUrl, title, phone, name, profilePatch, hasCompletedOnboarding },
   });
 }
 

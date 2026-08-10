@@ -7,9 +7,26 @@
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <link rel="icon" type="image/png" href="/favicon.png" />
       <title>WorkBridge — Freelance Marketplace</title>
-      <meta name="description" content="Connects freelancers and businesses for digital projects with instant secured payments, skill-based matching, and secure milestone tracking." />
+      <meta name="description" content="Connects freelancers and businesses for digital projects with escrow-secured payments, skill-based matching, and secure milestone tracking." />
       <meta name="robots" content="index, follow" />
       <style>html, body { height: 100%; margin: 0; } #root { height: 100%; }</style>
+      <script>
+        // Applies the .dark class before React even mounts, straight from
+        // localStorage/OS preference — without this, the page would flash
+        // light-then-dark on every load for a user who's chosen dark mode
+        // (see app/context/ThemeContext.jsx, the source of truth this
+        // mirrors). Kept deliberately tiny and dependency-free since it
+        // runs before any bundle loads.
+        (function () {
+          try {
+            var stored = localStorage.getItem("wb-theme");
+            var isDark =
+              stored === "dark" ||
+              (stored !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+            if (isDark) document.documentElement.classList.add("dark");
+          } catch (e) {}
+        })();
+      </script>
 
     </head>
 

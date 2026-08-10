@@ -192,14 +192,21 @@ function NoThreadSelected({ hasThreads, onFindTalent }) {
   );
 }
 
-// A horizontal strip like the project-chip row only scrolls via a mouse
-// wheel if the cursor happens to be exactly over its own scrollbar thumb —
-// a plain vertical wheel does nothing over the cards themselves. This
-// redirects that vertical scroll into horizontal movement so hovering
-// anywhere on the strip scrolls it, the same as any real card carousel.
+// A horizontal strip like the project-chip row only scrolls via a plain
+// mouse wheel if the browser happens to redirect vertical scroll for you —
+// it doesn't, by default. This redirects it so hovering anywhere on the
+// strip scrolls it, the same as any real card carousel. A real horizontal
+// gesture (trackpad two-finger swipe, Shift+wheel) already arrives as
+// deltaX and is left alone — overflow-x-auto handles that natively, and
+// intercepting it too caused the two handlers to fight each other, which is
+// what broke scrolling here previously. Also no-ops (and lets the vertical
+// scroll bubble to the page normally) when the strip has nothing to scroll.
 function handleHorizontalWheelScroll(event) {
-  if (event.deltaY === 0) return;
-  event.currentTarget.scrollLeft += event.deltaY;
+  const el = event.currentTarget;
+  if (el.scrollWidth <= el.clientWidth) return;
+  if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
+  event.preventDefault();
+  el.scrollLeft += event.deltaY;
 }
 
 // One project chip per real project with this worker — active ones full

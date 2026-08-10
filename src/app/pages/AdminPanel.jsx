@@ -151,6 +151,7 @@ export default function AdminPanel({ onLogout }) {
                 <button
                   key={id}
                   onClick={() => setActiveTab(id)}
+                  title={count > 0 ? `${count} awaiting action` : undefined}
                   className={`flex flex-shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-all ${
                     active ? "bg-white/70 text-slate-900 shadow-sm backdrop-blur-sm" : "text-slate-500 hover:text-slate-700"
                   }`}

@@ -117,3 +117,12 @@ export function moderateUser(userId, action, { points, projectId, note } = {}) {
     body: { action, points, projectId, note },
   });
 }
+
+// Minimal real Support-tier RBAC — only a full admin (both flags still
+// true) can call this successfully; the backend 403s otherwise.
+export function updateAdminPermissions(userId, { canBanUsers, canReleaseFunds } = {}) {
+  return apiFetch(`/api/admin/users/${userId}/permissions`, {
+    method: "PATCH",
+    body: { canBanUsers, canReleaseFunds },
+  });
+}

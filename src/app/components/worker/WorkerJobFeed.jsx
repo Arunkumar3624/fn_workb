@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { AnimatePresence, motion } from "motion/react";
 import {
@@ -22,6 +23,7 @@ import {
   Sparkles,
   Users,
   X,
+  Zap,
 } from "lucide-react";
 
 // The real, fixed reward every completed job pays out — see
@@ -78,6 +80,35 @@ function formatExperience(job) {
 
 function formatEducation(job) {
   return EDUCATION_LABELS[job.education_level] ?? null;
+}
+
+// Pinned, non-dismissible — this used to be a floating toast a worker could
+// close forever for the session (sessionStorage), which meant most workers
+// only ever saw it once. It's real, honest copy (every worker genuinely is
+// on the free tier — see WorkerWallet.jsx's SUBSCRIPTION_TIERS), so it stays
+// visible at the top of the feed on every visit instead, matching how the
+// Enterprise Partner Tier card is always-on for businesses on Overview.
+function SubscriptionBanner({ onUpgrade }) {
+  return (
+    <div className="mb-6 flex flex-col items-start gap-4 rounded-2xl border border-white/20 p-5 shadow-lg shadow-slate-900/10 sm:flex-row sm:items-center sm:justify-between" style={{ backgroundColor: "rgba(15, 23, 42, 0.92)" }}>
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-white/10">
+          <Sparkles className="h-5 w-5 text-[#FF6B35]" />
+        </div>
+        <p className="text-sm font-semibold leading-6 text-white">
+          Unlock Premium Matches and zero commission on your first ₹10,000 earned. Upgrade to Elite today! ⚡
+        </p>
+      </div>
+      <button
+        type="button"
+        onClick={onUpgrade}
+        className="flex flex-shrink-0 items-center justify-center gap-1.5 rounded-xl bg-[#FF6B35] px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-[#e55e1f]"
+      >
+        <Zap className="h-3.5 w-3.5" />
+        See Elite Perks
+      </button>
+    </div>
+  );
 }
 
 // The real apply flow — a proposal note + submit, straight to
@@ -242,6 +273,7 @@ function InviteCard({ candidate, onRespond, responding }) {
 }
 
 export default function WorkerJobFeed() {
+  const navigate = useNavigate();
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -424,6 +456,8 @@ export default function WorkerJobFeed() {
   return (
     <div className="relative h-full min-h-screen overflow-y-auto bg-gradient-to-br from-[#dbe4ff] via-[#eef1ff] to-[#ffe4d2] pb-20 text-slate-900">
       <section className="relative mx-auto max-w-7xl px-6 py-8">
+        <SubscriptionBanner onUpgrade={() => navigate("/worker/wallet?tab=subscription")} />
+
         <div className="mb-8 rounded-2xl border border-white/70 bg-white/60 backdrop-blur-xl p-6 shadow-lg shadow-slate-200/40">
           <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">WorkBridge Job Feed</p>
           <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-900">Open jobs, live right now</h1>

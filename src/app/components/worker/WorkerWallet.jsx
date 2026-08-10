@@ -59,15 +59,13 @@ const SUBSCRIPTION_TIERS = [
   {
     id: "free",
     name: "Free",
-    price: "₹0",
-    period: "/mo",
+    monthlyPrice: 0,
     perks: ["Standard job matching", "10 proposals/week", "Standard platform commission"],
   },
   {
     id: "pro",
     name: "Pro",
-    price: "₹299",
-    period: "/mo",
+    monthlyPrice: 299,
     highlight: true,
     perks: [
       "Priority placement in business applicant lists",
@@ -78,8 +76,7 @@ const SUBSCRIPTION_TIERS = [
   {
     id: "elite",
     name: "Elite",
-    price: "₹599",
-    period: "/mo",
+    monthlyPrice: 599,
     premium: true,
     perks: [
       "Top placement in the Find Workers directory",
@@ -91,11 +88,62 @@ const SUBSCRIPTION_TIERS = [
 
 const TIER_ICONS = { free: ShieldCheck, pro: BarChart3, elite: Crown };
 
-function SubscriptionTierCard({ tier, isUpgrading, upgradeResult, onUpgrade, behaviorScore }) {
+const YEARLY_DISCOUNT = 0.2;
+
+// A free tier has no "20% off" to show — same real ₹0 either way. Everything
+// else gets monthly × 12 × 0.8, rounded to a whole rupee (never a fabricated
+// "yearly array" — this is computed straight from the one real monthly price
+// each tier already has).
+function formatTierPrice(monthlyPrice, isYearly) {
+  if (monthlyPrice === 0) return { amount: "₹0", period: "/mo" };
+  if (!isYearly) return { amount: `₹${monthlyPrice.toLocaleString("en-IN")}`, period: "/mo" };
+  const yearlyTotal = Math.round(monthlyPrice * 12 * (1 - YEARLY_DISCOUNT));
+  return { amount: `₹${yearlyTotal.toLocaleString("en-IN")}`, period: "/year, billed annually" };
+}
+
+// The Monthly/Yearly pill toggle — a real controlled boolean
+// (SubscriptionTab owns isYearly), not decorative. The sliding thumb is
+// width-matched to each label button so the spring physics track the actual
+// active option instead of a hardcoded midpoint.
+function BillingToggle({ isYearly, onChange }) {
+  return (
+    <div className="relative inline-flex items-center rounded-full bg-slate-100 p-1">
+      <motion.span
+        className="absolute inset-y-1 left-1 w-24 rounded-full bg-white shadow-sm"
+        animate={{ x: isYearly ? 96 : 0 }}
+        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+      />
+      <button
+        type="button"
+        onClick={() => onChange(false)}
+        className={`relative z-10 w-24 rounded-full py-2 text-sm transition-colors ${
+          !isYearly ? "font-semibold text-slate-900" : "text-slate-500"
+        }`}
+      >
+        Monthly
+      </button>
+      <button
+        type="button"
+        onClick={() => onChange(true)}
+        className={`relative z-10 w-24 rounded-full py-2 text-sm transition-colors ${
+          isYearly ? "font-semibold text-slate-900" : "text-slate-500"
+        }`}
+      >
+        Yearly
+      </button>
+      <span className="absolute -right-3 -top-3 whitespace-nowrap rounded-full bg-[#FF6B35]/10 px-2 py-1 text-[11px] font-bold text-[#FF6B35]">
+        Save 20%
+      </span>
+    </div>
+  );
+}
+
+function SubscriptionTierCard({ tier, isYearly, isUpgrading, upgradeResult, onUpgrade, behaviorScore }) {
   const Icon = TIER_ICONS[tier.id];
   const isFree = tier.id === "free";
   const isElite = tier.id === "elite";
   const eliteLocked = isElite && behaviorScore < ELITE_GOOD_STANDING;
+  const { amount, period } = formatTierPrice(tier.monthlyPrice, isYearly);
 
   const cardCls = tier.premium
     ? "bg-[#0F172A] text-white border border-white/10"
@@ -119,8 +167,8 @@ function SubscriptionTierCard({ tier, isUpgrading, upgradeResult, onUpgrade, beh
         {tier.name}
       </p>
       <p className="mt-1 flex items-baseline gap-1">
-        <span className="text-3xl font-black">{tier.price}</span>
-        <span className="text-sm text-slate-400">{tier.period}</span>
+        <span className="text-3xl font-black">{amount}</span>
+        <span className="text-sm text-slate-400">{period}</span>
       </p>
 
       <ul className="mt-6 flex-1 space-y-3">
@@ -177,7 +225,7 @@ function SubscriptionTierCard({ tier, isUpgrading, upgradeResult, onUpgrade, beh
         <button
           onClick={() => onUpgrade(tier.id)}
           disabled={isUpgrading === tier.id}
-          className={`mt-7 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold transition-all duration-300 disabled:opacity-70 ${
+          className={`mt-7 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold transition-all duration-300 active:scale-[0.98] disabled:opacity-70 ${
             tier.premium
               ? "bg-[#FF6B35] text-white shadow-[0_0_25px_-5px_rgba(255,107,53,0.6)] hover:-translate-y-0.5 hover:bg-[#e85d27]"
               : "bg-[#0F172A] text-white hover:-translate-y-0.5 hover:bg-[#1a2547]"
@@ -196,6 +244,7 @@ function SubscriptionTab() {
   const behaviorScore = currentUser?.behavior_score ?? 1000;
   const [isUpgrading, setIsUpgrading] = useState(null);
   const [upgradeResult, setUpgradeResult] = useState(null);
+  const [isYearly, setIsYearly] = useState(false);
 
   const handleUpgrade = (tierId) => {
     if (tierId === "elite" && behaviorScore < ELITE_GOOD_STANDING) return;
@@ -220,6 +269,10 @@ function SubscriptionTab() {
         <p className="mx-auto mt-2 max-w-md text-sm text-slate-500">
           Pick a plan that gets you seen first — real billing is on its way, this is a preview of what's coming.
         </p>
+
+        <div className="mt-7 flex justify-center">
+          <BillingToggle isYearly={isYearly} onChange={setIsYearly} />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
@@ -227,6 +280,7 @@ function SubscriptionTab() {
           <SubscriptionTierCard
             key={tier.id}
             tier={tier}
+            isYearly={isYearly}
             isUpgrading={isUpgrading}
             upgradeResult={upgradeResult}
             onUpgrade={handleUpgrade}
@@ -251,6 +305,7 @@ const WALLET_TABS = [
 
 export default function WorkerWallet() {
   const navigate = useNavigate();
+  const { isImpersonating } = useAuth();
   // Lets the Growth Ad toast (WorkerDashboard.jsx) link straight to
   // /worker/wallet?tab=subscription instead of always landing on the
   // Ledger and making the worker click again — same convention as
@@ -441,12 +496,17 @@ export default function WorkerWallet() {
         )}
 
         <div className="relative mt-6 border-t border-slate-200/60 pt-6">
+          {/* Real server-side backstop too (guard.js blocks every non-GET
+              request during impersonation) — this is the preemptive UX
+              layer so a support admin sees why before even trying. */}
           <button
             onClick={() => setShowWithdrawForm((v) => !v)}
-            className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl bg-[#1B3FAB] px-6 py-3 text-sm font-bold text-white shadow-md shadow-[#1B3FAB]/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#1635A0] hover:shadow-lg sm:w-auto"
+            disabled={isImpersonating}
+            title={isImpersonating ? "Disabled in Impersonation Mode" : undefined}
+            className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl bg-[#1B3FAB] px-6 py-3 text-sm font-bold text-white shadow-md shadow-[#1B3FAB]/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#1635A0] hover:shadow-lg disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:shadow-none disabled:hover:translate-y-0 sm:w-auto"
           >
             {showWithdrawForm ? <X className="h-4 w-4" /> : <Zap className="h-4 w-4" />}
-            {showWithdrawForm ? "Close" : "Withdraw Funds"}
+            {isImpersonating ? "Disabled in Impersonation Mode" : showWithdrawForm ? "Close" : "Withdraw Funds"}
           </button>
         </div>
 

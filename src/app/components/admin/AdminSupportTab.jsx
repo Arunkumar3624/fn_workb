@@ -80,20 +80,34 @@ function ConversationPanel({ thread, messages, onSend, sending, sendError, draft
             <p className="text-xs capitalize text-slate-400">{thread.user_role} account</p>
           </div>
         </div>
+        {/* This used to be a small outlined pill that was easy to miss
+            entirely — a real reported issue (an admin sat on an open ticket
+            for 3 hours because they couldn't spot it). A resolved thread's
+            reopen action stays low-key (it's a rare correction, not the
+            primary flow); an OPEN thread's resolve action is now a large,
+            solid, impossible-to-miss button with a subtle pulse so it reads
+            as "there's still an action needed here" at a glance. */}
         <button
           type="button"
           onClick={onResolveToggle}
           disabled={resolving}
-          className={`flex items-center gap-1.5 rounded-full border px-4 py-2 text-xs font-bold transition disabled:opacity-60 ${
+          className={`flex flex-shrink-0 items-center gap-2 rounded-2xl px-5 py-3 text-sm font-black shadow-md transition disabled:cursor-not-allowed disabled:opacity-60 ${
             thread.status === "RESOLVED"
-              ? "border-slate-200 bg-slate-100 text-slate-600 hover:bg-slate-200"
-              : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+              ? "border border-slate-200 bg-slate-100 text-slate-600 hover:bg-slate-200"
+              : "animate-pulse bg-emerald-600 text-white shadow-emerald-600/30 hover:animate-none hover:bg-emerald-700"
           }`}
         >
-          {resolving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
-          {thread.status === "RESOLVED" ? "Reopen" : "Mark Resolved"}
+          {resolving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+          {thread.status === "RESOLVED" ? "Reopen Conversation" : "Resolve Ticket"}
         </button>
       </header>
+
+      {thread.status !== "RESOLVED" && (
+        <div className="flex flex-shrink-0 items-center gap-2 border-b border-amber-100 bg-amber-50 px-6 py-2.5 text-xs font-semibold text-amber-800">
+          <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+          This conversation is still open. Once you've helped them, click "Resolve Ticket" above.
+        </div>
+      )}
 
       <div ref={feedRef} className="wb-scroll-clean min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-6">
         {messages.length === 0 ? (

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import { Building2, Coins, ShieldAlert, ShieldCheck } from "lucide-react";
 import DashboardLayout from "../components/common/DashboardLayout";
 import BusinessSidebar from "../components/business/BusinessSidebar";
@@ -16,19 +16,47 @@ import { getTierData } from "../utils/gamification";
 import { getInitials } from "../utils/formValidation";
 import EconomyInfoTooltip from "../components/shared/EconomyInfoTooltip";
 import NotificationBell from "../components/shared/NotificationBell";
+import OnboardingWizard from "../components/common/OnboardingWizard";
+
+const BUSINESS_TAB_IDS = new Set([
+  "overview",
+  "post",
+  "workers",
+  "projects",
+  "negotiations",
+  "company",
+  "perks",
+  "settings",
+]);
 
 export default function BusinessDashboard({ onLogout, onVerify, isVerified = false }) {
   const { currentUser } = useAuth();
   const location = useLocation();
-  const [tab, setTab] = useState(location.state?.tab ?? "overview");
+  // ?tab= lets a plain URL string (realtime/events.js's businessDashboardUrl
+  // — what NotificationBell.jsx actually navigates to) land on the right
+  // tab, same convention as EconomyHub.jsx/WorkerWallet.jsx. location.state
+  // stays the mechanism for in-app navigate() calls that already have a
+  // location object to attach state to (SupportFab.jsx, BusinessProjects.jsx's
+  // "Open Chat").
+  const [searchParams] = useSearchParams();
+  const requestedTab = searchParams.get("tab");
+  const [tab, setTab] = useState(
+    location.state?.tab ?? (BUSINESS_TAB_IDS.has(requestedTab) ? requestedTab : "overview")
+  );
   // Tab state here is local, not URL-driven (unlike WorkerDashboard) — a
   // navigate("/business-dashboard", { state: { tab: "support" } }) (see
   // SupportFab.jsx) lands on the SAME route, so the component doesn't
   // remount and the useState initializer above only ever runs once. This
-  // re-syncs on every subsequent navigation that carries a tab in state.
+  // re-syncs on every subsequent navigation that carries a tab in state or
+  // search params.
   useEffect(() => {
     if (location.state?.tab) setTab(location.state.tab);
   }, [location.state]);
+
+  useEffect(() => {
+    if (BUSINESS_TAB_IDS.has(requestedTab)) setTab(requestedTab);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requestedTab]);
   // Set right before switching to the Negotiations tab (see
   // BusinessProjects.jsx's "Open Chat in Negotiations" button) so the right
   // thread is already focused when BusinessNegotiationHub mounts — Projects
@@ -69,27 +97,27 @@ export default function BusinessDashboard({ onLogout, onVerify, isVerified = fal
         />
       }
     >
-      <div className="flex h-full flex-col bg-white">
-        <header className="flex-shrink-0 flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/80 bg-white/90 px-6 py-4 backdrop-blur-xl lg:px-8">
+      <div className="flex h-full flex-col bg-white dark:bg-slate-950">
+        <header className="flex-shrink-0 flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/80 bg-white/90 px-6 py-4 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/90 lg:px-8">
           <div
             className={`flex min-w-0 flex-1 items-center gap-3 rounded-2xl border px-4 py-3 shadow-sm ${
               isVerified
-                ? "border-emerald-200 bg-gradient-to-r from-emerald-50 via-teal-50 to-white"
-                : "border-amber-200 bg-gradient-to-r from-amber-50 via-orange-50 to-white"
+                ? "border-emerald-200 bg-gradient-to-r from-emerald-50 via-teal-50 to-white dark:border-emerald-900/40 dark:from-emerald-950/40 dark:via-teal-950/30 dark:to-slate-900"
+                : "border-amber-200 bg-gradient-to-r from-amber-50 via-orange-50 to-white dark:border-amber-900/40 dark:from-amber-950/40 dark:via-orange-950/30 dark:to-slate-900"
             }`}
           >
-            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-white shadow-sm">
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-white shadow-sm dark:bg-slate-800">
               {isVerified ? (
                 <ShieldCheck className="h-5 w-5 text-emerald-500" />
               ) : (
                 <ShieldAlert className="h-5 w-5 text-[#FF6B35]" />
               )}
             </div>
-            <p className="min-w-0 truncate text-sm text-slate-700">
+            <p className="min-w-0 truncate text-sm text-slate-700 dark:text-slate-300">
               {isVerified ? (
                 <>
                   Funds stay protected.{" "}
-                  <span className="font-semibold text-slate-900">Escrow releases only after you approve the work.</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">Escrow releases only after you approve the work.</span>
                 </>
               ) : (
                 <>
@@ -126,7 +154,7 @@ export default function BusinessDashboard({ onLogout, onVerify, isVerified = fal
               </span>
             </div>
             <NotificationBell />
-            <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
+            <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm dark:border-slate-700 dark:bg-slate-800">
               <div
                 className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl text-sm font-semibold text-white ${
                   isVerified ? "bg-emerald-500" : "bg-slate-300"
@@ -135,7 +163,7 @@ export default function BusinessDashboard({ onLogout, onVerify, isVerified = fal
                 {getInitials(currentUser?.name)}
               </div>
               <div>
-                <p className="text-sm font-semibold text-slate-900">{isVerified ? "Verified" : "Unverified"}</p>
+                <p className="text-sm font-semibold text-slate-900 dark:text-white">{isVerified ? "Verified" : "Unverified"}</p>
                 <p className="text-xs text-slate-500">Business status</p>
               </div>
             </div>
@@ -180,6 +208,8 @@ export default function BusinessDashboard({ onLogout, onVerify, isVerified = fal
           {tab === "settings" && <SettingsPage />}
         </div>
       </div>
+
+      <OnboardingWizard />
     </DashboardLayout>
   );
 }

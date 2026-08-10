@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { AnimatePresence, motion } from "motion/react";
-import { Coins, Flame, Sparkles, TrendingUp, X, Zap } from "lucide-react";
+import { Coins, Flame, Sparkles, TrendingUp } from "lucide-react";
 import DashboardLayout from "../components/common/DashboardLayout";
 import WorkerSidebar from "../components/worker/WorkerSidebar";
 import WorkerJobFeed from "../components/worker/WorkerJobFeed";
@@ -19,48 +18,7 @@ import { getInitials } from "../utils/formValidation";
 import { getSocket } from "../lib/socketClient";
 import EconomyInfoTooltip from "../components/shared/EconomyInfoTooltip";
 import NotificationBell from "../components/shared/NotificationBell";
-
-const GROWTH_AD_DISMISSED_KEY = "wb_growth_ad_dismissed";
-
-// Target 3's "PLG Loop" toast — there's no real subscription_tier column
-// anywhere on users (see WorkerWallet.jsx's SubscriptionTab comment: real
-// billing is still deferred), so every worker today genuinely IS on the
-// free/preview tier — showing this to all of them is the honest condition,
-// not a placeholder. Dismissing hides it for the rest of this browser
-// session (sessionStorage, not a permanent server-side preference — nothing
-// backs a "don't show me this again forever" setting yet).
-function GrowthAdToast({ onUpgrade, onDismiss }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 24, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 24, scale: 0.95 }}
-      transition={{ type: "spring", stiffness: 300, damping: 28 }}
-      className="fixed bottom-6 right-6 z-40 w-[calc(100vw-3rem)] max-w-sm rounded-2xl border border-white/20 bg-white/10 p-4 shadow-lg shadow-slate-900/20 backdrop-blur-2xl"
-      style={{ backgroundColor: "rgba(15, 23, 42, 0.82)" }}
-    >
-      <button
-        type="button"
-        onClick={onDismiss}
-        aria-label="Dismiss"
-        className="absolute right-3 top-3 text-white/50 transition-colors hover:text-white"
-      >
-        <X className="h-3.5 w-3.5" />
-      </button>
-      <p className="pr-5 text-sm font-semibold leading-6 text-white">
-        Unlock Premium Matches and zero commission on your first ₹10,000 earned. Upgrade to Elite today! ⚡
-      </p>
-      <button
-        type="button"
-        onClick={onUpgrade}
-        className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#FF6B35] px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-[#e55e1f]"
-      >
-        <Zap className="h-3.5 w-3.5" />
-        See Elite Perks
-      </button>
-    </motion.div>
-  );
-}
+import OnboardingWizard from "../components/common/OnboardingWizard";
 
 export default function WorkerDashboard({ onLogout }) {
   const navigate = useNavigate();
@@ -69,7 +27,6 @@ export default function WorkerDashboard({ onLogout }) {
   const { currentUser } = useAuth();
   const [walletBalance, setWalletBalance] = useState(0);
   const [hustleStats, setHustleStats] = useState(null);
-  const [showGrowthAd, setShowGrowthAd] = useState(() => sessionStorage.getItem(GROWTH_AD_DISMISSED_KEY) !== "true");
 
   // Tab is driven entirely by the URL (/worker or /worker/:tab) so deep
   // links — like a "Job Invite" notification — can land directly on a tab.
@@ -120,16 +77,16 @@ export default function WorkerDashboard({ onLogout }) {
     <DashboardLayout
       sidebar={<WorkerSidebar tab={tab} onTabChange={setTab} onLogout={onLogout} />}
     >
-      <div className="flex h-full flex-col bg-[#f8fafc]">
-        <header className="flex-shrink-0 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
+      <div className="flex h-full flex-col bg-[#f8fafc] dark:bg-slate-950">
+        <header className="flex-shrink-0 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/90">
           <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-4 lg:px-8">
-            <div className="flex min-w-0 flex-1 items-center gap-3 rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 via-emerald-50 to-white px-4 py-3 shadow-sm">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white shadow-sm">
+            <div className="flex min-w-0 flex-1 items-center gap-3 rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 via-emerald-50 to-white px-4 py-3 shadow-sm dark:border-amber-900/40 dark:from-amber-950/40 dark:via-emerald-950/30 dark:to-slate-900">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white shadow-sm dark:bg-slate-800">
                 <Sparkles className="h-5 w-5 text-[#ff6b35]" />
               </div>
-              <p className="text-sm text-slate-700">
+              <p className="text-sm text-slate-700 dark:text-slate-300">
                 No more chasing invoices.{' '}
-                <span className="font-semibold text-slate-900">Once a business approves your work, the payout lands straight in your wallet.</span>
+                <span className="font-semibold text-slate-900 dark:text-white">Once a business approves your work, the payout lands straight in your wallet.</span>
               </p>
             </div>
 
@@ -139,13 +96,13 @@ export default function WorkerDashboard({ onLogout }) {
                   HUD pill beside it, but on a light frosted panel since it
                   sits over the same bg-white/90 header either way. */}
               {hustleStats && (
-                <div className="hidden items-center gap-2.5 rounded-2xl border border-white/60 bg-white/50 px-4 py-2 shadow-sm backdrop-blur-md lg:flex">
-                  <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-orange-50 text-[#FF6B35]">
+                <div className="hidden items-center gap-2.5 rounded-2xl border border-white/60 bg-white/50 px-4 py-2 shadow-sm backdrop-blur-md dark:border-slate-700/60 dark:bg-slate-800/50 lg:flex">
+                  <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-orange-50 text-[#FF6B35] dark:bg-orange-500/10">
                     <TrendingUp className="h-4 w-4" />
                   </span>
                   <div className="leading-tight">
                     <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Momentum</p>
-                    <p className="text-sm font-bold text-slate-900">
+                    <p className="text-sm font-bold text-slate-900 dark:text-white">
                       {hustleStats.thisWeek} this week
                       <span className="font-normal text-slate-400"> · {hustleStats.thisMonth} this month</span>
                     </p>
@@ -181,12 +138,12 @@ export default function WorkerDashboard({ onLogout }) {
                 </EconomyInfoTooltip>
               </div>
               <NotificationBell />
-              <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
+              <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm dark:border-slate-700 dark:bg-slate-800">
                 <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#0f172a] text-sm font-semibold text-white">
                   {getInitials(currentUser?.name)}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-slate-900">₹{walletBalance.toLocaleString("en-IN")}</p>
+                  <p className="text-sm font-semibold text-slate-900 dark:text-white">₹{walletBalance.toLocaleString("en-IN")}</p>
                   <p className="text-xs text-slate-500">Available balance</p>
                 </div>
               </div>
@@ -205,21 +162,7 @@ export default function WorkerDashboard({ onLogout }) {
         </div>
       </div>
 
-      <AnimatePresence>
-        {showGrowthAd && tab !== "wallet" && (
-          <GrowthAdToast
-            onUpgrade={() => {
-              setShowGrowthAd(false);
-              sessionStorage.setItem(GROWTH_AD_DISMISSED_KEY, "true");
-              navigate("/worker/wallet?tab=subscription");
-            }}
-            onDismiss={() => {
-              setShowGrowthAd(false);
-              sessionStorage.setItem(GROWTH_AD_DISMISSED_KEY, "true");
-            }}
-          />
-        )}
-      </AnimatePresence>
+      <OnboardingWizard />
     </DashboardLayout>
   );
 }

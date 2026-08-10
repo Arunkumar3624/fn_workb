@@ -12,6 +12,7 @@ import ImpersonationBanner from "./components/common/ImpersonationBanner";
 import SuspenseFallback from "./components/common/SuspenseFallback";
 import { Toaster } from "./components/ui/sonner";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { ThemeProvider } from "./context/ThemeContext";
 
 // Code-split everything that isn't the landing page — none of these are
 // needed for the first paint of `/`, so they shouldn't be in the initial
@@ -52,11 +53,13 @@ function ProtectedRoute({ roles, children }) {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <AppRoutes />
-      </BrowserRouter>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
