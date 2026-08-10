@@ -372,38 +372,21 @@ function NotificationsTab() {
   );
 }
 
+// Business-only now — the worker-facing subscription preview moved to
+// WorkerWallet.jsx's own tab (Target 3's consolidation), so this settings
+// tab is hidden entirely for workers (see the isWorker guard where this is
+// rendered). Nothing worker-specific is left to branch on here.
 function BillingTab() {
-  const { currentUser } = useAuth();
-  const navigate = useNavigate();
-  const isBusiness = currentUser?.role === "business";
-  const tiers = isBusiness
-    ? [
-        { name: "Standard", price: "Free", perks: ["Post jobs", "Message workers", "Standard support"] },
-        {
-          name: "Growth",
-          price: "₹299",
-          period: "/mo",
-          highlight: true,
-          perks: ["Priority support", "Dispute mediation fee waiver", "Verified enterprise badge"],
-        },
-      ]
-    : [
-        { name: "Free", price: "Free", perks: ["Standard job matching", "10 proposals/week"] },
-        {
-          name: "Pro",
-          price: "₹299",
-          period: "/mo",
-          highlight: true,
-          perks: ["Priority in applicant lists", "Profile analytics", "Reduced platform commission"],
-        },
-        {
-          name: "Elite",
-          price: "₹599",
-          period: "/mo",
-          premium: true,
-          perks: ["Top placement in Find Workers", "Priority badge verification", "Zero commission on first ₹10,000/mo"],
-        },
-      ];
+  const tiers = [
+    { name: "Standard", price: "Free", perks: ["Post jobs", "Message workers", "Standard support"] },
+    {
+      name: "Growth",
+      price: "₹299",
+      period: "/mo",
+      highlight: true,
+      perks: ["Priority support", "Dispute mediation fee waiver", "Verified enterprise badge"],
+    },
+  ];
 
   return (
     <div className="space-y-6">
@@ -411,7 +394,7 @@ function BillingTab() {
         <div>
           <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Current Plan</p>
           <p className="mt-1 text-2xl font-black text-[#0A1128]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-            {isBusiness ? "Standard" : "Free"}
+            Standard
           </p>
         </div>
         <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
@@ -419,7 +402,7 @@ function BillingTab() {
         </span>
       </div>
 
-      <div className={`grid grid-cols-1 gap-5 ${isBusiness ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         {tiers.map((tier) => {
           const cardCls = tier.premium
             ? "bg-[#0F172A] text-white border border-white/10 shadow-lg shadow-slate-900/20"
@@ -468,10 +451,10 @@ function BillingTab() {
               <button
                 disabled
                 className={`mt-6 w-full cursor-not-allowed rounded-xl py-2.5 text-xs font-bold ${
-                  tier.premium ? "bg-white/10 text-slate-300" : tier.name === (isBusiness ? "Standard" : "Free") ? "bg-slate-100 text-slate-500" : "border border-slate-200 text-slate-400"
+                  tier.premium ? "bg-white/10 text-slate-300" : tier.name === "Standard" ? "bg-slate-100 text-slate-500" : "border border-slate-200 text-slate-400"
                 }`}
               >
-                {tier.name === (isBusiness ? "Standard" : "Free") ? "Current Plan" : "Coming soon"}
+                {tier.name === "Standard" ? "Current Plan" : "Coming soon"}
               </button>
             </div>
           );
@@ -480,15 +463,6 @@ function BillingTab() {
       <p className="text-center text-[11px] text-slate-400">
         Paid plans aren't live yet — this is a preview of what's coming.
       </p>
-      {!isBusiness && (
-        <button
-          onClick={() => navigate("/worker/subscriptions")}
-          className="mx-auto flex items-center gap-1 text-xs font-bold text-[#1B3FAB] hover:underline"
-        >
-          View full plan comparison
-          <Sparkles className="h-3 w-3" />
-        </button>
-      )}
     </div>
   );
 }
@@ -552,6 +526,13 @@ function DangerZoneTab() {
 export default function SettingsPage() {
   useDocumentTitle("Settings — WorkBridge");
   const location = useLocation();
+  const { currentUser } = useAuth();
+  // Target 3's consolidation moved the worker-facing subscription preview
+  // into WorkerWallet.jsx's own tab — this settings tab would otherwise be
+  // a second, redundant path to the same thing. Business's Billing tab
+  // (Standard/Growth) isn't part of that consolidation and stays put.
+  const isWorker = currentUser?.role === "worker";
+  const visibleTabs = isWorker ? TABS.filter((tab) => tab.id !== "billing") : TABS;
   // settingsTab lets a caller (SupportFab.jsx) deep-link straight to a
   // specific tab here — e.g. navigate("/worker/settings", { state: {
   // settingsTab: "support" } }). The effect below re-syncs on every
@@ -576,7 +557,7 @@ export default function SettingsPage() {
       <div className="flex flex-col gap-6 md:flex-row">
         <aside className="flex-shrink-0 md:w-1/4">
           <nav className="flex gap-1.5 overflow-x-auto md:flex-col md:gap-1 md:overflow-visible">
-            {TABS.map(({ id, label, icon: Icon }) => (
+            {visibleTabs.map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
                 onClick={() => setActiveTab(id)}
@@ -597,7 +578,7 @@ export default function SettingsPage() {
           {activeTab === "general" && <GeneralProfileTab />}
           {activeTab === "security" && <SecurityTab />}
           {activeTab === "notifications" && <NotificationsTab />}
-          {activeTab === "billing" && <BillingTab />}
+          {activeTab === "billing" && !isWorker && <BillingTab />}
           {activeTab === "support" && (
             // SupportChat's internals rely on `h-full` cascading from an
             // ancestor with a definite height (it previously lived inside

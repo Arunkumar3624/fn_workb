@@ -7,6 +7,7 @@ import {
   ChevronLeft,
   Clock,
   Loader2,
+  MessageSquareOff,
   MessagesSquare,
   PhoneOff,
   Send,
@@ -114,6 +115,9 @@ function MessageMonitor() {
   // is_active defaults to true at the DB level, so a null/undefined value
   // here (e.g. an older row before that column existed) reads as active.
   const workerIsBanned = selectedWorker?.worker_is_active === false;
+  // The Dual-Ban Moderation Engine's soft tier — is_chat_banned defaults to
+  // false, so a missing value reads as "chat allowed."
+  const workerIsChatBanned = selectedWorker?.worker_is_chat_banned === true;
 
   const runAction = async (action, extra) => {
     if (!selectedWorker || acting) return;
@@ -121,10 +125,25 @@ function MessageMonitor() {
     setActionError("");
     try {
       await moderateUser(selectedWorker.worker_id, action, { ...extra, projectId: selectedProjectId });
-      setLastAction({ ban: "banned", unban: "unbanned", warn: "warned", deduct_points: "points_deducted" }[action]);
+      setLastAction(
+        {
+          ban: "banned",
+          unban: "unbanned",
+          ban_chat: "chat_banned",
+          unban_chat: "chat_unbanned",
+          warn: "warned",
+          deduct_points: "points_deducted",
+        }[action]
+      );
       if (action === "ban" || action === "unban") {
         const nowActive = action === "unban";
         setWorkers((prev) => prev.map((w) => (w.worker_id === selectedWorker.worker_id ? { ...w, worker_is_active: nowActive } : w)));
+      }
+      if (action === "ban_chat" || action === "unban_chat") {
+        const nowChatBanned = action === "ban_chat";
+        setWorkers((prev) =>
+          prev.map((w) => (w.worker_id === selectedWorker.worker_id ? { ...w, worker_is_chat_banned: nowChatBanned } : w))
+        );
       }
       if (action === "warn") {
         listMessages(selectedProjectId).then(setThread).catch(() => {});
@@ -162,6 +181,21 @@ function MessageMonitor() {
     if (!workerIsBanned || acting) return;
     if (!window.confirm(`Unban ${selectedWorker.worker_name}?`)) return;
     runAction("unban");
+  };
+
+  // The Dual-Ban Moderation Engine's soft tier — locks their chat composer
+  // only. Login, submissions, and escrow payouts are all untouched, so a
+  // business's funds never get trapped mid-project over a chat-only
+  // violation. No confirm() dialog, unlike the permanent ban above — this
+  // is meant to be a low-friction, reversible first response.
+  const handleBanChat = () => {
+    if (workerIsChatBanned || acting) return;
+    runAction("ban_chat");
+  };
+
+  const handleUnbanChat = () => {
+    if (!workerIsChatBanned || acting) return;
+    runAction("unban_chat");
   };
 
   return (
@@ -245,8 +279,12 @@ function MessageMonitor() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
                       <p className="text-sm font-bold text-[#0A1128] truncate">{w.worker_name}</p>
-                      {w.worker_is_active === false && (
+                      {w.worker_is_active === false ? (
                         <span className="flex-shrink-0 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-red-100 text-red-700">BANNED</span>
+                      ) : (
+                        w.worker_is_chat_banned === true && (
+                          <span className="flex-shrink-0 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 text-amber-700">CHAT BANNED</span>
+                        )
                       )}
                     </div>
                     <p className="text-xs text-slate-400 truncate">{w.project_title}</p>
@@ -279,6 +317,9 @@ function MessageMonitor() {
                     {workerIsBanned && (
                       <span className="flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700">BANNED</span>
                     )}
+                    {!workerIsBanned && workerIsChatBanned && (
+                      <span className="flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700">CHAT BANNED</span>
+                    )}
                   </div>
                   <p className="text-xs text-slate-400 truncate">{selectedWorker.project_title}</p>
                 </div>
@@ -302,6 +343,27 @@ function MessageMonitor() {
                   <ShieldAlert className="w-3.5 h-3.5" />
                   Deduct
                 </button>
+                {workerIsChatBanned ? (
+                  <button
+                    onClick={handleUnbanChat}
+                    disabled={acting}
+                    title="Restore chat privileges"
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-amber-600 hover:bg-amber-50 transition-colors disabled:opacity-60"
+                  >
+                    <MessageSquareOff className="w-3.5 h-3.5" />
+                    Unban Chat
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleBanChat}
+                    disabled={acting}
+                    title="Locks their chat composer only — submissions and payouts are unaffected"
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-amber-600 hover:bg-amber-50 transition-colors disabled:opacity-60"
+                  >
+                    <MessageSquareOff className="w-3.5 h-3.5" />
+                    Ban Chat
+                  </button>
+                )}
                 <button
                   onClick={handleBan}
                   disabled={acting || workerIsBanned}
@@ -338,6 +400,8 @@ function MessageMonitor() {
                       {
                         banned: "User banned — signed out immediately.",
                         unbanned: "User unbanned.",
+                        chat_banned: "Chat privileges suspended — deliverables and payouts are unaffected.",
+                        chat_unbanned: "Chat privileges restored.",
                         warned: "Warning posted — both sides will see it in this project's chat.",
                         points_deducted: "Behavior score points deducted.",
                       }[lastAction]

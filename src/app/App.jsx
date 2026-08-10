@@ -30,7 +30,6 @@ const BusinessVerification = lazy(() => import("./pages/BusinessVerification"));
 const BusinessVerificationDrawer = lazy(() => import("./pages/BusinessVerificationDrawer"));
 const AdminPanel = lazy(() => import("./pages/AdminPanel"));
 const PublicProfilePage = lazy(() => import("./pages/PublicProfilePage"));
-const WorkerSubscriptionsPage = lazy(() => import("./pages/WorkerSubscriptionsPage"));
 
 function RouteFallback() {
   return <SuspenseFallback label="Loading…" fullScreen />;
@@ -214,14 +213,6 @@ function AppRoutes() {
         element={
           <ProtectedRoute roles={["worker"]}>
             <WorkerDashboard onLogout={handleLogout} />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/worker/subscriptions"
-        element={
-          <ProtectedRoute roles={["worker"]}>
-            <WorkerSubscriptionsPage />
           </ProtectedRoute>
         }
       />

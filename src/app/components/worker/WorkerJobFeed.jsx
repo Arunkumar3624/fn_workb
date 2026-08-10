@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { AnimatePresence, motion } from "motion/react";
 import {
   AlertCircle,
   Briefcase,
   Calendar,
   Check,
   CheckCircle2,
+  ChevronDown,
   Clock,
   Clock3,
   Coins,
@@ -16,6 +18,7 @@ import {
   Search,
   Send,
   ShieldCheck,
+  SlidersHorizontal,
   Sparkles,
   Users,
   X,
@@ -261,6 +264,10 @@ export default function WorkerJobFeed() {
   // number answers "which jobs am I actually eligible for" directly,
   // checked against each job's real min/max_experience_years below.
   const [yourExperience, setYourExperience] = useState("");
+  // LinkedIn-style collapsible filter drawer — collapsed by default so the
+  // feed itself stays the focus; opening it is a deliberate action, not
+  // permanent screen real estate the way the earlier sidebar was.
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const loadJobs = () => {
     listOpenProjects()
@@ -309,14 +316,18 @@ export default function WorkerJobFeed() {
     return Array.from(skills).sort((a, b) => a.localeCompare(b));
   }, [jobs]);
 
-  const hasActiveFilters =
-    Boolean(query.trim()) ||
-    selectedSkills.length > 0 ||
-    urgentOnly ||
-    budgetRange.min !== "" ||
-    budgetRange.max !== "" ||
-    selectedEducationLevels.length > 0 ||
-    yourExperience !== "";
+  // The drawer toggle's own badge — deliberately excludes the search query
+  // (that's always visible above, not something the drawer needs to surface)
+  // unlike hasActiveFilters below, which also decides the empty-state copy.
+  const activeFilterCount =
+    selectedSkills.length +
+    selectedEducationLevels.length +
+    (urgentOnly ? 1 : 0) +
+    (budgetRange.min !== "" ? 1 : 0) +
+    (budgetRange.max !== "" ? 1 : 0) +
+    (yourExperience !== "" ? 1 : 0);
+
+  const hasActiveFilters = Boolean(query.trim()) || activeFilterCount > 0;
 
   const toggleSkill = (skill) => {
     setSelectedSkills((current) => (current.includes(skill) ? current.filter((s) => s !== skill) : [...current, skill]));
@@ -446,24 +457,66 @@ export default function WorkerJobFeed() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[280px_1fr]">
-          <JobFilters
-            allSkills={allSkills}
-            selectedSkills={selectedSkills}
-            onToggleSkill={toggleSkill}
-            budgetRange={budgetRange}
-            onBudgetChange={setBudgetRange}
-            urgentOnly={urgentOnly}
-            onToggleUrgent={() => setUrgentOnly((value) => !value)}
-            selectedEducationLevels={selectedEducationLevels}
-            onToggleEducationLevel={toggleEducationLevel}
-            yourExperience={yourExperience}
-            onExperienceChange={setYourExperience}
-            onClear={clearFilters}
-            hasActiveFilters={hasActiveFilters}
-          />
+        {/* LinkedIn-style collapsible filter drawer — a toggle rather than
+            the permanent sidebar this used to be, so the feed itself stays
+            the focus until a worker actually wants to narrow it down. */}
+        <div className="mb-4 flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setFiltersOpen((open) => !open)}
+            className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-100"
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            Filters
+            {activeFilterCount > 0 && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#FF6B35] px-1.5 text-[11px] font-bold text-white">
+                {activeFilterCount}
+              </span>
+            )}
+            <motion.span animate={{ rotate: filtersOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
+              <ChevronDown className="h-4 w-4" />
+            </motion.span>
+          </button>
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="text-xs font-bold text-slate-400 transition-colors hover:text-[#FF6B35]"
+            >
+              Clear all
+            </button>
+          )}
+        </div>
 
-          <div className="min-w-0">
+        <AnimatePresence initial={false}>
+          {filtersOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="overflow-hidden"
+            >
+              <div className="mb-6">
+                <JobFilters
+                  allSkills={allSkills}
+                  selectedSkills={selectedSkills}
+                  onToggleSkill={toggleSkill}
+                  budgetRange={budgetRange}
+                  onBudgetChange={setBudgetRange}
+                  urgentOnly={urgentOnly}
+                  onToggleUrgent={() => setUrgentOnly((value) => !value)}
+                  selectedEducationLevels={selectedEducationLevels}
+                  onToggleEducationLevel={toggleEducationLevel}
+                  yourExperience={yourExperience}
+                  onExperienceChange={setYourExperience}
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className="min-w-0">
             {loading ? (
               <div className="flex justify-center py-16">
                 <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[#1B3FAB]" />
@@ -648,7 +701,6 @@ export default function WorkerJobFeed() {
               </div>
             )}
           </div>
-        </div>
       </section>
 
       <JobDetailModal

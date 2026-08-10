@@ -324,7 +324,21 @@ export default function WorkerWorkspace() {
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden overflow-x-hidden bg-slate-50 md:flex-row">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden">
+      {/* The Dual-Ban Moderation Engine's soft tier — a persistent, page-
+          level heads-up (not just the inline notice inside a given chat, see
+          ChatThread.jsx) so a chat-banned worker sees this the moment they
+          land in their workspace, before they even open a conversation. */}
+      {currentUser?.is_chat_banned && (
+        <div className="flex flex-shrink-0 items-start gap-2 border-b border-amber-200 bg-amber-50 px-5 py-3">
+          <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600" />
+          <p className="text-sm font-semibold text-amber-800">
+            Your chat privileges have been temporarily suspended due to a policy violation. You can still submit
+            active deliverables to receive payment.
+          </p>
+        </div>
+      )}
+      <div className="flex min-h-0 flex-1 overflow-hidden overflow-x-hidden bg-slate-50 md:flex-row">
       <aside className="flex max-h-[45vh] min-h-0 w-full flex-col border-b border-slate-200 bg-slate-50 p-4 sm:p-5 md:max-h-none md:w-[40%] md:min-w-[320px] md:max-w-[440px] md:border-b-0 md:border-r">
         <div className="mb-4 flex items-center justify-between">
           <div>
@@ -640,6 +654,7 @@ export default function WorkerWorkspace() {
           onClose={() => dismissCelebration()}
         />
       )}
+      </div>
     </div>
   );
 }

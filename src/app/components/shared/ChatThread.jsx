@@ -248,6 +248,11 @@ function renderMessageRows(messages, currentUserId, onPreview) {
 // warning, a redacted-and-sent message) that don't carry this thread's id.
 export default function ChatThread({ threadId, otherUserId, activeProjects = [], projectIds = [] }) {
   const { currentUser } = useAuth();
+  // The Dual-Ban Moderation Engine's soft tier — locks only this side's own
+  // composer (server-enforced too, messages.controller.js's
+  // assertNotChatBanned); it never affects reading history, deliverables,
+  // or payouts, so the rest of ChatThread stays fully usable.
+  const isChatBanned = currentUser?.is_chat_banned === true;
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -569,7 +574,15 @@ export default function ChatThread({ threadId, otherUserId, activeProjects = [],
         </div>
       )}
 
-      {blockStatus.blockedMe ? (
+      {isChatBanned ? (
+        <div className="flex flex-shrink-0 items-start gap-2 border-t border-amber-200 bg-amber-50 px-5 py-4 text-left">
+          <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500" />
+          <p className="text-xs font-semibold text-amber-700">
+            Your chat privileges have been temporarily suspended due to a policy violation. You can still submit
+            active deliverables to receive payment.
+          </p>
+        </div>
+      ) : blockStatus.blockedMe ? (
         <div className="flex-shrink-0 border-t border-slate-200 bg-slate-50 px-5 py-4 text-center text-xs font-semibold text-slate-400">
           You can't message this user.
         </div>

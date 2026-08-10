@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Coins, Flame, Sparkles, TrendingUp } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { Coins, Flame, Sparkles, TrendingUp, X, Zap } from "lucide-react";
 import DashboardLayout from "../components/common/DashboardLayout";
 import WorkerSidebar from "../components/worker/WorkerSidebar";
 import WorkerJobFeed from "../components/worker/WorkerJobFeed";
@@ -19,6 +20,48 @@ import { getSocket } from "../lib/socketClient";
 import EconomyInfoTooltip from "../components/shared/EconomyInfoTooltip";
 import NotificationBell from "../components/shared/NotificationBell";
 
+const GROWTH_AD_DISMISSED_KEY = "wb_growth_ad_dismissed";
+
+// Target 3's "PLG Loop" toast — there's no real subscription_tier column
+// anywhere on users (see WorkerWallet.jsx's SubscriptionTab comment: real
+// billing is still deferred), so every worker today genuinely IS on the
+// free/preview tier — showing this to all of them is the honest condition,
+// not a placeholder. Dismissing hides it for the rest of this browser
+// session (sessionStorage, not a permanent server-side preference — nothing
+// backs a "don't show me this again forever" setting yet).
+function GrowthAdToast({ onUpgrade, onDismiss }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 24, scale: 0.95 }}
+      transition={{ type: "spring", stiffness: 300, damping: 28 }}
+      className="fixed bottom-6 right-6 z-40 w-[calc(100vw-3rem)] max-w-sm rounded-2xl border border-white/20 bg-white/10 p-4 shadow-lg shadow-slate-900/20 backdrop-blur-2xl"
+      style={{ backgroundColor: "rgba(15, 23, 42, 0.82)" }}
+    >
+      <button
+        type="button"
+        onClick={onDismiss}
+        aria-label="Dismiss"
+        className="absolute right-3 top-3 text-white/50 transition-colors hover:text-white"
+      >
+        <X className="h-3.5 w-3.5" />
+      </button>
+      <p className="pr-5 text-sm font-semibold leading-6 text-white">
+        Unlock Premium Matches and zero commission on your first ₹10,000 earned. Upgrade to Elite today! ⚡
+      </p>
+      <button
+        type="button"
+        onClick={onUpgrade}
+        className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#FF6B35] px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-[#e55e1f]"
+      >
+        <Zap className="h-3.5 w-3.5" />
+        See Elite Perks
+      </button>
+    </motion.div>
+  );
+}
+
 export default function WorkerDashboard({ onLogout }) {
   const navigate = useNavigate();
   const { tab: urlTab } = useParams();
@@ -26,6 +69,7 @@ export default function WorkerDashboard({ onLogout }) {
   const { currentUser } = useAuth();
   const [walletBalance, setWalletBalance] = useState(0);
   const [hustleStats, setHustleStats] = useState(null);
+  const [showGrowthAd, setShowGrowthAd] = useState(() => sessionStorage.getItem(GROWTH_AD_DISMISSED_KEY) !== "true");
 
   // Tab is driven entirely by the URL (/worker or /worker/:tab) so deep
   // links — like a "Job Invite" notification — can land directly on a tab.
@@ -160,6 +204,22 @@ export default function WorkerDashboard({ onLogout }) {
           {tab === "settings" && <SettingsPage />}
         </div>
       </div>
+
+      <AnimatePresence>
+        {showGrowthAd && tab !== "wallet" && (
+          <GrowthAdToast
+            onUpgrade={() => {
+              setShowGrowthAd(false);
+              sessionStorage.setItem(GROWTH_AD_DISMISSED_KEY, "true");
+              navigate("/worker/wallet?tab=subscription");
+            }}
+            onDismiss={() => {
+              setShowGrowthAd(false);
+              sessionStorage.setItem(GROWTH_AD_DISMISSED_KEY, "true");
+            }}
+          />
+        )}
+      </AnimatePresence>
     </DashboardLayout>
   );
 }

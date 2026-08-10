@@ -1,13 +1,12 @@
 import { AnimatePresence, motion } from "motion/react";
-import { Check, Flame, GraduationCap, IndianRupee, SlidersHorizontal, Tag, X } from "lucide-react";
+import { Check, Flame, GraduationCap, IndianRupee, Tag } from "lucide-react";
 import { EDUCATION_LABELS } from "../../utils/educationLevels";
 
 // A single labelled checkbox — shared by the Skills and Education sections
 // (skills come from real posted data, education levels from the same fixed
 // enum the job cards themselves already render via EDUCATION_LABELS). The
-// checkbox itself crossfades color via motion's animate (a plain CSS
-// transition on an arbitrary hex background looks fine but never quite as
-// smooth as this), and the checkmark springs in rather than just appearing.
+// checkbox itself crossfades color via motion's animate, and the checkmark
+// springs in rather than just appearing.
 function OptionCheckbox({ label, checked, onToggle }) {
   return (
     <motion.button
@@ -54,26 +53,24 @@ function SectionHeader({ icon: Icon, label }) {
 
 const EDUCATION_LEVELS = Object.entries(EDUCATION_LABELS);
 
-// Shared input styling — a subtle hover shadow so the field reads as
-// interactive before it's even focused, plus a slower, smoother focus
-// transition. Focus color stays the app's usual blue ([#1B3FAB]/blue-100),
-// matching every other text input in the app (search bar, composer, etc.) —
-// orange is this app's action/selection color (buttons, active pills,
-// checked checkboxes), not its input-focus color, so switching just these
-// two fields to an orange ring would be inconsistent rather than premium.
+// Hover shadow so a field reads as interactive before it's even focused,
+// plus a slower, smoother focus transition. Focus color stays the app's
+// usual blue ([#1B3FAB]/blue-100), matching every other text input in the
+// app (search bar, composer, etc.) — orange is this app's action/selection
+// color (buttons, active pills, checked checkboxes), not its input-focus
+// color.
 const INPUT_CLASSES =
   "w-full rounded-lg border border-slate-200 bg-slate-50 text-sm text-slate-900 outline-none transition-all duration-300 hover:shadow-sm focus:border-[#1B3FAB] focus:bg-white focus:shadow-sm focus:ring-2 focus:ring-blue-100";
 
-// The Job Feed's filter sidebar — every option here is real, live data
-// (real budgets, the real is_urgent flag, skills pulled straight from what
-// businesses actually typed when posting, and the same education_level /
-// experience_years fields the job cards' own Qualifications chips already
-// read from — see WorkerJobFeed.jsx's allSkills/EDUCATION_LABELS). Sticky,
-// but sized to its own content rather than forced to fill the viewport — a
-// short filter list used to render as a mostly-empty box nearly the full
-// screen tall, which read as a layout bug rather than a design choice.
-// max-h/overflow is a safety net for when content genuinely does exceed the
-// viewport, not a floor on how tall this always is.
+// The Job Feed's collapsible filter drawer's content — every option here is
+// real, live data (real budgets, the real is_urgent flag, skills pulled
+// straight from what businesses actually typed when posting, and the same
+// education_level/experience_years fields the job cards' own Qualifications
+// chips already read from — see WorkerJobFeed.jsx's
+// allSkills/EDUCATION_LABELS). This is deliberately just the four sections
+// laid out side by side — WorkerJobFeed.jsx owns the toggle button, the
+// open/close animation, and the active-filter count/Clear affordance, since
+// those need to stay visible even while this is collapsed.
 export default function JobFilters({
   allSkills,
   selectedSkills,
@@ -86,55 +83,10 @@ export default function JobFilters({
   onToggleEducationLevel,
   yourExperience,
   onExperienceChange,
-  onClear,
-  hasActiveFilters,
 }) {
-  const activeCount =
-    selectedSkills.length +
-    selectedEducationLevels.length +
-    (urgentOnly ? 1 : 0) +
-    (budgetRange.min !== "" ? 1 : 0) +
-    (budgetRange.max !== "" ? 1 : 0) +
-    (yourExperience !== "" ? 1 : 0);
-
   return (
-    <motion.aside
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-      className="wb-scroll-clean sticky top-24 max-h-[calc(100vh-6rem)] overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-sm shadow-slate-200/60"
-    >
-      <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-        <div className="flex items-center gap-2">
-          <SlidersHorizontal className="h-4 w-4 text-slate-400" />
-          <h2 className="text-sm font-black text-slate-900">Filters</h2>
-          <AnimatePresence>
-            {activeCount > 0 && (
-              <motion.span
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0 }}
-                transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#FF6B35] px-1.5 text-[11px] font-bold text-white"
-              >
-                {activeCount}
-              </motion.span>
-            )}
-          </AnimatePresence>
-        </div>
-        {hasActiveFilters && (
-          <button
-            type="button"
-            onClick={onClear}
-            className="flex items-center gap-1 text-xs font-bold text-slate-400 transition-colors hover:text-[#FF6B35]"
-          >
-            <X className="h-3 w-3" />
-            Clear
-          </button>
-        )}
-      </div>
-
-      <div className="space-y-6 p-5">
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/60">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <SectionHeader icon={Flame} label="Urgency" />
           <motion.button
@@ -203,7 +155,7 @@ export default function JobFilters({
             className={`${INPUT_CLASSES} mt-1.5 px-3 py-2`}
           />
 
-          <div className="mt-3 space-y-0.5">
+          <div className="mt-3 max-h-40 space-y-0.5 overflow-y-auto wb-scroll-clean">
             {EDUCATION_LEVELS.map(([value, label]) => (
               <OptionCheckbox
                 key={value}
@@ -218,7 +170,7 @@ export default function JobFilters({
         {allSkills.length > 0 && (
           <div>
             <SectionHeader icon={Tag} label={`Skills (${allSkills.length})`} />
-            <div className="wb-scroll-clean mt-2 max-h-64 overflow-y-auto">
+            <div className="wb-scroll-clean mt-3 max-h-40 overflow-y-auto">
               {allSkills.map((skill) => (
                 <OptionCheckbox
                   key={skill}
@@ -231,6 +183,6 @@ export default function JobFilters({
           </div>
         )}
       </div>
-    </motion.aside>
+    </div>
   );
 }

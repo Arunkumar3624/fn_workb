@@ -1,6 +1,23 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { TrendingUp, Lock, Wallet, Zap, AlertCircle, Loader2, Receipt, FileText, ArrowRight, X, Clock3 } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import {
+  TrendingUp,
+  Lock,
+  Wallet,
+  Zap,
+  AlertCircle,
+  Loader2,
+  Receipt,
+  FileText,
+  ArrowRight,
+  X,
+  Clock3,
+  BarChart3,
+  Check,
+  Crown,
+  ShieldCheck,
+  Sparkles,
+} from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -10,6 +27,7 @@ import { positiveCurrencySchema } from "../../utils/formValidation";
 import { getWallet, withdraw, listWithdrawals } from "../../lib/walletApi";
 import { listProjects } from "../../lib/projectsApi";
 import { ApiError } from "../../lib/apiClient";
+import { useAuth } from "../../context/AuthContext";
 
 function formatINR(amount) {
   return `₹${Number(amount || 0).toLocaleString("en-IN")}`;
@@ -24,14 +42,222 @@ function round2(n) {
 
 const IN_ESCROW_STATUSES = new Set(["FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_SUBMITTED"]);
 
+// The former standalone /worker/subscriptions page, now the Wallet's second
+// tab (Target 3's consolidation — one place for "everything about your
+// money on WorkBridge," not a separate route). "Fairness First" — Elite is
+// gated on real behavior_score (adjustBehaviorScore in
+// backend/src/repositories/users.repository.js — the same column
+// ApplicationQuizModal.jsx's +15/-5 writes to), so a worker with a poor
+// track record can't just buy their way to top placement. Real payment/
+// subscriptions are still deliberately deferred (pending an escrow-partner
+// decision — see backend/schema.sql's platform_fee_pct design notes) —
+// "Upgrade Now" resolves to an honest "Coming soon" state rather than
+// pretending a subscription was purchased.
+const ELITE_GOOD_STANDING = 600;
+
+const SUBSCRIPTION_TIERS = [
+  {
+    id: "free",
+    name: "Free",
+    price: "₹0",
+    period: "/mo",
+    perks: ["Standard job matching", "10 proposals/week", "Standard platform commission"],
+  },
+  {
+    id: "pro",
+    name: "Pro",
+    price: "₹299",
+    period: "/mo",
+    highlight: true,
+    perks: [
+      "Priority placement in business applicant lists",
+      "Profile analytics graph",
+      "Reduced platform commission",
+    ],
+  },
+  {
+    id: "elite",
+    name: "Elite",
+    price: "₹599",
+    period: "/mo",
+    premium: true,
+    perks: [
+      "Top placement in the Find Workers directory",
+      "Priority instant verification badge",
+      "Zero commission on your first ₹10,000 earned each month",
+    ],
+  },
+];
+
+const TIER_ICONS = { free: ShieldCheck, pro: BarChart3, elite: Crown };
+
+function SubscriptionTierCard({ tier, isUpgrading, upgradeResult, onUpgrade, behaviorScore }) {
+  const Icon = TIER_ICONS[tier.id];
+  const isFree = tier.id === "free";
+  const isElite = tier.id === "elite";
+  const eliteLocked = isElite && behaviorScore < ELITE_GOOD_STANDING;
+
+  const cardCls = tier.premium
+    ? "bg-[#0F172A] text-white border border-white/10"
+    : tier.highlight
+    ? "bg-white border-2 border-[#FF6B35]"
+    : "bg-white border border-slate-200";
+
+  return (
+    <div className={`relative flex flex-col rounded-3xl p-7 shadow-sm ${cardCls}`}>
+      {tier.highlight && (
+        <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#FF6B35] px-3 py-1 text-[10px] font-black uppercase tracking-wide text-white">
+          Most Popular
+        </span>
+      )}
+
+      <div className={`flex h-11 w-11 items-center justify-center rounded-2xl ${tier.premium ? "bg-white/10" : "bg-slate-100"}`}>
+        <Icon className={`h-5 w-5 ${tier.premium ? "text-[#FF6B35]" : "text-[#1B3FAB]"}`} />
+      </div>
+
+      <p className={`mt-4 text-sm font-bold uppercase tracking-wide ${tier.premium ? "text-slate-300" : "text-slate-400"}`}>
+        {tier.name}
+      </p>
+      <p className="mt-1 flex items-baseline gap-1">
+        <span className="text-3xl font-black">{tier.price}</span>
+        <span className="text-sm text-slate-400">{tier.period}</span>
+      </p>
+
+      <ul className="mt-6 flex-1 space-y-3">
+        {tier.perks.map((perk) => (
+          <li key={perk} className="flex items-start gap-2 text-sm leading-6">
+            <Check className={`mt-0.5 h-4 w-4 flex-shrink-0 ${tier.premium ? "text-[#FF6B35]" : "text-emerald-500"}`} />
+            <span className={tier.premium ? "text-slate-200" : "text-slate-600"}>{perk}</span>
+          </li>
+        ))}
+      </ul>
+
+      {isElite && (
+        <div className="mt-5 rounded-xl border border-white/10 bg-white/5 p-3.5">
+          <div className="flex items-center justify-between gap-2">
+            <p className="flex items-center gap-1.5 text-xs font-bold text-slate-300">
+              <ShieldCheck className={`h-3.5 w-3.5 ${eliteLocked ? "text-rose-400" : "text-emerald-400"}`} />
+              Behavior Score: {behaviorScore}/1000
+            </p>
+            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${eliteLocked ? "bg-rose-500/20 text-rose-300" : "bg-emerald-500/20 text-emerald-300"}`}>
+              {eliteLocked ? `Need ${ELITE_GOOD_STANDING}` : "Eligible"}
+            </span>
+          </div>
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
+            <div
+              className={`h-full rounded-full transition-all duration-700 ${eliteLocked ? "bg-rose-400" : "bg-emerald-400"}`}
+              style={{ width: `${Math.min(100, (behaviorScore / 1000) * 100)}%` }}
+            />
+          </div>
+        </div>
+      )}
+
+      {isFree ? (
+        <button
+          disabled
+          className={`mt-7 w-full cursor-default rounded-xl py-3 text-sm font-bold ${
+            tier.premium ? "bg-white/10 text-slate-300" : "bg-slate-100 text-slate-500"
+          }`}
+        >
+          Current Plan
+        </button>
+      ) : eliteLocked ? (
+        <button
+          disabled
+          className="mt-7 flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-white/10 py-3 text-sm font-bold text-slate-400"
+        >
+          <Lock className="h-4 w-4" />
+          Reach {ELITE_GOOD_STANDING} Behavior Score to Unlock
+        </button>
+      ) : upgradeResult === tier.id ? (
+        <p className="mt-7 rounded-xl border border-dashed border-slate-300 py-3 text-center text-xs font-semibold text-slate-400">
+          Coming Soon! (We're Still Wiring Up the Payment System)
+        </p>
+      ) : (
+        <button
+          onClick={() => onUpgrade(tier.id)}
+          disabled={isUpgrading === tier.id}
+          className={`mt-7 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold transition-all duration-300 disabled:opacity-70 ${
+            tier.premium
+              ? "bg-[#FF6B35] text-white shadow-[0_0_25px_-5px_rgba(255,107,53,0.6)] hover:-translate-y-0.5 hover:bg-[#e85d27]"
+              : "bg-[#0F172A] text-white hover:-translate-y-0.5 hover:bg-[#1a2547]"
+          }`}
+        >
+          {isUpgrading === tier.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+          Upgrade Now
+        </button>
+      )}
+    </div>
+  );
+}
+
+function SubscriptionTab() {
+  const { currentUser } = useAuth();
+  const behaviorScore = currentUser?.behavior_score ?? 1000;
+  const [isUpgrading, setIsUpgrading] = useState(null);
+  const [upgradeResult, setUpgradeResult] = useState(null);
+
+  const handleUpgrade = (tierId) => {
+    if (tierId === "elite" && behaviorScore < ELITE_GOOD_STANDING) return;
+    setIsUpgrading(tierId);
+    setUpgradeResult(null);
+    setTimeout(() => {
+      setIsUpgrading(null);
+      setUpgradeResult(tierId);
+    }, 900);
+  };
+
+  return (
+    <div className="rounded-2xl border border-white/70 bg-white/60 p-6 shadow-lg shadow-slate-200/40 backdrop-blur-xl sm:p-8">
+      <div className="mb-8 text-center">
+        <div className="mx-auto flex items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-widest text-[#FF6B35]">
+          <Sparkles className="h-3.5 w-3.5 fill-current" />
+          Upgrade Subscription
+        </div>
+        <h2 className="mt-2 text-2xl font-extrabold text-[#0F172A] sm:text-3xl" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          Grow faster on WorkBridge
+        </h2>
+        <p className="mx-auto mt-2 max-w-md text-sm text-slate-500">
+          Pick a plan that gets you seen first — real billing is on its way, this is a preview of what's coming.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+        {SUBSCRIPTION_TIERS.map((tier) => (
+          <SubscriptionTierCard
+            key={tier.id}
+            tier={tier}
+            isUpgrading={isUpgrading}
+            upgradeResult={upgradeResult}
+            onUpgrade={handleUpgrade}
+            behaviorScore={behaviorScore}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const withdrawalSchema = z.object({
   amount: positiveCurrencySchema,
   payoutMethod: z.enum(["UPI", "BANK_TRANSFER"]),
   payoutDetails: z.string().trim().min(3, "Enter a real UPI ID or bank account so WorkBridge can actually pay you."),
 });
 
+const WALLET_TABS = [
+  { id: "ledger", label: "Financial Ledger", icon: Wallet },
+  { id: "subscription", label: "Upgrade Subscription", icon: Sparkles },
+];
+
 export default function WorkerWallet() {
   const navigate = useNavigate();
+  // Lets the Growth Ad toast (WorkerDashboard.jsx) link straight to
+  // /worker/wallet?tab=subscription instead of always landing on the
+  // Ledger and making the worker click again — same convention as
+  // EconomyHub.jsx's own ?tab= handling.
+  const [searchParams] = useSearchParams();
+  const requestedTab = searchParams.get("tab");
+  const [walletTab, setWalletTab] = useState(WALLET_TABS.some((t) => t.id === requestedTab) ? requestedTab : "ledger");
   const [wallet, setWallet] = useState(null);
   const [heldSecurely, setHeldSecurely] = useState(0);
   const [invoices, setInvoices] = useState([]);
@@ -130,6 +356,29 @@ export default function WorkerWallet() {
     <div className="relative h-full min-h-0 overflow-y-auto overflow-x-hidden bg-gradient-to-br from-[#eef2ff] via-[#f8fafc] to-[#fff3ec] p-4 pb-12 sm:p-7 wb-tab-enter">
       <div className="pointer-events-none absolute -top-20 -left-16 -z-10 h-72 w-72 rounded-full bg-[#1B3FAB]/10 blur-[100px]" />
       <div className="pointer-events-none absolute top-40 -right-20 -z-10 h-72 w-72 rounded-full bg-[#FF6B35]/10 blur-[100px]" />
+
+      {/* Target 3's consolidation — Upgrade Subscription used to be its own
+          /worker/subscriptions route; it's a tab here now, alongside the
+          real ledger, so "everything about your money" lives in one place. */}
+      <div className="relative mb-6 flex w-fit gap-1.5 rounded-full border border-slate-200 bg-white p-1.5">
+        {WALLET_TABS.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            onClick={() => setWalletTab(id)}
+            className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition-colors ${
+              walletTab === id ? "bg-slate-900 text-white shadow-sm" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+            }`}
+          >
+            <Icon className="h-4 w-4" />
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {walletTab === "subscription" ? (
+        <SubscriptionTab />
+      ) : (
+      <>
 
       {/* ── Financial Vault ── */}
       <div className="relative overflow-hidden rounded-3xl border border-white/70 bg-white/50 p-6 shadow-xl shadow-slate-200/50 backdrop-blur-2xl sm:p-8 wb-card-enter">
@@ -371,6 +620,8 @@ export default function WorkerWallet() {
           </motion.div>
         </AnimatePresence>
       </div>
+      </>
+      )}
     </div>
   );
 }
