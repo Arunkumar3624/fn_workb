@@ -603,9 +603,9 @@ export default function WorkerJobFeed() {
                       setSelectedJob(job);
                     }
                   }}
-                  className={`cursor-pointer rounded-2xl border p-5 shadow-lg backdrop-blur-xl transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl ${
+                  className={`cursor-pointer rounded-2xl border p-5 shadow-lg backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${
                     job.is_urgent
-                      ? "border-[#FF6B35]/40 bg-orange-50/50 shadow-orange-200/40 dark:bg-orange-500/10"
+                      ? "border-[#FF6B35]/40 bg-orange-50/50 shadow-orange-200/40 dark:border-sky-500/30 dark:bg-sky-500/5 dark:shadow-sky-500/20 dark:hover:border-sky-400/60 dark:hover:shadow-sky-400/40"
                       : "border-white/70 bg-white/60 shadow-slate-200/40 dark:border-slate-800 dark:bg-slate-900/60"
                   }`}
                 >
