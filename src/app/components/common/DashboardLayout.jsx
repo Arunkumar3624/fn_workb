@@ -17,7 +17,7 @@
 export default function DashboardLayout({ sidebar, children }) {
   return (
     <div
-      className="flex h-screen overflow-hidden bg-gradient-to-br from-[#FFF5F0] via-slate-50 to-slate-100 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900"
+      className="flex h-screen overflow-hidden bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-orange-50/50 via-slate-50 to-slate-100/80 dark:bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] dark:from-slate-900 dark:via-slate-900 dark:to-slate-950"
       style={{ fontFamily: "'DM Sans', sans-serif" }}
     >
       {sidebar}

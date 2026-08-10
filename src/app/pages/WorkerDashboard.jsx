@@ -26,8 +26,21 @@ function getGreeting() {
   const hour = new Date().getHours();
   if (hour < 12) return { text: "Good Morning", emoji: "☀️" };
   if (hour < 17) return { text: "Good Afternoon", emoji: "🌤️" };
-  return { text: "Good Evening", emoji: "👏" };
+  return { text: "Good Evening", emoji: "🌙" };
 }
+
+// "Lobby vs. Workroom": the big warm greeting only belongs on the landing
+// tab (Job Feed). Every other tab is a workroom the user already knows
+// they're in — it gets a slim, contextual title instead so the greeting
+// doesn't repeat itself (and eat vertical space) on every navigation.
+const TAB_TITLES = {
+  negotiations: "Negotiations",
+  workspace: "Active Workspace",
+  wallet: "Wallet & Subscription",
+  economy: "Economy Hub",
+  profile: "My Profile",
+  settings: "Account Settings",
+};
 
 export default function WorkerDashboard({ onLogout }) {
   const navigate = useNavigate();
@@ -88,45 +101,66 @@ export default function WorkerDashboard({ onLogout }) {
       sidebar={<WorkerSidebar tab={tab} onTabChange={setTab} onLogout={onLogout} />}
     >
       <div className="flex h-full flex-col overflow-hidden rounded-[2.5rem] border border-white/60 bg-white/90 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.08)] backdrop-blur-2xl dark:border-slate-800/60 dark:bg-slate-900/90">
-        {/* Warm Greeting — the identity anchor: avatar + a real,
-            local-time-of-day greeting, not static "Welcome back" copy. */}
-        <div className="flex flex-shrink-0 flex-col items-start gap-6 p-6 dark:border-slate-800 md:flex-row md:items-center md:justify-between md:p-8">
-          <div className="flex min-w-0 items-center gap-4">
-            {currentUser?.avatar_url ? (
-              <img
-                src={currentUser.avatar_url}
-                alt={currentUser.name}
-                className="h-16 w-16 flex-shrink-0 rounded-full object-cover shadow-lg ring-4 ring-white dark:ring-slate-800 sm:h-20 sm:w-20"
-              />
-            ) : (
-              <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-[#0f172a] text-xl font-semibold text-white shadow-lg ring-4 ring-white dark:ring-slate-800 sm:h-20 sm:w-20">
-                {getInitials(currentUser?.name)}
+        {tab === "feed" ? (
+          /* Warm Greeting — the "Lobby": identity anchor + a real,
+             local-time-of-day greeting, shown only on the landing tab. */
+          <div className="flex flex-shrink-0 flex-col items-start gap-6 p-6 dark:border-slate-800 md:flex-row md:items-center md:justify-between md:p-8">
+            <div className="flex min-w-0 items-center gap-4">
+              {currentUser?.avatar_url ? (
+                <img
+                  src={currentUser.avatar_url}
+                  alt={currentUser.name}
+                  className="h-16 w-16 flex-shrink-0 rounded-full object-cover shadow-lg ring-4 ring-white dark:ring-slate-800 sm:h-20 sm:w-20"
+                />
+              ) : (
+                <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-[#0f172a] text-xl font-semibold text-white shadow-lg ring-4 ring-white dark:ring-slate-800 sm:h-20 sm:w-20">
+                  {getInitials(currentUser?.name)}
+                </div>
+              )}
+              <div className="min-w-0">
+                <h1 className="truncate text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+                  {greeting.text}, {currentUser?.name?.split(" ")[0] ?? "there"}! {greeting.emoji}
+                </h1>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 sm:text-base">
+                  Ready to crush some goals today? Here are your top matches.
+                </p>
               </div>
-            )}
-            <div className="min-w-0">
-              <h1 className="truncate text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
-                {greeting.text}, {currentUser?.name?.split(" ")[0] ?? "there"}! {greeting.emoji}
-              </h1>
-              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 sm:text-base">
-                Ready to crush some goals today? Here are your top matches.
-              </p>
             </div>
-          </div>
 
-          <div className="flex flex-shrink-0 items-center gap-3">
-            <NotificationBell />
-            <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-              <div>
-                <p className="text-sm font-semibold text-slate-900 dark:text-white">₹{walletBalance.toLocaleString("en-IN")}</p>
-                <p className="text-xs text-slate-500">Available balance</p>
+            <div className="flex flex-shrink-0 items-center gap-3">
+              <NotificationBell />
+              <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                <div>
+                  <p className="text-sm font-semibold text-slate-900 dark:text-white">₹{walletBalance.toLocaleString("en-IN")}</p>
+                  <p className="text-xs text-slate-500">Available balance</p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        ) : (
+          /* Slim Contextual Header — the "Workroom": the user already knows
+             they navigated here, so just name the page, no repeated greeting. */
+          <div className="flex flex-shrink-0 items-center justify-between gap-4 border-b border-slate-100 px-6 py-5 dark:border-slate-800 md:px-8">
+            <h1 className="truncate text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+              {TAB_TITLES[tab] ?? "Dashboard"}
+            </h1>
+            <div className="flex flex-shrink-0 items-center gap-3">
+              <NotificationBell />
+              <div className="hidden items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm dark:border-slate-700 dark:bg-slate-800 sm:flex">
+                <div>
+                  <p className="text-sm font-semibold text-slate-900 dark:text-white">₹{walletBalance.toLocaleString("en-IN")}</p>
+                  <p className="text-xs text-slate-500">Available balance</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Info strip — the promo banner + real HUD stats (streak, tokens,
             momentum), kept as their own real elements just below the
-            greeting instead of crowding into it. */}
+            greeting instead of crowding into it. Landing-tab only, same as
+            the greeting itself. */}
+        {tab === "feed" && (
         <div className="flex-shrink-0 border-t border-slate-100 bg-slate-50/50 px-6 py-4 dark:border-slate-800 dark:bg-slate-900/50 md:px-8">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex min-w-0 flex-1 items-center gap-3 rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 via-emerald-50 to-white px-4 py-3 shadow-sm dark:border-amber-900/40 dark:from-amber-950/40 dark:via-emerald-950/30 dark:to-slate-900">
@@ -182,6 +216,7 @@ export default function WorkerDashboard({ onLogout }) {
             </div>
           </div>
         </div>
+        )}
 
         <div className="flex-1 overflow-hidden">
           {tab === "feed" && <WorkerJobFeed />}
