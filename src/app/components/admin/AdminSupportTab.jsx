@@ -26,7 +26,7 @@ function ThreadList({ threads, selectedId, onSelect }) {
           </span>
         </div>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
+      <div className="wb-scroll-clean min-h-0 flex-1 overflow-y-auto px-3 py-3">
         {threads.length === 0 ? (
           <div className="py-16 text-center text-sm text-slate-400">No conversations yet.</div>
         ) : (

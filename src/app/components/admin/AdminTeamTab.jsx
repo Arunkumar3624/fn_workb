@@ -47,7 +47,7 @@ function PermissionsModal({ member, onClose, onTogglePermission }) {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-white/70 bg-white shadow-2xl"
+        className="wb-scroll-clean max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-white/70 bg-white shadow-2xl"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-start justify-between border-b border-slate-100 px-6 py-5">

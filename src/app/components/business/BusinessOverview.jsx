@@ -519,7 +519,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
               <Chips options={TX_FILTERS} active={txFilter} onChange={setTxFilter} />
             </div>
 
-            <div className="divide-y divide-slate-50 dark:divide-slate-800 max-h-[300px] overflow-y-auto">
+            <div className="wb-scroll-clean divide-y divide-slate-50 dark:divide-slate-800 max-h-[300px] overflow-y-auto">
               {filteredTxn.length > 0 ? filteredTxn.map((tx) => {
                 const meta = TX_META[tx.type];
                 const TxIcon = meta.icon;

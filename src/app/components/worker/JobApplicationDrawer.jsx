@@ -54,7 +54,7 @@ export default function JobApplicationDrawer({
             </button>
           </header>
 
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="wb-scroll-clean flex-1 overflow-y-auto p-6">
             <div className="mb-6 flex items-center gap-2 rounded-xl border border-purple-200 bg-purple-100 px-4 py-3">
               <Trophy size={16} className="flex-shrink-0 text-purple-700" />
               <p className="text-sm font-bold text-purple-700">Up to {potentialPoints} Score for this job</p>

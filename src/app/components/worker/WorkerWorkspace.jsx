@@ -381,7 +381,7 @@ export default function WorkerWorkspace() {
           })}
         </div>
 
-        <div className="flex-1 space-y-3 overflow-y-auto pr-1">
+        <div className="wb-scroll-clean flex-1 space-y-3 overflow-y-auto pr-1">
           {pipelineTab === "applied" ? (
             visibleApplications.length === 0 ? (
               <div className="rounded-xl border border-dashed border-slate-300 bg-white/60 p-6 text-center text-xs text-slate-400 dark:text-slate-500 dark:border-slate-700 dark:bg-slate-900/60">
@@ -585,7 +585,7 @@ export default function WorkerWorkspace() {
                 </div>
             </header>
 
-            <div className="flex-1 space-y-6 overflow-y-auto p-4 pb-40 sm:p-8">
+            <div className="wb-scroll-clean flex-1 space-y-6 overflow-y-auto p-4 pb-40 sm:p-8">
               {actionError && (
                 <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400">
                   <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
@@ -719,7 +719,7 @@ function ApplicationDetail({ application, navigate }) {
   });
 
   return (
-    <div className="flex-1 space-y-6 overflow-y-auto p-4 pb-40 sm:p-8">
+    <div className="wb-scroll-clean flex-1 space-y-6 overflow-y-auto p-4 pb-40 sm:p-8">
       <header className="border-b border-slate-200 bg-white p-4 sm:p-6 dark:border-slate-800 dark:bg-slate-900">
         <span className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold ${statusMeta.tone}`}>
           {statusMeta.label}

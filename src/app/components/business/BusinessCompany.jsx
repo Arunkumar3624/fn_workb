@@ -493,7 +493,7 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
 
 function EditForm({ draft, onChange, onSave, onCancel, saving, saveError }) {
   return (
-    <div className="h-full min-h-0 overflow-y-auto bg-slate-50 p-7 pb-12 wb-tab-enter dark:bg-slate-950">
+    <div className="wb-scroll-clean h-full min-h-0 overflow-y-auto bg-slate-50 p-7 pb-12 wb-tab-enter dark:bg-slate-950">
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div>

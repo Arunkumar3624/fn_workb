@@ -195,7 +195,7 @@ function MessageMonitor() {
             Monitored Businesses
           </h2>
         </div>
-        <div className="flex-1 overflow-y-auto">
+        <div className="wb-scroll-clean flex-1 overflow-y-auto">
           {businessesLoading ? (
             <div className="flex justify-center py-8">
               <Loader2 className="h-5 w-5 animate-spin text-slate-300" />
@@ -237,7 +237,7 @@ function MessageMonitor() {
           </h2>
           {selectedBusiness && <p className="mt-1 text-xs font-semibold text-slate-400 truncate">{selectedBusiness.business_name}</p>}
         </div>
-        <div className="flex-1 overflow-y-auto">
+        <div className="wb-scroll-clean flex-1 overflow-y-auto">
           {!selectedBusinessId ? (
             <div className="p-5 text-center text-xs text-slate-400">Select a business to see who they've hired.</div>
           ) : workersLoading ? (
@@ -384,7 +384,7 @@ function MessageMonitor() {
             )}
 
             {/* Read-only chat feed — a vault, not a composer */}
-            <div className="flex-1 overflow-y-auto px-6 py-5 shadow-[inset_0_2px_8px_rgba(0,0,0,0.04)]">
+            <div className="wb-scroll-clean flex-1 overflow-y-auto px-6 py-5 shadow-[inset_0_2px_8px_rgba(0,0,0,0.04)]">
               {threadLoading ? (
                 <div className="flex justify-center py-10">
                   <Loader2 className="h-6 w-6 animate-spin text-slate-300" />
@@ -539,7 +539,7 @@ export default function AdminSecurityTab() {
     <div className="relative overflow-hidden w-full h-full flex">
       {toggleBar}
       {/* ── View 1: Case Queue ───────────────────────────────────────── */}
-      <div className="w-full md:w-1/2 lg:w-1/3 h-full absolute left-0 top-0 border-r border-white/60 bg-white/60 backdrop-blur-xl overflow-y-auto">
+      <div className="wb-scroll-clean w-full md:w-1/2 lg:w-1/3 h-full absolute left-0 top-0 border-r border-white/60 bg-white/60 backdrop-blur-xl overflow-y-auto">
         <div className="p-6 border-b border-slate-100">
           <div className="flex items-center gap-1.5 mb-1">
             <ShieldAlert className="w-3.5 h-3.5 text-slate-400" />
@@ -590,7 +590,7 @@ export default function AdminSecurityTab() {
       {/* ── View 2: Case File ── opacity fade, not a slide, per the earlier
           fix — panel entrance shouldn't feel like a cheap slide-in. ── */}
       <div
-        className={`absolute top-0 right-0 z-10 w-full md:w-1/2 lg:w-2/3 h-full bg-white/70 backdrop-blur-xl rounded-l-3xl border-l border-white/70 shadow-[-20px_0_40px_-15px_rgba(0,0,0,0.1)] overflow-y-auto transition-opacity duration-200 ease-in-out ${
+        className={`wb-scroll-clean absolute top-0 right-0 z-10 w-full md:w-1/2 lg:w-2/3 h-full bg-white/70 backdrop-blur-xl rounded-l-3xl border-l border-white/70 shadow-[-20px_0_40px_-15px_rgba(0,0,0,0.1)] overflow-y-auto transition-opacity duration-200 ease-in-out ${
           selected ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
       >

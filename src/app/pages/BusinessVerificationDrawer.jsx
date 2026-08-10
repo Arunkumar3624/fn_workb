@@ -216,7 +216,7 @@ export default function BusinessVerificationDrawer({ onClose, onPaymentSuccess }
           </div>
 
           {/* ── Scrollable content ── */}
-          <div className="flex-1 overflow-auto px-8 py-6 space-y-6">
+          <div className="wb-scroll-clean flex-1 overflow-auto px-8 py-6 space-y-6">
 
             {/* Invoice summary */}
             <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5">

@@ -154,7 +154,7 @@ export default function EscrowFundingDrawer({ project, onClose, onFunded }) {
             </span>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-6 py-5">
+          <div className="wb-scroll-clean flex-1 overflow-y-auto px-6 py-5">
             {submitted ? (
               <div className="flex flex-col items-center gap-3 rounded-2xl border border-emerald-100 bg-emerald-50 px-5 py-10 text-center">
                 <CheckCircle2 className="h-10 w-10 text-emerald-500" />

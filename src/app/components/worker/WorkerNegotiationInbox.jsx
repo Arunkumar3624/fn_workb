@@ -155,7 +155,7 @@ function ThreadNavigator({ threads, groupsByCounterparty, selectedThreadId, onSe
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
+      <div className="wb-scroll-clean min-h-0 flex-1 overflow-y-auto px-3 py-3">
         {threads.map((thread) => {
           const selected = thread.id === selectedThreadId;
           const group = groupsByCounterparty.get(thread.other_user_id) ?? [];

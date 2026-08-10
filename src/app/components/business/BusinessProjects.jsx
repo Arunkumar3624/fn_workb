@@ -197,7 +197,7 @@ function WorkerDetailDrawer({ project, onClose, onOpenChat }) {
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto">
+            <div className="wb-scroll-clean flex-1 overflow-y-auto">
               {isLoading && (
                 <div className="flex items-center justify-center gap-2 py-10 text-sm text-slate-400 dark:text-slate-500" style={DATA_FONT}>
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -892,7 +892,7 @@ function RatingModal({ project, currentUserId, onClose, onRehire, onRated }) {
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl bg-white shadow-2xl"
+        className="wb-scroll-clean relative w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl bg-white shadow-2xl"
         onClick={(event) => event.stopPropagation()}
       >
         <button

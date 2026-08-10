@@ -335,7 +335,7 @@ export default function WorkerProfile() {
   const projects = profile.projects ?? [];
 
   return (
-    <div className="h-full overflow-y-auto bg-[#F8FAFC] dark:bg-slate-950">
+    <div className="wb-scroll-clean h-full overflow-y-auto bg-[#F8FAFC] dark:bg-slate-950">
       <main className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 pb-20 text-slate-900 dark:text-white">
         <div className="mx-auto max-w-5xl px-4 pt-8">
           <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_20px_55px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-900">

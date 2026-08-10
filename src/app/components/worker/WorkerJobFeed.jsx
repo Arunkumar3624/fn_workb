@@ -454,7 +454,7 @@ export default function WorkerJobFeed() {
   };
 
   return (
-    <div className="relative h-full min-h-screen overflow-y-auto bg-gradient-to-br from-[#dbe4ff] via-[#eef1ff] to-[#ffe4d2] pb-20 text-slate-900 dark:text-white dark:from-slate-950 dark:via-slate-950 dark:to-slate-950">
+    <div className="wb-scroll-clean relative h-full min-h-screen overflow-y-auto bg-gradient-to-br from-[#dbe4ff] via-[#eef1ff] to-[#ffe4d2] pb-20 text-slate-900 dark:text-white dark:from-slate-950 dark:via-slate-950 dark:to-slate-950">
       <section className="relative mx-auto max-w-7xl px-6 py-8">
         <SubscriptionBanner onUpgrade={() => navigate("/worker/wallet?tab=subscription")} />
 

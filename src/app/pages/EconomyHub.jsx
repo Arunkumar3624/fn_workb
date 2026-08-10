@@ -71,7 +71,7 @@ export default function EconomyHub() {
   }, []);
 
   return (
-    <div ref={rootRef} className="h-full min-h-0 overflow-y-auto overflow-x-hidden bg-[#f8fafc] dark:bg-slate-950">
+    <div ref={rootRef} className="wb-scroll-clean h-full min-h-0 overflow-y-auto overflow-x-hidden bg-[#f8fafc] dark:bg-slate-950">
       <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
         <div className="mb-6">
           <h1 className="text-xl font-extrabold text-[#0A1128] dark:text-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>

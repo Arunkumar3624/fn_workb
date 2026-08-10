@@ -653,7 +653,7 @@ export default function SettingsPage() {
 
       <div className="flex flex-col gap-6 md:flex-row">
         <aside className="flex-shrink-0 md:w-1/4">
-          <nav className="flex gap-1.5 overflow-x-auto md:flex-col md:gap-1 md:overflow-visible">
+          <nav className="wb-scroll-clean flex gap-1.5 overflow-x-auto md:flex-col md:gap-1 md:overflow-visible">
             {visibleTabs.map(({ id, label, icon: Icon }) => (
               <button
                 key={id}

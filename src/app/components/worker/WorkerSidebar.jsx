@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Briefcase, Search, Wallet, User, LogOut, ShieldCheck, Handshake, Settings, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
+import { Briefcase, Search, Wallet, User, LogOut, ShieldCheck, Handshake, Settings, Sparkles } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { listProjects } from "../../lib/projectsApi";
 import { getInitials } from "../../utils/formValidation";
@@ -46,15 +46,11 @@ export default function WorkerSidebar({ tab, onTabChange, onLogout }) {
         isCollapsed ? "w-20" : "w-[260px]"
       }`}
     >
-      <button
-        onClick={() => setIsCollapsed((v) => !v)}
-        title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-        className="absolute -right-3 top-8 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-white/10 bg-[#1B2A4A] text-slate-300 shadow-md transition-colors hover:bg-[#233150] hover:text-white"
+      <div
+        onDoubleClick={() => setIsCollapsed((v) => !v)}
+        title="Double-click to collapse/expand"
+        className={`cursor-pointer select-none border-b border-white/10 py-6 ${isCollapsed ? "px-0" : "px-5"}`}
       >
-        {isCollapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
-      </button>
-
-      <div className={`border-b border-white/10 py-6 ${isCollapsed ? "px-0" : "px-5"}`}>
         <div className={`flex items-center gap-3 ${isCollapsed ? "justify-center" : ""}`}>
           <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-[#ffffff] shadow-lg shadow-[#FF6B35]/25">
             <img src={brandLogo} alt="" className="h-6 w-6 object-contain" />

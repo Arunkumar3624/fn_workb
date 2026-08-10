@@ -175,7 +175,7 @@ export default function AdminPanel({ onLogout }) {
       </header>
 
       {/* ── Content (fills remaining viewport height — tabs that need h-full get a real ancestor height) ── */}
-      <div className="relative z-10 flex-1 overflow-y-auto">
+      <div className="wb-scroll-clean relative z-10 flex-1 overflow-y-auto">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}

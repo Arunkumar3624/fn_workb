@@ -63,7 +63,7 @@ export default function ProjectCompletionHub({
   };
 
   return (
-    <div className="flex-1 overflow-y-auto bg-slate-50 p-4 sm:p-10">
+    <div className="wb-scroll-clean flex-1 overflow-y-auto bg-slate-50 p-4 sm:p-10">
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
