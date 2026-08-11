@@ -17,7 +17,12 @@
 export default function DashboardLayout({ sidebar, children }) {
   return (
     <div
-      className="flex h-screen overflow-hidden bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-orange-50/50 via-slate-50 to-slate-100/80 dark:bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] dark:from-slate-900 dark:via-slate-900 dark:to-slate-950"
+      // A near-white backdrop under a near-white card used to read as flat
+      // white-on-white (the card's border-white/60 added no contrast either)
+      // — this backdrop is deliberately a shade more saturated so the
+      // floating card's edge is actually visible, and the dark variant
+      // deliberately goes a shade darker than the card for the same reason.
+      className="flex h-screen overflow-hidden bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-orange-100/80 via-slate-100 to-slate-200 dark:bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] dark:from-slate-950 dark:via-black dark:to-black"
       style={{ fontFamily: "'DM Sans', sans-serif" }}
     >
       {sidebar}

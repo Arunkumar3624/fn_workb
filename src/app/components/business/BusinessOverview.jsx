@@ -238,10 +238,14 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
   }
 
   return (
-    <div className="relative bg-gradient-to-br from-[#e0e9ff] via-[#eef5ff] to-[#e9fff5] p-7 wb-tab-enter dark:from-slate-950 dark:via-slate-950 dark:to-slate-950">
-      <div className="pointer-events-none fixed -top-24 -left-24 -z-10 h-[26rem] w-[26rem] rounded-full bg-[#1B3FAB]/25 blur-[110px]" />
-      <div className="pointer-events-none fixed top-56 -right-24 -z-10 h-[26rem] w-[26rem] rounded-full bg-emerald-400/20 blur-[110px]" />
-      <div className="pointer-events-none fixed bottom-0 left-1/3 -z-10 h-96 w-96 rounded-full bg-purple-400/20 blur-[110px]" />
+    <div className="relative overflow-hidden bg-gradient-to-br from-[#e0e9ff] via-[#eef5ff] to-[#e9fff5] p-7 wb-tab-enter dark:from-slate-950 dark:via-slate-950 dark:to-slate-950">
+      {/* absolute (not fixed) — these must scroll away with the page. fixed
+          pins them to the viewport instead of this container, so they used
+          to bleed through onto whatever content scrolled underneath them,
+          reading as a phantom "header" that never went away. */}
+      <div className="pointer-events-none absolute -top-24 -left-24 -z-10 h-[26rem] w-[26rem] rounded-full bg-[#1B3FAB]/25 blur-[110px]" />
+      <div className="pointer-events-none absolute top-56 -right-24 -z-10 h-[26rem] w-[26rem] rounded-full bg-emerald-400/20 blur-[110px]" />
+      <div className="pointer-events-none absolute bottom-0 left-1/3 -z-10 h-96 w-96 rounded-full bg-purple-400/20 blur-[110px]" />
       <div className="relative max-w-6xl mx-auto">
 
         {/* ── Header ─────────────────────────────────────────────────────── */}
@@ -328,22 +332,27 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
 
         {/* Growth Hub — real upsell CTAs pointing at Settings > Billing
             (the actual pricing shown there, same "preview — not live yet"
-            honesty as everywhere else money-related on WorkBridge). The
-            Verification card hides once isVerified is real and true — no
-            point advertising something already owned. */}
+            honesty as everywhere else money-related on WorkBridge). Kept in
+            the same light glassmorphic language as the KPI cards above
+            (bg-white/60 backdrop-blur, colored accent border) instead of a
+            solid dark block — two heavy near-black cards back-to-back with
+            the Enterprise Partner Tier card above them read as a jarring,
+            out-of-place stack in an otherwise light page. The Verification
+            card hides once isVerified is real and true — no point
+            advertising something already owned. */}
         <div className={`mt-6 grid grid-cols-1 gap-4 ${isVerified ? "" : "sm:grid-cols-2"}`}>
           {!isVerified && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.35 }}
-              className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 p-6 text-white shadow-lg"
+              className="relative overflow-hidden rounded-2xl border border-emerald-200/80 bg-white/70 p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] backdrop-blur-xl dark:border-emerald-900/40 dark:bg-slate-900/60"
             >
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-400">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
                 <ShieldCheck className="h-5 w-5" />
               </span>
-              <h3 className="mt-4 text-base font-bold">Stand out to top-tier talent</h3>
-              <p className="mt-1.5 text-sm leading-relaxed text-slate-300">
+              <h3 className="mt-4 text-base font-bold text-[#0F172A] dark:text-white">Stand out to top-tier talent</h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
                 Unlock your Verified Company Frame and build instant trust with every worker who sees your posts.
               </p>
               <button
@@ -359,13 +368,13 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, delay: 0.08 }}
-            className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 p-6 text-white shadow-lg"
+            className="relative overflow-hidden rounded-2xl border border-[#FF6B35]/25 bg-white/70 p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] backdrop-blur-xl dark:border-orange-900/40 dark:bg-slate-900/60"
           >
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FF6B35]/15 text-[#FF6B35]">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-[#FF6B35] dark:bg-orange-500/10">
               <Zap className="h-5 w-5" />
             </span>
-            <h3 className="mt-4 text-base font-bold">Need to scale faster?</h3>
-            <p className="mt-1.5 text-sm leading-relaxed text-slate-300">
+            <h3 className="mt-4 text-base font-bold text-[#0F172A] dark:text-white">Need to scale faster?</h3>
+            <p className="mt-1.5 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
               Unlock Enterprise matching, unlimited job posts, and a dedicated manager on the Growth or Enterprise plan.
             </p>
             <button
