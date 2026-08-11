@@ -18,6 +18,7 @@ import EconomyInfoTooltip from "../components/shared/EconomyInfoTooltip";
 import NotificationBell from "../components/shared/NotificationBell";
 import OnboardingWizard from "../components/common/OnboardingWizard";
 import { shouldShowFrame, verifiedRingClass } from "../utils/verification";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 
 // A real, local-time-of-day greeting — matches WorkerDashboard.jsx's own
 // getGreeting exactly, kept as its own copy since these are two separate
@@ -33,6 +34,7 @@ function getGreeting() {
 // tab (Overview). Every other tab is a workroom the user already knows
 // they're in — it gets a slim, contextual title instead.
 const TAB_TITLES = {
+  overview: "Overview",
   post: "Post a Job",
   workers: "Find Workers",
   projects: "Active Projects",
@@ -67,6 +69,14 @@ export default function BusinessDashboard({ onLogout, onVerify, isVerified = fal
   const [tab, setTab] = useState(
     location.state?.tab ?? (BUSINESS_TAB_IDS.has(requestedTab) ? requestedTab : "overview")
   );
+  // Re-asserts the real document title on every tab change, overriding
+  // whatever a child page (e.g. SettingsPage.jsx) set with its own
+  // useDocumentTitle while it was mounted — that hook has no unmount
+  // cleanup, so without this the browser tab kept showing "Settings —
+  // WorkBridge" even after navigating back to Overview. React fires child
+  // effects before parent effects on the same commit, so this always runs
+  // after any child's title effect and wins.
+  useDocumentTitle(`${TAB_TITLES[tab] ?? "Overview"} — WorkBridge`);
   // Tab state here is local, not URL-driven (unlike WorkerDashboard) — a
   // navigate("/business-dashboard", { state: { tab: "support" } }) (see
   // SupportFab.jsx) lands on the SAME route, so the component doesn't
@@ -181,8 +191,6 @@ export default function BusinessDashboard({ onLogout, onVerify, isVerified = fal
                   </button>
                 )}
 
-                <NotificationBell />
-
                 <span className={`inline-flex items-center gap-1.5 rounded-2xl border px-3 py-2 text-sm font-semibold shadow-sm ${
                   isVerified
                     ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-400"
@@ -214,6 +222,10 @@ export default function BusinessDashboard({ onLogout, onVerify, isVerified = fal
                     <span className="hidden font-normal text-slate-300 md:inline">Tier</span>
                   </span>
                 </div>
+
+                {/* Notification Bell — always the last element on the far
+                    right, never sandwiched between badges. */}
+                <NotificationBell />
               </div>
             </div>
           ) : (

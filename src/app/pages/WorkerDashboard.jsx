@@ -20,6 +20,7 @@ import EconomyInfoTooltip from "../components/shared/EconomyInfoTooltip";
 import NotificationBell from "../components/shared/NotificationBell";
 import OnboardingWizard from "../components/common/OnboardingWizard";
 import { shouldShowFrame, verifiedRingClass } from "../utils/verification";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 
 // A real, local-time-of-day greeting — not a fixed "Welcome back" — so the
 // new warm header actually reads as personalized rather than static copy.
@@ -35,6 +36,7 @@ function getGreeting() {
 // they're in — it gets a slim, contextual title instead so the greeting
 // doesn't repeat itself (and eat vertical space) on every navigation.
 const TAB_TITLES = {
+  feed: "Job Feed",
   negotiations: "Negotiations",
   workspace: "Active Workspace",
   wallet: "Wallet & Subscription",
@@ -61,6 +63,11 @@ export default function WorkerDashboard({ onLogout }) {
   const setTab = (id) => navigate(id === "feed" ? "/worker" : `/worker/${id}`);
   const projectIdFromUrl = searchParams.get("invite");
   const greeting = getGreeting();
+  // Same stale-title fix as BusinessDashboard.jsx — re-asserts the title on
+  // every tab change so a child page's own useDocumentTitle (e.g.
+  // SettingsPage.jsx, which has no unmount cleanup) never gets stuck
+  // showing after navigating back to another tab.
+  useDocumentTitle(`${TAB_TITLES[tab] ?? "Job Feed"} — WorkBridge`);
 
   useEffect(() => {
     getWallet()
