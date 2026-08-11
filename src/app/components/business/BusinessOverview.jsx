@@ -278,31 +278,35 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
           {[
             {
               label: "Active Projects", value: String(activeProjects.length),
-              icon: Briefcase, iconBg: "bg-blue-50", iconColor: "text-[#1B3FAB]", valueColor: "text-[#1B3FAB]",
+              icon: Briefcase, iconBg: "bg-blue-100", iconColor: "text-[#1B3FAB]", valueColor: "text-[#1B3FAB]",
+              cardBg: "bg-blue-50/70 border-blue-100/80 dark:bg-slate-900/60 dark:border-slate-800",
               spark: monthly.map((m) => m.secured), sparkColor: "#1B3FAB",
             },
             {
               label: "Funds in Process", value: formatINR(securedTotal), sub: "Secured for active projects",
               subColor: "text-slate-600 dark:text-slate-400", icon: Shield,
-              iconBg: "bg-emerald-50", iconColor: "text-emerald-600", valueColor: "text-emerald-600",
+              iconBg: "bg-emerald-100", iconColor: "text-emerald-600", valueColor: "text-emerald-600",
+              cardBg: "bg-emerald-50/70 border-emerald-100/80 dark:bg-slate-900/60 dark:border-slate-800",
               spark: monthly.map((m) => m.secured), sparkColor: "#10b981",
             },
             {
               label: "Funds Delivered", value: formatINR(deliveredTotal), sub: "Paid to workers all-time",
               subColor: "text-slate-600 dark:text-slate-400", icon: CheckCircle2,
-              iconBg: "bg-purple-50", iconColor: "text-purple-600", valueColor: "text-purple-600",
+              iconBg: "bg-purple-100", iconColor: "text-purple-600", valueColor: "text-purple-600",
+              cardBg: "bg-purple-50/70 border-purple-100/80 dark:bg-slate-900/60 dark:border-slate-800",
               spark: monthly.map((m) => m.delivered), sparkColor: "#9333ea",
             },
             {
               label: "Workers Hired", value: String(workersHired), sub: "All-time placements",
               subColor: "text-slate-600 dark:text-slate-400", icon: UserCheck,
-              iconBg: "bg-orange-50", iconColor: "text-[#FF6B35]", valueColor: "text-[#FF6B35]",
+              iconBg: "bg-orange-100", iconColor: "text-[#FF6B35]", valueColor: "text-[#FF6B35]",
+              cardBg: "bg-orange-50/70 border-orange-100/80 dark:bg-slate-900/60 dark:border-slate-800",
               spark: monthly.map((m) => m.secured + m.delivered), sparkColor: "#FF6B35",
             },
-          ].map(({ label, value, sub, subColor, icon: Icon, iconBg, iconColor, valueColor, spark, sparkColor }, i) => (
+          ].map(({ label, value, sub, subColor, icon: Icon, iconBg, iconColor, valueColor, cardBg, spark, sparkColor }, i) => (
             <div
               key={label}
-              className="border border-white/50 bg-white/40 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] dark:border-slate-800 dark:bg-slate-900/60 p-5 wb-card-enter"
+              className={`border backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] p-5 wb-card-enter ${cardBg}`}
               style={{ animationDelay: `${i * 60}ms` }}
             >
               <div className="flex items-center justify-between mb-4">
@@ -332,32 +336,34 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
 
         {/* Growth Hub — real upsell CTAs pointing at Settings > Billing
             (the actual pricing shown there, same "preview — not live yet"
-            honesty as everywhere else money-related on WorkBridge). Kept in
-            the same light glassmorphic language as the KPI cards above
-            (bg-white/60 backdrop-blur, colored accent border) instead of a
-            solid dark block — two heavy near-black cards back-to-back with
-            the Enterprise Partner Tier card above them read as a jarring,
-            out-of-place stack in an otherwise light page. The Verification
-            card hides once isVerified is real and true — no point
-            advertising something already owned. */}
-        <div className={`mt-6 grid grid-cols-1 gap-4 ${isVerified ? "" : "sm:grid-cols-2"}`}>
+            honesty as everywhere else money-related on WorkBridge). Sharp
+            corners, solid flat color, hard offset shadow — a deliberately
+            different, more compact "brutalist" language than the soft
+            glassmorphic KPI/tier cards above, so it reads as its own
+            distinct block instead of another soft rounded card blending
+            into the same stack. The Verification card hides once
+            isVerified is real and true — no point advertising something
+            already owned. */}
+        <div className={`mt-8 grid grid-cols-1 gap-4 ${isVerified ? "" : "sm:grid-cols-2"}`}>
           {!isVerified && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.35 }}
-              className="relative overflow-hidden rounded-2xl border border-emerald-200/80 bg-white/70 p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] backdrop-blur-xl dark:border-emerald-900/40 dark:bg-slate-900/60"
+              className="border-2 border-[#0F172A] bg-emerald-50 p-4 shadow-[4px_4px_0_0_#0F172A] dark:border-white dark:bg-emerald-950/30 dark:shadow-[4px_4px_0_0_#fff]"
             >
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
-                <ShieldCheck className="h-5 w-5" />
-              </span>
-              <h3 className="mt-4 text-base font-bold text-[#0F172A] dark:text-white">Stand out to top-tier talent</h3>
-              <p className="mt-1.5 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center border-2 border-[#0F172A] bg-white text-emerald-600 dark:border-white dark:bg-slate-900 dark:text-emerald-400">
+                  <ShieldCheck className="h-4 w-4" />
+                </span>
+                <h3 className="text-sm font-black uppercase tracking-wide text-[#0F172A] dark:text-white">Stand out to top talent</h3>
+              </div>
+              <p className="mt-2.5 text-xs leading-relaxed text-slate-700 dark:text-slate-300">
                 Unlock your Verified Company Frame and build instant trust with every worker who sees your posts.
               </p>
               <button
                 onClick={goToBilling}
-                className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-[#FF6B35] px-4 py-2.5 text-sm font-bold text-white transition-all hover:shadow-lg active:scale-[0.98]"
+                className="mt-3 inline-flex items-center gap-1.5 border-2 border-[#0F172A] bg-[#FF6B35] px-3 py-2 text-xs font-black uppercase tracking-wide text-white transition-all hover:shadow-[2px_2px_0_0_#0F172A] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none dark:border-white"
               >
                 Get Verified — ₹399
               </button>
@@ -368,18 +374,20 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, delay: 0.08 }}
-            className="relative overflow-hidden rounded-2xl border border-[#FF6B35]/25 bg-white/70 p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] backdrop-blur-xl dark:border-orange-900/40 dark:bg-slate-900/60"
+            className="border-2 border-[#0F172A] bg-orange-50 p-4 shadow-[4px_4px_0_0_#0F172A] dark:border-white dark:bg-orange-950/30 dark:shadow-[4px_4px_0_0_#fff]"
           >
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-[#FF6B35] dark:bg-orange-500/10">
-              <Zap className="h-5 w-5" />
-            </span>
-            <h3 className="mt-4 text-base font-bold text-[#0F172A] dark:text-white">Need to scale faster?</h3>
-            <p className="mt-1.5 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center border-2 border-[#0F172A] bg-white text-[#FF6B35] dark:border-white dark:bg-slate-900">
+                <Zap className="h-4 w-4" />
+              </span>
+              <h3 className="text-sm font-black uppercase tracking-wide text-[#0F172A] dark:text-white">Need to scale faster?</h3>
+            </div>
+            <p className="mt-2.5 text-xs leading-relaxed text-slate-700 dark:text-slate-300">
               Unlock Enterprise matching, unlimited job posts, and a dedicated manager on the Growth or Enterprise plan.
             </p>
             <button
               onClick={goToBilling}
-              className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-[#FF6B35] px-4 py-2.5 text-sm font-bold text-white transition-all hover:shadow-lg active:scale-[0.98]"
+              className="mt-3 inline-flex items-center gap-1.5 border-2 border-[#0F172A] bg-[#FF6B35] px-3 py-2 text-xs font-black uppercase tracking-wide text-white transition-all hover:shadow-[2px_2px_0_0_#0F172A] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none dark:border-white"
             >
               Upgrade Plan
             </button>
@@ -391,7 +399,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
 
           {/* Active Projects table */}
           <div
-            className="lg:col-span-2 border border-white/50 bg-white/40 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] dark:border-slate-800 dark:bg-slate-900/60 overflow-hidden wb-card-enter"
+            className="lg:col-span-2 border border-indigo-100/70 bg-[#F7F9FF]/90 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] dark:border-slate-800 dark:bg-slate-900/60 overflow-hidden wb-card-enter"
             style={{ animationDelay: "240ms" }}
           >
             <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
@@ -485,7 +493,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
           <div className="space-y-4">
 
             <div
-              className="border border-white/50 bg-white/40 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] dark:border-slate-800 dark:bg-slate-900/60 p-5 wb-card-enter"
+              className="border border-indigo-100/70 bg-[#F7F9FF]/90 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] dark:border-slate-800 dark:bg-slate-900/60 p-5 wb-card-enter"
               style={{ animationDelay: "300ms" }}
             >
               <h3
@@ -536,7 +544,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
             </div>
 
             <div
-              className="border border-white/50 bg-white/40 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] dark:border-slate-800 dark:bg-slate-900/60 p-5 wb-card-enter"
+              className="border border-indigo-100/70 bg-[#F7F9FF]/90 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] dark:border-slate-800 dark:bg-slate-900/60 p-5 wb-card-enter"
               style={{ animationDelay: "360ms" }}
             >
               <h3
@@ -567,7 +575,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
           <div
-            className="border border-white/50 bg-white/40 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] dark:border-slate-800 dark:bg-slate-900/60 overflow-hidden wb-card-enter"
+            className="border border-indigo-100/70 bg-[#F7F9FF]/90 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] dark:border-slate-800 dark:bg-slate-900/60 overflow-hidden wb-card-enter"
             style={{ animationDelay: "420ms" }}
           >
             <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
@@ -623,7 +631,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
 
           {/* Monthly Spending Chart */}
           <div
-            className="border border-white/50 bg-white/40 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] dark:border-slate-800 dark:bg-slate-900/60 p-5 wb-card-enter"
+            className="border border-indigo-100/70 bg-[#F7F9FF]/90 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] dark:border-slate-800 dark:bg-slate-900/60 p-5 wb-card-enter"
             style={{ animationDelay: "480ms" }}
           >
             <div className="flex items-start justify-between mb-1">
@@ -646,28 +654,38 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
               </div>
             </div>
 
-            <div className="flex items-end gap-2 mt-5 mb-3">
-              {monthly.map(({ m, secured, delivered }) => {
-                const sH = secured > 0 ? Math.max(4, Math.round((secured / chartMax) * 100)) : 0;
-                const dH = delivered > 0 ? Math.max(4, Math.round((delivered / chartMax) * 100)) : 0;
-                return (
-                  <div key={m} className="flex-1">
-                    <div className="flex items-end gap-px" style={{ height: "100px" }}>
-                      <div
-                        title={`Secured ${formatINR(secured)}`}
-                        className="flex-1 bg-[#1B3FAB] hover:bg-[#1635A0] rounded-t-sm transition-colors cursor-default"
-                        style={{ height: `${sH}px` }}
-                      />
-                      <div
-                        title={`Delivered ${formatINR(delivered)}`}
-                        className="flex-1 bg-purple-400 hover:bg-purple-500 rounded-t-sm transition-colors cursor-default"
-                        style={{ height: `${dH}px` }}
-                      />
+            <div className="relative mt-5 mb-3">
+              {/* Horizontal gridlines — value reference lines behind the
+                  bars, spaced to match the same 100px scale the bar heights
+                  themselves are computed against. */}
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-[100px]">
+                {[0, 25, 50, 75].map((pct) => (
+                  <div key={pct} className="absolute inset-x-0 border-t border-dashed border-slate-200 dark:border-slate-800" style={{ top: `${pct}px` }} />
+                ))}
+              </div>
+              <div className="relative flex items-end gap-2">
+                {monthly.map(({ m, secured, delivered }) => {
+                  const sH = secured > 0 ? Math.max(4, Math.round((secured / chartMax) * 100)) : 0;
+                  const dH = delivered > 0 ? Math.max(4, Math.round((delivered / chartMax) * 100)) : 0;
+                  return (
+                    <div key={m} className="flex-1">
+                      <div className="flex items-end gap-px" style={{ height: "100px" }}>
+                        <div
+                          title={`Secured ${formatINR(secured)}`}
+                          className="flex-1 bg-[#1B3FAB] hover:bg-[#1635A0] rounded-t-sm transition-colors cursor-default"
+                          style={{ height: `${sH}px` }}
+                        />
+                        <div
+                          title={`Delivered ${formatINR(delivered)}`}
+                          className="flex-1 bg-purple-400 hover:bg-purple-500 rounded-t-sm transition-colors cursor-default"
+                          style={{ height: `${dH}px` }}
+                        />
+                      </div>
+                      <p className="text-[10px] text-center text-slate-600 dark:text-slate-400 mt-2">{m}</p>
                     </div>
-                    <p className="text-[10px] text-center text-slate-600 dark:text-slate-400 mt-2">{m}</p>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
 
             <div className="h-px bg-slate-100 dark:bg-slate-800 my-4" />
