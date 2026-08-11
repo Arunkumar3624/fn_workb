@@ -31,7 +31,7 @@ import { ApiError } from "../../lib/apiClient";
 import { getSocket } from "../../lib/socketClient";
 import EditableCoverPhoto from "../shared/EditableCoverPhoto";
 import ShareProfileButton from "../shared/ShareProfileButton";
-import { verifiedRingClass } from "../../utils/verification";
+import { shouldShowFrame, verifiedRingClass } from "../../utils/verification";
 
 const MAX_AVATAR_BYTES = 1.5 * 1024 * 1024; // 1.5MB — stored as a data URL in avatar_url (TEXT), no file-storage backend exists yet.
 
@@ -105,6 +105,7 @@ function ReviewCard({ review }) {
 
 function BehaviorLevelBento({ behaviorScore, verified }) {
   const navigate = useNavigate();
+  const { currentUser, setShowVerificationFrame } = useAuth();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -142,10 +143,36 @@ function BehaviorLevelBento({ behaviorScore, verified }) {
         />
       </div>
       {verified ? (
-        <p className="mt-3 flex items-center gap-1.5 text-sm leading-6 text-slate-500 dark:text-slate-400">
-          <ShieldCheck className="h-4 w-4 flex-shrink-0 text-emerald-500" />
-          Identity verified
-        </p>
+        <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="flex items-center gap-1.5 text-sm leading-6 text-slate-500 dark:text-slate-400">
+            <ShieldCheck className="h-4 w-4 flex-shrink-0 text-emerald-500" />
+            Identity verified
+          </p>
+          {/* Stealth Mode — only reachable at all once verified is real and
+              true, since there's nothing to toggle for someone who hasn't
+              earned a frame yet. */}
+          <button
+            type="button"
+            role="switch"
+            aria-checked={currentUser?.showVerificationFrame !== false}
+            onClick={() => setShowVerificationFrame(currentUser?.showVerificationFrame === false)}
+            className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400"
+          >
+            Display Verification Frame
+            <span
+              className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${
+                currentUser?.showVerificationFrame !== false ? "bg-[#FF6B35]" : "bg-slate-300 dark:bg-slate-700"
+              }`}
+            >
+              <span
+                className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${
+                  currentUser?.showVerificationFrame !== false ? "translate-x-4.5" : "translate-x-1"
+                }`}
+                style={{ transform: currentUser?.showVerificationFrame !== false ? "translateX(1.125rem)" : "translateX(0.25rem)" }}
+              />
+            </span>
+          </button>
+        </div>
       ) : (
         // Real, non-fabricated CTA — Worker ID Verified is genuinely free
         // right now (VerificationFeesTable.jsx's launch-offer price), so
@@ -398,13 +425,13 @@ export default function WorkerProfile() {
                       <img
                         src={currentUser.avatar_url}
                         alt={`${currentUser.name} profile`}
-                        className={`h-28 w-28 rounded-full border-4 border-white object-cover shadow-lg ${verifiedRingClass(currentUser?.verified, "md", "emerald")}`}
+                        className={`h-28 w-28 rounded-full border-4 border-white object-cover shadow-lg ${verifiedRingClass(shouldShowFrame(currentUser?.verified, currentUser), "md", "emerald")}`}
                       />
                     ) : (
                       <img
                         src={defaultAvatarUrl}
                         alt="Default profile"
-                        className={`h-28 w-28 rounded-full border-4 border-white object-cover shadow-lg ${verifiedRingClass(currentUser?.verified, "md", "emerald")}`}
+                        className={`h-28 w-28 rounded-full border-4 border-white object-cover shadow-lg ${verifiedRingClass(shouldShowFrame(currentUser?.verified, currentUser), "md", "emerald")}`}
                       />
                     )}
                     <span className="absolute bottom-2 right-2 h-5 w-5 rounded-full border-4 border-white bg-emerald-500 shadow-[0_0_0_5px_rgba(16,185,129,0.16)]" />

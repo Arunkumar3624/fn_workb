@@ -492,6 +492,9 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
 // ── Edit form ─────────────────────────────────────────────────────────────────
 
 function EditForm({ draft, onChange, onSave, onCancel, saving, saveError }) {
+  const { currentUser, setShowVerificationFrame } = useAuth();
+  const isVerified = Boolean(currentUser?.verified);
+  const frameShown = currentUser?.showVerificationFrame !== false;
   return (
     <div className="wb-scroll-clean h-full min-h-0 overflow-y-auto bg-slate-50 p-7 pb-12 wb-tab-enter dark:bg-slate-950">
       <div className="max-w-2xl mx-auto">
@@ -577,6 +580,32 @@ function EditForm({ draft, onChange, onSave, onCancel, saving, saveError }) {
                 </Field>
               ))}
             </div>
+          </EditFormSection>
+
+          <EditFormSection icon={ShieldCheck} title="Verification">
+            {isVerified ? (
+              <Field label="Verification Frame">
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={frameShown}
+                  onClick={() => setShowVerificationFrame(!frameShown)}
+                  className="flex items-center gap-2.5 text-sm font-semibold text-slate-600 dark:text-slate-300"
+                >
+                  <span className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${frameShown ? "bg-[#FF6B35]" : "bg-slate-300 dark:bg-slate-700"}`}>
+                    <span
+                      className="inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform"
+                      style={{ transform: frameShown ? "translateX(1.125rem)" : "translateX(0.25rem)" }}
+                    />
+                  </span>
+                  Display Verification Frame on my avatar
+                </button>
+              </Field>
+            ) : (
+              <p className="text-sm text-slate-400 dark:text-slate-500">
+                Get Business Verified to unlock a frame around your avatar — see the Verification Badges section under Billing & Subscriptions.
+              </p>
+            )}
           </EditFormSection>
 
           <EditFormSection icon={Mail} title="Contact" last>

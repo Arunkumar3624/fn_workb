@@ -1,5 +1,6 @@
 import { Award, BadgeCheck, Building2, Lock, ShieldCheck, User } from "lucide-react";
 import { verifiedRingClass } from "../../utils/verification";
+import { useAuth } from "../../context/AuthContext";
 
 const VERIFICATION_TIERS = [
   {
@@ -13,6 +14,7 @@ const VERIFICATION_TIERS = [
     // "ID Verified — Trust Guard": the real emerald ring already live on
     // every verified worker's avatar today (WorkerDashboard/Sidebar/Profile).
     frameVariant: "emerald",
+    forRole: "worker",
   },
   {
     id: "skill",
@@ -22,6 +24,7 @@ const VERIFICATION_TIERS = [
     icon: Award,
     // No distinct frame promised for this tier — stays a plain badge icon,
     // same as its own feature list says ("Trust Badge", not a frame).
+    forRole: "worker",
   },
   {
     id: "business",
@@ -32,6 +35,7 @@ const VERIFICATION_TIERS = [
     // "Company Verified — Minimalist Pro": the real frosted-glass ring
     // already live on every verified business's avatar today.
     frameVariant: "glass",
+    forRole: "business",
   },
   {
     id: "full-trust",
@@ -39,6 +43,7 @@ const VERIFICATION_TIERS = [
     // utils/verification.js's verifiedRingClass) — named "Frame" here to
     // match what it really unlocks, not "Badge" like the three cheaper
     // tiers above it, which genuinely only grant a profile badge icon.
+    // Applies to both roles — it's the top trust tier either side can buy.
     badge: "Full Trust Frame",
     price: 699,
     features: ["Manual ID & background check", "Gold Trust Frame on avatar", "Top-priority Algorithm Matching"],
@@ -48,6 +53,7 @@ const VERIFICATION_TIERS = [
     // trust" flag exists yet, so this gold ring never renders on a live
     // avatar, only shown here as what purchasing it would unlock.
     frameVariant: "gold",
+    forRole: "any",
   },
 ];
 
@@ -73,6 +79,14 @@ function FramePreviewSwatch({ variant, tone }) {
 // the subscription tiers' own disclaimer), so every CTA here is honestly
 // disabled rather than pretending to start a real checkout.
 export default function VerificationFeesTable() {
+  const { currentUser } = useAuth();
+  // Strict role-gate — a worker never sees Business Verified, a business
+  // never sees Worker ID/Skill Verified (nonsensical for an org account).
+  // Full Trust is the one tier either role can buy, so it always shows.
+  const visibleTiers = VERIFICATION_TIERS.filter(
+    (row) => row.forRole === "any" || row.forRole === currentUser?.role
+  );
+
   return (
     <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8 dark:border-slate-800 dark:bg-[#0A1128]">
       <div className="mb-7 flex items-center gap-3">
@@ -88,7 +102,7 @@ export default function VerificationFeesTable() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-        {VERIFICATION_TIERS.map((row) => {
+        {visibleTiers.map((row) => {
           const Icon = row.icon;
           return (
             <div

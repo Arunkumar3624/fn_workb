@@ -5,7 +5,7 @@ import { listProjects } from "../../lib/projectsApi";
 import { getInitials } from "../../utils/formValidation";
 import PinnedBadgeOverlay from "../shared/PinnedBadgeOverlay";
 import brandLogo from "../../assets/logo.png";
-import { verifiedRingClass } from "../../utils/verification";
+import { shouldShowFrame, verifiedRingClass } from "../../utils/verification";
 
 // Every one of these is fully real: Job Feed is the real Open Job Board
 // (listOpenProjects/applyToProject), Negotiations is the permanent chat
@@ -77,10 +77,10 @@ export default function WorkerSidebar({ tab, onTabChange, onLogout }) {
               <img
                 src={currentUser.avatar_url}
                 alt={`${currentUser?.name || "Worker"} profile`}
-                className={`h-11 w-11 rounded-lg object-cover ${currentUser?.verified ? verifiedRingClass(true, "sm", "emerald") : ""}`}
+                className={`h-11 w-11 rounded-lg object-cover ${shouldShowFrame(currentUser?.verified, currentUser) ? verifiedRingClass(true, "sm", "emerald") : ""}`}
               />
             ) : (
-              <div className={`flex h-11 w-11 items-center justify-center rounded-lg bg-[#FF6B35] text-sm font-semibold text-white ${currentUser?.verified ? verifiedRingClass(true, "sm", "emerald") : ""}`}>
+              <div className={`flex h-11 w-11 items-center justify-center rounded-lg bg-[#FF6B35] text-sm font-semibold text-white ${shouldShowFrame(currentUser?.verified, currentUser) ? verifiedRingClass(true, "sm", "emerald") : ""}`}>
                 {getInitials(currentUser?.name)}
               </div>
             )}

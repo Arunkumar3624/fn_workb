@@ -15,7 +15,7 @@ import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import brandLogo from "../../assets/logo.png";
 import { getInitials } from "../../utils/formValidation";
-import { verifiedRingClass } from "../../utils/verification";
+import { shouldShowFrame, verifiedRingClass } from "../../utils/verification";
 
 // Support moved into Settings (its own tab there) rather than sitting as a
 // top-level item here — the global SupportFab is the fast path to it now.
@@ -75,10 +75,10 @@ export default function BusinessSidebar({
             <img
               src={currentUser.avatar_url}
               alt={currentUser.name}
-              className={`h-10 w-10 flex-shrink-0 rounded-lg object-cover ${isVerified ? verifiedRingClass(true, "sm", "glass") : ""}`}
+              className={`h-10 w-10 flex-shrink-0 rounded-lg object-cover ${shouldShowFrame(isVerified, currentUser) ? verifiedRingClass(true, "sm", "glass") : ""}`}
             />
           ) : (
-            <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-[#1B3FAB] text-sm font-bold text-white ${isVerified ? verifiedRingClass(true, "sm", "glass") : ""}`}>
+            <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-[#1B3FAB] text-sm font-bold text-white ${shouldShowFrame(isVerified, currentUser) ? verifiedRingClass(true, "sm", "glass") : ""}`}>
               {getInitials(currentUser?.name)}
             </div>
           )}

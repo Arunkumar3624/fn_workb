@@ -12,6 +12,24 @@ const AuthContext = createContext(null);
 // enough to reach the Admin Panel, no server involved).
 const STALE_DEV_BYPASS_USER_KEY = "workbridge_dev_bypass_user";
 
+// The "Stealth Mode" verification-frame toggle — a real, working display
+// preference (it actually hides/shows the ring everywhere instantly), but
+// device-local rather than backend-persisted since there's no DB column for
+// it yet. Keyed per-user id so switching accounts on the same browser
+// doesn't leak one user's choice onto another's session.
+const FRAME_PREF_PREFIX = "wb-show-verification-frame:";
+
+function readFramePreference(userId) {
+  if (typeof window === "undefined" || !userId) return true;
+  const stored = window.localStorage.getItem(FRAME_PREF_PREFIX + userId);
+  return stored === null ? true : stored === "true";
+}
+
+function hydrateFramePreference(user) {
+  if (!user) return user;
+  return { ...user, showVerificationFrame: readFramePreference(user.id) };
+}
+
 // "loading" only lasts as long as the initial /me rehydration call on first
 // mount; after that it's always "authenticated" or "guest".
 export function AuthProvider({ children }) {
@@ -34,7 +52,7 @@ export function AuthProvider({ children }) {
     apiFetch("/api/auth/me")
       .then((user) => {
         connectSocket(token);
-        setCurrentUser(user);
+        setCurrentUser(hydrateFramePreference(user));
         setStatus("authenticated");
       })
       .catch(() => {
@@ -48,7 +66,7 @@ export function AuthProvider({ children }) {
   const authenticate = (token, user) => {
     setToken(token);
     connectSocket(token);
-    setCurrentUser(user);
+    setCurrentUser(hydrateFramePreference(user));
     setStatus("authenticated");
   };
 
@@ -91,12 +109,37 @@ export function AuthProvider({ children }) {
   // Called with the fresh row returned by PATCH /api/profiles/me so an
   // edit (avatar, title, skills/bio) is reflected everywhere that reads
   // currentUser (sidebar, header) without a full page reload/refetch.
+  // hydrateFramePreference re-applies the local showVerificationFrame
+  // choice, since the server response has no column for it and would
+  // otherwise silently drop it on every profile save.
   const updateCurrentUser = (updatedUser) => {
-    setCurrentUser(updatedUser);
+    setCurrentUser(hydrateFramePreference(updatedUser));
+  };
+
+  // The "Stealth Mode" toggle itself — gated by the caller (only rendered/
+  // enabled when the user is actually verified, see WorkerProfile.jsx and
+  // BusinessCompany.jsx's edit sections) so there's nothing to toggle for
+  // someone who hasn't earned a frame yet.
+  const setShowVerificationFrame = (enabled) => {
+    setCurrentUser((prev) => {
+      if (!prev) return prev;
+      window.localStorage.setItem(FRAME_PREF_PREFIX + prev.id, String(enabled));
+      return { ...prev, showVerificationFrame: enabled };
+    });
   };
 
   const value = useMemo(
-    () => ({ currentUser, status, authenticate, logout, updateCurrentUser, isImpersonating, startImpersonation, endImpersonation }),
+    () => ({
+      currentUser,
+      status,
+      authenticate,
+      logout,
+      updateCurrentUser,
+      setShowVerificationFrame,
+      isImpersonating,
+      startImpersonation,
+      endImpersonation,
+    }),
     [currentUser, status, isImpersonating]
   );
 
