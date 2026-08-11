@@ -124,7 +124,10 @@ function BillingToggle({ isYearly, onChange }) {
       >
         Yearly
       </button>
-      <span className="absolute -right-3 -top-3 whitespace-nowrap rounded-full bg-[#FF6B35]/10 px-2 py-1 text-[11px] font-bold text-[#FF6B35]">
+      {/* Pushed clear above the pill (was -top-3, which sat right on top of
+          the Yearly label and overlapped it) so it reads as its own badge,
+          not a smear across the toggle. */}
+      <span className="absolute -right-2 -top-7 whitespace-nowrap rounded-full bg-[#FF6B35]/10 px-2 py-1 text-[11px] font-bold text-[#FF6B35]">
         2 Months Free
       </span>
     </div>

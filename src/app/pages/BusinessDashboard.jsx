@@ -64,11 +64,30 @@ export default function BusinessDashboard({ onLogout, onVerify, isVerified = fal
   // stays the mechanism for in-app navigate() calls that already have a
   // location object to attach state to (SupportFab.jsx, BusinessProjects.jsx's
   // "Open Chat").
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const requestedTab = searchParams.get("tab");
-  const [tab, setTab] = useState(
+  const [tab, setTabState] = useState(
     location.state?.tab ?? (BUSINESS_TAB_IDS.has(requestedTab) ? requestedTab : "overview")
   );
+  // setTab now also writes the tab into the URL's own ?tab= query param
+  // (replace:true so clicking through tabs doesn't spam the Back button) —
+  // previously tab was pure React state, so a hard reload always reset back
+  // to Overview no matter which tab you were actually on. Landing on the
+  // bare /business-dashboard URL (no ?tab=) still correctly defaults to
+  // Overview — this only preserves whatever tab is already reflected in
+  // the address bar.
+  const setTab = (id) => {
+    setTabState(id);
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (id === "overview") next.delete("tab");
+        else next.set("tab", id);
+        return next;
+      },
+      { replace: true }
+    );
+  };
   // Re-asserts the real document title on every tab change, overriding
   // whatever a child page (e.g. SettingsPage.jsx) set with its own
   // useDocumentTitle while it was mounted — that hook has no unmount
@@ -77,14 +96,16 @@ export default function BusinessDashboard({ onLogout, onVerify, isVerified = fal
   // effects before parent effects on the same commit, so this always runs
   // after any child's title effect and wins.
   useDocumentTitle(`${TAB_TITLES[tab] ?? "Overview"} — WorkBridge`);
-  // Tab state here is local, not URL-driven (unlike WorkerDashboard) — a
-  // navigate("/business-dashboard", { state: { tab: "support" } }) (see
-  // SupportFab.jsx) lands on the SAME route, so the component doesn't
-  // remount and the useState initializer above only ever runs once. This
-  // re-syncs on every subsequent navigation that carries a tab in state or
-  // search params.
+  // Tab state here is local, not URL-driven the same way WorkerDashboard's
+  // route param is — a navigate("/business-dashboard", { state: { tab:
+  // "support" } }) (see SupportFab.jsx) lands on the SAME route, so the
+  // component doesn't remount and the useState initializer above only ever
+  // runs once. This re-syncs on every subsequent navigation that carries a
+  // tab in state or search params, routing through setTab (not setTabState)
+  // so either arrival path also gets written into the URL for reload-safety.
   useEffect(() => {
     if (location.state?.tab) setTab(location.state.tab);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.state]);
 
   useEffect(() => {

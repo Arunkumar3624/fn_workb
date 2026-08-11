@@ -675,9 +675,14 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                       </div>
                       <div className="py-2.5 px-1">
                         <p className="text-slate-400">Rating</p>
+                        {/* Real reviews aren't fetched into this draft-preview
+                            component — rather than fabricate a number, this
+                            honestly reads "New" until this business has
+                            actual reviews to show, same as a worker with
+                            zero reviews reads elsewhere on WorkBridge. */}
                         <p className="mt-0.5 font-black text-slate-900 inline-flex items-center gap-0.5">
-                          <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                          4.8
+                          <Star className="h-3 w-3 text-slate-300" />
+                          New
                         </p>
                       </div>
                     </div>
