@@ -26,7 +26,11 @@ const VERIFICATION_TIERS = [
   },
   {
     id: "full-trust",
-    badge: "Full Trust Badge",
+    // The one tier that actually grants the real glowing avatar ring (see
+    // utils/verification.js's verifiedRingClass) — named "Frame" here to
+    // match what it really unlocks, not "Badge" like the three cheaper
+    // tiers above it, which genuinely only grant a profile badge icon.
+    badge: "Full Trust Frame",
     price: 699,
     features: ["Manual ID & background check", "Gold Trust Frame on avatar", "Top-priority Algorithm Matching"],
     icon: BadgeCheck,
@@ -35,62 +39,65 @@ const VERIFICATION_TIERS = [
 ];
 
 // Shared between WorkerWallet.jsx's Subscription tab and the business
-// Billing tab (SettingsPage.jsx). Deliberately not styled like the gamified
-// Tokens/Perks Shop next to it — this is a paid B2B trust purchase, so it
-// gets its own high-contrast "vault" treatment (deep navy / emerald / gold)
-// instead of the playful orange-and-amber gamification palette used
-// elsewhere on this page. No payment gateway is wired up yet (see the
-// subscription tiers' own disclaimer), so every CTA here is honestly
+// Billing tab (SettingsPage.jsx). A real, paid B2B trust purchase, so it
+// keeps its own high-contrast "vault" palette (emerald/gold accents on a
+// crisp card) rather than the playful gamification colors used elsewhere —
+// but the card itself now follows the app's light/dark theme like every
+// other card on these pages, instead of being forced dark regardless of
+// the user's actual theme choice. No payment gateway is wired up yet (see
+// the subscription tiers' own disclaimer), so every CTA here is honestly
 // disabled rather than pretending to start a real checkout.
 export default function VerificationFeesTable() {
   return (
-    <div className="mt-8 rounded-2xl border border-slate-800 bg-[#0A1128] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.25)] sm:p-8">
-      <div className="mb-6 flex items-center gap-3">
-        <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400">
+    <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8 dark:border-slate-800 dark:bg-[#0A1128]">
+      <div className="mb-7 flex items-center gap-3">
+        <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
           <ShieldCheck className="h-5 w-5" />
         </span>
         <div>
-          <h2 className="text-lg font-extrabold text-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          <h2 className="text-lg font-extrabold text-slate-900 dark:text-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
             Enterprise Verification Badges
           </h2>
-          <p className="mt-0.5 text-sm text-slate-400">One-time, paid badges that build real trust on your profile.</p>
+          <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">One-time, paid badges that build real trust on your profile.</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         {VERIFICATION_TIERS.map((row) => {
           const Icon = row.icon;
           return (
             <div
               key={row.id}
-              className={`flex flex-col rounded-xl border p-5 ${
+              className={`flex flex-col rounded-xl border p-6 ${
                 row.elite
-                  ? "border-amber-400/30 bg-gradient-to-b from-amber-500/10 via-[#0F1B3D] to-[#0F1B3D]"
-                  : "border-slate-700/80 bg-[#0F1B3D]"
+                  ? "border-amber-300 bg-gradient-to-b from-amber-50 via-white to-white dark:border-amber-400/30 dark:from-amber-500/10 dark:via-[#0F1B3D] dark:to-[#0F1B3D]"
+                  : "border-slate-200 bg-slate-50/50 dark:border-slate-700/80 dark:bg-[#0F1B3D]"
               }`}
             >
               <span
-                className={`mb-4 flex h-10 w-10 items-center justify-center rounded-lg ${
-                  row.elite ? "bg-amber-400/15 text-amber-400" : "bg-emerald-500/10 text-emerald-400"
+                className={`mb-4 flex h-11 w-11 items-center justify-center rounded-lg ${
+                  row.elite
+                    ? "bg-amber-100 text-amber-600 dark:bg-amber-400/15 dark:text-amber-400"
+                    : "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400"
                 }`}
               >
                 <Icon className="h-5 w-5" />
               </span>
 
-              <p className="text-sm font-bold text-white">{row.badge}</p>
+              <p className="text-base font-bold text-slate-900 dark:text-white">{row.badge}</p>
 
               <div className="mt-2 flex items-baseline gap-1.5">
-                <span className="text-2xl font-extrabold text-white">
+                <span className="text-3xl font-extrabold text-slate-900 dark:text-white">
                   {row.price === 0 ? row.priceLabel : `₹${row.price}`}
                 </span>
-                {row.price > 0 && <span className="text-xs font-medium text-slate-500">one-time</span>}
+                {row.price > 0 && <span className="text-xs font-medium text-slate-400 dark:text-slate-500">one-time</span>}
               </div>
-              {row.subLabel && <p className="mt-0.5 text-xs text-emerald-400">{row.subLabel}</p>}
+              {row.subLabel && <p className="mt-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">{row.subLabel}</p>}
 
-              <ul className="mt-4 flex flex-1 flex-col gap-2">
+              <ul className="mt-5 flex flex-1 flex-col gap-2.5">
                 {row.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-2 text-xs text-slate-300">
-                    <BadgeCheck className={`mt-0.5 h-3.5 w-3.5 flex-shrink-0 ${row.elite ? "text-amber-400" : "text-emerald-400"}`} />
+                  <li key={feature} className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
+                    <BadgeCheck className={`mt-0.5 h-4 w-4 flex-shrink-0 ${row.elite ? "text-amber-500 dark:text-amber-400" : "text-emerald-500 dark:text-emerald-400"}`} />
                     {feature}
                   </li>
                 ))}
@@ -100,7 +107,7 @@ export default function VerificationFeesTable() {
                 type="button"
                 disabled
                 title="Payment checkout is coming soon"
-                className="mt-5 flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-lg bg-[#FF6B35]/50 py-2.5 text-xs font-bold text-white/80"
+                className="mt-6 flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-lg bg-[#FF6B35]/50 py-3 text-sm font-bold text-white/80"
               >
                 <Lock className="h-3.5 w-3.5" />
                 {row.price === 0 ? "Claim — Free" : `Purchase — ₹${row.price}`}
@@ -110,7 +117,7 @@ export default function VerificationFeesTable() {
         })}
       </div>
 
-      <p className="mt-6 text-center text-[11px] text-slate-500">
+      <p className="mt-6 text-center text-[11px] text-slate-400 dark:text-slate-500">
         Checkout isn't live yet — this is a preview of pricing and what each badge unlocks.
       </p>
     </div>
