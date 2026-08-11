@@ -13,6 +13,8 @@ import {
   LockKeyhole,
   MessageSquare,
   ShieldCheck,
+  ShieldOff,
+  UserX,
   X,
 } from "lucide-react";
 import Avatar from "../shared/Avatar";
@@ -21,9 +23,11 @@ import DeliverablesPanel from "../shared/DeliverablesPanel";
 import ChatThread from "../shared/ChatThread";
 import { listProjects, updateProjectStatus } from "../../lib/projectsApi";
 import { listThreads } from "../../lib/threadsApi";
+import { getBlockStatus, blockUser, unblockUser } from "../../lib/blocksApi";
 import { getInitials } from "../../utils/formValidation";
 import { ApiError } from "../../lib/apiClient";
 import { getSocket } from "../../lib/socketClient";
+import { useAuth } from "../../context/AuthContext";
 
 // A project only ever gets a real chat_threads row once it has a real
 // worker_id (see backend's threads.repository.js) — every status below
@@ -142,7 +146,7 @@ function FieldPill({ icon: Icon, label, value, dark = false }) {
 // which one it means.
 function ThreadNavigator({ threads, groupsByCounterparty, selectedThreadId, onSelect }) {
   return (
-    <section className="flex h-full min-h-0 flex-col bg-white dark:bg-slate-950">
+    <section className="flex h-full min-h-0 flex-col bg-white dark:bg-gradient-to-b dark:from-slate-950 dark:to-slate-900">
       <div className="flex-shrink-0 border-b border-slate-200 px-5 py-3 dark:border-slate-800">
         <div className="flex items-center justify-between">
           <div>
@@ -417,6 +421,7 @@ function ProjectChip({ project, onClick }) {
 // the old single-project header now that one merged conversation
 // (ChatThread, shared/ChatThread.jsx) can span several projects at once.
 function ChatPanel({ thread, projects, onViewDetails }) {
+  const { isImpersonating } = useAuth();
   const activeProjects = useMemo(() => projects.filter((p) => !CLOSED_STATUSES.has(p.status)), [projects]);
   const historyProjects = useMemo(() => projects.filter((p) => CLOSED_STATUSES.has(p.status)), [projects]);
   const mostUrgent = projects.find((p) => !CLOSED_STATUSES.has(p.status)) ?? projects[0] ?? null;
@@ -424,8 +429,47 @@ function ChatPanel({ thread, projects, onViewDetails }) {
   const isPaidOut = mostUrgent?.status === "COMPLETED";
   const isCancelled = mostUrgent?.status === "CANCELLED";
 
+  // Block/Unblock now lives here (in the header row) rather than as its
+  // own separate bar inside ChatThread — same real, mutual, WhatsApp-style
+  // block, just owned by the parent so it can sit next to the other status
+  // badges instead of on its own line.
+  const [blockStatus, setBlockStatus] = useState({ blockedByMe: false, blockedMe: false });
+  const [blockActionBusy, setBlockActionBusy] = useState(false);
+  const otherUserId = thread.other_user_id;
+
+  useEffect(() => {
+    if (!otherUserId) return;
+    getBlockStatus(otherUserId).then(setBlockStatus).catch(() => {});
+  }, [otherUserId]);
+
+  const handleBlock = async () => {
+    if (!otherUserId || blockActionBusy) return;
+    setBlockActionBusy(true);
+    try {
+      await blockUser(otherUserId);
+      setBlockStatus((prev) => ({ ...prev, blockedByMe: true }));
+    } catch {
+      // Non-critical — the button just stays clickable to retry.
+    } finally {
+      setBlockActionBusy(false);
+    }
+  };
+
+  const handleUnblock = async () => {
+    if (!otherUserId || blockActionBusy) return;
+    setBlockActionBusy(true);
+    try {
+      await unblockUser(otherUserId);
+      setBlockStatus((prev) => ({ ...prev, blockedByMe: false }));
+    } catch {
+      // Non-critical — the button just stays clickable to retry.
+    } finally {
+      setBlockActionBusy(false);
+    }
+  };
+
   return (
-    <section className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-slate-50 dark:bg-slate-950">
+    <section className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-slate-50 dark:bg-gradient-to-b dark:from-slate-950 dark:to-slate-900">
       <header className="sticky top-0 z-10 flex-shrink-0 border-b border-slate-200 bg-white/95 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/95">
         <div className="flex items-center justify-between gap-4 pr-6">
           <div className="min-w-0 flex-1 [&>div]:border-b-0 [&>div]:bg-transparent">
@@ -456,6 +500,31 @@ function ChatPanel({ thread, projects, onViewDetails }) {
               <BadgeCheck className="h-3.5 w-3.5" />
               On WorkBridge
             </span>
+          )}
+          {otherUserId && !blockStatus.blockedMe && (
+            blockStatus.blockedByMe ? (
+              <button
+                type="button"
+                onClick={handleUnblock}
+                disabled={blockActionBusy || isImpersonating}
+                title={isImpersonating ? "Disabled in Impersonation Mode" : undefined}
+                className="flex flex-shrink-0 items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 shadow-sm transition-colors hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-400 dark:hover:bg-emerald-950/50"
+              >
+                <ShieldOff className="h-3.5 w-3.5" />
+                {isImpersonating ? "Disabled" : "Unblock"}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleBlock}
+                disabled={blockActionBusy || isImpersonating}
+                title={isImpersonating ? "Disabled in Impersonation Mode" : undefined}
+                className="flex flex-shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-500 shadow-sm transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-red-900/40 dark:hover:bg-red-950/30 dark:hover:text-red-400"
+              >
+                <UserX className="h-3.5 w-3.5" />
+                {isImpersonating ? "Disabled" : "Block"}
+              </button>
+            )
           )}
         </div>
 
@@ -493,6 +562,10 @@ function ChatPanel({ thread, projects, onViewDetails }) {
         otherUserId={thread.other_user_id}
         activeProjects={activeProjects.map((p) => ({ id: p.id, title: p.title }))}
         projectIds={projects.map((p) => p.id)}
+        blockStatus={blockStatus}
+        blockActionBusy={blockActionBusy}
+        onBlock={handleBlock}
+        onUnblock={handleUnblock}
       />
     </section>
   );
@@ -675,8 +748,8 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
   }
 
   return (
-    <div className="relative flex h-full min-h-0 overflow-hidden bg-white dark:bg-slate-950" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-      <aside className="flex h-full min-h-0 w-[360px] flex-shrink-0 flex-col border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+    <div className="relative flex h-full min-h-0 overflow-hidden bg-white dark:bg-gradient-to-b dark:from-slate-950 dark:to-slate-900" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+      <aside className="flex h-full min-h-0 w-[360px] flex-shrink-0 flex-col border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-gradient-to-b dark:from-slate-950 dark:to-slate-900">
         <ThreadNavigator
           threads={threads}
           groupsByCounterparty={projectsByCounterparty}

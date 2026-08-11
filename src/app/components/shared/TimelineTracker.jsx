@@ -14,7 +14,7 @@ export default function TimelineTracker({ status }) {
   if (activeIdx === -1) return null;
 
   return (
-    <div className="flex-shrink-0 flex items-center gap-1.5 bg-slate-50 border-b border-slate-200 px-3 h-8 overflow-hidden sm:gap-2 sm:px-6">
+    <div className="flex-shrink-0 flex items-center gap-1.5 bg-slate-50 border-b border-slate-200 px-3 h-8 overflow-hidden sm:gap-2 sm:px-6 dark:bg-slate-900/60 dark:border-slate-800">
       {PROJECT_STATUS_FLOW.map((step, idx) => {
         const meta = PROJECT_STATUS_META[step];
         const isDone = idx < activeIdx;
@@ -24,19 +24,19 @@ export default function TimelineTracker({ status }) {
             <div className="flex items-center gap-1.5 flex-shrink-0">
               <div
                 className={`h-2.5 w-2.5 rounded-full border-2 transition-colors ${
-                  isDone || isCurrent ? TONE_FILLED[meta.tone] : "bg-white border-slate-300"
+                  isDone || isCurrent ? TONE_FILLED[meta.tone] : "bg-white border-slate-300 dark:bg-slate-800 dark:border-slate-600"
                 } ${isCurrent ? "animate-pulse" : ""}`}
               />
               <span
                 className={`hidden text-[10px] font-bold whitespace-nowrap sm:inline ${
-                  isCurrent ? "text-slate-700" : isDone ? "text-slate-400" : "text-slate-300"
+                  isCurrent ? "text-slate-700 dark:text-slate-200" : isDone ? "text-slate-400 dark:text-slate-500" : "text-slate-300 dark:text-slate-700"
                 }`}
               >
                 {meta.shortLabel}
               </span>
             </div>
             {idx < PROJECT_STATUS_FLOW.length - 1 && (
-              <div className={`h-px flex-1 ${isDone ? "bg-emerald-300" : "bg-slate-200"}`} />
+              <div className={`h-px flex-1 ${isDone ? "bg-emerald-300 dark:bg-emerald-700" : "bg-slate-200 dark:bg-slate-700"}`} />
             )}
           </div>
         );

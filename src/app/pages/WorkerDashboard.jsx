@@ -110,97 +110,86 @@ export default function WorkerDashboard({ onLogout }) {
     >
       <div className="flex h-full flex-col overflow-hidden rounded-[2.5rem] border border-slate-200/80 bg-white/90 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.14)] backdrop-blur-2xl dark:border-slate-700/60 dark:bg-slate-900/90">
         {tab === "feed" ? (
-          /* Warm Greeting — the "Lobby". Both the identity row and the
-             promo/HUD row live in ONE padded block now (no divider, no
-             separate bg-slate-50/50 section) — that split used to nearly
-             double this header's height for no real reason. */
-          <div className="flex flex-shrink-0 flex-col gap-4 p-5 dark:border-slate-800 md:p-6">
-            <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex min-w-0 items-center gap-3">
-                {currentUser?.avatar_url ? (
-                  <img
-                    src={currentUser.avatar_url}
-                    alt={currentUser.name}
-                    className={`h-14 w-14 flex-shrink-0 rounded-full object-cover shadow-lg ${verifiedRingClass(shouldShowFrame(currentUser?.verified, currentUser), "md", "emerald")}`}
-                  />
-                ) : (
-                  <div className={`flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-[#0f172a] text-lg font-semibold text-white shadow-lg ${verifiedRingClass(shouldShowFrame(currentUser?.verified, currentUser), "md", "emerald")}`}>
-                    {getInitials(currentUser?.name)}
-                  </div>
-                )}
-                <div className="min-w-0">
-                  <h1 className="truncate text-xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-2xl">
-                    {greeting.text}, {currentUser?.name?.split(" ")[0] ?? "there"}! {greeting.emoji}
-                  </h1>
-                  <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
-                    Ready to crush some goals today? Here are your top matches.
-                  </p>
+          /* Warm Greeting — the "Lobby". One row now, same compact scale as
+             BusinessDashboard.jsx's greeting: smaller avatar, identity on
+             the left, every status pill (payout note, momentum, streak/
+             tokens HUD, balance, bell) folded into a single row on the
+             right instead of a separate second row underneath. */
+          <div className="flex flex-shrink-0 flex-wrap items-center justify-between gap-3 p-5 md:p-6">
+            <div className="flex min-w-0 items-center gap-3">
+              {currentUser?.avatar_url ? (
+                <img
+                  src={currentUser.avatar_url}
+                  alt={currentUser.name}
+                  className={`h-12 w-12 flex-shrink-0 rounded-full object-cover shadow-lg ${verifiedRingClass(shouldShowFrame(currentUser?.verified, currentUser), "md", "emerald")}`}
+                />
+              ) : (
+                <div className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-[#0f172a] text-base font-semibold text-white shadow-lg ${verifiedRingClass(shouldShowFrame(currentUser?.verified, currentUser), "md", "emerald")}`}>
+                  {getInitials(currentUser?.name)}
                 </div>
-              </div>
-
-              <div className="flex flex-shrink-0 items-center gap-3">
-                <NotificationBell />
-                <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900 dark:text-white">₹{walletBalance.toLocaleString("en-IN")}</p>
-                    <p className="text-xs text-slate-500">Available balance</p>
-                  </div>
-                </div>
+              )}
+              <div className="min-w-0">
+                <h1 className="truncate text-lg font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-xl">
+                  {greeting.text}, {currentUser?.name?.split(" ")[0] ?? "there"}! {greeting.emoji}
+                </h1>
+                <p className="truncate text-xs text-slate-500 dark:text-slate-400 sm:text-sm">
+                  Ready to crush some goals today? Here are your top matches.
+                </p>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex min-w-0 flex-1 items-center gap-3 rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 via-emerald-50 to-white px-4 py-2.5 shadow-sm dark:border-amber-900/40 dark:from-amber-950/40 dark:via-emerald-950/30 dark:to-slate-900">
-                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-2xl bg-white shadow-sm dark:bg-slate-800">
-                  <Sparkles className="h-4 w-4 text-[#ff6b35]" />
+            <div className="flex flex-shrink-0 flex-wrap items-center gap-2">
+              <span
+                title="Once a business approves your work, the payout lands straight in your wallet."
+                className="hidden items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-400 sm:inline-flex"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                Payouts Automatic
+              </span>
+
+              {/* The Hustle Stats card — real job_candidates counts, not a
+                  fabricated "momentum" number. */}
+              {hustleStats && (
+                <div className="hidden items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm dark:border-slate-700 dark:bg-slate-800 lg:flex">
+                  <TrendingUp className="h-3.5 w-3.5 flex-shrink-0 text-[#FF6B35]" />
+                  <p className="text-xs font-bold text-slate-900 dark:text-white">
+                    {hustleStats.thisWeek} this week
+                    <span className="font-normal text-slate-400"> · {hustleStats.thisMonth} this month</span>
+                  </p>
                 </div>
-                <p className="text-sm text-slate-700 dark:text-slate-300">
-                  No more chasing invoices.{' '}
-                  <span className="font-semibold text-slate-900 dark:text-white">Once a business approves your work, the payout lands straight in your wallet.</span>
-                </p>
+              )}
+
+              <div className="hidden items-center gap-3 rounded-2xl border border-white/20 bg-[#0F172A]/90 px-4 py-2 shadow-sm backdrop-blur-md sm:flex">
+                <span className="flex items-center gap-1.5 text-sm font-bold text-white">
+                  <Flame className="h-4 w-4 text-[#FF6B35]" />
+                  {currentUser?.current_streak ?? 0}
+                  <span className="hidden font-normal text-slate-300 md:inline">Day Streak</span>
+                </span>
+                <span className="h-4 w-px bg-white/20" />
+                <button
+                  type="button"
+                  onClick={() => navigate("/worker/economy?tab=shop")}
+                  title="Go to the Token Shop"
+                  className="flex items-center gap-1.5 text-sm font-bold text-white transition-colors hover:text-amber-300"
+                >
+                  <Coins className="h-4 w-4 text-amber-400" />
+                  {currentUser?.bridge_tokens ?? 0}
+                  <span className="hidden font-normal text-slate-300 md:inline">Tokens</span>
+                </button>
+                <EconomyInfoTooltip title="How Tokens work">
+                  <p>Bridge Tokens are your spendable balance — use them in the Token Shop on visibility perks.</p>
+                  <p className="mt-2">You earn <strong>+25 Tokens</strong> automatically every time a project you complete gets approved and paid. Nothing else grants Tokens today.</p>
+                </EconomyInfoTooltip>
               </div>
 
-              <div className="flex items-center gap-3">
-                {/* The Hustle Stats card — real job_candidates counts, not a
-                    fabricated "momentum" number. */}
-                {hustleStats && (
-                  <div className="hidden items-center gap-2.5 rounded-2xl border border-white/60 bg-white/50 px-4 py-2 shadow-sm backdrop-blur-md dark:border-slate-700/60 dark:bg-slate-800/50 lg:flex">
-                    <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-orange-50 text-[#FF6B35] dark:bg-orange-500/10">
-                      <TrendingUp className="h-4 w-4" />
-                    </span>
-                    <div className="leading-tight">
-                      <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Momentum</p>
-                      <p className="text-sm font-bold text-slate-900 dark:text-white">
-                        {hustleStats.thisWeek} this week
-                        <span className="font-normal text-slate-400"> · {hustleStats.thisMonth} this month</span>
-                      </p>
-                    </div>
-                  </div>
-                )}
-                {/* MASTER_ECONOMY_PLAN.md's Dashboard HUD. */}
-                <div className="hidden items-center gap-3 rounded-2xl border border-white/20 bg-[#0F172A]/90 px-4 py-2 shadow-sm backdrop-blur-md sm:flex">
-                  <span className="flex items-center gap-1.5 text-sm font-bold text-white">
-                    <Flame className="h-4 w-4 text-[#FF6B35]" />
-                    {currentUser?.current_streak ?? 0}
-                    <span className="hidden font-normal text-slate-300 md:inline">Day Streak</span>
-                  </span>
-                  <span className="h-4 w-px bg-white/20" />
-                  <button
-                    type="button"
-                    onClick={() => navigate("/worker/economy?tab=shop")}
-                    title="Go to the Token Shop"
-                    className="flex items-center gap-1.5 text-sm font-bold text-white transition-colors hover:text-amber-300"
-                  >
-                    <Coins className="h-4 w-4 text-amber-400" />
-                    {currentUser?.bridge_tokens ?? 0}
-                    <span className="hidden font-normal text-slate-300 md:inline">Tokens</span>
-                  </button>
-                  <EconomyInfoTooltip title="How Tokens work">
-                    <p>Bridge Tokens are your spendable balance — use them in the Token Shop on visibility perks.</p>
-                    <p className="mt-2">You earn <strong>+25 Tokens</strong> automatically every time a project you complete gets approved and paid. Nothing else grants Tokens today.</p>
-                  </EconomyInfoTooltip>
+              <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                <div>
+                  <p className="text-sm font-semibold text-slate-900 dark:text-white">₹{walletBalance.toLocaleString("en-IN")}</p>
+                  <p className="text-xs text-slate-500">Available balance</p>
                 </div>
               </div>
+
+              <NotificationBell />
             </div>
           </div>
         ) : (
@@ -211,13 +200,13 @@ export default function WorkerDashboard({ onLogout }) {
               {TAB_TITLES[tab] ?? "Dashboard"}
             </h1>
             <div className="flex flex-shrink-0 items-center gap-3">
-              <NotificationBell />
               <div className="hidden items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm dark:border-slate-700 dark:bg-slate-800 sm:flex">
                 <div>
                   <p className="text-sm font-semibold text-slate-900 dark:text-white">₹{walletBalance.toLocaleString("en-IN")}</p>
                   <p className="text-xs text-slate-500">Available balance</p>
                 </div>
               </div>
+              <NotificationBell />
             </div>
           </div>
         )}

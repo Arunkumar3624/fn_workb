@@ -949,6 +949,25 @@ export default function BusinessProjects({ onOpenChat }) {
   const [completingId, setCompletingId] = useState(null);
   const [completeError, setCompleteError] = useState(null);
   const [workerDrawerProject, setWorkerDrawerProject] = useState(null);
+  // Same real, per-device declutter pattern as WorkerWorkspace.jsx's
+  // dismissedHistoryIds — a completed/cancelled project stays a real,
+  // permanent DB record (payment history, dispute record) either way;
+  // this only hides it from THIS device's own History list once it's no
+  // longer useful to see there.
+  const [dismissedHistoryIds, setDismissedHistoryIds] = useState(() => {
+    try {
+      return new Set(JSON.parse(localStorage.getItem("wb_dismissed_business_history") ?? "[]"));
+    } catch {
+      return new Set();
+    }
+  });
+  const dismissHistoryProject = (id) => {
+    setDismissedHistoryIds((prev) => {
+      const next = new Set(prev).add(id);
+      localStorage.setItem("wb_dismissed_business_history", JSON.stringify([...next]));
+      return next;
+    });
+  };
   // Opens EscrowFundingDrawer for this project — replaces the old instant,
   // no-proof-required apiSecureFunds() click (see fundEscrow in
   // projects.controller.js for why that changed).
@@ -1028,7 +1047,9 @@ export default function BusinessProjects({ onOpenChat }) {
   // forever showing action buttons (Raise Dispute, Download Files) that no
   // longer make sense once it's actually done.
   const liveProjects = projects.filter((p) => p.status !== "COMPLETED" && p.status !== "CANCELLED");
-  const historyProjects = projects.filter((p) => p.status === "COMPLETED" || p.status === "CANCELLED");
+  const historyProjects = projects
+    .filter((p) => p.status === "COMPLETED" || p.status === "CANCELLED")
+    .filter((p) => !dismissedHistoryIds.has(p.id));
   // Posted (OPEN, no worker yet) and Ongoing (assigned, actually underway)
   // used to render mixed together in one list — split into their own tabs,
   // same pill-switcher pattern as WorkerWorkspace's Active Tasks/History.
@@ -1667,11 +1688,25 @@ export default function BusinessProjects({ onOpenChat }) {
                 return (
                   <div
                     key={p.id}
-                    className={`flex flex-col gap-3 rounded-xl border px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-5 ${
+                    className={`relative flex flex-col gap-3 rounded-xl border px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-5 ${
                       isCancelled ? "border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900" : "border-emerald-100 bg-emerald-50/50 dark:border-emerald-900/40 dark:bg-emerald-950/20"
                     }`}
                   >
-                    <div className="flex min-w-0 items-center gap-3">
+                    {/* History declutter — a real, per-device hide (see
+                        dismissedHistoryIds above), not a DB delete. The
+                        underlying project/payment record stays exactly as
+                        it was; this just removes it from this device's own
+                        History list once it's no longer useful to see. */}
+                    <button
+                      type="button"
+                      onClick={() => dismissHistoryProject(p.id)}
+                      aria-label="Remove from history"
+                      title="Remove from history"
+                      className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full text-slate-300 transition-colors hover:bg-slate-100 hover:text-slate-500 dark:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-400"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                    <div className="flex min-w-0 items-center gap-3 pr-6">
                       <Avatar initials={getInitials(p.worker_name)} bg="bg-[#1B3FAB]" size="w-10 h-10" text="text-xs" />
                       <div className="min-w-0">
                         <p className="truncate text-sm font-bold text-[#0F172A] dark:text-white">{p.title}</p>

@@ -236,7 +236,6 @@ export default function BusinessDashboard({ onLogout, onVerify, isVerified = fal
                 {TAB_TITLES[tab] ?? "Dashboard"}
               </h1>
               <div className="flex flex-shrink-0 items-center gap-3">
-                <NotificationBell />
                 <span className={`hidden items-center gap-1.5 rounded-2xl border px-3 py-2 text-sm font-semibold shadow-sm sm:inline-flex ${
                   isVerified
                     ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-400"
@@ -245,6 +244,7 @@ export default function BusinessDashboard({ onLogout, onVerify, isVerified = fal
                   {isVerified ? <ShieldCheck className="h-4 w-4" /> : <ShieldAlert className="h-4 w-4" />}
                   {isVerified ? "Verified" : "Unverified"}
                 </span>
+                <NotificationBell />
               </div>
             </div>
           )}

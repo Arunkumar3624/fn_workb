@@ -8,7 +8,9 @@ import {
   FileText,
   Search,
   ShieldCheck,
+  ShieldOff,
   Sparkles,
+  UserX,
   Users,
 } from "lucide-react";
 import Avatar from "../shared/Avatar";
@@ -16,9 +18,11 @@ import IdentityHeader from "../shared/IdentityHeader";
 import ChatThread from "../shared/ChatThread";
 import { listProjects } from "../../lib/projectsApi";
 import { listThreads } from "../../lib/threadsApi";
+import { getBlockStatus, blockUser, unblockUser } from "../../lib/blocksApi";
 import { getInitials } from "../../utils/formValidation";
 import { ApiError } from "../../lib/apiClient";
 import { getSocket } from "../../lib/socketClient";
+import { useAuth } from "../../context/AuthContext";
 
 // A project only ever gets a real chat_threads row once it has a real
 // worker_id (see backend's threads.repository.js) — every status below
@@ -235,11 +239,13 @@ function ProjectChip({ project, onClick }) {
   );
 }
 
-function HubHeader({ thread, projects, onViewContractTerms }) {
+function HubHeader({ thread, projects, onViewContractTerms, blockStatus, blockActionBusy, onBlock, onUnblock }) {
+  const { isImpersonating } = useAuth();
   const mostUrgent = projects.find((p) => !CLOSED_STATUSES.has(p.status)) ?? projects[0] ?? null;
   const fundsSecured = mostUrgent ? FUNDS_SECURED_STATUSES.has(mostUrgent.status) : false;
   const isPaidOut = mostUrgent?.status === "COMPLETED";
   const isCancelled = mostUrgent?.status === "CANCELLED";
+  const otherUserId = thread.other_user_id;
 
   return (
     <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/80 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/80">
@@ -279,6 +285,31 @@ function HubHeader({ thread, projects, onViewContractTerms }) {
             </button>
           </div>
         )}
+        {otherUserId && !blockStatus.blockedMe && (
+          blockStatus.blockedByMe ? (
+            <button
+              type="button"
+              onClick={onUnblock}
+              disabled={blockActionBusy || isImpersonating}
+              title={isImpersonating ? "Disabled in Impersonation Mode" : undefined}
+              className="flex flex-shrink-0 items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-xs font-black text-emerald-700 shadow-sm transition-colors hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-400 dark:hover:bg-emerald-950/50"
+            >
+              <ShieldOff className="h-3.5 w-3.5" />
+              {isImpersonating ? "Disabled" : "Unblock"}
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={onBlock}
+              disabled={blockActionBusy || isImpersonating}
+              title={isImpersonating ? "Disabled in Impersonation Mode" : undefined}
+              className="flex flex-shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-2 text-xs font-black text-slate-500 shadow-sm transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-red-900/40 dark:hover:bg-red-950/30 dark:hover:text-red-400"
+            >
+              <UserX className="h-3.5 w-3.5" />
+              {isImpersonating ? "Disabled" : "Block"}
+            </button>
+          )
+        )}
       </div>
 
       {mostUrgent && (
@@ -311,8 +342,47 @@ function HubHeader({ thread, projects, onViewContractTerms }) {
 function FocusHub({ thread, projects, onViewContractTerms }) {
   const activeProjects = useMemo(() => projects.filter((p) => !CLOSED_STATUSES.has(p.status)), [projects]);
 
+  // Block/Unblock now lives in HubHeader's own row rather than as its own
+  // separate bar inside ChatThread — same real, mutual, WhatsApp-style
+  // block, owned here so both the header button and the composer's gating
+  // stay in sync off the one fetch.
+  const [blockStatus, setBlockStatus] = useState({ blockedByMe: false, blockedMe: false });
+  const [blockActionBusy, setBlockActionBusy] = useState(false);
+  const otherUserId = thread.other_user_id;
+
+  useEffect(() => {
+    if (!otherUserId) return;
+    getBlockStatus(otherUserId).then(setBlockStatus).catch(() => {});
+  }, [otherUserId]);
+
+  const handleBlock = async () => {
+    if (!otherUserId || blockActionBusy) return;
+    setBlockActionBusy(true);
+    try {
+      await blockUser(otherUserId);
+      setBlockStatus((prev) => ({ ...prev, blockedByMe: true }));
+    } catch {
+      // Non-critical — the button just stays clickable to retry.
+    } finally {
+      setBlockActionBusy(false);
+    }
+  };
+
+  const handleUnblock = async () => {
+    if (!otherUserId || blockActionBusy) return;
+    setBlockActionBusy(true);
+    try {
+      await unblockUser(otherUserId);
+      setBlockStatus((prev) => ({ ...prev, blockedByMe: false }));
+    } catch {
+      // Non-critical — the button just stays clickable to retry.
+    } finally {
+      setBlockActionBusy(false);
+    }
+  };
+
   return (
-    <main className="flex h-full min-w-0 flex-1 flex-col overflow-hidden bg-white dark:bg-slate-950">
+    <main className="flex h-full min-w-0 flex-1 flex-col overflow-hidden bg-white dark:bg-gradient-to-b dark:from-slate-950 dark:to-slate-900">
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={thread.id}
@@ -322,7 +392,15 @@ function FocusHub({ thread, projects, onViewContractTerms }) {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.18, ease: "easeInOut" }}
         >
-          <HubHeader thread={thread} projects={projects} onViewContractTerms={onViewContractTerms} />
+          <HubHeader
+            thread={thread}
+            projects={projects}
+            onViewContractTerms={onViewContractTerms}
+            blockStatus={blockStatus}
+            blockActionBusy={blockActionBusy}
+            onBlock={handleBlock}
+            onUnblock={handleUnblock}
+          />
           {/* No longer read-only once closed — see WorkerNegotiationInbox.jsx's
               matching comment. Only a real, mutual, WhatsApp-style block
               gates the composer now. */}
@@ -331,6 +409,10 @@ function FocusHub({ thread, projects, onViewContractTerms }) {
             otherUserId={thread.other_user_id}
             activeProjects={activeProjects.map((p) => ({ id: p.id, title: p.title }))}
             projectIds={projects.map((p) => p.id)}
+            blockStatus={blockStatus}
+            blockActionBusy={blockActionBusy}
+            onBlock={handleBlock}
+            onUnblock={handleUnblock}
           />
         </motion.div>
       </AnimatePresence>
@@ -437,7 +519,7 @@ export default function BusinessNegotiationHub({ onFindTalent, onViewContractTer
   }
 
   return (
-    <section className="flex h-full w-full overflow-hidden bg-slate-50 dark:bg-slate-950">
+    <section className="flex h-full w-full overflow-hidden bg-slate-50 dark:bg-gradient-to-b dark:from-slate-950 dark:to-slate-900">
       <ThreadNavigator
         threads={threads}
         groupsByCounterparty={projectsByCounterparty}

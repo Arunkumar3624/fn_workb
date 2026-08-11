@@ -238,7 +238,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
   }
 
   return (
-    <div className="relative overflow-hidden bg-gradient-to-br from-[#e0e9ff] via-[#eef5ff] to-[#e9fff5] p-7 wb-tab-enter dark:from-slate-950 dark:via-slate-950 dark:to-slate-950">
+    <div className="relative overflow-hidden bg-gradient-to-br from-[#e0e9ff] via-[#eef5ff] to-[#e9fff5] p-7 wb-tab-enter dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       {/* absolute (not fixed) — these must scroll away with the page. fixed
           pins them to the viewport instead of this container, so they used
           to bleed through onto whatever content scrolled underneath them,

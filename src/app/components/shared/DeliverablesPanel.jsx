@@ -18,9 +18,9 @@ const STATUS_META = {
 };
 
 const TONE_CLASSES = {
-  amber: "bg-amber-50 text-amber-700 border-amber-200",
-  emerald: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  rose: "bg-rose-50 text-rose-600 border-rose-200",
+  amber: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900/40",
+  emerald: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/40",
+  rose: "bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-950/30 dark:text-rose-400 dark:border-rose-900/40",
 };
 
 function detectProvider(url) {
@@ -146,10 +146,10 @@ export default function DeliverablesPanel({ projectId, readOnly = false, locked 
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5">
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
       <div className="mb-4">
-        <h3 className="text-sm font-bold text-slate-900">Deliverables</h3>
-        <p className="mt-0.5 text-xs text-slate-500">
+        <h3 className="text-sm font-bold text-slate-900 dark:text-white">Deliverables</h3>
+        <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
           {readOnly
             ? "This project is closed — shown here for the record only."
             : locked
@@ -162,9 +162,9 @@ export default function DeliverablesPanel({ projectId, readOnly = false, locked 
           gate, see the prop comment above). Points back at the real Start
           Work action instead of duplicating it here. */}
       {locked && !readOnly && (
-        <div className="flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600" />
-          <p className="text-sm font-semibold text-amber-800">
+        <div className="flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/40 dark:bg-amber-950/30">
+          <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600 dark:text-amber-400" />
+          <p className="text-sm font-semibold text-amber-800 dark:text-amber-400">
             {lockedMessage ?? 'Click "Start Work" above to begin — you can share deliverables once work is underway.'}
           </p>
         </div>
@@ -175,8 +175,8 @@ export default function DeliverablesPanel({ projectId, readOnly = false, locked 
           cancelled project; the list below still shows whatever was already
           shared before it closed. */}
       {!readOnly && !locked && (
-      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-        <div className="mb-3 flex gap-1 rounded-lg bg-white p-1 w-fit border border-slate-200">
+      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/60">
+        <div className="mb-3 flex gap-1 rounded-lg bg-white p-1 w-fit border border-slate-200 dark:bg-slate-800 dark:border-slate-700">
           {[
             { id: "link", label: "Link", icon: Link2 },
             { id: "image", label: "Image", icon: ImageIcon },
@@ -186,7 +186,7 @@ export default function DeliverablesPanel({ projectId, readOnly = false, locked 
               type="button"
               onClick={() => { setMode(id); setSubmitError(""); }}
               className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-bold transition-colors ${
-                mode === id ? "bg-[#1B3FAB] text-white" : "text-slate-500 hover:text-slate-700"
+                mode === id ? "bg-[#1B3FAB] text-white" : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
               }`}
             >
               <Icon className="h-3.5 w-3.5" />
@@ -196,7 +196,7 @@ export default function DeliverablesPanel({ projectId, readOnly = false, locked 
         </div>
 
         {submitError && (
-          <div className="mb-3 flex items-start gap-2 rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-xs text-red-600">
+          <div className="mb-3 flex items-start gap-2 rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-xs text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400">
             <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
             <span>{submitError}</span>
           </div>
@@ -207,10 +207,10 @@ export default function DeliverablesPanel({ projectId, readOnly = false, locked 
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="https://drive.google.com/… or any file link"
-            className="mb-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
+            className="mb-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-500/20"
           />
         ) : (
-          <label className="mb-2 flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-500 hover:bg-slate-50">
+          <label className="mb-2 flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-500 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700">
             <Upload className="h-4 w-4 flex-shrink-0" />
             {imageFile ? imageFile.name : "Choose an image (max 8MB)"}
             <input type="file" accept="image/*" onChange={handleImagePick} className="hidden" />
@@ -222,7 +222,7 @@ export default function DeliverablesPanel({ projectId, readOnly = false, locked 
             value={caption}
             onChange={(e) => setCaption(e.target.value)}
             placeholder="Optional note"
-            className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
+            className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-500/20"
           />
           <button
             onClick={handleSubmit}
@@ -240,19 +240,19 @@ export default function DeliverablesPanel({ projectId, readOnly = false, locked 
       <div className="mt-4">
         {loading ? (
           <div className="flex justify-center py-6">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-200 border-t-[#1B3FAB]" />
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-200 border-t-[#1B3FAB] dark:border-slate-700" />
           </div>
         ) : loadError ? (
-          <p className="py-4 text-center text-xs text-red-500">{loadError}</p>
+          <p className="py-4 text-center text-xs text-red-500 dark:text-red-400">{loadError}</p>
         ) : submissions.length === 0 ? (
-          <p className="py-4 text-center text-xs text-slate-400">No deliverables shared yet.</p>
+          <p className="py-4 text-center text-xs text-slate-400 dark:text-slate-500">No deliverables shared yet.</p>
         ) : (
           <div className="space-y-2">
             {submissions.map((s) => {
               const meta = STATUS_META[s.status];
               const StatusIcon = meta.icon;
               return (
-                <div key={s.id} className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                <div key={s.id} className="rounded-xl border border-slate-100 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/60">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       {s.type === "link" ? (
@@ -280,12 +280,12 @@ export default function DeliverablesPanel({ projectId, readOnly = false, locked 
                           <img src={s.image_data} alt={s.caption ?? "Submitted image"} className="h-full w-full object-cover" />
                         </button>
                       )}
-                      {s.caption && <p className="mt-1 text-xs text-slate-600">{s.caption}</p>}
-                      <p className="mt-1 text-[11px] text-slate-400">
+                      {s.caption && <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">{s.caption}</p>}
+                      <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
                         {s.submitted_by_name} · {new Date(s.created_at).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}
                       </p>
                       {s.status === "REJECTED" && s.rejection_reason && (
-                        <p className="mt-1 text-[11px] font-semibold text-rose-500">Reason: {s.rejection_reason}</p>
+                        <p className="mt-1 text-[11px] font-semibold text-rose-500 dark:text-rose-400">Reason: {s.rejection_reason}</p>
                       )}
                     </div>
                     {/* An "Approved" badge is the one status either side

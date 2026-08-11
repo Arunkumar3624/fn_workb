@@ -46,12 +46,12 @@ export default function ReviewModule({
   return (
     <motion.section
       layout
-      className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
+      className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"
       transition={{ duration: 0.22, ease: "easeInOut" }}
     >
       <div>
-        <h3 className="text-base font-bold text-slate-900">{title}</h3>
-        <p className="mt-1 text-sm text-slate-500">{helperText}</p>
+        <h3 className="text-base font-bold text-slate-900 dark:text-white">{title}</h3>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{helperText}</p>
       </div>
 
       <AnimatePresence mode="wait" initial={false}>
@@ -70,22 +70,22 @@ export default function ReviewModule({
                   <Star
                     key={starValue}
                     className={`h-6 w-6 ${
-                      starValue <= rating ? "fill-amber-400 text-amber-400" : "fill-slate-100 text-slate-300"
+                      starValue <= rating ? "fill-amber-400 text-amber-400" : "fill-slate-100 text-slate-300 dark:fill-slate-800 dark:text-slate-700"
                     }`}
                   />
                 );
               })}
-              {rating === 0 && <span className="ml-2 text-xs font-semibold text-slate-400">No rating yet</span>}
+              {rating === 0 && <span className="ml-2 text-xs font-semibold text-slate-400 dark:text-slate-500">No rating yet</span>}
             </div>
 
-            <p className="mt-4 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-600">
+            <p className="mt-4 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-600 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300">
               {feedback || "No feedback added yet."}
             </p>
 
             <button
               type="button"
               onClick={() => setIsEditing(true)}
-              className="mt-4 inline-flex min-h-[40px] items-center gap-2 rounded-xl px-1 text-sm font-bold text-slate-400 transition hover:text-slate-700"
+              className="mt-4 inline-flex min-h-[40px] items-center gap-2 rounded-xl px-1 text-sm font-bold text-slate-400 transition hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-300"
             >
               <Edit3 className="h-4 w-4" />
               Edit
@@ -114,7 +114,7 @@ export default function ReviewModule({
                   >
                     <Star
                       className={`h-7 w-7 ${
-                        starValue <= displayRating ? "fill-amber-400 text-amber-400" : "fill-slate-100 text-slate-300"
+                        starValue <= displayRating ? "fill-amber-400 text-amber-400" : "fill-slate-100 text-slate-300 dark:fill-slate-800 dark:text-slate-700"
                       }`}
                     />
                   </button>
@@ -127,10 +127,10 @@ export default function ReviewModule({
               onChange={(event) => setFeedback(event.target.value)}
               rows={4}
               placeholder="Write a short note about communication, quality, and delivery..."
-              className="mt-5 w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#FF6B35] focus:ring-4 focus:ring-[#FF6B35]/10"
+              className="mt-5 w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#FF6B35] focus:ring-4 focus:ring-[#FF6B35]/10 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500"
             />
 
-            {error && <p className="mt-2 text-xs font-semibold text-red-500">{error}</p>}
+            {error && <p className="mt-2 text-xs font-semibold text-red-500 dark:text-red-400">{error}</p>}
 
             <button
               type="button"

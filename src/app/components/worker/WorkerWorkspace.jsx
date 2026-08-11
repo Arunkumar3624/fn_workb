@@ -136,12 +136,36 @@ export default function WorkerWorkspace() {
     if (selectedApplicationId === id) setSelectedApplicationId(null);
   };
 
+  // Same real, per-device declutter pattern as dismissedApplicationIds
+  // above — a completed/cancelled project stays a real, permanent DB
+  // record (payment history, dispute record) either way; this only hides
+  // it from THIS device's own pipeline list once it's no longer useful to
+  // see there.
+  const [dismissedHistoryIds, setDismissedHistoryIds] = useState(() => {
+    try {
+      return new Set(JSON.parse(localStorage.getItem("wb_dismissed_history") ?? "[]"));
+    } catch {
+      return new Set();
+    }
+  });
+
+  const dismissHistoryTask = (id) => {
+    setDismissedHistoryIds((prev) => {
+      const next = new Set(prev).add(id);
+      localStorage.setItem("wb_dismissed_history", JSON.stringify([...next]));
+      return next;
+    });
+    if (selectedTaskId === id) setSelectedTaskId(null);
+  };
+
   const tasks = projects.filter((p) => ACTIVE_STATUSES.has(p.status));
   // Declining an invite (or any other cancellation) used to just vanish —
   // not "active" (excluded from ACTIVE_STATUSES) and not "history" (this
   // filter used to be COMPLETED-only), so there was nowhere it could ever
   // be seen again after the fact.
-  const historyTasks = projects.filter((p) => p.status === "COMPLETED" || p.status === "CANCELLED");
+  const historyTasks = projects
+    .filter((p) => p.status === "COMPLETED" || p.status === "CANCELLED")
+    .filter((p) => !dismissedHistoryIds.has(p.id));
   const activeList = pipelineTab === "tasks" ? tasks : pipelineTab === "history" ? historyTasks : [];
   const selectedTask = activeList.find((task) => task.id === selectedTaskId) ?? null;
 
@@ -344,8 +368,8 @@ export default function WorkerWorkspace() {
           </p>
         </div>
       )}
-      <div className="flex min-h-0 flex-1 overflow-hidden overflow-x-hidden bg-slate-50 dark:bg-slate-950 md:flex-row">
-      <aside className="flex max-h-[45vh] min-h-0 w-full flex-col border-b border-slate-200 bg-slate-50 p-4 sm:p-5 md:max-h-none md:w-[40%] md:min-w-[320px] md:max-w-[440px] md:border-b-0 md:border-r dark:border-slate-800 dark:bg-slate-950">
+      <div className="flex min-h-0 flex-1 overflow-hidden overflow-x-hidden bg-slate-50 dark:bg-gradient-to-b dark:from-slate-950 dark:to-slate-900 md:flex-row">
+      <aside className="flex max-h-[45vh] min-h-0 w-full flex-col border-b border-slate-200 bg-slate-50 p-4 sm:p-5 md:max-h-none md:w-[40%] md:min-w-[320px] md:max-w-[440px] md:border-b-0 md:border-r dark:border-slate-800 dark:bg-gradient-to-b dark:from-slate-950 dark:to-slate-900">
         <div className="mb-4 flex items-center justify-between">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400 dark:text-slate-500">Pipeline</p>
@@ -447,19 +471,41 @@ export default function WorkerWorkspace() {
               {activeList.map((task) => {
                 const meta = PROJECT_STATUS_META[task.status];
                 return (
-                  <motion.button
+                  <motion.div
                     key={task.id}
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.2 }}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => handleSelectTask(task.id)}
-                    className={`w-full rounded-xl border p-4 text-left transition-all ${
+                    onKeyDown={(e) => e.key === "Enter" && handleSelectTask(task.id)}
+                    className={`relative w-full cursor-pointer rounded-xl border p-4 text-left transition-all ${
                       selectedTaskId === task.id
                         ? "border-slate-200 border-l-4 border-l-[#FF6B35] bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800"
                         : "border-slate-200/80 bg-white/50 hover:border-slate-300 hover:bg-white hover:shadow-sm dark:border-slate-800 dark:bg-slate-900/50 dark:hover:border-slate-700 dark:hover:bg-slate-800"
                     }`}
                   >
-                    <div className="flex items-start justify-between gap-3">
+                    {/* History declutter — a real, per-device hide (see
+                        dismissedHistoryIds above), not a DB delete. The
+                        underlying project/payment record stays exactly as
+                        it was; this just removes it from this device's own
+                        pipeline list once it's no longer useful to see. */}
+                    {pipelineTab === "history" && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          dismissHistoryTask(task.id);
+                        }}
+                        aria-label="Remove from history"
+                        title="Remove from history"
+                        className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full text-slate-300 transition-colors hover:bg-slate-100 hover:text-slate-500 dark:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-400"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                    <div className="flex items-start justify-between gap-3 pr-5">
                       <div className="min-w-0">
                         <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">{task.title}</p>
                         <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{task.business_name}</p>
@@ -486,7 +532,7 @@ export default function WorkerWorkspace() {
                       </span>
                       <span className="text-sm font-semibold text-slate-900 dark:text-white">₹{Number(task.budget).toLocaleString("en-IN")}</span>
                     </div>
-                  </motion.button>
+                  </motion.div>
                 );
               })}
             </>
@@ -494,7 +540,7 @@ export default function WorkerWorkspace() {
         </div>
       </aside>
 
-      <main className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50/50 dark:bg-slate-950">
+      <main className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50/50 dark:bg-gradient-to-b dark:from-slate-950 dark:to-slate-900">
         {pipelineTab === "applied" ? (
           selectedApplication ? (
             <ApplicationDetail application={selectedApplication} navigate={navigate} />

@@ -9,7 +9,6 @@ import {
   Send,
   ShieldOff,
   Upload,
-  UserX,
   X,
 } from "lucide-react";
 import {
@@ -18,7 +17,6 @@ import {
   sendThreadLinkMessage,
   sendThreadMessage,
 } from "../../lib/threadsApi";
-import { getBlockStatus, blockUser, unblockUser } from "../../lib/blocksApi";
 import { ApiError } from "../../lib/apiClient";
 import { getSocket } from "../../lib/socketClient";
 import { useAuth } from "../../context/AuthContext";
@@ -127,7 +125,7 @@ function AttachmentBubble({ message, isMine, onPreview }) {
   const isRejected = message.submission_status === "REJECTED";
 
   return (
-    <div className={`max-w-[78%] rounded-2xl border p-3 ${isMine ? "border-blue-100 bg-blue-50/60" : "border-slate-200 bg-white"}`}>
+    <div className={`max-w-[78%] rounded-2xl border p-3 ${isMine ? "border-blue-100 bg-blue-50/60 dark:border-blue-900/40 dark:bg-blue-500/10" : "border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800"}`}>
       {message.submission_type === "link" ? (
         <a
           href={message.submission_url}
@@ -153,12 +151,12 @@ function AttachmentBubble({ message, isMine, onPreview }) {
           <img src={message.submission_image_data} alt={message.submission_caption ?? "Shared image"} className="h-full w-full object-cover" />
         </button>
       )}
-      {message.submission_caption && <p className="mt-1.5 text-xs text-slate-600">{message.submission_caption}</p>}
+      {message.submission_caption && <p className="mt-1.5 text-xs text-slate-600 dark:text-slate-300">{message.submission_caption}</p>}
       {isPending && (
-        <p className="mt-1.5 text-[11px] font-bold text-amber-600">Pending review — only you can see this until it's cleared.</p>
+        <p className="mt-1.5 text-[11px] font-bold text-amber-600 dark:text-amber-400">Pending review — only you can see this until it's cleared.</p>
       )}
       {isRejected && (
-        <p className="mt-1.5 text-[11px] font-bold text-rose-500">
+        <p className="mt-1.5 text-[11px] font-bold text-rose-500 dark:text-rose-400">
           Rejected{message.submission_rejection_reason ? `: ${message.submission_rejection_reason}` : ""}
         </p>
       )}
@@ -173,11 +171,11 @@ function SystemNoticeRow({ message }) {
   const time = new Date(message.created_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
   return (
     <div className="flex justify-center">
-      <div className="flex max-w-[85%] items-start gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-center">
+      <div className="flex max-w-[85%] items-start gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-center dark:border-red-900/40 dark:bg-red-950/30">
         <div>
-          <p className="text-xs font-bold uppercase tracking-wide text-red-600">Admin Notice</p>
-          <p className="mt-1 text-sm text-red-800">{message.body}</p>
-          <span className="mt-1.5 block text-[11px] font-semibold text-red-400">{time}</span>
+          <p className="text-xs font-bold uppercase tracking-wide text-red-600 dark:text-red-400">Admin Notice</p>
+          <p className="mt-1 text-sm text-red-800 dark:text-red-300">{message.body}</p>
+          <span className="mt-1.5 block text-[11px] font-semibold text-red-400 dark:text-red-500">{time}</span>
         </div>
       </div>
     </div>
@@ -197,7 +195,7 @@ function MessageRow({ message, isMine, onPreview }) {
         ) : (
           <div
             className={`rounded-3xl px-4 py-3 text-sm leading-6 shadow-sm ${
-              isMine ? "rounded-br-lg bg-[#1B3FAB] text-white" : "rounded-bl-lg border border-slate-200 bg-white text-slate-800"
+              isMine ? "rounded-br-lg bg-[#1B3FAB] text-white" : "rounded-bl-lg border border-slate-200 bg-white text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
             }`}
           >
             {message.body}
@@ -246,7 +244,22 @@ function renderMessageRows(messages, currentUserId, onPreview) {
 // for explicitly. projectIds (every project, active or closed) is only used
 // to recognize realtime events from the older per-project routes (an admin
 // warning, a redacted-and-sent message) that don't carry this thread's id.
-export default function ChatThread({ threadId, otherUserId, activeProjects = [], projectIds = [] }) {
+// blockStatus/blockActionBusy/onBlock/onUnblock are owned by the parent
+// now (WorkerNegotiationInbox.jsx's ChatPanel / BusinessNegotiationHub.jsx's
+// FocusHub) — they render the actual Block/Unblock control in their own
+// header row, right next to the Verified/Escrow badges, instead of it
+// sitting in its own separate bar underneath. ChatThread still reads
+// blockStatus to gate the composer, it just no longer owns or fetches it.
+export default function ChatThread({
+  threadId,
+  otherUserId,
+  activeProjects = [],
+  projectIds = [],
+  blockStatus = { blockedByMe: false, blockedMe: false },
+  blockActionBusy = false,
+  onBlock,
+  onUnblock,
+}) {
   const { currentUser, isImpersonating } = useAuth();
   // The Dual-Ban Moderation Engine's soft tier — locks only this side's own
   // composer (server-enforced too, messages.controller.js's
@@ -266,22 +279,8 @@ export default function ChatThread({ threadId, otherUserId, activeProjects = [],
   const [attachCaption, setAttachCaption] = useState("");
   const [attachImageFile, setAttachImageFile] = useState(null);
   const [previewSrc, setPreviewSrc] = useState(null);
-  const [blockStatus, setBlockStatus] = useState({ blockedByMe: false, blockedMe: false });
-  const [blockActionBusy, setBlockActionBusy] = useState(false);
   const feedRef = useRef(null);
   const isInitialScrollRef = useRef(true);
-
-  const loadBlockStatus = () => {
-    if (!otherUserId) return;
-    getBlockStatus(otherUserId)
-      .then(setBlockStatus)
-      .catch(() => {});
-  };
-
-  useEffect(() => {
-    loadBlockStatus();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [otherUserId]);
 
   // Keeps the attachment picker pointed at a real, currently-active project
   // whenever the thread switches (or a project's status moves it in/out of
@@ -293,31 +292,6 @@ export default function ChatThread({ threadId, otherUserId, activeProjects = [],
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [threadId, activeProjects.map((p) => p.id).join(",")]);
 
-  const handleBlock = async () => {
-    if (!otherUserId || blockActionBusy) return;
-    setBlockActionBusy(true);
-    try {
-      await blockUser(otherUserId);
-      setBlockStatus((prev) => ({ ...prev, blockedByMe: true }));
-    } catch {
-      // Non-critical — the button just stays clickable to retry.
-    } finally {
-      setBlockActionBusy(false);
-    }
-  };
-
-  const handleUnblock = async () => {
-    if (!otherUserId || blockActionBusy) return;
-    setBlockActionBusy(true);
-    try {
-      await unblockUser(otherUserId);
-      setBlockStatus((prev) => ({ ...prev, blockedByMe: false }));
-    } catch {
-      // Non-critical — the button just stays clickable to retry.
-    } finally {
-      setBlockActionBusy(false);
-    }
-  };
 
   const load = () => {
     listThreadMessages(threadId)
@@ -454,34 +428,6 @@ export default function ChatThread({ threadId, otherUserId, activeProjects = [],
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      {otherUserId && !blockStatus.blockedMe && (
-        <div className="flex flex-shrink-0 justify-end border-b border-slate-100 bg-white px-4 py-2">
-          {blockStatus.blockedByMe ? (
-            <button
-              type="button"
-              onClick={handleUnblock}
-              disabled={blockActionBusy || isImpersonating}
-              title={isImpersonating ? "Disabled in Impersonation Mode" : undefined}
-              className="flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[11px] font-bold text-emerald-700 shadow-sm transition-colors hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              <ShieldOff className="h-3 w-3" />
-              {isImpersonating ? "Disabled in Impersonation Mode" : "Unblock"}
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={handleBlock}
-              disabled={blockActionBusy || isImpersonating}
-              title={isImpersonating ? "Disabled in Impersonation Mode" : undefined}
-              className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-bold text-slate-500 shadow-sm transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              <UserX className="h-3 w-3" />
-              {isImpersonating ? "Disabled in Impersonation Mode" : "Block"}
-            </button>
-          )}
-        </div>
-      )}
-
       <div ref={feedRef} className="wb-scroll-clean min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-6">
         {loading ? (
           <div className="flex h-full items-center justify-center">
@@ -497,9 +443,9 @@ export default function ChatThread({ threadId, otherUserId, activeProjects = [],
       </div>
 
       {attachOpen && (
-        <div className="flex-shrink-0 border-t border-slate-200 bg-slate-50 px-5 py-4">
+        <div className="flex-shrink-0 border-t border-slate-200 bg-slate-50 px-5 py-4 dark:border-slate-800 dark:bg-slate-900/60">
           <div className="mb-3 flex items-center justify-between">
-            <div className="flex gap-1 rounded-lg bg-white p-1 w-fit border border-slate-200">
+            <div className="flex gap-1 rounded-lg bg-white p-1 w-fit border border-slate-200 dark:bg-slate-800 dark:border-slate-700">
               {[
                 { id: "link", label: "Link", icon: Link2 },
                 { id: "image", label: "Image", icon: ImageIcon },
@@ -509,7 +455,7 @@ export default function ChatThread({ threadId, otherUserId, activeProjects = [],
                   type="button"
                   onClick={() => setAttachMode(id)}
                   className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-bold transition-colors ${
-                    attachMode === id ? "bg-[#1B3FAB] text-white" : "text-slate-500 hover:text-slate-700"
+                    attachMode === id ? "bg-[#1B3FAB] text-white" : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
                   }`}
                 >
                   <Icon className="h-3.5 w-3.5" />
@@ -521,7 +467,7 @@ export default function ChatThread({ threadId, otherUserId, activeProjects = [],
               type="button"
               onClick={() => setAttachOpen(false)}
               aria-label="Close attachment panel"
-              className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+              className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
             >
               <X className="h-3.5 w-3.5" />
             </button>
@@ -531,7 +477,7 @@ export default function ChatThread({ threadId, otherUserId, activeProjects = [],
             <select
               value={attachProjectId}
               onChange={(e) => setAttachProjectId(e.target.value)}
-              className="mb-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
+              className="mb-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:ring-blue-500/20"
             >
               {activeProjects.map((project) => (
                 <option key={project.id} value={project.id}>
@@ -546,10 +492,10 @@ export default function ChatThread({ threadId, otherUserId, activeProjects = [],
               value={attachUrl}
               onChange={(e) => setAttachUrl(e.target.value)}
               placeholder="https://drive.google.com/… or any file link"
-              className="mb-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
+              className="mb-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-500/20"
             />
           ) : (
-            <label className="mb-2 flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-500 hover:bg-slate-50">
+            <label className="mb-2 flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-500 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700">
               <Upload className="h-4 w-4 flex-shrink-0" />
               {attachImageFile ? attachImageFile.name : "Choose an image (max 8MB)"}
               <input type="file" accept="image/*" onChange={handleImagePick} className="hidden" />
@@ -561,7 +507,7 @@ export default function ChatThread({ threadId, otherUserId, activeProjects = [],
               value={attachCaption}
               onChange={(e) => setAttachCaption(e.target.value)}
               placeholder="Optional note"
-              className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100"
+              className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#1B3FAB] focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-500/20"
             />
             <button
               type="button"
@@ -577,41 +523,41 @@ export default function ChatThread({ threadId, otherUserId, activeProjects = [],
       )}
 
       {sendError && (
-        <div className="flex flex-shrink-0 items-start gap-2 border-t border-red-100 bg-red-50 px-5 py-2.5 text-xs text-red-600">
+        <div className="flex flex-shrink-0 items-start gap-2 border-t border-red-100 bg-red-50 px-5 py-2.5 text-xs text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400">
           <AlertCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
           <span>{sendError}</span>
         </div>
       )}
 
       {isChatBanned ? (
-        <div className="flex flex-shrink-0 items-start gap-2 border-t border-amber-200 bg-amber-50 px-5 py-4 text-left">
-          <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500" />
-          <p className="text-xs font-semibold text-amber-700">
+        <div className="flex flex-shrink-0 items-start gap-2 border-t border-amber-200 bg-amber-50 px-5 py-4 text-left dark:border-amber-900/40 dark:bg-amber-950/30">
+          <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500 dark:text-amber-400" />
+          <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">
             Your chat privileges have been temporarily suspended due to a policy violation. You can still submit
             active deliverables to receive payment.
           </p>
         </div>
       ) : blockStatus.blockedMe ? (
-        <div className="flex-shrink-0 border-t border-slate-200 bg-slate-50 px-5 py-4 text-center text-xs font-semibold text-slate-400">
+        <div className="flex-shrink-0 border-t border-slate-200 bg-slate-50 px-5 py-4 text-center text-xs font-semibold text-slate-400 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-500">
           You can't message this user.
         </div>
       ) : blockStatus.blockedByMe ? (
-        <div className="flex flex-shrink-0 flex-col items-center gap-2 border-t border-slate-200 bg-slate-50 px-5 py-4 text-center">
-          <p className="text-xs font-semibold text-slate-400">You blocked this user — unblock to send a message.</p>
+        <div className="flex flex-shrink-0 flex-col items-center gap-2 border-t border-slate-200 bg-slate-50 px-5 py-4 text-center dark:border-slate-800 dark:bg-slate-900/60">
+          <p className="text-xs font-semibold text-slate-400 dark:text-slate-500">You blocked this user — unblock to send a message.</p>
           <button
             type="button"
-            onClick={handleUnblock}
+            onClick={onUnblock}
             disabled={blockActionBusy || isImpersonating}
             title={isImpersonating ? "Disabled in Impersonation Mode" : undefined}
-            className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-3.5 py-1.5 text-xs font-bold text-emerald-700 transition-colors hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-3.5 py-1.5 text-xs font-bold text-emerald-700 transition-colors hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-emerald-950/30 dark:text-emerald-400 dark:hover:bg-emerald-950/50"
           >
             <ShieldOff className="h-3.5 w-3.5" />
             {isImpersonating ? "Disabled in Impersonation Mode" : "Unblock"}
           </button>
         </div>
       ) : (
-        <form onSubmit={handleSend} className="flex-shrink-0 border-t border-slate-200 bg-white px-5 py-4">
-          <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 p-2 shadow-sm focus-within:border-[#1B3FAB] focus-within:ring-4 focus-within:ring-[#1B3FAB]/10">
+        <form onSubmit={handleSend} className="flex-shrink-0 border-t border-slate-200 bg-white px-5 py-4 dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 p-2 shadow-sm focus-within:border-[#1B3FAB] focus-within:ring-4 focus-within:ring-[#1B3FAB]/10 dark:border-slate-700 dark:bg-slate-800 dark:focus-within:ring-blue-500/10">
             <button
               type="button"
               onClick={() => setAttachOpen((open) => !open)}
@@ -619,7 +565,7 @@ export default function ChatThread({ threadId, otherUserId, activeProjects = [],
               aria-label="Attach a file"
               title={activeProjects.length === 0 ? "No active project to attach a deliverable to" : "Attach a file"}
               className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full transition disabled:cursor-not-allowed disabled:opacity-40 ${
-                attachOpen ? "bg-[#1B3FAB] text-white" : "text-slate-400 hover:bg-white hover:text-slate-600"
+                attachOpen ? "bg-[#1B3FAB] text-white" : "text-slate-400 hover:bg-white hover:text-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-200"
               }`}
             >
               <Paperclip className="h-4 w-4" />
@@ -628,7 +574,7 @@ export default function ChatThread({ threadId, otherUserId, activeProjects = [],
               value={draft}
               onChange={(event) => { setDraft(event.target.value); setSendError(""); }}
               placeholder="Write a message..."
-              className="min-h-[42px] flex-1 bg-transparent px-2 text-sm text-slate-900 outline-none placeholder:text-slate-400"
+              className="min-h-[42px] flex-1 bg-transparent px-2 text-sm text-slate-900 outline-none placeholder:text-slate-400 dark:text-slate-100 dark:placeholder:text-slate-500"
             />
             <button
               type="submit"

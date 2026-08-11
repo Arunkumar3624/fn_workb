@@ -63,33 +63,33 @@ export default function ProjectCompletionHub({
   };
 
   return (
-    <div className="wb-scroll-clean flex-1 overflow-y-auto bg-slate-50 p-4 sm:p-10">
+    <div className="wb-scroll-clean flex-1 overflow-y-auto bg-slate-50 p-4 dark:bg-slate-950 sm:p-10">
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="mx-auto w-full max-w-2xl overflow-hidden rounded-3xl border border-white/60 bg-white/80 shadow-[0_20px_60px_-15px_rgba(15,23,42,0.15)] backdrop-blur-xl"
+        className="mx-auto w-full max-w-2xl overflow-hidden rounded-3xl border border-white/60 bg-white/80 shadow-[0_20px_60px_-15px_rgba(15,23,42,0.15)] backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/80"
       >
         {/* Success Hero */}
         <div className="flex flex-col items-center px-5 py-10 text-center sm:px-12">
-          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-50">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-500/10">
             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500 shadow-[0_0_40px_-8px_rgba(16,185,129,0.55)]">
               <CheckCircle2 className="h-8 w-8 text-white" strokeWidth={2.5} />
             </div>
           </div>
           <h2
-            className="mt-6 text-2xl font-black tracking-tight text-[#0F172A]"
+            className="mt-6 text-2xl font-black tracking-tight text-[#0F172A] dark:text-white"
             style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
           >
             Project Completed
           </h2>
-          <p className="mt-2 max-w-sm text-sm leading-relaxed text-slate-500">
+          <p className="mt-2 max-w-sm text-sm leading-relaxed text-slate-500 dark:text-slate-400">
             {copy.subheadline(amount, counterpartName)}
           </p>
         </div>
 
         {/* Evaluation Card */}
-        <div className="border-t border-slate-100 px-5 py-8 sm:px-12">
+        <div className="border-t border-slate-100 px-5 py-8 dark:border-slate-800 sm:px-12">
           <ReviewModule
             title={copy.ratingTitle(counterpartName)}
             helperText={
@@ -106,12 +106,12 @@ export default function ProjectCompletionHub({
         {/* Retention Engine — business only. Rating and rehiring are two
             separate calls to action; neither one gates the other. */}
         {perspective === "business" && (
-          <div className="border-t border-slate-100 bg-slate-50/60 px-5 py-8 sm:px-12">
-            <div className="rounded-2xl border border-orange-100 bg-orange-50/70 p-4 sm:p-5">
+          <div className="border-t border-slate-100 bg-slate-50/60 px-5 py-8 dark:border-slate-800 dark:bg-slate-900/40 sm:px-12">
+            <div className="rounded-2xl border border-orange-100 bg-orange-50/70 p-4 dark:border-orange-900/40 dark:bg-orange-950/20 sm:p-5">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <h4 className="text-sm font-bold text-[#0F172A]">Rehire for a new task</h4>
-                  <p className="mt-1 text-sm text-slate-500">Choose this separately if you want to work together again.</p>
+                  <h4 className="text-sm font-bold text-[#0F172A] dark:text-white">Rehire for a new task</h4>
+                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Choose this separately if you want to work together again.</p>
                 </div>
               </div>
 
@@ -128,7 +128,7 @@ export default function ProjectCompletionHub({
             {onViewHistory && (
               <button
                 onClick={onViewHistory}
-                className="mt-4 flex w-full items-center justify-center gap-1.5 text-xs font-semibold text-slate-400 transition-colors hover:text-slate-600"
+                className="mt-4 flex w-full items-center justify-center gap-1.5 text-xs font-semibold text-slate-400 transition-colors hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
               >
                 <History className="h-3.5 w-3.5" />
                 View Full Project History

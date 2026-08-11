@@ -41,7 +41,7 @@ export default function EnterprisePartnerTierCard() {
 
   if (loading) {
     return (
-      <div className="mb-5 flex items-center justify-center rounded-2xl border border-slate-200 bg-white/60 p-6 dark:border-slate-800 dark:bg-slate-900/60">
+      <div className="mb-5 flex items-center justify-center rounded-2xl border border-slate-200 bg-white/60 p-4 dark:border-slate-800 dark:bg-slate-900/60">
         <Loader2 className="h-5 w-5 animate-spin text-slate-300" />
       </div>
     );
@@ -52,11 +52,14 @@ export default function EnterprisePartnerTierCard() {
   const style = TIER_STYLES[status.tier] ?? TIER_STYLES.Bronze;
 
   return (
-    <div className={`mb-5 rounded-2xl border p-6 shadow-sm ${style.card}`}>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-4">
-          <div className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-white shadow-sm dark:bg-slate-800 ${style.icon}`}>
-            <Award className="h-6 w-6" />
+    // p-4 / h-10 icon box — matches the compact Growth Hub ad cards' own
+    // scale right below it, on request, instead of the taller p-6 this
+    // card used to carry.
+    <div className={`mb-5 rounded-2xl border p-4 shadow-sm ${style.card}`}>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white shadow-sm dark:bg-slate-800 ${style.icon}`}>
+            <Award className="h-5 w-5" />
           </div>
           <div>
             <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Enterprise Partner Tier</p>
@@ -70,7 +73,7 @@ export default function EnterprisePartnerTierCard() {
         </div>
 
         {status.tier === "Gold" ? (
-          <div className="rounded-xl border border-amber-200 bg-amber-50/80 px-4 py-2.5 text-xs font-bold text-amber-800 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-400">
+          <div className="rounded-xl border border-amber-200 bg-amber-50/80 px-3 py-2 text-xs font-bold text-amber-800 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-400">
             Gold tier: lower platform fees and priority support
             <span className="ml-1.5 font-semibold text-amber-600/80 dark:text-amber-500/80">(preview — not applied at checkout yet)</span>
           </div>
