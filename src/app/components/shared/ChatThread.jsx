@@ -269,6 +269,7 @@ export default function ChatThread({ threadId, otherUserId, activeProjects = [],
   const [blockStatus, setBlockStatus] = useState({ blockedByMe: false, blockedMe: false });
   const [blockActionBusy, setBlockActionBusy] = useState(false);
   const feedRef = useRef(null);
+  const isInitialScrollRef = useRef(true);
 
   const loadBlockStatus = () => {
     if (!otherUserId) return;
@@ -326,6 +327,7 @@ export default function ChatThread({ threadId, otherUserId, activeProjects = [],
   };
 
   useEffect(() => {
+    isInitialScrollRef.current = true;
     setLoading(true);
     setLoadError("");
     load();
@@ -354,8 +356,13 @@ export default function ChatThread({ threadId, otherUserId, activeProjects = [],
   }, [threadId, projectIds.join(",")]);
 
   useEffect(() => {
-    feedRef.current?.scrollTo({ top: feedRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages.length]);
+    if (!feedRef.current || messages.length === 0) return;
+    feedRef.current.scrollTo({
+      top: feedRef.current.scrollHeight,
+      behavior: isInitialScrollRef.current ? "auto" : "smooth",
+    });
+    isInitialScrollRef.current = false;
+  }, [threadId, messages.length]);
 
   const handleSend = async (event) => {
     event.preventDefault();

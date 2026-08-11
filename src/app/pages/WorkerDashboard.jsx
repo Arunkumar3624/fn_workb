@@ -19,6 +19,7 @@ import { getSocket } from "../lib/socketClient";
 import EconomyInfoTooltip from "../components/shared/EconomyInfoTooltip";
 import NotificationBell from "../components/shared/NotificationBell";
 import OnboardingWizard from "../components/common/OnboardingWizard";
+import { verifiedRingClass } from "../utils/verification";
 
 // A real, local-time-of-day greeting — not a fixed "Welcome back" — so the
 // new warm header actually reads as personalized rather than static copy.
@@ -110,10 +111,10 @@ export default function WorkerDashboard({ onLogout }) {
                 <img
                   src={currentUser.avatar_url}
                   alt={currentUser.name}
-                  className="h-16 w-16 flex-shrink-0 rounded-full object-cover shadow-lg ring-4 ring-white dark:ring-slate-800 sm:h-20 sm:w-20"
+                  className={`h-16 w-16 flex-shrink-0 rounded-full object-cover shadow-lg sm:h-20 sm:w-20 ${verifiedRingClass(currentUser?.verified)}`}
                 />
               ) : (
-                <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-[#0f172a] text-xl font-semibold text-white shadow-lg ring-4 ring-white dark:ring-slate-800 sm:h-20 sm:w-20">
+                <div className={`flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-[#0f172a] text-xl font-semibold text-white shadow-lg sm:h-20 sm:w-20 ${verifiedRingClass(currentUser?.verified)}`}>
                   {getInitials(currentUser?.name)}
                 </div>
               )}

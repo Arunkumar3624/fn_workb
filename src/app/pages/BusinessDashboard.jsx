@@ -17,6 +17,7 @@ import { getInitials } from "../utils/formValidation";
 import EconomyInfoTooltip from "../components/shared/EconomyInfoTooltip";
 import NotificationBell from "../components/shared/NotificationBell";
 import OnboardingWizard from "../components/common/OnboardingWizard";
+import { verifiedRingClass } from "../utils/verification";
 
 // A real, local-time-of-day greeting — matches WorkerDashboard.jsx's own
 // getGreeting exactly, kept as its own copy since these are two separate
@@ -131,11 +132,11 @@ export default function BusinessDashboard({ onLogout, onVerify, isVerified = fal
                 <img
                   src={currentUser.avatar_url}
                   alt={currentUser.name}
-                  className="h-16 w-16 flex-shrink-0 rounded-full object-cover shadow-lg ring-4 ring-white dark:ring-slate-800 sm:h-20 sm:w-20"
+                  className={`h-16 w-16 flex-shrink-0 rounded-full object-cover shadow-lg sm:h-20 sm:w-20 ${verifiedRingClass(isVerified)}`}
                 />
               ) : (
                 <div
-                  className={`flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full text-xl font-semibold text-white shadow-lg ring-4 ring-white dark:ring-slate-800 sm:h-20 sm:w-20 ${
+                  className={`flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full text-xl font-semibold text-white shadow-lg sm:h-20 sm:w-20 ${verifiedRingClass(isVerified)} ${
                     isVerified ? "bg-emerald-500" : "bg-slate-300"
                   }`}
                 >
@@ -249,7 +250,7 @@ export default function BusinessDashboard({ onLogout, onVerify, isVerified = fal
         </div>
         )}
 
-        <div className={`flex-1 ${tab === "negotiations" ? "overflow-hidden" : "wb-scroll-clean overflow-auto"}`}>
+        <div className={`flex-1 ${tab === "negotiations" ? "overflow-hidden" : "wb-scroll-clean overflow-y-auto overflow-x-hidden"}`}>
           {tab === "overview" && (
             <BusinessOverview
               onPostJob={handlePostJob}

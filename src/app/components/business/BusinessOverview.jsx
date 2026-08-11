@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "motion/react";
 import {
   AlertCircle, ArrowRight, Briefcase, Calendar, CheckCircle2, Lock,
-  Plus, Receipt, Shield, TrendingUp, UserCheck,
+  Plus, Receipt, Shield, ShieldCheck, TrendingUp, UserCheck, Zap,
 } from "lucide-react";
 import Avatar from "../shared/Avatar";
 import EnterprisePartnerTierCard from "./EnterprisePartnerTierCard";
@@ -70,6 +72,8 @@ function Chips({ options, active, onChange }) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 export default function BusinessOverview({ onPostJob, onViewProjects, isVerified }) {
+  const navigate = useNavigate();
+  const goToBilling = () => navigate("/business-dashboard", { state: { tab: "settings", settingsTab: "billing" } });
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -321,6 +325,57 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
         </div>
 
         <EnterprisePartnerTierCard />
+
+        {/* Growth Hub — real upsell CTAs pointing at Settings > Billing
+            (the actual pricing shown there, same "preview — not live yet"
+            honesty as everywhere else money-related on WorkBridge). The
+            Verification card hides once isVerified is real and true — no
+            point advertising something already owned. */}
+        <div className={`mt-6 grid grid-cols-1 gap-4 ${isVerified ? "" : "sm:grid-cols-2"}`}>
+          {!isVerified && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35 }}
+              className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 p-6 text-white shadow-lg"
+            >
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-400">
+                <ShieldCheck className="h-5 w-5" />
+              </span>
+              <h3 className="mt-4 text-base font-bold">Stand out to top-tier talent</h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-slate-300">
+                Unlock your Verified Company Frame and build instant trust with every worker who sees your posts.
+              </p>
+              <button
+                onClick={goToBilling}
+                className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-[#FF6B35] px-4 py-2.5 text-sm font-bold text-white transition-all hover:shadow-lg active:scale-[0.98]"
+              >
+                Get Verified — ₹399
+              </button>
+            </motion.div>
+          )}
+
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, delay: 0.08 }}
+            className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 p-6 text-white shadow-lg"
+          >
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FF6B35]/15 text-[#FF6B35]">
+              <Zap className="h-5 w-5" />
+            </span>
+            <h3 className="mt-4 text-base font-bold">Need to scale faster?</h3>
+            <p className="mt-1.5 text-sm leading-relaxed text-slate-300">
+              Unlock Enterprise matching, unlimited job posts, and a dedicated manager on the Growth or Enterprise plan.
+            </p>
+            <button
+              onClick={goToBilling}
+              className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-[#FF6B35] px-4 py-2.5 text-sm font-bold text-white transition-all hover:shadow-lg active:scale-[0.98]"
+            >
+              Upgrade Plan
+            </button>
+          </motion.div>
+        </div>
 
         {/* ── Middle: Projects + Fund Flow ───────────────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">

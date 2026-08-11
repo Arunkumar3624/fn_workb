@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
 import {
   AlertCircle,
@@ -30,6 +31,7 @@ import { ApiError } from "../../lib/apiClient";
 import { getSocket } from "../../lib/socketClient";
 import EditableCoverPhoto from "../shared/EditableCoverPhoto";
 import ShareProfileButton from "../shared/ShareProfileButton";
+import { verifiedRingClass } from "../../utils/verification";
 
 const MAX_AVATAR_BYTES = 1.5 * 1024 * 1024; // 1.5MB — stored as a data URL in avatar_url (TEXT), no file-storage backend exists yet.
 
@@ -102,6 +104,7 @@ function ReviewCard({ review }) {
 }
 
 function BehaviorLevelBento({ behaviorScore, verified }) {
+  const navigate = useNavigate();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -138,10 +141,39 @@ function BehaviorLevelBento({ behaviorScore, verified }) {
           style={{ width: mounted ? `${pct}%` : "0%" }}
         />
       </div>
-      <p className="mt-3 flex items-center gap-1.5 text-sm leading-6 text-slate-500 dark:text-slate-400">
-        <ShieldCheck className={`h-4 w-4 flex-shrink-0 ${verified ? "text-emerald-500" : "text-slate-300"}`} />
-        {verified ? "Identity verified" : "Not yet verified — verification badge coming soon"}
-      </p>
+      {verified ? (
+        <p className="mt-3 flex items-center gap-1.5 text-sm leading-6 text-slate-500 dark:text-slate-400">
+          <ShieldCheck className="h-4 w-4 flex-shrink-0 text-emerald-500" />
+          Identity verified
+        </p>
+      ) : (
+        // Real, non-fabricated CTA — Worker ID Verified is genuinely free
+        // right now (VerificationFeesTable.jsx's launch-offer price), so
+        // this doesn't invent a number the way the old "coming soon" text
+        // at least didn't, but a passive line also didn't act like an ad.
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="mt-4 flex flex-col items-start gap-3 rounded-xl bg-gradient-to-br from-slate-900 to-slate-800 p-4 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <div className="flex items-center gap-3">
+            <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-400">
+              <ShieldCheck className="h-4 w-4" />
+            </span>
+            <p className="text-sm leading-6 text-slate-200">
+              Verify your identity to unlock the Trust Frame on your profile and build credibility with businesses.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate("/worker/wallet?tab=subscription")}
+            className="flex flex-shrink-0 items-center gap-1.5 rounded-xl bg-[#FF6B35] px-4 py-2.5 text-xs font-bold text-white transition-all hover:shadow-lg active:scale-[0.98]"
+          >
+            Get Verified — Free
+          </button>
+        </motion.div>
+      )}
     </section>
   );
 }
@@ -366,13 +398,13 @@ export default function WorkerProfile() {
                       <img
                         src={currentUser.avatar_url}
                         alt={`${currentUser.name} profile`}
-                        className="h-28 w-28 rounded-full border-4 border-white object-cover shadow-lg ring-1 ring-slate-200"
+                        className={`h-28 w-28 rounded-full border-4 border-white object-cover shadow-lg ${verifiedRingClass(currentUser?.verified)}`}
                       />
                     ) : (
                       <img
                         src={defaultAvatarUrl}
                         alt="Default profile"
-                        className="h-28 w-28 rounded-full border-4 border-white object-cover shadow-lg ring-1 ring-slate-200"
+                        className={`h-28 w-28 rounded-full border-4 border-white object-cover shadow-lg ${verifiedRingClass(currentUser?.verified)}`}
                       />
                     )}
                     <span className="absolute bottom-2 right-2 h-5 w-5 rounded-full border-4 border-white bg-emerald-500 shadow-[0_0_0_5px_rgba(16,185,129,0.16)]" />

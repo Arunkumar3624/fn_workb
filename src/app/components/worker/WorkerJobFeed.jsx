@@ -588,12 +588,16 @@ export default function WorkerJobFeed() {
               // 320-400px width and leave the leftover space trailing after
               // them instead of splitting it into unused equal-width tracks.
               <div className="grid gap-6 [grid-template-columns:repeat(auto-fit,minmax(320px,400px))]">
-                {filteredJobs.map((job) => {
+                {filteredJobs.map((job, index) => {
               const alreadyApplied = appliedProjectIds.has(job.id);
 
               return (
-                <article
+                <motion.article
                   key={job.id}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.35, delay: Math.min(index * 0.05, 0.4), ease: "easeOut" }}
+                  whileHover={{ y: -4 }}
                   role="button"
                   tabIndex={0}
                   onClick={() => setSelectedJob(job)}
@@ -603,7 +607,7 @@ export default function WorkerJobFeed() {
                       setSelectedJob(job);
                     }
                   }}
-                  className={`cursor-pointer rounded-2xl border p-5 shadow-lg backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${
+                  className={`cursor-pointer rounded-2xl border p-5 shadow-lg backdrop-blur-xl transition-shadow duration-300 hover:shadow-xl ${
                     job.is_urgent
                       ? "border-[#FF6B35]/40 bg-orange-50/50 shadow-orange-200/40 dark:border-sky-500/30 dark:bg-sky-500/5 dark:shadow-sky-500/20 dark:hover:border-sky-400/60 dark:hover:shadow-sky-400/40"
                       : "border-white/70 bg-white/60 shadow-slate-200/40 dark:border-slate-800 dark:bg-slate-900/60"
@@ -729,7 +733,7 @@ export default function WorkerJobFeed() {
                       {alreadyApplied ? "Applied" : "Apply Now"}
                     </button>
                   </div>
-                </article>
+                </motion.article>
               );
             })}
               </div>

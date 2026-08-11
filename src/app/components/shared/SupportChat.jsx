@@ -22,6 +22,7 @@ export default function SupportChat() {
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState("");
   const feedRef = useRef(null);
+  const isInitialScrollRef = useRef(true);
 
   const load = () => {
     getMyThread()
@@ -53,7 +54,12 @@ export default function SupportChat() {
   }, [thread?.id]);
 
   useEffect(() => {
-    feedRef.current?.scrollTo({ top: feedRef.current.scrollHeight, behavior: "smooth" });
+    if (!feedRef.current || messages.length === 0) return;
+    feedRef.current.scrollTo({
+      top: feedRef.current.scrollHeight,
+      behavior: isInitialScrollRef.current ? "auto" : "smooth",
+    });
+    isInitialScrollRef.current = false;
   }, [messages.length]);
 
   const handleSend = async (event) => {
