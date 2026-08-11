@@ -306,7 +306,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
           ].map(({ label, value, sub, subColor, icon: Icon, iconBg, iconColor, valueColor, cardBg, spark, sparkColor }, i) => (
             <div
               key={label}
-              className={`border backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] p-5 wb-card-enter ${cardBg}`}
+              className={`rounded-2xl border backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] p-5 wb-card-enter ${cardBg}`}
               style={{ animationDelay: `${i * 60}ms` }}
             >
               <div className="flex items-center justify-between mb-4">
@@ -349,56 +349,68 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.35 }}
-              className="rounded-2xl border border-emerald-100/80 bg-emerald-50/60 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] p-5 dark:border-emerald-900/40 dark:bg-emerald-950/20"
+              className="rounded-2xl border border-emerald-100/80 bg-emerald-50/60 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] p-4 dark:border-emerald-900/40 dark:bg-emerald-950/20"
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-4">
                 <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white text-emerald-600 shadow-sm dark:bg-slate-900 dark:text-emerald-400">
                   <ShieldCheck className="h-5 w-5" />
                 </span>
-                <h3 className="text-sm font-bold text-[#0F172A] dark:text-white">Stand out to top talent</h3>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-sm font-bold text-[#0F172A] dark:text-white">Stand out to top talent</h3>
+                  <p className="mt-0.5 truncate text-xs text-slate-600 dark:text-slate-300">
+                    Unlock your Verified Company Frame and build trust.
+                  </p>
+                </div>
+                <button
+                  onClick={goToBilling}
+                  className="flex-shrink-0 rounded-xl bg-[#FF6B35] px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
+                >
+                  Get Verified — ₹399
+                </button>
               </div>
-              <p className="mt-2.5 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
-                Unlock your Verified Company Frame and build instant trust with every worker who sees your posts.
-              </p>
-              <button
-                onClick={goToBilling}
-                className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-[#FF6B35] px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
-              >
-                Get Verified — ₹399
-              </button>
             </motion.div>
           )}
 
+          {/* Same amber/gold treatment as EnterprisePartnerTierCard.jsx's
+              Gold tier, on request — ties this ad visually to the real tier
+              card right above it instead of using its own separate color. */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, delay: 0.08 }}
-            className="rounded-2xl border border-orange-100/80 bg-orange-50/60 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] p-5 dark:border-orange-900/40 dark:bg-orange-950/20"
+            className="rounded-2xl border border-amber-300 bg-gradient-to-br from-amber-50 to-white shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] p-4 dark:border-amber-900/40 dark:from-amber-950/20 dark:to-slate-900"
           >
-            <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white text-[#FF6B35] shadow-sm dark:bg-slate-900">
+            <div className="flex items-center gap-4">
+              <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white text-amber-500 shadow-sm dark:bg-slate-800">
                 <Zap className="h-5 w-5" />
               </span>
-              <h3 className="text-sm font-bold text-[#0F172A] dark:text-white">Need to scale faster?</h3>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-[#0F172A] dark:text-white">Need to scale faster?</h3>
+                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-amber-800 dark:bg-amber-500/10 dark:text-amber-400">
+                    Premium
+                  </span>
+                </div>
+                <p className="mt-0.5 truncate text-xs text-slate-600 dark:text-slate-300">
+                  Unlimited posts and a dedicated manager on Growth.
+                </p>
+              </div>
+              <button
+                onClick={goToBilling}
+                className="flex-shrink-0 rounded-xl bg-[#FF6B35] px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
+              >
+                Upgrade Plan
+              </button>
             </div>
-            <p className="mt-2.5 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
-              Unlock Enterprise matching, unlimited job posts, and a dedicated manager on the Growth or Enterprise plan.
-            </p>
-            <button
-              onClick={goToBilling}
-              className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-[#FF6B35] px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
-            >
-              Upgrade Plan
-            </button>
           </motion.div>
         </div>
 
         {/* ── Middle: Projects + Fund Flow ───────────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-6 mb-5">
 
           {/* Active Projects table */}
           <div
-            className="lg:col-span-2 border border-indigo-100/70 bg-[#F7F9FF]/90 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] dark:border-slate-800 dark:bg-slate-900/60 overflow-hidden wb-card-enter"
+            className="lg:col-span-2 rounded-2xl border border-indigo-100/70 bg-[#F7F9FF]/90 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] dark:border-slate-800 dark:bg-slate-900/60 overflow-hidden wb-card-enter"
             style={{ animationDelay: "240ms" }}
           >
             <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
@@ -492,7 +504,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
           <div className="space-y-4">
 
             <div
-              className="border border-indigo-100/70 bg-[#F7F9FF]/90 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] dark:border-slate-800 dark:bg-slate-900/60 p-5 wb-card-enter"
+              className="rounded-2xl border border-indigo-100/70 bg-[#F7F9FF]/90 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] dark:border-slate-800 dark:bg-slate-900/60 p-5 wb-card-enter"
               style={{ animationDelay: "300ms" }}
             >
               <h3
@@ -543,7 +555,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
             </div>
 
             <div
-              className="border border-indigo-100/70 bg-[#F7F9FF]/90 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] dark:border-slate-800 dark:bg-slate-900/60 p-5 wb-card-enter"
+              className="rounded-2xl border border-indigo-100/70 bg-[#F7F9FF]/90 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] dark:border-slate-800 dark:bg-slate-900/60 p-5 wb-card-enter"
               style={{ animationDelay: "360ms" }}
             >
               <h3
@@ -574,7 +586,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
           <div
-            className="border border-indigo-100/70 bg-[#F7F9FF]/90 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] dark:border-slate-800 dark:bg-slate-900/60 overflow-hidden wb-card-enter"
+            className="rounded-2xl border border-indigo-100/70 bg-[#F7F9FF]/90 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] dark:border-slate-800 dark:bg-slate-900/60 overflow-hidden wb-card-enter"
             style={{ animationDelay: "420ms" }}
           >
             <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
@@ -630,7 +642,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
 
           {/* Monthly Spending Chart */}
           <div
-            className="border border-indigo-100/70 bg-[#F7F9FF]/90 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] dark:border-slate-800 dark:bg-slate-900/60 p-5 wb-card-enter"
+            className="rounded-2xl border border-indigo-100/70 bg-[#F7F9FF]/90 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] dark:border-slate-800 dark:bg-slate-900/60 p-5 wb-card-enter"
             style={{ animationDelay: "480ms" }}
           >
             <div className="flex items-start justify-between mb-1">
