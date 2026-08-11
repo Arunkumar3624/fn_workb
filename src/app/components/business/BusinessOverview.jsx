@@ -336,34 +336,33 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
 
         {/* Growth Hub — real upsell CTAs pointing at Settings > Billing
             (the actual pricing shown there, same "preview — not live yet"
-            honesty as everywhere else money-related on WorkBridge). Sharp
-            corners, solid flat color, hard offset shadow — a deliberately
-            different, more compact "brutalist" language than the soft
-            glassmorphic KPI/tier cards above, so it reads as its own
-            distinct block instead of another soft rounded card blending
-            into the same stack. The Verification card hides once
-            isVerified is real and true — no point advertising something
-            already owned. */}
-        <div className={`mt-8 grid grid-cols-1 gap-4 ${isVerified ? "" : "sm:grid-cols-2"}`}>
+            honesty as everywhere else money-related on WorkBridge). Same
+            soft glassmorphic language as the KPI cards above it (rounded
+            corners, translucent blur, thin colored border) — the earlier
+            brutalist treatment (hard black border, sharp corners) clashed
+            with the rest of the page's visual system instead of reading as
+            a deliberate accent. The Verification card hides once isVerified
+            is real and true — no point advertising something already owned. */}
+        <div className={`mt-6 grid grid-cols-1 gap-4 ${isVerified ? "" : "sm:grid-cols-2"}`}>
           {!isVerified && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.35 }}
-              className="border-2 border-[#0F172A] bg-emerald-50 p-4 shadow-[4px_4px_0_0_#0F172A] dark:border-white dark:bg-emerald-950/30 dark:shadow-[4px_4px_0_0_#fff]"
+              className="rounded-2xl border border-emerald-100/80 bg-emerald-50/60 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] p-5 dark:border-emerald-900/40 dark:bg-emerald-950/20"
             >
-              <div className="flex items-center gap-2.5">
-                <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center border-2 border-[#0F172A] bg-white text-emerald-600 dark:border-white dark:bg-slate-900 dark:text-emerald-400">
-                  <ShieldCheck className="h-4 w-4" />
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white text-emerald-600 shadow-sm dark:bg-slate-900 dark:text-emerald-400">
+                  <ShieldCheck className="h-5 w-5" />
                 </span>
-                <h3 className="text-sm font-black uppercase tracking-wide text-[#0F172A] dark:text-white">Stand out to top talent</h3>
+                <h3 className="text-sm font-bold text-[#0F172A] dark:text-white">Stand out to top talent</h3>
               </div>
-              <p className="mt-2.5 text-xs leading-relaxed text-slate-700 dark:text-slate-300">
+              <p className="mt-2.5 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
                 Unlock your Verified Company Frame and build instant trust with every worker who sees your posts.
               </p>
               <button
                 onClick={goToBilling}
-                className="mt-3 inline-flex items-center gap-1.5 border-2 border-[#0F172A] bg-[#FF6B35] px-3 py-2 text-xs font-black uppercase tracking-wide text-white transition-all hover:shadow-[2px_2px_0_0_#0F172A] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none dark:border-white"
+                className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-[#FF6B35] px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
               >
                 Get Verified — ₹399
               </button>
@@ -374,20 +373,20 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, delay: 0.08 }}
-            className="border-2 border-[#0F172A] bg-orange-50 p-4 shadow-[4px_4px_0_0_#0F172A] dark:border-white dark:bg-orange-950/30 dark:shadow-[4px_4px_0_0_#fff]"
+            className="rounded-2xl border border-orange-100/80 bg-orange-50/60 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] p-5 dark:border-orange-900/40 dark:bg-orange-950/20"
           >
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center border-2 border-[#0F172A] bg-white text-[#FF6B35] dark:border-white dark:bg-slate-900">
-                <Zap className="h-4 w-4" />
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white text-[#FF6B35] shadow-sm dark:bg-slate-900">
+                <Zap className="h-5 w-5" />
               </span>
-              <h3 className="text-sm font-black uppercase tracking-wide text-[#0F172A] dark:text-white">Need to scale faster?</h3>
+              <h3 className="text-sm font-bold text-[#0F172A] dark:text-white">Need to scale faster?</h3>
             </div>
-            <p className="mt-2.5 text-xs leading-relaxed text-slate-700 dark:text-slate-300">
+            <p className="mt-2.5 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
               Unlock Enterprise matching, unlimited job posts, and a dedicated manager on the Growth or Enterprise plan.
             </p>
             <button
               onClick={goToBilling}
-              className="mt-3 inline-flex items-center gap-1.5 border-2 border-[#0F172A] bg-[#FF6B35] px-3 py-2 text-xs font-black uppercase tracking-wide text-white transition-all hover:shadow-[2px_2px_0_0_#0F172A] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none dark:border-white"
+              className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-[#FF6B35] px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
             >
               Upgrade Plan
             </button>
