@@ -132,11 +132,11 @@ export default function BusinessDashboard({ onLogout, onVerify, isVerified = fal
                 <img
                   src={currentUser.avatar_url}
                   alt={currentUser.name}
-                  className={`h-16 w-16 flex-shrink-0 rounded-full object-cover shadow-lg sm:h-20 sm:w-20 ${verifiedRingClass(isVerified)}`}
+                  className={`h-16 w-16 flex-shrink-0 rounded-full object-cover shadow-lg sm:h-20 sm:w-20 ${verifiedRingClass(isVerified, "md", "glass")}`}
                 />
               ) : (
                 <div
-                  className={`flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full text-xl font-semibold text-white shadow-lg sm:h-20 sm:w-20 ${verifiedRingClass(isVerified)} ${
+                  className={`flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full text-xl font-semibold text-white shadow-lg sm:h-20 sm:w-20 ${verifiedRingClass(isVerified, "md", "glass")} ${
                     isVerified ? "bg-emerald-500" : "bg-slate-300"
                   }`}
                 >

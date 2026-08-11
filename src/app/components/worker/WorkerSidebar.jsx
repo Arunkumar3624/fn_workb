@@ -77,10 +77,10 @@ export default function WorkerSidebar({ tab, onTabChange, onLogout }) {
               <img
                 src={currentUser.avatar_url}
                 alt={`${currentUser?.name || "Worker"} profile`}
-                className={`h-11 w-11 rounded-lg object-cover ${currentUser?.verified ? verifiedRingClass(true, "sm") : ""}`}
+                className={`h-11 w-11 rounded-lg object-cover ${currentUser?.verified ? verifiedRingClass(true, "sm", "emerald") : ""}`}
               />
             ) : (
-              <div className={`flex h-11 w-11 items-center justify-center rounded-lg bg-[#FF6B35] text-sm font-semibold text-white ${currentUser?.verified ? verifiedRingClass(true, "sm") : ""}`}>
+              <div className={`flex h-11 w-11 items-center justify-center rounded-lg bg-[#FF6B35] text-sm font-semibold text-white ${currentUser?.verified ? verifiedRingClass(true, "sm", "emerald") : ""}`}>
                 {getInitials(currentUser?.name)}
               </div>
             )}

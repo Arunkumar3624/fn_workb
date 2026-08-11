@@ -75,10 +75,10 @@ export default function BusinessSidebar({
             <img
               src={currentUser.avatar_url}
               alt={currentUser.name}
-              className={`h-10 w-10 flex-shrink-0 rounded-lg object-cover ${isVerified ? verifiedRingClass(true, "sm") : ""}`}
+              className={`h-10 w-10 flex-shrink-0 rounded-lg object-cover ${isVerified ? verifiedRingClass(true, "sm", "glass") : ""}`}
             />
           ) : (
-            <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-[#1B3FAB] text-sm font-bold text-white ${isVerified ? verifiedRingClass(true, "sm") : ""}`}>
+            <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-[#1B3FAB] text-sm font-bold text-white ${isVerified ? verifiedRingClass(true, "sm", "glass") : ""}`}>
               {getInitials(currentUser?.name)}
             </div>
           )}

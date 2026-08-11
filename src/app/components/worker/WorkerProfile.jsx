@@ -398,13 +398,13 @@ export default function WorkerProfile() {
                       <img
                         src={currentUser.avatar_url}
                         alt={`${currentUser.name} profile`}
-                        className={`h-28 w-28 rounded-full border-4 border-white object-cover shadow-lg ${verifiedRingClass(currentUser?.verified)}`}
+                        className={`h-28 w-28 rounded-full border-4 border-white object-cover shadow-lg ${verifiedRingClass(currentUser?.verified, "md", "emerald")}`}
                       />
                     ) : (
                       <img
                         src={defaultAvatarUrl}
                         alt="Default profile"
-                        className={`h-28 w-28 rounded-full border-4 border-white object-cover shadow-lg ${verifiedRingClass(currentUser?.verified)}`}
+                        className={`h-28 w-28 rounded-full border-4 border-white object-cover shadow-lg ${verifiedRingClass(currentUser?.verified, "md", "emerald")}`}
                       />
                     )}
                     <span className="absolute bottom-2 right-2 h-5 w-5 rounded-full border-4 border-white bg-emerald-500 shadow-[0_0_0_5px_rgba(16,185,129,0.16)]" />

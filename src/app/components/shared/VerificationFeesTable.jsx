@@ -1,4 +1,5 @@
-import { Award, BadgeCheck, Building2, Lock, ShieldCheck } from "lucide-react";
+import { Award, BadgeCheck, Building2, Lock, ShieldCheck, User } from "lucide-react";
+import { verifiedRingClass } from "../../utils/verification";
 
 const VERIFICATION_TIERS = [
   {
@@ -9,6 +10,9 @@ const VERIFICATION_TIERS = [
     subLabel: "Launch offer — normally ₹199",
     features: ["Aadhaar / ID checked", "Verified Trust Badge on Profile"],
     icon: ShieldCheck,
+    // "ID Verified — Trust Guard": the real emerald ring already live on
+    // every verified worker's avatar today (WorkerDashboard/Sidebar/Profile).
+    frameVariant: "emerald",
   },
   {
     id: "skill",
@@ -16,6 +20,8 @@ const VERIFICATION_TIERS = [
     price: 299,
     features: ["Skill test passed", "Verified Trust Badge on Profile", "Priority Algorithm Matching"],
     icon: Award,
+    // No distinct frame promised for this tier — stays a plain badge icon,
+    // same as its own feature list says ("Trust Badge", not a frame).
   },
   {
     id: "business",
@@ -23,6 +29,9 @@ const VERIFICATION_TIERS = [
     price: 399,
     features: ["GST / registration confirmed", "Verified Trust Badge on Profile", "Priority Algorithm Matching"],
     icon: Building2,
+    // "Company Verified — Minimalist Pro": the real frosted-glass ring
+    // already live on every verified business's avatar today.
+    frameVariant: "glass",
   },
   {
     id: "full-trust",
@@ -35,8 +44,24 @@ const VERIFICATION_TIERS = [
     features: ["Manual ID & background check", "Gold Trust Frame on avatar", "Top-priority Algorithm Matching"],
     icon: BadgeCheck,
     elite: true,
+    // "Elite — Gold Standard": preview only — no per-user "bought full
+    // trust" flag exists yet, so this gold ring never renders on a live
+    // avatar, only shown here as what purchasing it would unlock.
+    frameVariant: "gold",
   },
 ];
+
+// A small live preview of the exact ring a verified avatar gets — reuses
+// the same verifiedRingClass() helper the real dashboards/profile/sidebar
+// avatars already render with, so this preview never drifts out of sync
+// with what verification actually looks like in the app.
+function FramePreviewSwatch({ variant, tone }) {
+  return (
+    <span className={`mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-700 ${verifiedRingClass(true, "md", variant)}`}>
+      <User className={`h-6 w-6 ${tone}`} />
+    </span>
+  );
+}
 
 // Shared between WorkerWallet.jsx's Subscription tab and the business
 // Billing tab (SettingsPage.jsx). A real, paid B2B trust purchase, so it
@@ -74,15 +99,16 @@ export default function VerificationFeesTable() {
                   : "border-slate-200 bg-slate-50/50 dark:border-slate-700/80 dark:bg-[#0F1B3D]"
               }`}
             >
-              <span
-                className={`mb-4 flex h-11 w-11 items-center justify-center rounded-lg ${
-                  row.elite
-                    ? "bg-amber-100 text-amber-600 dark:bg-amber-400/15 dark:text-amber-400"
-                    : "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400"
-                }`}
-              >
-                <Icon className="h-5 w-5" />
-              </span>
+              {row.frameVariant ? (
+                <FramePreviewSwatch
+                  variant={row.frameVariant}
+                  tone={row.elite ? "text-amber-600 dark:text-amber-400" : "text-slate-500 dark:text-slate-300"}
+                />
+              ) : (
+                <span className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
+                  <Icon className="h-5 w-5" />
+                </span>
+              )}
 
               <p className="text-base font-bold text-slate-900 dark:text-white">{row.badge}</p>
 

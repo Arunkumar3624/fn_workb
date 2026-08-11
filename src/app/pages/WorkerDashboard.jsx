@@ -111,10 +111,10 @@ export default function WorkerDashboard({ onLogout }) {
                 <img
                   src={currentUser.avatar_url}
                   alt={currentUser.name}
-                  className={`h-16 w-16 flex-shrink-0 rounded-full object-cover shadow-lg sm:h-20 sm:w-20 ${verifiedRingClass(currentUser?.verified)}`}
+                  className={`h-16 w-16 flex-shrink-0 rounded-full object-cover shadow-lg sm:h-20 sm:w-20 ${verifiedRingClass(currentUser?.verified, "md", "emerald")}`}
                 />
               ) : (
-                <div className={`flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-[#0f172a] text-xl font-semibold text-white shadow-lg sm:h-20 sm:w-20 ${verifiedRingClass(currentUser?.verified)}`}>
+                <div className={`flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-[#0f172a] text-xl font-semibold text-white shadow-lg sm:h-20 sm:w-20 ${verifiedRingClass(currentUser?.verified, "md", "emerald")}`}>
                   {getInitials(currentUser?.name)}
                 </div>
               )}
