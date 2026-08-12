@@ -1298,7 +1298,7 @@ export default function BusinessProjects({ onOpenChat }) {
       <div className="w-full">
         <div className="mb-5 flex items-center justify-between gap-3">
           <h1 className="text-2xl font-extrabold text-[#0F172A] dark:text-white" style={HEADING_FONT}>
-            Projects
+            Active Projects
           </h1>
           <button
             onClick={loadProjects}

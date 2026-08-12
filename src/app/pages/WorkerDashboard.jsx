@@ -123,7 +123,7 @@ export default function WorkerDashboard({ onLogout }) {
     <DashboardLayout
       sidebar={<WorkerSidebar tab={tab} onTabChange={setTab} onLogout={onLogout} />}
     >
-      <div className="flex h-full flex-col overflow-hidden rounded-[2.5rem] border border-slate-200/80 bg-white/90 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.14)] backdrop-blur-2xl dark:border-slate-700/60 dark:bg-slate-900/90">
+      <div className="flex h-full flex-col overflow-hidden bg-white dark:bg-slate-900">
         {tab === "feed" ? (
           /* Warm Greeting — the "Lobby". One row now, same compact scale as
              BusinessDashboard.jsx's greeting: smaller avatar, identity on
