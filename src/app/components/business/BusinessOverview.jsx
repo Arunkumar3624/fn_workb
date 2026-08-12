@@ -661,10 +661,10 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
         </div>
 
         {/* ── Bottom: Transaction History + Spend Chart ───────────────────── */}
-        {/* items-start — grid's default stretch was forcing the shorter
-            Spending Overview card to match Payment History's taller scrolling
-            list, leaving dead empty space below its own stats row. */}
-        <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">
+        {/* Stretch (grid default) so Spending Overview's card matches
+            Payment History's height exactly instead of stopping short at
+            its own smaller natural content height. */}
+        <div className="grid grid-cols-1 items-stretch gap-5 lg:grid-cols-2">
 
           <div
             className="rounded-2xl border border-indigo-100/70 bg-[#F7F9FF]/90 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] dark:border-slate-800 dark:bg-slate-900/60 overflow-hidden wb-card-enter"
@@ -723,7 +723,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
 
           {/* Monthly Spending Chart */}
           <div
-            className="rounded-2xl border border-indigo-100/70 bg-[#F7F9FF]/90 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] dark:border-slate-800 dark:bg-slate-900/60 p-5 wb-card-enter"
+            className="flex flex-col rounded-2xl border border-indigo-100/70 bg-[#F7F9FF]/90 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] dark:border-slate-800 dark:bg-slate-900/60 p-5 wb-card-enter"
             style={{ animationDelay: "480ms" }}
           >
             <div className="flex items-start justify-between mb-1">
@@ -780,7 +780,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
               </div>
             </div>
 
-            <div className="h-px bg-slate-100 dark:bg-slate-800 my-4" />
+            <div className="mt-auto h-px bg-slate-100 dark:bg-slate-800 my-4" />
 
             <div className="grid grid-cols-3 gap-3 text-center">
               {[

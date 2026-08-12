@@ -587,7 +587,9 @@ function ChatPanel({ thread, projects, onViewDetails }) {
               {activeProjects.map((project) => (
                 <ProjectChip key={project.id} project={project} onClick={onViewDetails} />
               ))}
-              {historyProjects.map((project) => (
+              {/* Cancelled/declined projects don't belong in this strip —
+                  only what's actually still active or genuinely finished. */}
+              {historyProjects.filter((p) => p.status !== "CANCELLED").map((project) => (
                 <ProjectChip key={project.id} project={project} onClick={onViewDetails} />
               ))}
             </div>

@@ -1202,7 +1202,7 @@ export default function BusinessProjects({ onOpenChat }) {
       const submissions = await listSubmissions(project.id);
       const approved = submissions.filter((s) => s.status === "APPROVED");
       if (approved.length === 0) {
-        toast.info("No approved deliverables yet — check back once the worker submits and it clears review.");
+        toast.info("No deliverables yet — check back once the worker submits.");
         return;
       }
 

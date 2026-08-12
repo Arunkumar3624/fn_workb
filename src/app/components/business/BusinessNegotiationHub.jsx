@@ -388,7 +388,9 @@ function HubHeader({ thread, projects, onViewContractTerms, blockStatus, blockAc
             onWheel={handleHorizontalWheelScroll}
             className="wb-scroll-clean flex scroll-smooth gap-2 overflow-x-auto px-6 pb-4"
           >
-            {projects.map((project) => (
+            {/* Cancelled/declined projects don't belong in this strip — only
+                what's actually still active or genuinely finished. */}
+            {projects.filter((p) => p.status !== "CANCELLED").map((project) => (
               <ProjectChip key={project.id} project={project} onClick={onViewContractTerms} />
             ))}
           </div>
