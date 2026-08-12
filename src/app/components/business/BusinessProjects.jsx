@@ -8,6 +8,8 @@ import {
   Briefcase,
   Check,
   CheckCircle2,
+  Download,
+  ExternalLink,
   FolderOpen,
   Loader2,
   Lock,
@@ -28,6 +30,7 @@ import ProjectCompletionHub from "../shared/ProjectCompletionHub";
 import DeliverablesPanel from "../shared/DeliverablesPanel";
 import DeadlineCountdown from "../shared/DeadlineCountdown";
 import EscrowFundingDrawer from "./EscrowFundingDrawer";
+import InviteWorkerModal from "./InviteWorkerModal";
 import { getTierData } from "../../utils/gamification";
 import { PROJECT_STATUS_META } from "../../utils/projectStatus";
 import {
@@ -37,13 +40,14 @@ import {
   cancelAndRefund as apiCancelAndRefund,
   createProject,
 } from "../../lib/projectsApi";
-import { listCandidatesForProject, respondToCandidate } from "../../lib/candidatesApi";
+import { listCandidatesForProject, respondToCandidate, inviteWorkerToProject } from "../../lib/candidatesApi";
 import { getPublicProfile } from "../../lib/profilesApi";
-import { listSubmissions } from "../../lib/submissionsApi";
+import { listSubmissions, submitLink } from "../../lib/submissionsApi";
 import { submitReview, listReviewsFor } from "../../lib/reviewsApi";
 import { getInitials } from "../../utils/formValidation";
 import { useAuth } from "../../context/AuthContext";
 import { getSocket } from "../../lib/socketClient";
+import { ApiError } from "../../lib/apiClient";
 import { motion, AnimatePresence } from "motion/react";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 
@@ -932,7 +936,12 @@ export default function BusinessProjects({ onOpenChat }) {
   // projects.controller.js for why that changed).
   const [fundingProject, setFundingProject] = useState(null);
   const [ratingProject, setRatingProject] = useState(null);
-  const [rehireToast, setRehireToast] = useState("");
+  // The project a "Rehire" click was fired from — opens the same real
+  // "assign to an existing open post, or draft a new one" modal Find
+  // Workers uses, instead of silently fabricating a placeholder project.
+  const [rehireProject, setRehireProject] = useState(null);
+  const [rehireSubmitting, setRehireSubmitting] = useState(false);
+  const [rehireError, setRehireError] = useState("");
   // projectId -> rating, so a History row can show the stars you already gave
   // without having to reopen the modal every time.
   const [ratingsByProject, setRatingsByProject] = useState({});
@@ -1231,20 +1240,56 @@ export default function BusinessProjects({ onOpenChat }) {
     }
   };
 
-  const handleRehire = async (project) => {
-    const workerLabel = project.worker_name || "the freelancer";
+  // Rehiring drafted a brand-new project with a fabricated placeholder
+  // title/description and silently reused the old budget — no real details,
+  // and no way to instead assign the worker to a job you'd already posted.
+  // Now opens the same real InviteWorkerModal Find Workers uses: pick one of
+  // your own OPEN posts, or draft a real new one with a real title/budget.
+  const openJobsForRehire = projects.filter((p) => p.status === "OPEN");
+
+  const submitRehireNewProject = async (jobDetails) => {
+    if (!rehireProject) return;
+    setRehireSubmitting(true);
+    setRehireError("");
     try {
-      await createProject({
-        workerId: project.worker_id,
-        title: `New task with ${workerLabel}`,
-        description: `Follow-up work after "${project.title}".`,
-        budget: Number(project.budget),
+      const created = await createProject({
+        workerId: rehireProject.worker_id,
+        title: jobDetails.title,
+        description: jobDetails.description,
+        budget: Number(jobDetails.budget),
+        deadline: jobDetails.deadline || undefined,
       });
-      setRehireToast(`Invitation sent to ${workerLabel} for a new task.`);
-      window.setTimeout(() => setRehireToast(""), 2800);
+      const referenceLinks = (jobDetails.referenceLinks ?? []).filter(Boolean);
+      if (referenceLinks.length > 0) {
+        await Promise.allSettled(
+          referenceLinks.map((url) =>
+            submitLink({ projectId: created.id, url, caption: "Reference material shared at invite time" })
+          )
+        );
+      }
+      toast.success(`Invitation sent to ${rehireProject.worker_name || "the freelancer"} for a new task.`);
+      setRehireProject(null);
+      loadProjects();
     } catch (err) {
-      setRehireToast(err.message || "Could not send the rehire invite.");
-      window.setTimeout(() => setRehireToast(""), 2800);
+      setRehireError(err instanceof ApiError ? err.message : "Could not send the rehire invite.");
+    } finally {
+      setRehireSubmitting(false);
+    }
+  };
+
+  const submitRehireExistingProject = async (projectId, message) => {
+    if (!rehireProject) return;
+    setRehireSubmitting(true);
+    setRehireError("");
+    try {
+      await inviteWorkerToProject(projectId, rehireProject.worker_id, message.trim() || undefined);
+      toast.success(`Invite sent to ${rehireProject.worker_name || "the freelancer"}.`);
+      setRehireProject(null);
+      loadProjects();
+    } catch (err) {
+      setRehireError(err instanceof ApiError ? err.message : "Could not send the rehire invite.");
+    } finally {
+      setRehireSubmitting(false);
     }
   };
 
@@ -1504,10 +1549,27 @@ export default function BusinessProjects({ onOpenChat }) {
                         >
                           {downloadingId === p.id ? (
                             <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : p.latest_deliverable_type === "link" ? (
+                            <ExternalLink className="h-3.5 w-3.5" />
+                          ) : p.latest_deliverable_type === "image" ? (
+                            <Download className="h-3.5 w-3.5" />
                           ) : (
                             <FolderOpen className="h-3.5 w-3.5" />
                           )}
-                          View Files
+                          {/* Reflects the real action this button takes for the
+                              newest deliverable: a link opens it, an image
+                              downloads it. Falls back to the generic "View
+                              Files" when there's nothing to check yet, or the
+                              type isn't known — a project can have several
+                              deliverables of mixed types, so this only ever
+                              promises what the latest one actually is. */}
+                          {downloadingId === p.id
+                            ? "Working…"
+                            : p.latest_deliverable_type === "link"
+                              ? "Open Link"
+                              : p.latest_deliverable_type === "image"
+                                ? "Download Image"
+                                : "View Files"}
                           {p.new_deliverables_count > 0 && (
                             <span
                               className="absolute -top-2 -right-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white shadow-sm"
@@ -1689,7 +1751,7 @@ export default function BusinessProjects({ onOpenChat }) {
                           View Chat
                         </button>
                         <button
-                          onClick={() => handleRehire(p)}
+                          onClick={() => setRehireProject(p)}
                           className="flex items-center gap-1 rounded-full border border-[#FF6B35]/30 bg-[#FF6B35]/10 px-2.5 py-1 text-xs font-bold text-[#FF6B35] hover:bg-[#FF6B35]/20"
                         >
                           <RefreshCw className="h-3 w-3" />
@@ -1733,7 +1795,7 @@ export default function BusinessProjects({ onOpenChat }) {
                         )}
 
                         <button
-                          onClick={() => handleRehire(p)}
+                          onClick={() => setRehireProject(p)}
                           className="flex items-center gap-1 rounded-full border border-[#FF6B35]/30 bg-[#FF6B35]/10 px-2.5 py-1 text-xs font-bold text-[#FF6B35] hover:bg-[#FF6B35]/20"
                         >
                           <RefreshCw className="h-3 w-3" />
@@ -1838,10 +1900,20 @@ export default function BusinessProjects({ onOpenChat }) {
         onRespond={handleRespondToCandidate}
       />
 
-      {rehireToast && (
-        <div className="fixed bottom-6 right-6 z-20 rounded-2xl border border-emerald-200 bg-white px-5 py-4 text-sm font-bold text-emerald-700 shadow-2xl">
-          {rehireToast}
-        </div>
+      {rehireProject && (
+        <InviteWorkerModal
+          worker={{ id: rehireProject.worker_id, name: rehireProject.worker_name || "this freelancer" }}
+          openJobs={openJobsForRehire}
+          title={`Rehire ${rehireProject.worker_name || "this freelancer"}`}
+          onClose={() => {
+            setRehireProject(null);
+            setRehireError("");
+          }}
+          onSubmitExisting={submitRehireExistingProject}
+          onSubmitNew={submitRehireNewProject}
+          submitting={rehireSubmitting}
+          error={rehireError}
+        />
       )}
     </div>
   );

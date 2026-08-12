@@ -30,13 +30,6 @@ import { useAuth } from "../../context/AuthContext";
 
 // ── Constants ─────────────────────────────────────────────────────────────
 
-const TIER_BUDGET = {
-  Micro: 1000,
-  Standard: 6000,
-  Professional: 30000,
-  Enterprise: 75000,
-};
-
 const CATEGORIES = [
   "Tech & Development",
   "Design & Creative",
@@ -141,9 +134,9 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
   });
 
   const rawBudget = Number(watch("budget")) || 0;
-  const watchedTier = watch("tier");
-  // When user clears the budget field, fall back to the tier's default for the summary display
-  const summaryBudget = rawBudget > 0 ? rawBudget : TIER_BUDGET[watchedTier];
+  // Budget used to be two fields — a tier dropdown that silently overwrote
+  // this one, plus this real number. One fixed, real budget field now.
+  const summaryBudget = rawBudget;
   const platformFee = Math.round(summaryBudget * 0.08);
   const totalDeposit = summaryBudget + platformFee;
 
@@ -172,9 +165,6 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
           ? `Up to ${watchedMaxExp} yrs`
           : null;
 
-  // Destructure to compose tier onChange with budget auto-sync
-  const { onChange: onTierChange, ...tierRegisterRest } = register("tier");
-
   // Only title/description/budget/deadline map to the real `projects` table
   // (schema has no category/tier/skills/urgent columns) — skills are folded
   // into the description text rather than silently dropped. Posting
@@ -186,7 +176,7 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
     setPosting(true);
     setPostError("");
     try {
-      trackEvent("JobPosted", { tier: watchedTier, category: watchedCategory, budget: summaryBudget });
+      trackEvent("JobPosted", { category: watchedCategory, budget: summaryBudget });
 
       const requiredSkills = formData.skills
         ? formData.skills.split(",").map((s) => s.trim()).filter(Boolean).slice(0, 20)
@@ -272,8 +262,8 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
               {/* Card 1: Basic Details */}
               <SectionCard
                 icon={Briefcase}
-                title="Basic Details"
-                sub="Set the job title, category, and talent tier"
+                title="JOB Details"
+                sub="Set the job title and category"
               >
                 <div>
                   <FieldLabel>Job Title</FieldLabel>
@@ -286,43 +276,21 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                   <FieldError message={errors.title?.message} />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div>
                   {/* Category — free-text combobox with suggestions */}
-                  <div>
-                    <FieldLabel>Category</FieldLabel>
-                    <input
-                      list="wb-category-list"
-                      {...register("category")}
-                      placeholder="Type or choose…"
-                      className={inputCls}
-                    />
-                    <datalist id="wb-category-list">
-                      {CATEGORIES.map((c) => (
-                        <option key={c} value={c} />
-                      ))}
-                    </datalist>
-                    <FieldError message={errors.category?.message} />
-                  </div>
-
-                  {/* Budget Tier — auto-updates Budget field */}
-                  <div>
-                    <FieldLabel>Budget Tier</FieldLabel>
-                    <select
-                      {...tierRegisterRest}
-                      onChange={(e) => {
-                        onTierChange(e);
-                        setValue("budget", TIER_BUDGET[e.target.value], {
-                          shouldValidate: true,
-                        });
-                      }}
-                      className={inputCls}
-                    >
-                      <option value="Micro">Micro (₹500 – ₹2,000)</option>
-                      <option value="Standard">Standard (₹2,000 – ₹10,000)</option>
-                      <option value="Professional">Professional (₹10,000 – ₹50,000)</option>
-                      <option value="Enterprise">Enterprise (₹50,000+)</option>
-                    </select>
-                  </div>
+                  <FieldLabel>Category</FieldLabel>
+                  <input
+                    list="wb-category-list"
+                    {...register("category")}
+                    placeholder="Type or choose…"
+                    className={inputCls}
+                  />
+                  <datalist id="wb-category-list">
+                    {CATEGORIES.map((c) => (
+                      <option key={c} value={c} />
+                    ))}
+                  </datalist>
+                  <FieldError message={errors.category?.message} />
                 </div>
               </SectionCard>
 
@@ -455,7 +423,7 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                     />
                     {rawBudget === 0 && (
                       <p className="mt-1.5 text-xs text-slate-400 dark:text-slate-500">
-                        Showing tier minimum ₹{TIER_BUDGET[watchedTier].toLocaleString("en-IN")} in summary
+                        Enter a budget to see the deposit total
                       </p>
                     )}
                     <FieldError message={errors.budget?.message} />
@@ -589,7 +557,7 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                     <h3
                       className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500"
                     >
-                      Worker Preview
+                      Preview
                     </h3>
                     {/* <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full dark:bg-emerald-500/10 dark:border-emerald-900/40 dark:text-emerald-400">
                       Live

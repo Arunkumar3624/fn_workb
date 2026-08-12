@@ -9,6 +9,7 @@ import TimelineTracker from "../shared/TimelineTracker";
 import ProjectCompletionHub from "../shared/ProjectCompletionHub";
 import DeliverablesPanel from "../shared/DeliverablesPanel";
 import DeadlineCountdown from "../shared/DeadlineCountdown";
+import Avatar from "../shared/Avatar";
 import { useAuth } from "../../context/AuthContext";
 import { listProjects, updateProjectStatus } from "../../lib/projectsApi";
 import { listMyCandidates } from "../../lib/candidatesApi";
@@ -17,6 +18,7 @@ import { PROJECT_STATUS_META, nextProjectStatus } from "../../utils/projectStatu
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { ApiError } from "../../lib/apiClient";
 import { getSocket } from "../../lib/socketClient";
+import { getInitials } from "../../utils/formValidation";
 
 const ACTIVE_STATUSES = new Set(["ACCEPTED", "PENDING_FUNDS", "FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_SUBMITTED", "PENDING_RELEASE"]);
 
@@ -445,9 +447,12 @@ export default function WorkerWorkspace() {
                         <X className="h-3.5 w-3.5" />
                       </button>
                     )}
-                    <div className="min-w-0 pr-5">
-                      <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">{application.project_title}</p>
-                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{application.business_name}</p>
+                    <div className="flex items-start gap-2.5 pr-5">
+                      <Avatar initials={getInitials(application.business_name)} bg="bg-[#1B3FAB]" size="w-8 h-8" text="text-[10px]" />
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">{application.project_title}</p>
+                        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{application.business_name}</p>
+                      </div>
                     </div>
                     <div className="mt-3 flex items-center justify-between gap-2">
                       <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${statusMeta.tone}`}>
@@ -506,9 +511,12 @@ export default function WorkerWorkspace() {
                       </button>
                     )}
                     <div className="flex items-start justify-between gap-3 pr-5">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">{task.title}</p>
-                        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{task.business_name}</p>
+                      <div className="flex min-w-0 items-start gap-2.5">
+                        <Avatar initials={getInitials(task.business_name)} bg="bg-[#1B3FAB]" size="w-8 h-8" text="text-[10px]" />
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">{task.title}</p>
+                          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{task.business_name}</p>
+                        </div>
                       </div>
                       {task.new_deliverables_count > 0 && (
                         <span

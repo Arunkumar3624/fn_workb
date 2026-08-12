@@ -55,7 +55,7 @@ export default function WorkerSidebar({ tab, onTabChange, onLogout }) {
         <div className={`flex items-center gap-3 ${isCollapsed ? "justify-center" : ""}`}>
           <div
             onClick={(e) => e.stopPropagation()}
-            className="flex h-10 w-10 flex-shrink-0 cursor-default items-center justify-center rounded-lg bg-[#ffffff] shadow-lg shadow-[#FF6B35]/25"
+            className="flex h-11 w-11 flex-shrink-0 cursor-default items-center justify-center rounded-lg bg-[#ffffff] shadow-lg shadow-[#FF6B35]/25"
           >
             <img src={brandLogo} alt="" className="h-6 w-6 object-contain" />
           </div>

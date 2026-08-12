@@ -56,9 +56,9 @@ export default function BusinessSidebar({
         <div className={`flex items-center gap-2.5 ${isCollapsed ? "justify-center" : ""}`}>
           <div
             onClick={(e) => e.stopPropagation()}
-            className="flex h-8 w-8 flex-shrink-0 cursor-default items-center justify-center rounded-lg bg-[#ffffff]"
+            className="flex h-10 w-10 flex-shrink-0 cursor-default items-center justify-center rounded-lg bg-[#ffffff]"
           >
-            <img src={brandLogo} alt="" className="h-5 w-5 object-contain" />
+            <img src={brandLogo} alt="" className="h-6 w-6 object-contain" />
           </div>
           {!isCollapsed && (
             <span

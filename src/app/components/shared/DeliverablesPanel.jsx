@@ -267,7 +267,7 @@ export default function DeliverablesPanel({ projectId, readOnly = false, locked 
                             href={s.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-[#1B3FAB]/20 bg-[#F4F6FF] px-3 py-1.5 text-xs font-bold text-[#1B3FAB] transition hover:bg-[#1B3FAB]/10 dark:border-[#1B3FAB]/30 dark:bg-[#1B3FAB]/10 dark:hover:bg-[#1B3FAB]/15"
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-[#1B3FAB]/20 bg-[#F4F6FF] px-3 py-1.5 text-xs font-bold text-[#1B3FAB] transition hover:bg-[#1B3FAB]/10 dark:border-[#1B3FAB]/30 dark:bg-[#1B3FAB]/10 dark:text-blue-400 dark:hover:bg-[#1B3FAB]/15"
                           >
                             <ExternalLink className="h-3.5 w-3.5" />
                             Open Link
