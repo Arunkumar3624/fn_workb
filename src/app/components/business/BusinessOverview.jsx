@@ -475,7 +475,11 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
         </div>
 
         {/* ── Middle: Projects + Fund Flow ───────────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-6 mb-5">
+        {/* items-start — same fix as the bottom grid: without it, the
+            shorter Funds in Process / Financial Summary column stretched to
+            match the Active Projects table's height (or vice versa),
+            instead of each card sizing to its own real content. */}
+        <div className="grid grid-cols-1 items-start gap-5 mt-6 mb-5 lg:grid-cols-3">
 
           {/* Active Projects table */}
           <div
@@ -652,7 +656,10 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
         </div>
 
         {/* ── Bottom: Transaction History + Spend Chart ───────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {/* items-start — grid's default stretch was forcing the shorter
+            Spending Overview card to match Payment History's taller scrolling
+            list, leaving dead empty space below its own stats row. */}
+        <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">
 
           <div
             className="rounded-2xl border border-indigo-100/70 bg-[#F7F9FF]/90 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] dark:border-slate-800 dark:bg-slate-900/60 overflow-hidden wb-card-enter"
