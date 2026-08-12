@@ -678,7 +678,18 @@ export default function WorkerWorkspace() {
                   projectId={selectedTask.id}
                   readOnly={selectedTask.status === "CANCELLED"}
                   locked={NOT_STARTED_STATUSES.has(selectedTask.status)}
-                  lockedMessage='Click "Start Work" above to begin — you can share deliverables once work is underway.'
+                  // "Click Start Work above" was shown for ACCEPTED and
+                  // PENDING_FUNDS too, but that button only actually exists
+                  // once FUNDS_SECURED — at those earlier statuses it's the
+                  // business's turn (securing funds), not the worker's, so
+                  // there's nothing above to click yet. Telling a worker to
+                  // click a button that isn't there is the exact "where is
+                  // the Start button?!" confusion this caused.
+                  lockedMessage={
+                    selectedTask.status === "FUNDS_SECURED"
+                      ? 'Click "Start Work" above to begin — you can share deliverables once work is underway.'
+                      : "Waiting on the business to secure funds in escrow — you'll be able to start work once that's done."
+                  }
                 />
               </motion.div>
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.11 }}>
@@ -688,7 +699,8 @@ export default function WorkerWorkspace() {
                   className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#1B3FAB]/20 bg-[#F4F6FF] px-5 py-4 text-sm font-bold text-[#1B3FAB] dark:text-blue-400 transition hover:bg-[#1B3FAB]/10 dark:border-[#1B3FAB]/30 dark:bg-[#1B3FAB]/10 dark:hover:bg-[#1B3FAB]/15"
                 >
                   <MessageSquare className="h-4 w-4" />
-                  Open Chat in Chats                </button>
+                  Open Chat in Negotiations
+                </button>
               </motion.div>
               </div>
             </div>

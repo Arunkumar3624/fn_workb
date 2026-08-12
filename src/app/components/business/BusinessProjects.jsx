@@ -257,7 +257,8 @@ function WorkerDetailDrawer({ project, onClose, onOpenChat }) {
                 className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#FF6B35] py-3 text-sm font-bold text-white transition-all hover:bg-[#e55a2b]"
               >
                 <MessageSquare className="h-4 w-4" />
-                Open Chat in Chats              </button>
+                Open Chat in Negotiations
+              </button>
             </div>
           </motion.div>
         </div>
@@ -1297,7 +1298,7 @@ export default function BusinessProjects({ onOpenChat }) {
       <div className="w-full">
         <div className="mb-5 flex items-center justify-between gap-3">
           <h1 className="text-2xl font-extrabold text-[#0F172A] dark:text-white" style={HEADING_FONT}>
-            Active Projects
+            Projects
           </h1>
           <button
             onClick={loadProjects}

@@ -792,7 +792,7 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
         <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <MessageSquare className="mx-auto h-10 w-10 text-slate-300" />
           <h2 className="mt-4 text-lg font-bold text-slate-900 dark:text-white">No conversations yet</h2>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Your Hub for Invites, Active Projects, and Past Chats</p>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Your Hub for Invites, Chats, and Past Chats</p>
         </div>
       </div>
     );

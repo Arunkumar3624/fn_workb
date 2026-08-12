@@ -117,7 +117,7 @@ function PerkCard({ perk, balance, onPurchase, index, isPurchasing, purchaseDisa
       <div className={`relative flex h-10 w-10 items-center justify-center rounded-xl ${COLOR_STYLES[perk.color]}`}>
         <Icon className="h-5 w-5" />
       </div>
-      <p className="relative mt-3 text-sm font-bold text-slate-900">{perk.name}</p>
+      <p className="relative mt-3 text-sm font-bold text-slate-900 dark:text-white">{perk.name}</p>
       <p className="relative mt-1 flex-1 text-xs leading-5 text-slate-500 dark:text-slate-400">{perk.description}</p>
 
       {perk.tiers.length > 1 && (

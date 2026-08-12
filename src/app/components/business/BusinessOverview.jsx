@@ -21,7 +21,13 @@ function round2(n) {
   return Math.round(n * 100) / 100;
 }
 
-const ACTIVE_STATUSES = new Set(["ACCEPTED", "PENDING_FUNDS", "FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_SUBMITTED"]);
+// Was missing INVITED and PENDING_RELEASE — a business with several
+// invites out (Rehire, or a direct invite from Find Workers) saw "0 Active
+// Projects" here while the Active Projects page's own "Ongoing" tab
+// correctly counted them, since that tab's definition is simply "not OPEN,
+// not COMPLETED, not CANCELLED" (BusinessProjects.jsx's ongoingProjects).
+// Matching that same definition here so the two pages agree.
+const ACTIVE_STATUSES = new Set(["INVITED", "ACCEPTED", "PENDING_FUNDS", "FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_SUBMITTED", "PENDING_RELEASE", "DISPUTED"]);
 // PENDING_FUNDS deliberately excluded — the transfer is only submitted for
 // verification at that point, not yet confirmed as real held funds.
 const FUNDS_HELD_STATUSES = new Set(["FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_SUBMITTED"]);
