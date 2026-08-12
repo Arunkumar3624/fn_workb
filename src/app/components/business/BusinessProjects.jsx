@@ -118,9 +118,6 @@ function WorkerDetailDrawer({ project, onClose, onOpenChat }) {
     return () => window.removeEventListener("keydown", handler);
   }, [isOpen, onClose]);
 
-  const feePct = Number(project?.platform_fee_pct ?? 8);
-  const fee = project ? Math.round(Number(project.budget) * (feePct / 100)) : 0;
-
   // Rendered via a portal straight onto document.body — nesting this inside
   // the tab's own root div (which carries .wb-tab-enter) would make it a
   // descendant of an element that permanently holds a (no-op) CSS transform
@@ -148,7 +145,7 @@ function WorkerDetailDrawer({ project, onClose, onOpenChat }) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 16 }}
             transition={{ type: "spring", stiffness: 320, damping: 28 }}
-            className="relative z-10 flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+            className="relative z-10 flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-slate-900"
           >
             <div className="relative flex-shrink-0">
               <div className="relative h-28 overflow-hidden bg-[#0F172A]">
@@ -175,7 +172,7 @@ function WorkerDetailDrawer({ project, onClose, onOpenChat }) {
                   </div>
                 </div>
 
-                <div className="mt-3 pb-4 border-b border-slate-100">
+                <div className="mt-3 pb-4 border-b border-slate-100 dark:border-slate-800">
                   <h2 className="text-xl font-extrabold text-[#0F172A] dark:text-white" style={HEADING_FONT}>
                     {project.worker_name}
                   </h2>
@@ -206,33 +203,14 @@ function WorkerDetailDrawer({ project, onClose, onOpenChat }) {
               )}
 
               {loadError && !isLoading && (
-                <div className="m-6 rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-600" style={DATA_FONT}>
+                <div className="m-6 rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400" style={DATA_FONT}>
                   {loadError}
                 </div>
               )}
 
               {!isLoading && !loadError && (
                 <div className="p-6 space-y-5">
-                  {profile?.behavior_score != null && (
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                      <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500" style={HEADING_FONT}>
-                        Behavior Score
-                      </p>
-                      <div className="flex items-center gap-3">
-                        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200">
-                          <div
-                            className="h-full rounded-full bg-emerald-500"
-                            style={{ width: `${(profile.behavior_score / 1000) * 100}%` }}
-                          />
-                        </div>
-                        <span className="text-xs font-bold text-emerald-700" style={DATA_FONT}>
-                          {profile.behavior_score}/1000
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="rounded-2xl border border-slate-200 bg-white/80 p-5">
+                  <div className="rounded-2xl border border-slate-200 bg-white/80 p-5 dark:border-slate-800 dark:bg-slate-800/60">
                     <p className="mb-3 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500" style={HEADING_FONT}>
                       Project Progress
                     </p>
@@ -242,55 +220,37 @@ function WorkerDetailDrawer({ project, onClose, onOpenChat }) {
                     <div className="-mx-5 mb-3">
                       <TimelineTracker status={project.status} />
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-slate-400 dark:text-slate-500" style={DATA_FONT}>
-                        Due: {formatDate(project.deadline)}
-                      </span>
-                      <span className="text-base font-extrabold text-[#1B3FAB]" style={DATA_FONT}>
-                        {formatINR(project.budget)}
-                      </span>
-                    </div>
+                    <span className="text-xs text-slate-400 dark:text-slate-500" style={DATA_FONT}>
+                      Due: {formatDate(project.deadline)}
+                    </span>
                     <div className="mt-2">
                       <DeadlineCountdown deadline={project.deadline} status={project.status} />
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4">
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-100">
-                      <ShieldCheck className="h-5 w-5 text-emerald-600" />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-600/70" style={HEADING_FONT}>
-                        Funds Secured
-                      </p>
-                      <p className="mt-0.5 text-sm font-extrabold text-emerald-800" style={DATA_FONT}>
-                        {formatINR(project.budget)} + {formatINR(fee)} fee
-                      </p>
-                    </div>
-                  </div>
-
-                  <DeliverablesPanel projectId={project.id} />
+                  {/* Read-only here — this is a quick worker-glance popup, not
+                      the place to actually share files. The real submission
+                      flow lives in Negotiations (see the "Open Chat" CTA
+                      below), so only the existing deliverables list shows. */}
+                  <DeliverablesPanel projectId={project.id} readOnly />
                 </div>
               )}
             </div>
 
-            <div className="flex flex-shrink-0 gap-3 border-t border-slate-100 bg-white p-5">
-              <button
-                onClick={onClose}
-                className="flex-1 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-600 dark:text-slate-400 transition-colors hover:bg-slate-50"
-              >
-                Close
-              </button>
+            <div className="flex-shrink-0 border-t border-slate-100 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
               {/* Chat lives in Negotiations now — permanent, split-screen,
                   never deletes history — rather than this drawer's own
                   embedded, disposable ChatThread. Matches
-                  WorkerWorkspace.jsx's "Open Chat in Negotiations" button. */}
+                  WorkerWorkspace.jsx's "Open Chat in Negotiations" button.
+                  The single primary CTA — closing is already covered by the
+                  X button, backdrop click, and Escape, so a second "Close"
+                  button here was just redundant chrome. */}
               <button
                 onClick={() => {
                   onOpenChat?.(project.id);
                   onClose?.();
                 }}
-                className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#1B3FAB]/20 bg-[#F4F6FF] px-5 py-3 text-sm font-bold text-[#1B3FAB] transition hover:bg-[#1B3FAB]/10 dark:border-[#1B3FAB]/30 dark:bg-[#1B3FAB]/10 dark:hover:bg-[#1B3FAB]/15"
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#FF6B35] py-3 text-sm font-bold text-white transition-all hover:bg-[#e55a2b]"
               >
                 <MessageSquare className="h-4 w-4" />
                 Open Chat in Negotiations
@@ -866,7 +826,7 @@ function ApplicantsModal({ project, candidates, isLoading, respondingId, onClose
 }
 
 // ─── Rating + Rehire modal (History rows) ────────────────────────────────────
-function RatingModal({ project, currentUserId, onClose, onRehire, onRated }) {
+function RatingModal({ project, currentUserId, onClose, onRated }) {
   const [existingReview, setExistingReview] = useState(undefined);
 
   useEffect(() => {
@@ -917,7 +877,6 @@ function RatingModal({ project, currentUserId, onClose, onRehire, onRated }) {
               onRated?.(project.id, created.rating);
               return created;
             }}
-            onRehire={onRehire}
           />
         )}
       </div>
@@ -1750,14 +1709,19 @@ export default function BusinessProjects({ onOpenChat }) {
                         </button>
 
                         {myRating ? (
-                          <span className="flex items-center gap-0.5" title={`You rated this ${myRating}/5`}>
+                          <button
+                            type="button"
+                            onClick={() => setRatingProject(p)}
+                            title={`You rated this ${myRating}/5 — click to view or edit`}
+                            className="flex items-center gap-0.5 rounded-full px-1 py-1 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800"
+                          >
                             {[1, 2, 3, 4, 5].map((n) => (
                               <Star
                                 key={n}
-                                className={`h-3.5 w-3.5 ${n <= myRating ? "fill-amber-400 text-amber-400" : "fill-slate-200 text-slate-200"}`}
+                                className={`h-3.5 w-3.5 ${n <= myRating ? "fill-amber-400 text-amber-400" : "fill-slate-200 text-slate-200 dark:fill-slate-700 dark:text-slate-700"}`}
                               />
                             ))}
-                          </span>
+                          </button>
                         ) : (
                           <button
                             onClick={() => setRatingProject(p)}
@@ -1862,10 +1826,6 @@ export default function BusinessProjects({ onOpenChat }) {
         project={ratingProject}
         currentUserId={currentUser?.id}
         onClose={() => setRatingProject(null)}
-        onRehire={() => {
-          handleRehire(ratingProject);
-          setRatingProject(null);
-        }}
         onRated={(projectId, rating) => setRatingsByProject((prev) => ({ ...prev, [projectId]: rating }))}
       />
 

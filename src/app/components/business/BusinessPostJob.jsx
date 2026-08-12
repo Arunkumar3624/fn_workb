@@ -591,29 +591,29 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                     >
                       Worker Preview
                     </h3>
-                    <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">
+                    {/* <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full dark:bg-emerald-500/10 dark:border-emerald-900/40 dark:text-emerald-400">
                       Live
-                    </span>
+                    </span> */}
                   </div>
 
                   {/* ── The actual preview card — mirrors WorkerJobFeed article ── */}
-                  <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
                     {/* Header */}
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 truncate">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 truncate dark:text-slate-500">
                           {watchedCategory || "Category"}
                         </p>
                         <h2
-                          className="mt-1.5 text-sm font-black leading-snug text-slate-900"
+                          className="mt-1.5 text-sm font-black leading-snug text-slate-900 dark:text-white"
                           style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
                         >
                           {watchedTitle || (
-                            <span className="text-slate-300 font-normal">Your job title…</span>
+                            <span className="text-slate-300 font-normal dark:text-slate-600">Your job title…</span>
                           )}
                         </h2>
                       </div>
-                      <span className="inline-flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+                      <span className="inline-flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
                         <ShieldCheck className="h-3.5 w-3.5" />
                       </span>
                     </div>
@@ -621,12 +621,12 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                     {/* Business + Budget chips — real data, not a placeholder
                         company name, since this is a preview of what the
                         current logged-in business's own post looks like. */}
-                    <div className="mt-3 flex flex-wrap gap-1.5 text-[11px] font-semibold text-slate-500">
-                      <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1">
+                    <div className="mt-3 flex flex-wrap gap-1.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 dark:bg-slate-800">
                         <Briefcase className="h-3 w-3" />
                         {currentUser?.profile?.companyName || currentUser?.name || "Your business"}
                       </span>
-                      <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 dark:bg-slate-800">
                         <IndianRupee className="h-3 w-3" />
                         {summaryBudget > 0 ? `₹${summaryBudget.toLocaleString("en-IN")}` : "Budget"}
                       </span>
@@ -653,9 +653,9 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                     )}
 
                     {/* Brief */}
-                    <p className="mt-3 line-clamp-2 text-xs leading-relaxed text-slate-600">
+                    <p className="mt-3 line-clamp-2 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
                       {watchedBrief || (
-                        <span className="text-slate-300">Project description will appear here…</span>
+                        <span className="text-slate-300 dark:text-slate-600">Project description will appear here…</span>
                       )}
                     </p>
 
@@ -664,24 +664,24 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                         something a real posted listing will actually have:
                         how many people have applied. Always 0 here since
                         this is an unposted draft. */}
-                    <div className="mt-3 grid grid-cols-3 gap-0 rounded-xl border border-slate-200 bg-slate-50 text-center text-[11px] overflow-hidden">
+                    <div className="mt-3 grid grid-cols-3 gap-0 rounded-xl border border-slate-200 bg-slate-50 text-center text-[11px] overflow-hidden dark:border-slate-700 dark:bg-slate-800">
                       <div className="py-2.5 px-1">
-                        <p className="text-slate-400">Applicants</p>
-                        <p className="mt-0.5 font-black text-slate-900">0</p>
+                        <p className="text-slate-400 dark:text-slate-500">Applicants</p>
+                        <p className="mt-0.5 font-black text-slate-900 dark:text-white">0</p>
                       </div>
-                      <div className="py-2.5 px-1 border-x border-slate-200">
-                        <p className="text-slate-400">Type</p>
-                        <p className="mt-0.5 font-black text-slate-900">Fixed</p>
+                      <div className="py-2.5 px-1 border-x border-slate-200 dark:border-slate-700">
+                        <p className="text-slate-400 dark:text-slate-500">Type</p>
+                        <p className="mt-0.5 font-black text-slate-900 dark:text-white">Fixed</p>
                       </div>
                       <div className="py-2.5 px-1">
-                        <p className="text-slate-400">Rating</p>
+                        <p className="text-slate-400 dark:text-slate-500">Rating</p>
                         {/* Real reviews aren't fetched into this draft-preview
                             component — rather than fabricate a number, this
                             honestly reads "New" until this business has
                             actual reviews to show, same as a worker with
                             zero reviews reads elsewhere on WorkBridge. */}
-                        <p className="mt-0.5 font-black text-slate-900 inline-flex items-center gap-0.5">
-                          <Star className="h-3 w-3 text-slate-300" />
+                        <p className="mt-0.5 font-black text-slate-900 dark:text-white inline-flex items-center gap-0.5">
+                          <Star className="h-3 w-3 text-slate-300 dark:text-slate-600" />
                           New
                         </p>
                       </div>
@@ -698,7 +698,7 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                           .map((s) => (
                             <span
                               key={s}
-                              className="rounded-full border border-slate-200 bg-white px-2.5 py-0.5 text-[10px] font-semibold text-slate-600"
+                              className="rounded-full border border-slate-200 bg-white px-2.5 py-0.5 text-[10px] font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
                             >
                               {s}
                             </span>
@@ -708,19 +708,19 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
 
                     {/* Footer row */}
                     <div className="mt-3 flex items-center justify-between gap-2">
-                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
                         <Clock className="h-3 w-3" />
                         Just now
                       </span>
                       <div className="flex items-center gap-1.5">
                         {urgent && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:bg-amber-950/30 dark:border-amber-900/40 dark:text-amber-400">
                             <Zap className="h-2.5 w-2.5" />
                             Urgent
                           </span>
                         )}
                         {watchedDurationDays > 0 && (
-                          <span className="text-[10px] text-slate-400">
+                          <span className="text-[10px] text-slate-400 dark:text-slate-500">
                             Due {resolveDeadlinePreview(watchedDurationDays)}
                           </span>
                         )}
@@ -728,7 +728,7 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                     </div>
 
                     {/* Dummy CTA — shows workers what they will see */}
-                    <div className="mt-4 w-full rounded-xl border border-slate-200 bg-slate-100 px-4 py-2.5 text-center text-xs font-bold text-slate-400 cursor-default select-none">
+                    <div className="mt-4 w-full rounded-xl border border-slate-200 bg-slate-100 px-4 py-2.5 text-center text-xs font-bold text-slate-400 cursor-default select-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-500">
                       View Details (worker view)
                     </div>
                   </article>

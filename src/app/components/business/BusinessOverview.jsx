@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import {
-  AlertCircle, ArrowRight, Briefcase, Calendar, CheckCircle2, Lock,
+  AlertCircle, ArrowRight, BadgeCheck, Briefcase, Calendar, CheckCircle2, Lock,
   Plus, Receipt, Shield, ShieldCheck, TrendingUp, UserCheck, Zap,
 } from "lucide-react";
 import Avatar from "../shared/Avatar";
@@ -10,6 +10,7 @@ import EnterprisePartnerTierCard from "./EnterprisePartnerTierCard";
 import { listProjects } from "../../lib/projectsApi";
 import { getInitials } from "../../utils/formValidation";
 import { PROJECT_STATUS_FLOW } from "../../utils/projectStatus";
+import { verifiedRingClass } from "../../utils/verification";
 import { ApiError } from "../../lib/apiClient";
 
 function formatINR(amount) {
@@ -27,19 +28,28 @@ const FUNDS_HELD_STATUSES = new Set(["FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES
 const CHART_MAX_FLOOR = 1000; // avoid a div-by-zero-flavored 0-height chart on a brand-new account
 
 // ── Micro sparkline ───────────────────────────────────────────────────────────
-function Sparkline({ data, color }) {
+function Sparkline({ data, color, darkColor }) {
   const max = Math.max(...data, 1);
   const min = Math.min(...data, 0);
   const r = max - min || 1;
-  const W = 64, H = 26;
+  // PAD=3 (not 1) so the line's peak gets real headroom instead of sitting
+  // flush against the SVG's top pixel row, which read as "cut off".
+  const W = 64, H = 26, PAD = 3;
   const pts = data
-    .map((v, i) => `${(i / Math.max(1, data.length - 1)) * W},${H - ((v - min) / r) * (H - 2) - 1}`)
+    .map((v, i) => `${(i / Math.max(1, data.length - 1)) * W},${H - ((v - min) / r) * (H - PAD * 2) - PAD}`)
     .join(" ");
+  const dc = darkColor || color;
   return (
     <svg width={W} height={H} className="overflow-visible flex-shrink-0">
-      <polygon points={`0,${H} ${pts} ${W},${H}`} fill={color + "18"} stroke="none" />
+      {/* Raw hex colors can't carry a `dark:` variant, so the line is drawn
+          twice — a light-mode pass and a brighter dark-mode pass — and CSS
+          toggles which one is visible, instead of the line staying navy-on-navy. */}
+      <polygon points={`0,${H} ${pts} ${W},${H}`} fill={color + "18"} stroke="none" className="dark:hidden" />
       <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5"
-        strokeLinecap="round" strokeLinejoin="round" />
+        strokeLinecap="round" strokeLinejoin="round" className="dark:hidden" />
+      <polygon points={`0,${H} ${pts} ${W},${H}`} fill={dc + "18"} stroke="none" className="hidden dark:block" />
+      <polyline points={pts} fill="none" stroke={dc} strokeWidth="1.5"
+        strokeLinecap="round" strokeLinejoin="round" className="hidden dark:block" />
     </svg>
   );
 }
@@ -180,9 +190,9 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
   ];
 
   const TX_META = {
-    secured: { icon: Shield, bg: "bg-emerald-50", color: "text-emerald-600", badge: "bg-emerald-50 text-emerald-600", sign: "–" },
-    delivered: { icon: CheckCircle2, bg: "bg-purple-50", color: "text-purple-600", badge: "bg-purple-50 text-purple-600", sign: "+" },
-    fee: { icon: Receipt, bg: "bg-amber-50", color: "text-amber-600", badge: "bg-amber-50 text-amber-600", sign: "–" },
+    secured: { icon: Shield, bg: "bg-emerald-50 dark:bg-emerald-500/10", color: "text-emerald-600 dark:text-emerald-400", badge: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400", sign: "–" },
+    delivered: { icon: CheckCircle2, bg: "bg-purple-50 dark:bg-purple-500/10", color: "text-purple-600 dark:text-purple-400", badge: "bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400", sign: "+" },
+    fee: { icon: Receipt, bg: "bg-amber-50 dark:bg-amber-500/10", color: "text-amber-600 dark:text-amber-400", badge: "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400", sign: "–" },
   };
 
   // Monthly activity, grouped from the same real feed — sparse/mostly-empty
@@ -258,10 +268,10 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
               >
                 Overview
               </h1>
-              <span className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold rounded-full">
+              {/* <span className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold rounded-full">
                 <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
                 Live
-              </span>
+              </span> */}
             </div>
           </div>
           <button
@@ -278,32 +288,32 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
           {[
             {
               label: "Active Projects", value: String(activeProjects.length),
-              icon: Briefcase, iconBg: "bg-blue-100", iconColor: "text-[#1B3FAB]", valueColor: "text-[#1B3FAB]",
+              icon: Briefcase, iconBg: "bg-blue-100 dark:bg-blue-500/10", iconColor: "text-[#1B3FAB] dark:text-blue-400", valueColor: "text-[#1B3FAB] dark:text-blue-400",
               cardBg: "bg-blue-50/70 border-blue-100/80 dark:bg-slate-900/60 dark:border-slate-800",
-              spark: monthly.map((m) => m.secured), sparkColor: "#1B3FAB",
+              spark: monthly.map((m) => m.secured), sparkColor: "#1B3FAB", sparkDarkColor: "#60a5fa",
             },
             {
               label: "Funds in Process", value: formatINR(securedTotal), sub: "Secured for active projects",
               subColor: "text-slate-600 dark:text-slate-400", icon: Shield,
-              iconBg: "bg-emerald-100", iconColor: "text-emerald-600", valueColor: "text-emerald-600",
+              iconBg: "bg-emerald-100 dark:bg-emerald-500/10", iconColor: "text-emerald-600 dark:text-emerald-400", valueColor: "text-emerald-600 dark:text-emerald-400",
               cardBg: "bg-emerald-50/70 border-emerald-100/80 dark:bg-slate-900/60 dark:border-slate-800",
-              spark: monthly.map((m) => m.secured), sparkColor: "#10b981",
+              spark: monthly.map((m) => m.secured), sparkColor: "#10b981", sparkDarkColor: "#34d399",
             },
             {
               label: "Funds Delivered", value: formatINR(deliveredTotal), sub: "Paid to workers all-time",
               subColor: "text-slate-600 dark:text-slate-400", icon: CheckCircle2,
-              iconBg: "bg-purple-100", iconColor: "text-purple-600", valueColor: "text-purple-600",
+              iconBg: "bg-purple-100 dark:bg-purple-500/10", iconColor: "text-purple-600 dark:text-purple-400", valueColor: "text-purple-600 dark:text-purple-400",
               cardBg: "bg-purple-50/70 border-purple-100/80 dark:bg-slate-900/60 dark:border-slate-800",
-              spark: monthly.map((m) => m.delivered), sparkColor: "#9333ea",
+              spark: monthly.map((m) => m.delivered), sparkColor: "#9333ea", sparkDarkColor: "#c084fc",
             },
             {
               label: "Workers Hired", value: String(workersHired), sub: "All-time placements",
               subColor: "text-slate-600 dark:text-slate-400", icon: UserCheck,
-              iconBg: "bg-orange-100", iconColor: "text-[#FF6B35]", valueColor: "text-[#FF6B35]",
+              iconBg: "bg-orange-100 dark:bg-orange-500/10", iconColor: "text-[#FF6B35] dark:text-orange-400", valueColor: "text-[#FF6B35] dark:text-orange-400",
               cardBg: "bg-orange-50/70 border-orange-100/80 dark:bg-slate-900/60 dark:border-slate-800",
-              spark: monthly.map((m) => m.secured + m.delivered), sparkColor: "#FF6B35",
+              spark: monthly.map((m) => m.secured + m.delivered), sparkColor: "#FF6B35", sparkDarkColor: "#fb923c",
             },
-          ].map(({ label, value, sub, subColor, icon: Icon, iconBg, iconColor, valueColor, cardBg, spark, sparkColor }, i) => (
+          ].map(({ label, value, sub, subColor, icon: Icon, iconBg, iconColor, valueColor, cardBg, spark, sparkColor, sparkDarkColor }, i) => (
             <div
               key={label}
               className={`rounded-2xl border backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] p-5 wb-card-enter ${cardBg}`}
@@ -313,7 +323,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
                 <div className={`w-10 h-10 ${iconBg} rounded-xl flex items-center justify-center flex-shrink-0`}>
                   <Icon className={`w-5 h-5 ${iconColor}`} />
                 </div>
-                <Sparkline data={spark} color={sparkColor} />
+                <Sparkline data={spark} color={sparkColor} darkColor={sparkDarkColor} />
               </div>
               <div
                 className={`text-2xl font-extrabold ${valueColor} leading-none mb-1`}
@@ -343,7 +353,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
             with the rest of the page's visual system instead of reading as
             a deliberate accent. The Verification card hides once isVerified
             is real and true — no point advertising something already owned. */}
-        <div className={`mt-6 grid grid-cols-1 gap-4 ${isVerified ? "" : "sm:grid-cols-2"}`}>
+        <div className={`mt-6 grid grid-cols-1 gap-4 ${isVerified ? "sm:grid-cols-2" : "sm:grid-cols-2 lg:grid-cols-3"}`}>
           {!isVerified && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -370,6 +380,44 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
               </div>
             </motion.div>
           )}
+
+          {/* Full Trust Frame upsell — the real ₹699 "Elite — Gold Standard"
+              tier from VerificationFeesTable.jsx (Settings > Billing). Unlike
+              the Business Verified card above, this one stays visible even
+              after isVerified is true — Full Trust is a further, optional
+              purchase on top of plain verification, not a duplicate of it.
+              Reuses the same gold ring swatch real Full Trust avatars would
+              get (verifiedRingClass) so the preview never drifts from what
+              buying it actually unlocks. */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, delay: 0.06 }}
+            className="rounded-2xl border border-amber-300 bg-gradient-to-br from-amber-50 to-white shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] p-4 dark:border-amber-900/40 dark:from-amber-950/20 dark:to-slate-900"
+          >
+            <div className="flex items-center gap-4">
+              <span className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-700 ${verifiedRingClass(true, "sm", "gold")}`}>
+                <BadgeCheck className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-[#0F172A] dark:text-white">Go Gold Verified</h3>
+                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-amber-800 dark:bg-amber-500/10 dark:text-amber-400">
+                    Elite
+                  </span>
+                </div>
+                <p className="mt-0.5 truncate text-xs text-slate-600 dark:text-slate-300">
+                  Background check + a glowing Gold Trust Frame.
+                </p>
+              </div>
+              <button
+                onClick={goToBilling}
+                className="flex-shrink-0 rounded-xl bg-[#FF6B35] px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
+              >
+                Get Full Trust — ₹699
+              </button>
+            </div>
+          </motion.div>
 
           {/* Same amber/gold treatment as EnterprisePartnerTierCard.jsx's
               Gold tier, on request — ties this ad visually to the real tier
@@ -425,7 +473,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
               </div>
               <button
                 onClick={onViewProjects}
-                className="flex items-center gap-1 text-[#1B3FAB] text-xs font-semibold hover:underline"
+                className="flex items-center gap-1 text-[#1B3FAB] dark:text-blue-400 text-xs font-semibold hover:underline"
               >
                 View all <ArrowRight className="w-3 h-3" />
               </button>
@@ -469,8 +517,8 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
                   <div className="col-span-3 flex justify-center">
                     <span className={`px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
                       statusGroup(p) === "active"
-                        ? "bg-blue-50 text-blue-700 border border-blue-100"
-                        : "bg-amber-50 text-amber-700 border border-amber-100"
+                        ? "bg-blue-50 text-blue-700 border border-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-900/40"
+                        : "bg-amber-50 text-amber-700 border border-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-900/40"
                     }`}>
                       {statusGroup(p) === "active" ? "In Progress" : "In Review"}
                     </span>
@@ -527,7 +575,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
                             <Avatar initials={getInitials(p.worker_name)} size="w-6 h-6" text="text-[9px]" />
                             <span className="text-xs font-semibold text-[#0F172A] dark:text-white truncate">{p.title}</span>
                           </div>
-                          <span className="text-xs font-bold text-[#1B3FAB] flex-shrink-0 ml-2">{formatINR(p.budget)}</span>
+                          <span className="text-xs font-bold text-[#1B3FAB] dark:text-blue-400 flex-shrink-0 ml-2">{formatINR(p.budget)}</span>
                         </div>
                         <div className="h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                           <div
@@ -538,7 +586,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
                         <div className="flex justify-between mt-1">
                           <span className="text-[10px] text-slate-600 dark:text-slate-400">{pct}% of total</span>
                           <span className={`text-[10px] font-bold ${
-                            statusGroup(p) === "active" ? "text-blue-600" : "text-amber-600"
+                            statusGroup(p) === "active" ? "text-blue-600 dark:text-blue-400" : "text-amber-600 dark:text-amber-400"
                           }`}>
                             {statusGroup(p) === "active" ? "In Progress" : "In Review"}
                           </span>
@@ -550,7 +598,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
               )}
               <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                 <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Total Secured</span>
-                <span className="text-sm font-extrabold text-emerald-600">{formatINR(securedTotal)}</span>
+                <span className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">{formatINR(securedTotal)}</span>
               </div>
             </div>
 
@@ -566,9 +614,9 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
               </h3>
               <div className="space-y-3">
                 {[
-                  { label: "Delivered this month", value: formatINR(deliveredThisMonth), color: "text-purple-600", bg: "bg-purple-50" },
-                  { label: "Total delivered", value: formatINR(deliveredTotal), color: "text-emerald-600", bg: "bg-emerald-50" },
-                  { label: "Avg. project budget", value: formatINR(avgBudget), color: "text-[#1B3FAB]", bg: "bg-[#F4F6FF]" },
+                  { label: "Delivered this month", value: formatINR(deliveredThisMonth), color: "text-purple-600 dark:text-purple-400", bg: "bg-purple-50 dark:bg-purple-500/10" },
+                  { label: "Total delivered", value: formatINR(deliveredTotal), color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-500/10" },
+                  { label: "Avg. project budget", value: formatINR(avgBudget), color: "text-[#1B3FAB] dark:text-blue-400", bg: "bg-[#F4F6FF] dark:bg-blue-500/10" },
                 ].map(({ label, value, color, bg }) => (
                   <div key={label} className="flex items-center justify-between gap-2">
                     <span className="text-xs text-slate-500 dark:text-slate-400 truncate">{label}</span>
@@ -703,9 +751,9 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
 
             <div className="grid grid-cols-3 gap-3 text-center">
               {[
-                { label: "Total Secured", value: formatINR(monthly.reduce((s, m) => s + m.secured, 0)), color: "text-[#1B3FAB]" },
-                { label: "Total Delivered", value: formatINR(monthly.reduce((s, m) => s + m.delivered, 0)), color: "text-purple-600" },
-                { label: "Still Held", value: formatINR(securedTotal), color: "text-emerald-600" },
+                { label: "Total Secured", value: formatINR(monthly.reduce((s, m) => s + m.secured, 0)), color: "text-[#1B3FAB] dark:text-blue-400" },
+                { label: "Total Delivered", value: formatINR(monthly.reduce((s, m) => s + m.delivered, 0)), color: "text-purple-600 dark:text-purple-400" },
+                { label: "Still Held", value: formatINR(securedTotal), color: "text-emerald-600 dark:text-emerald-400" },
               ].map(({ label, value, color }) => (
                 <div key={label}>
                   <p className="text-xs text-slate-600 dark:text-slate-400">{label}</p>

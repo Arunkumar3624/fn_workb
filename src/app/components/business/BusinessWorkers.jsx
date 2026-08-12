@@ -33,10 +33,10 @@ function rank(a, b) {
 }
 
 const scoreTone = (score) => {
-  if (score == null) return "bg-slate-50 text-slate-400 dark:text-slate-500 border-slate-200";
-  if (score >= 700) return "bg-emerald-50 text-emerald-700 border-emerald-200";
-  if (score >= 500) return "bg-amber-50 text-amber-700 border-amber-200";
-  return "bg-rose-50 text-rose-600 border-rose-200";
+  if (score == null) return "bg-slate-50 text-slate-400 border-slate-200 dark:bg-slate-800 dark:text-slate-500 dark:border-slate-700";
+  if (score >= 700) return "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-900/40";
+  if (score >= 500) return "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-900/40";
+  return "bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-900/40";
 };
 
 const INPUT_CLASS =

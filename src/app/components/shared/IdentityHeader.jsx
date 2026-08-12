@@ -10,9 +10,9 @@ import Avatar from "./Avatar";
  * Inbox/Rehire chat so both sides get the same identity treatment.
  */
 const PILL_TONE = {
-  emerald: "text-emerald-700 bg-emerald-50",
-  amber: "text-amber-700 bg-amber-50",
-  blue: "text-blue-600 bg-blue-50",
+  emerald: "text-emerald-700 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-500/10",
+  amber: "text-amber-700 bg-amber-50 dark:text-amber-400 dark:bg-amber-500/10",
+  blue: "text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-500/10",
 };
 
 export default function IdentityHeader({
@@ -28,7 +28,7 @@ export default function IdentityHeader({
   statusPill,
 }) {
   return (
-    <div className="flex-shrink-0 bg-white border-b border-slate-200 px-4 py-3 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-6 sm:py-4">
+    <div className="flex-shrink-0 bg-white border-b border-slate-200 px-4 py-3 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-6 sm:py-4 dark:bg-slate-900 dark:border-slate-800">
       <div className="flex w-full items-center gap-3 min-w-0 sm:w-auto">
         {avatarUrl ? (
           <img src={avatarUrl} alt={name} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
@@ -41,27 +41,27 @@ export default function IdentityHeader({
               <button
                 type="button"
                 onClick={onNameClick}
-                className="font-bold text-lg text-slate-900 hover:text-[#1B3FAB] transition-colors truncate text-left"
+                className="font-bold text-lg text-slate-900 hover:text-[#1B3FAB] transition-colors truncate text-left dark:text-white dark:hover:text-blue-400"
                 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
               >
                 {name}
               </button>
             ) : (
               <p
-                className="font-bold text-lg text-slate-900 truncate"
+                className="font-bold text-lg text-slate-900 truncate dark:text-white"
                 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
               >
                 {name}
               </p>
             )}
-            {verified && <ShieldCheck className="w-4 h-4 text-blue-500 flex-shrink-0" />}
+            {verified && <ShieldCheck className="w-4 h-4 text-blue-500 dark:text-blue-400 flex-shrink-0" />}
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            {subtitle && <p className="text-sm text-slate-500 truncate">{subtitle}</p>}
+            {subtitle && <p className="text-sm text-slate-500 dark:text-slate-400 truncate">{subtitle}</p>}
             {rating != null && (
               <>
-                <span className="text-slate-300 text-xs flex-shrink-0">·</span>
-                <p className="flex items-center gap-1 text-xs text-slate-500 whitespace-nowrap flex-shrink-0">
+                <span className="text-slate-300 dark:text-slate-600 text-xs flex-shrink-0">·</span>
+                <p className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap flex-shrink-0">
                   <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
                   {rating}
                   {reviews != null && ` (${reviews} jobs)`}
@@ -82,7 +82,7 @@ export default function IdentityHeader({
         </span>
       ) : (
         verified && (
-          <span className="flex-shrink-0 inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">
+          <span className="flex-shrink-0 inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full dark:text-blue-400 dark:bg-blue-500/10">
             Verified
           </span>
         )

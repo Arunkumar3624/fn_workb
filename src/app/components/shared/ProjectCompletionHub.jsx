@@ -103,9 +103,12 @@ export default function ProjectCompletionHub({
           />
         </div>
 
-        {/* Retention Engine — business only. Rating and rehiring are two
-            separate calls to action; neither one gates the other. */}
-        {perspective === "business" && (
+        {/* Retention Engine — business only, and only when a rehire handler
+            is actually passed in. RatingModal (History rows) already has
+            its own standalone Rehire button right next to Rate, so this
+            block would just duplicate it there — omitting onRehire keeps it
+            out without perspective ever needing two meanings. */}
+        {perspective === "business" && onRehire && (
           <div className="border-t border-slate-100 bg-slate-50/60 px-5 py-8 dark:border-slate-800 dark:bg-slate-900/40 sm:px-12">
             <div className="rounded-2xl border border-orange-100 bg-orange-50/70 p-4 dark:border-orange-900/40 dark:bg-orange-950/20 sm:p-5">
               <div className="flex items-start justify-between gap-3">
