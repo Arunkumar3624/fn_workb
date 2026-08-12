@@ -94,7 +94,12 @@ export const postJobSchema = z
       .int("Enter a whole number of days")
       .min(1, "Must be at least 1 day")
       .max(365, "Keep it to 365 days or fewer"),
-    budget: positiveCurrencySchema,
+    // positiveCurrencySchema alone only rejects negative amounts — nothing
+    // stopped a stray extra zero (or twelve) from being posted as a real
+    // job budget. 50 lakh is generously above anything real seen on this
+    // platform (typical budgets run ₹500–₹90,000) while still catching
+    // fat-finger typos, not enforcing a tight business policy ceiling.
+    budget: positiveCurrencySchema.max(5000000, "Keep the budget under ₹50,00,000 — contact support for anything larger"),
     applicationWindow: z.coerce
       .number()
       .int("Enter a whole number of days")

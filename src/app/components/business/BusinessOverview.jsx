@@ -748,20 +748,22 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
 
             <div className="relative mt-5 mb-3">
               {/* Horizontal gridlines — value reference lines behind the
-                  bars, spaced to match the same 100px scale the bar heights
-                  themselves are computed against. */}
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-[100px]">
+                  bars, spaced to match the same 170px scale the bar heights
+                  themselves are computed against. Taller than before so the
+                  chart itself fills more of the card instead of leaving a
+                  gap between it and the stats row below. */}
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-[170px]">
                 {[0, 25, 50, 75].map((pct) => (
-                  <div key={pct} className="absolute inset-x-0 border-t border-dashed border-slate-200 dark:border-slate-800" style={{ top: `${pct}px` }} />
+                  <div key={pct} className="absolute inset-x-0 border-t border-dashed border-slate-200 dark:border-slate-800" style={{ top: `${pct * 1.7}px` }} />
                 ))}
               </div>
               <div className="relative flex items-end gap-2">
                 {monthly.map(({ m, secured, delivered }) => {
-                  const sH = secured > 0 ? Math.max(4, Math.round((secured / chartMax) * 100)) : 0;
-                  const dH = delivered > 0 ? Math.max(4, Math.round((delivered / chartMax) * 100)) : 0;
+                  const sH = secured > 0 ? Math.max(4, Math.round((secured / chartMax) * 170)) : 0;
+                  const dH = delivered > 0 ? Math.max(4, Math.round((delivered / chartMax) * 170)) : 0;
                   return (
                     <div key={m} className="flex-1">
-                      <div className="flex items-end gap-px" style={{ height: "100px" }}>
+                      <div className="flex items-end gap-px" style={{ height: "170px" }}>
                         <div
                           title={`Secured ${formatINR(secured)}`}
                           className="flex-1 bg-[#1B3FAB] hover:bg-[#1635A0] rounded-t-sm transition-colors cursor-default"

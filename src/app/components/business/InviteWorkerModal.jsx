@@ -147,6 +147,7 @@ export default function InviteWorkerModal({ worker, openJobs, onClose, onSubmitE
                   <input
                     type="number"
                     min="1"
+                    max="5000000"
                     value={budget}
                     onChange={(e) => setBudget(e.target.value)}
                     placeholder="15000"

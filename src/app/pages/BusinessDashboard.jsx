@@ -26,31 +26,17 @@ import { useDocumentTitle } from "../hooks/useDocumentTitle";
 // page components with no shared "dashboard chrome" module today.
 function getGreeting() {
   const hour = new Date().getHours();
-
-  if (hour >= 5 && hour < 12) {
-    // A clean, simple sun behind a cloud or a standard coffee cup is widely accepted in business contexts
-    return { text: "Good Morning", emoji: "🌤️" }; 
-  } 
-  
-  if (hour >= 12 && hour < 17) {
-    // Standard, minimalist sun for the peak of the day
-    return { text: "Good Afternoon", emoji: "☀️" }; 
-  } 
-  
-  if (hour >= 17 && hour < 21) {
-    // A simple crescent moon, removing the busy cityscape
-    return { text: "Good Evening", emoji: "🌙" }; 
-  } 
-  
-  // A clean, dark night sky to indicate after-hours
-  return { text: "Good Night", emoji: "🌃" }; 
+  if (hour >= 5 && hour < 12) return { text: "Good Morning", emoji: "🌤️" };
+  if (hour >= 12 && hour < 17) return { text: "Good Afternoon", emoji: "☀️" };
+  if (hour >= 17 && hour < 21) return { text: "Good Evening", emoji: "🌙" };
+  return { text: "Good Night", emoji: "🌃" };
 }
 // "Lobby vs. Workroom": the big warm greeting only belongs on the landing
 // tab (Overview). Every other tab is a workroom the user already knows
 // they're in — it gets a slim, contextual title instead.
 const TAB_TITLES = {
   overview: "Overview",
-  post: "Post a Job",
+  post: "Job",
   workers: "Find Workers",
   projects: "Projects",
   negotiations: "Negotiations",

@@ -419,6 +419,7 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                       onChange={(value) =>
                         setValue("budget", value, { shouldValidate: true })
                       }
+                      max="5000000"
                       inputClassName={currencyInputCls}
                     />
                     {rawBudget === 0 && (
