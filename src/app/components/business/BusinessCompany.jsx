@@ -85,7 +85,7 @@ const VERIFICATIONS = [
 ];
 
 const STATS = [
-  { label: "Jobs Posted",    value: "42",   Icon: Briefcase,  color: "text-[#1B3FAB]",   bg: "bg-[#F4F6FF] dark:bg-[#1B3FAB]/10"  },
+  { label: "Jobs Posted",    value: "42",   Icon: Briefcase,  color: "text-[#1B3FAB] dark:text-blue-400",   bg: "bg-[#F4F6FF] dark:bg-[#1B3FAB]/10"  },
   { label: "Workers Hired",  value: "28",   Icon: Users,      color: "text-emerald-600", bg: "bg-emerald-50" },
   { label: "Avg. Rating",    value: "4.7",  Icon: Star,       color: "text-amber-600",   bg: "bg-amber-50"   },
   { label: "Success Rate",   value: "94%",  Icon: TrendingUp, color: "text-[#FF6B35]",   bg: "bg-orange-50"  },
@@ -195,7 +195,7 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
                       href={profile.website}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-1 text-xs text-[#1B3FAB] font-semibold hover:underline"
+                      className="flex items-center gap-1 text-xs text-[#1B3FAB] dark:text-blue-400 font-semibold hover:underline"
                     >
                       <Globe className="w-3 h-3 flex-shrink-0" />
                       {profile.website.replace("https://", "")}
@@ -211,7 +211,18 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
             </div>
 
             <div className="flex flex-shrink-0 items-center gap-2">
-              <ShareProfileButton url={shareUrl} title={profile.name} text={`Check out ${profile.name} on WorkBridge`} />
+              {/* Explicit className to match Edit Profile's exact size/radius
+                  (px-4 py-2.5, rounded-xl) — the component's bare default
+                  (px-5 py-3, rounded-lg, no dark: coverage at all) is tuned
+                  for the public, always-light /profiles/:id page, not this
+                  dark-mode-aware dashboard header, which is why the two
+                  buttons visibly mismatched here. */}
+              <ShareProfileButton
+                url={shareUrl}
+                title={profile.name}
+                text={`Check out ${profile.name} on WorkBridge`}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:-translate-y-0.5 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+              />
               <button
                 onClick={onEdit}
                 className="inline-flex items-center gap-1.5 rounded-xl bg-[#1B3FAB] px-4 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-[#1635A0] dark:bg-gradient-to-r dark:from-[#16327A] dark:to-[#2b52d6] dark:hover:from-[#1B3FAB] dark:hover:to-[#3a63e0]"
@@ -277,7 +288,7 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
               <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed mb-4">{profile.culture}</p>
               <div className="flex flex-wrap gap-2">
                 {CULTURE_TAGS.map((tag) => (
-                  <span key={tag} className="px-3 py-1 bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 text-[#1B3FAB] text-xs font-semibold rounded-full border border-[#1B3FAB]/10">
+                  <span key={tag} className="px-3 py-1 bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 text-[#1B3FAB] dark:text-blue-400 text-xs font-semibold rounded-full border border-[#1B3FAB]/10">
                     {tag}
                   </span>
                 ))}
@@ -289,7 +300,7 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500"
                   style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Current Openings (Preview)</h2>
-                <span className="text-xs font-bold text-[#1B3FAB] bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 px-2.5 py-1 rounded-full border border-[#1B3FAB]/10">
+                <span className="text-xs font-bold text-[#1B3FAB] dark:text-blue-400 bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 px-2.5 py-1 rounded-full border border-[#1B3FAB]/10">
                   {COMPANY_JOBS.length} Open
                 </span>
               </div>
@@ -304,7 +315,7 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
                       {profile.initials}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-[#0F172A] dark:text-white truncate group-hover:text-[#1B3FAB] transition-colors">{job.title}</p>
+                      <p className="text-sm font-bold text-[#0F172A] dark:text-white truncate group-hover:text-[#1B3FAB] dark:group-hover:text-blue-400 transition-colors">{job.title}</p>
                       <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{job.tier} · {job.workload} · Posted {job.posted}</p>
                     </div>
                     {job.urgent && (
@@ -358,7 +369,7 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
                             ))}
                           </div>
                         </div>
-                        <p className="text-[11px] font-bold text-[#1B3FAB] mb-1.5">{rev.project}</p>
+                        <p className="text-[11px] font-bold text-[#1B3FAB] dark:text-blue-400 mb-1.5">{rev.project}</p>
                         <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">{rev.text}</p>
                         <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1.5">{rev.date}</p>
                       </div>
@@ -401,7 +412,7 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
                     <div>
                       <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide">Website</p>
                       <a href={profile.website} target="_blank" rel="noopener noreferrer"
-                        className="text-sm font-semibold text-[#1B3FAB] hover:underline flex items-center gap-1 mt-0.5">
+                        className="text-sm font-semibold text-[#1B3FAB] dark:text-blue-400 hover:underline flex items-center gap-1 mt-0.5">
                         {profile.website.replace("https://", "")}
                         <ExternalLink className="w-2.5 h-2.5" />
                       </a>
@@ -603,7 +614,7 @@ function EditForm({ draft, onChange, onSave, onCancel, saving, saveError }) {
               </Field>
             ) : (
               <p className="text-sm text-slate-400 dark:text-slate-500">
-                Get Business Verified to unlock a frame around your avatar — see the Verification Badges section under Billing & Subscriptions.
+                Get Business Verified to unlock a frame around your avatar — see the Trust & Verification tab under Billing & Payments.
               </p>
             )}
           </EditFormSection>
@@ -639,7 +650,7 @@ function EditFormSection({ icon: Icon, title, last = false, children }) {
   return (
     <div className={`${last ? "" : "mb-8 border-b border-slate-100 dark:border-slate-800 pb-8"}`}>
       <h3 className="mb-4 flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white">
-        <Icon className="h-4 w-4 text-[#1B3FAB]" />
+        <Icon className="h-4 w-4 text-[#1B3FAB] dark:text-blue-400" />
         {title}
       </h3>
       <div className="space-y-5">{children}</div>

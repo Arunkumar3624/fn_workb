@@ -35,7 +35,9 @@ export default function DeadlineCountdown({ deadline, status }) {
   return (
     <span
       className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold ${
-        overdue ? "bg-red-50 text-red-600" : "bg-slate-100 text-slate-600"
+        overdue
+          ? "bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400"
+          : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
       }`}
     >
       <Clock className="h-3 w-3" />

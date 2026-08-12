@@ -56,7 +56,7 @@ function EditSection({ icon: Icon, title, onAdd, addLabel, last = false, childre
     <div className={`${last ? "" : "mb-8 border-b border-slate-100 dark:border-slate-800 pb-8"}`}>
       <div className="mb-4 flex items-center justify-between gap-3">
         <h3 className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white">
-          <Icon className="h-4 w-4 text-[#1B3FAB]" />
+          <Icon className="h-4 w-4 text-[#1B3FAB] dark:text-blue-400" />
           {title}
         </h3>
         {onAdd && (
@@ -509,7 +509,7 @@ export default function WorkerProfile() {
                     url={shareUrl}
                     title={currentUser?.name}
                     text={`Check out ${currentUser?.name}'s profile on WorkBridge`}
-                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 dark:text-slate-200 transition hover:-translate-y-0.5 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700"
+                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 dark:text-slate-200 transition hover:-translate-y-0.5 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700"
                   />
                   <button
                     type="button"
@@ -549,7 +549,7 @@ export default function WorkerProfile() {
                             href={p.link}
                             target="_blank"
                             rel="noreferrer"
-                            className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-[#1B3FAB] hover:underline"
+                            className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-[#1B3FAB] dark:text-blue-400 hover:underline"
                           >
                             View project <ExternalLink className="h-3 w-3" />
                           </a>

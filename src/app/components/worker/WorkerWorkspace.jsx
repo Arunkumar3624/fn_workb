@@ -669,7 +669,7 @@ export default function WorkerWorkspace() {
                 <button
                   type="button"
                   onClick={() => navigate(`/worker/negotiations?invite=${selectedTask.id}`)}
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#1B3FAB]/20 bg-[#F4F6FF] px-5 py-4 text-sm font-bold text-[#1B3FAB] transition hover:bg-[#1B3FAB]/10 dark:border-[#1B3FAB]/30 dark:bg-[#1B3FAB]/10 dark:hover:bg-[#1B3FAB]/15"
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#1B3FAB]/20 bg-[#F4F6FF] px-5 py-4 text-sm font-bold text-[#1B3FAB] dark:text-blue-400 transition hover:bg-[#1B3FAB]/10 dark:border-[#1B3FAB]/30 dark:bg-[#1B3FAB]/10 dark:hover:bg-[#1B3FAB]/15"
                 >
                   <MessageSquare className="h-4 w-4" />
                   Open Chat in Negotiations
@@ -794,7 +794,7 @@ function ApplicationDetail({ application, navigate }) {
       )}
 
       <div className="flex items-start gap-2.5 rounded-xl border border-blue-100 bg-blue-50 p-3.5 dark:border-blue-900/40 dark:bg-blue-500/10">
-        <MessageSquare className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-blue-500" />
+        <MessageSquare className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-blue-500 dark:text-blue-400" />
         <p className="text-xs leading-relaxed text-blue-700 dark:text-blue-400">
           {application.status === "PENDING"
             ? "This business hasn't decided yet — messaging opens up automatically here if they accept you."

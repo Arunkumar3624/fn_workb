@@ -90,7 +90,7 @@ function SectionCard({ icon: Icon, title, sub, children }) {
     <div className="bg-white rounded-2xl border border-slate-200 p-8 dark:bg-slate-900 dark:border-slate-800">
       <div className="flex items-center gap-3 mb-6 pb-5 border-b border-slate-100 dark:border-slate-800">
         <div className="w-9 h-9 rounded-xl bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 flex items-center justify-center flex-shrink-0">
-          <Icon className="w-4 h-4 text-[#1B3FAB]" />
+          <Icon className="w-4 h-4 text-[#1B3FAB] dark:text-blue-400" />
         </div>
         <div>
           <h2
@@ -552,7 +552,7 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                     <button
                       type="button"
                       onClick={addRefLink}
-                      className="flex items-center gap-2 text-xs font-bold text-[#1B3FAB] hover:text-[#1635A0] transition-colors"
+                      className="flex items-center gap-2 text-xs font-bold text-[#1B3FAB] dark:text-blue-400 hover:text-[#1635A0] transition-colors"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       Add another reference
@@ -562,7 +562,7 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
 
                 {/* Privacy notice */}
                 <div className="flex items-start gap-2.5 p-4 bg-blue-50 border border-blue-100 rounded-xl mt-2 dark:bg-blue-500/10 dark:border-blue-900/40">
-                  <Eye className="w-3.5 h-3.5 text-blue-500 flex-shrink-0 mt-0.5" />
+                  <Eye className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400 flex-shrink-0 mt-0.5" />
                   <div>
                     <p className="text-xs font-bold text-blue-800 dark:text-blue-400">Private by default</p>
                     <p className="text-xs text-blue-600 dark:text-blue-400/80 mt-0.5 leading-relaxed">
@@ -636,7 +636,7 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                         requirements show; nothing implies a requirement
                         that wasn't actually set. */}
                     {(experienceLabel || EDUCATION_LABELS[watchedEducationLevel]) && (
-                      <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] font-semibold text-[#1B3FAB]">
+                      <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] font-semibold text-[#1B3FAB] dark:text-blue-400">
                         {experienceLabel && (
                           <span className="inline-flex items-center gap-1 rounded-full bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 px-2.5 py-1">
                             <Clock className="h-3 w-3" />
@@ -742,7 +742,7 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                 <div className="bg-white rounded-2xl border border-slate-200 p-6 dark:bg-slate-900 dark:border-slate-800">
                   <div className="flex items-center gap-2.5 mb-5">
                     <div className="w-8 h-8 rounded-lg bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 flex items-center justify-center flex-shrink-0">
-                      <ShieldCheck className="w-4 h-4 text-[#1B3FAB]" />
+                      <ShieldCheck className="w-4 h-4 text-[#1B3FAB] dark:text-blue-400" />
                     </div>
                     <h3
                       className="text-sm font-bold text-[#0F172A] dark:text-white"

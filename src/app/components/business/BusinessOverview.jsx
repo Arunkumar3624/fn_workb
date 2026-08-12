@@ -32,24 +32,35 @@ function Sparkline({ data, color, darkColor }) {
   const max = Math.max(...data, 1);
   const min = Math.min(...data, 0);
   const r = max - min || 1;
-  // PAD=3 (not 1) so the line's peak gets real headroom instead of sitting
-  // flush against the SVG's top pixel row, which read as "cut off".
-  const W = 64, H = 26, PAD = 3;
-  const pts = data
-    .map((v, i) => `${(i / Math.max(1, data.length - 1)) * W},${H - ((v - min) / r) * (H - PAD * 2) - PAD}`)
-    .join(" ");
+  // Bigger canvas + more padding than before — at 64x26 with 1.5px strokes
+  // the line read as a thin, faint scratch rather than a legible chart.
+  const W = 76, H = 32, PAD = 4;
+  const points = data.map((v, i) => [
+    (i / Math.max(1, data.length - 1)) * W,
+    H - ((v - min) / r) * (H - PAD * 2) - PAD,
+  ]);
+  const pts = points.map(([x, y]) => `${x},${y}`).join(" ");
+  const [lastX, lastY] = points[points.length - 1];
   const dc = darkColor || color;
+
+  // A dot on the most recent point anchors the eye on "where the trend is
+  // right now" — without it the line has no clear endpoint to read from.
+  const renderLayer = (c, layerClass) => (
+    <g className={layerClass}>
+      <polygon points={`0,${H} ${pts} ${W},${H}`} fill={c + "33"} stroke="none" />
+      <polyline points={pts} fill="none" stroke={c} strokeWidth="2"
+        strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={lastX} cy={lastY} r="2.5" fill={c} />
+    </g>
+  );
+
   return (
     <svg width={W} height={H} className="overflow-visible flex-shrink-0">
       {/* Raw hex colors can't carry a `dark:` variant, so the line is drawn
           twice — a light-mode pass and a brighter dark-mode pass — and CSS
           toggles which one is visible, instead of the line staying navy-on-navy. */}
-      <polygon points={`0,${H} ${pts} ${W},${H}`} fill={color + "18"} stroke="none" className="dark:hidden" />
-      <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5"
-        strokeLinecap="round" strokeLinejoin="round" className="dark:hidden" />
-      <polygon points={`0,${H} ${pts} ${W},${H}`} fill={dc + "18"} stroke="none" className="hidden dark:block" />
-      <polyline points={pts} fill="none" stroke={dc} strokeWidth="1.5"
-        strokeLinecap="round" strokeLinejoin="round" className="hidden dark:block" />
+      {renderLayer(color, "dark:hidden")}
+      {renderLayer(dc, "hidden dark:block")}
     </svg>
   );
 }
@@ -83,7 +94,11 @@ function Chips({ options, active, onChange }) {
 // ── Main component ────────────────────────────────────────────────────────────
 export default function BusinessOverview({ onPostJob, onViewProjects, isVerified }) {
   const navigate = useNavigate();
-  const goToBilling = () => navigate("/business-dashboard", { state: { tab: "settings", settingsTab: "billing" } });
+  // Billing & Subscriptions moved out of Settings into its own Billing &
+  // Payments page (BusinessPayments.jsx) — each CTA below jumps straight to
+  // the sub-tab that actually answers it, instead of always landing on the
+  // page's default Invoices & Escrow tab.
+  const goToPayments = (paymentsTab) => navigate("/business-dashboard", { state: { tab: "payments", paymentsTab } });
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -262,12 +277,12 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
         <div className="flex items-center justify-between mb-7">
           <div>
             <div className="flex items-center gap-3 mb-1">
-              <h1
+              {/* <h1
                 className="text-2xl font-extrabold text-[#0F172A] dark:text-white"
                 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
               >
                 Overview
-              </h1>
+              </h1> */}
               {/* <span className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold rounded-full">
                 <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
                 Live
@@ -372,7 +387,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
                   </p>
                 </div>
                 <button
-                  onClick={goToBilling}
+                  onClick={() => goToPayments("trust")}
                   className="flex-shrink-0 rounded-xl bg-[#FF6B35] px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
                 >
                   Get Verified — ₹399
@@ -411,7 +426,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
                 </p>
               </div>
               <button
-                onClick={goToBilling}
+                onClick={() => goToPayments("trust")}
                 className="flex-shrink-0 rounded-xl bg-[#FF6B35] px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
               >
                 Get Full Trust — ₹699
@@ -444,7 +459,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
                 </p>
               </div>
               <button
-                onClick={goToBilling}
+                onClick={() => goToPayments("subscription")}
                 className="flex-shrink-0 rounded-xl bg-[#FF6B35] px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
               >
                 Upgrade Plan

@@ -414,7 +414,7 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
         {pendingJob && (
           <div className="mb-6 flex items-center gap-3 rounded-2xl border border-[#1B3FAB]/20 bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 px-5 py-3.5">
             <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-white dark:bg-slate-800">
-              <Briefcase className="h-4 w-4 text-[#1B3FAB]" />
+              <Briefcase className="h-4 w-4 text-[#1B3FAB] dark:text-blue-400" />
             </div>
             <p className="text-xs leading-5 text-slate-600 dark:text-slate-400">
               <span className="font-bold text-slate-800 dark:text-slate-200">Selecting a worker for "{pendingJob.title}".</span>{" "}
@@ -430,7 +430,7 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
         {!pendingJob && (
           <div className="mb-6 flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-3.5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[#F4F6FF] dark:bg-[#1B3FAB]/10">
-              <ShieldCheck className="h-4 w-4 text-[#1B3FAB]" />
+              <ShieldCheck className="h-4 w-4 text-[#1B3FAB] dark:text-blue-400" />
             </div>
             <p className="text-xs leading-5 text-slate-500 dark:text-slate-400">
               <span className="font-bold text-slate-700 dark:text-slate-200">Fairness-first ranking.</span>{" "}
@@ -467,7 +467,7 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
                           <h3 className="font-extrabold tracking-tight text-slate-900 dark:text-white text-sm leading-tight" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                             {w.name}
                           </h3>
-                          {w.verified && <ShieldCheck className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />}
+                          {w.verified && <ShieldCheck className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400 flex-shrink-0" />}
                         </div>
                         <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{w.title || "Freelancer"}</p>
                         {w.rating != null && (
@@ -480,7 +480,7 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
                       </div>
                     </div>
                     {isTopRated && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 border border-[#1B3FAB]/15 px-2 py-1 text-[10px] font-bold text-[#1B3FAB] flex-shrink-0 ml-2">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 border border-[#1B3FAB]/15 px-2 py-1 text-[10px] font-bold text-[#1B3FAB] dark:text-blue-400 flex-shrink-0 ml-2">
                         Top Rated
                       </span>
                     )}

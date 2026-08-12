@@ -232,7 +232,7 @@ function JobDetailsPanel({ project }) {
 
       <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/70 p-4 dark:border-blue-900/40 dark:bg-blue-500/10">
         <div className="flex items-start gap-3">
-          <ShieldCheck className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#1B3FAB]" />
+          <ShieldCheck className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#1B3FAB] dark:text-blue-400" />
           <div>
             <p className="text-sm font-bold text-slate-900 dark:text-white">Terms stay protected</p>
             <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">

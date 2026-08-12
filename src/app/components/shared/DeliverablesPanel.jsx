@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   AlertCircle, Clock3, CheckCircle2, XCircle, Link2, Image as ImageIcon,
-  ExternalLink, Loader2, Upload, Send,
+  ExternalLink, Loader2, Upload, Send, Download,
 } from "lucide-react";
 import { listSubmissions, submitLink, submitImage } from "../../lib/submissionsApi";
 import { ApiError } from "../../lib/apiClient";
@@ -54,7 +54,13 @@ function isInternalLink(url) {
 // ever clicking Start Work, which made no sense against the real
 // ACCEPTED/FUNDS_SECURED -> WORK_IN_PROGRESS flow. Business callers never
 // pass this: reference material is legitimate to share at any stage.
-export default function DeliverablesPanel({ projectId, readOnly = false, locked = false, lockedMessage }) {
+// `downloadable` swaps each submission's action from "click to preview inline"
+// (nice for a worker reviewing their own already-submitted work) to a plain,
+// literal action a business reviewing someone else's work actually wants:
+// "Open Link" for a link, "Download Image" for an image — a real file save,
+// not just a lightbox. Only the business's read-only "View Worker" popup
+// passes this; WorkerWorkspace.jsx's own view keeps the preview behavior.
+export default function DeliverablesPanel({ projectId, readOnly = false, locked = false, lockedMessage, downloadable = false }) {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -255,12 +261,45 @@ export default function DeliverablesPanel({ projectId, readOnly = false, locked 
                 <div key={s.id} className="rounded-xl border border-slate-100 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/60">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
-                      {s.type === "link" ? (
+                      {downloadable ? (
+                        s.type === "link" ? (
+                          <a
+                            href={s.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-[#1B3FAB]/20 bg-[#F4F6FF] px-3 py-1.5 text-xs font-bold text-[#1B3FAB] transition hover:bg-[#1B3FAB]/10 dark:border-[#1B3FAB]/30 dark:bg-[#1B3FAB]/10 dark:hover:bg-[#1B3FAB]/15"
+                          >
+                            <ExternalLink className="h-3.5 w-3.5" />
+                            Open Link
+                          </a>
+                        ) : s.type === "image" ? (
+                          <div className="flex items-center gap-3">
+                            <img src={s.image_data} alt={s.caption ?? "Submitted image"} className="h-10 w-10 flex-shrink-0 rounded-lg object-cover" />
+                            <a
+                              href={s.image_data}
+                              download={`deliverable-${s.id}.png`}
+                              className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-400 dark:hover:bg-emerald-950/50"
+                            >
+                              <Download className="h-3.5 w-3.5" />
+                              Download Image
+                            </a>
+                          </div>
+                        ) : (
+                          <a
+                            href={s.url || s.image_data}
+                            download
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                          >
+                            <Download className="h-3.5 w-3.5" />
+                            Download File
+                          </a>
+                        )
+                      ) : s.type === "link" ? (
                         <a
                           href={s.url}
                           target="_blank"
                           rel="noreferrer"
-                          className="flex items-center gap-1.5 text-sm font-semibold text-[#1B3FAB] hover:underline"
+                          className="flex items-center gap-1.5 text-sm font-semibold text-[#1B3FAB] dark:text-blue-400 hover:underline"
                         >
                           {isInternalLink(s.url) ? (
                             <img src={brandLogo} alt="WorkBridge" className="h-3.5 w-3.5 flex-shrink-0 object-contain" />

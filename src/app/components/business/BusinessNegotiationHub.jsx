@@ -96,6 +96,18 @@ function getThreadBadge(group) {
 }
 
 function ThreadNavigator({ threads, groupsByCounterparty, selectedThreadId, onSelect }) {
+  // Was a plain styled <div> with no input, no state, no filtering — looked
+  // like a search box but typing into it did nothing. Filters by counterpart
+  // name or the last message preview, both already in `threads`.
+  const [query, setQuery] = useState("");
+  const normalizedQuery = query.trim().toLowerCase();
+  const visibleThreads = normalizedQuery
+    ? threads.filter((t) =>
+        (t.other_name ?? "").toLowerCase().includes(normalizedQuery) ||
+        (t.last_message_body ?? "").toLowerCase().includes(normalizedQuery)
+      )
+    : threads;
+
   return (
     <aside className="flex h-full w-[300px] flex-shrink-0 flex-col overflow-hidden border-r border-slate-200 bg-slate-50/80 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/80">
       <div className="border-b border-slate-200 bg-white/70 px-5 py-5 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/60">
@@ -111,14 +123,24 @@ function ThreadNavigator({ threads, groupsByCounterparty, selectedThreadId, onSe
           </span>
         </div>
 
-        <div className="mt-5 flex min-h-[44px] items-center gap-2 rounded-2xl border border-slate-200 bg-white/80 px-4 text-slate-400 dark:text-slate-500 dark:border-slate-700 dark:bg-slate-800/60">
-          <Search className="h-4 w-4" />
-          <span className="text-sm font-semibold">Search threads</span>
+        <div className="mt-5 flex min-h-[44px] items-center gap-2 rounded-2xl border border-slate-200 bg-white/80 px-4 dark:border-slate-700 dark:bg-slate-800/60">
+          <Search className="h-4 w-4 flex-shrink-0 text-slate-400 dark:text-slate-500" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search threads"
+            className="w-full bg-transparent text-sm font-semibold text-slate-900 outline-none placeholder:text-slate-400 placeholder:font-semibold dark:text-white dark:placeholder:text-slate-500"
+          />
         </div>
       </div>
 
       <div className="wb-scroll-clean min-h-0 flex-1 overflow-y-auto px-3 py-4">
-        {threads.map((thread) => {
+        {visibleThreads.length === 0 && (
+          <p className="px-2 py-6 text-center text-xs font-semibold text-slate-400 dark:text-slate-500">
+            No conversations match "{query}"
+          </p>
+        )}
+        {visibleThreads.map((thread) => {
           const selected = thread.id === selectedThreadId;
           const group = groupsByCounterparty.get(thread.other_user_id) ?? [];
           const badge = getThreadBadge(group);
@@ -149,7 +171,7 @@ function ThreadNavigator({ threads, groupsByCounterparty, selectedThreadId, onSe
                   <p className="truncate text-sm font-black text-slate-900 dark:text-white">
                     {thread.other_name}
                   </p>
-                  <BadgeCheck className="h-3.5 w-3.5 flex-shrink-0 text-blue-500" />
+                  <BadgeCheck className="h-3.5 w-3.5 flex-shrink-0 text-blue-500 dark:text-blue-400" />
                 </div>
                 <p className="mt-0.5 truncate text-xs font-semibold text-slate-500 dark:text-slate-400">
                   {preview}

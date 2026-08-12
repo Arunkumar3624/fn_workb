@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   Store,
   Users,
+  Wallet,
 } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
@@ -27,6 +28,7 @@ const NAV = [
   { id: "negotiations", label: "Negotiations", icon: MessageSquare },
   { id: "company", label: "Company Profile", icon: Building2 },
   { id: "perks", label: "Perks Shop", icon: Store },
+  { id: "payments", label: "Billing & Payments", icon: Wallet },
   { id: "settings", label: "Settings", icon: Settings },
 ];
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
+import { toast } from "sonner";
 import { AlertCircle, AlertTriangle, Coins, Loader2, Radar, Scale, Search, Star, Zap } from "lucide-react";
 import { getLedger } from "../../lib/gamificationApi";
 import { purchasePerk, getPerkPurchases } from "../../lib/perksApi";
@@ -81,9 +82,25 @@ const COLOR_STYLES = {
 
 function PerkCard({ perk, balance, onPurchase, index, isPurchasing, purchaseDisabled }) {
   const [tierIndex, setTierIndex] = useState(0);
+  // Only surfaced after an actual click on Purchase — showing it for every
+  // unaffordable tier by default made the whole grid read as broken/red.
+  const [attemptedInsufficient, setAttemptedInsufficient] = useState(false);
   const Icon = perk.icon;
   const tier = perk.tiers[tierIndex];
   const canAfford = balance >= tier.cost;
+
+  const handleTierChange = (i) => {
+    setTierIndex(i);
+    setAttemptedInsufficient(false);
+  };
+
+  const handlePurchaseClick = () => {
+    if (!canAfford) {
+      setAttemptedInsufficient(true);
+      return;
+    }
+    onPurchase(perk, tier);
+  };
 
   return (
     <motion.div
@@ -109,7 +126,7 @@ function PerkCard({ perk, balance, onPurchase, index, isPurchasing, purchaseDisa
           {perk.tiers.map((t, i) => (
             <button
               key={t.label}
-              onClick={() => setTierIndex(i)}
+              onClick={() => handleTierChange(i)}
               className={`rounded-full px-2.5 py-1 text-[11px] font-bold transition-all duration-200 ${
                 i === tierIndex ? "bg-[#0A1128] text-white shadow-sm dark:bg-white dark:text-[#0A1128]" : "bg-slate-100 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700"
               }`}
@@ -134,7 +151,7 @@ function PerkCard({ perk, balance, onPurchase, index, isPurchasing, purchaseDisa
         {perk.tiers.length === 1 && <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">{tier.label}</span>}
       </motion.div>
 
-      {!canAfford && (
+      {attemptedInsufficient && !canAfford && (
         <p className="relative mt-2 flex items-center gap-1 text-[11px] font-semibold text-red-500">
           <AlertTriangle className="h-3 w-3 flex-shrink-0" />
           Not enough credits for this tier
@@ -142,7 +159,7 @@ function PerkCard({ perk, balance, onPurchase, index, isPurchasing, purchaseDisa
       )}
 
       <button
-        onClick={() => onPurchase(perk, tier, canAfford)}
+        onClick={handlePurchaseClick}
         disabled={purchaseDisabled}
         className={`relative mt-4 flex w-full items-center justify-center gap-1.5 rounded-lg py-2.5 text-xs font-bold transition-all duration-200 active:scale-95 ${
           canAfford
@@ -162,7 +179,6 @@ export default function BusinessPerksShop() {
   const [balance, setBalance] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
-  const [notice, setNotice] = useState(null);
   const [purchases, setPurchases] = useState([]);
   const [purchasingPerkId, setPurchasingPerkId] = useState(null);
 
@@ -204,20 +220,15 @@ export default function BusinessPerksShop() {
     );
   }
 
-  const handlePurchase = async (perk, tier, canAfford) => {
-    if (!canAfford) {
-      setNotice(`You need ${tier.cost} credits for ${perk.name} (${tier.label}) — you have ${balance}.`);
-      return;
-    }
-    setNotice(null);
+  const handlePurchase = async (perk, tier) => {
     setPurchasingPerkId(perk.id);
     try {
       const result = await purchasePerk({ perkId: perk.id, tierId: tier.id });
       setBalance(result.bridgeTokens);
       setPurchases((prev) => [result.purchase, ...prev]);
-      setNotice(`Purchased ${perk.name} (${tier.label}) — ${tier.cost} credits debited.`);
+      toast.success(`Purchased ${perk.name} (${tier.label}) — ${tier.cost} credits debited.`);
     } catch (err) {
-      setNotice(err instanceof ApiError ? err.message : "Purchase failed — try again.");
+      toast.error(err instanceof ApiError ? err.message : "Purchase failed — try again.");
     } finally {
       setPurchasingPerkId(null);
     }
@@ -238,12 +249,6 @@ export default function BusinessPerksShop() {
           {balance}
         </div>
       </div>
-
-      {notice && (
-        <div className="mb-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-500 dark:text-slate-400 dark:border-slate-700 dark:bg-slate-800/60">
-          {notice}
-        </div>
-      )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {PERKS.map((perk, index) => (

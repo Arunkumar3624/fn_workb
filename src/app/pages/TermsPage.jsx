@@ -85,7 +85,7 @@ export default function TermsPage() {
       </LegalSection>
 
       <LegalSection id="preview-features" title="11. Features Shown As Preview">
-        <p>Some parts of WorkBridge — like the Billing & Subscriptions section in Settings, or the Company Profile's activity stats — are shown as an honestly-labeled preview of what we're building toward. They are not currently active, charged, or backed by live data unless explicitly stated otherwise on the page itself.</p>
+        <p>Some parts of WorkBridge — like the Billing & Payments page's Subscription Plans and Trust & Verification tabs, or the Company Profile's activity stats — are shown as an honestly-labeled preview of what we're building toward. They are not currently active, charged, or backed by live data unless explicitly stated otherwise on the page itself.</p>
       </LegalSection>
 
       <LegalSection id="prohibited-conduct" title="12. Prohibited Conduct">

@@ -124,10 +124,10 @@ function BillingToggle({ isYearly, onChange }) {
       >
         Yearly
       </button>
-      {/* Pushed clear above the pill (was -top-3, which sat right on top of
-          the Yearly label and overlapped it) so it reads as its own badge,
-          not a smear across the toggle. */}
-      <span className="absolute -right-2 -top-7 whitespace-nowrap rounded-full bg-[#FF6B35]/10 px-2 py-1 text-[11px] font-bold text-[#FF6B35]">
+      {/* Sits beside the pill, vertically centered next to "Yearly" — used to
+          float above it (-top-7), which read as detached from the toggle
+          it's actually describing. */}
+      <span className="absolute left-full top-1/2 ml-3 -translate-y-1/2 whitespace-nowrap rounded-full bg-[#FF6B35]/10 px-2 py-1 text-[11px] font-bold text-[#FF6B35]">
         2 Months Free
       </span>
     </div>
@@ -156,7 +156,7 @@ function SubscriptionTierCard({ tier, isYearly, isUpgrading, upgradeResult, onUp
       )}
 
       <div className={`flex h-11 w-11 items-center justify-center rounded-2xl ${tier.premium ? "bg-white/10" : "bg-slate-100 dark:bg-slate-800"}`}>
-        <Icon className={`h-5 w-5 ${tier.premium ? "text-[#FF6B35]" : "text-[#1B3FAB]"}`} />
+        <Icon className={`h-5 w-5 ${tier.premium ? "text-[#FF6B35]" : "text-[#1B3FAB] dark:text-blue-400"}`} />
       </div>
 
       <p className={`mt-4 text-sm font-bold uppercase tracking-wide ${tier.premium ? "text-slate-300" : "text-slate-400 dark:text-slate-500"}`}>
@@ -445,7 +445,7 @@ export default function WorkerWallet() {
         <div className="relative grid grid-cols-1 gap-6 sm:grid-cols-3">
           <div>
             <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">
-              <Wallet className="h-3.5 w-3.5 text-[#1B3FAB]" />
+              <Wallet className="h-3.5 w-3.5 text-[#1B3FAB] dark:text-blue-400" />
               Available to Withdraw
             </p>
             <p

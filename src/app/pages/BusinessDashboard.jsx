@@ -10,6 +10,7 @@ import BusinessProjects from "../components/business/BusinessProjects";
 import BusinessNegotiationHub from "../components/business/BusinessNegotiationHub";
 import BusinessCompany from "../components/business/BusinessCompany";
 import BusinessPerksShop from "../components/business/BusinessPerksShop";
+import BusinessPayments from "../components/business/BusinessPayments";
 import SettingsPage from "./SettingsPage";
 import { useAuth } from "../context/AuthContext";
 import { getTierData } from "../utils/gamification";
@@ -41,6 +42,7 @@ const TAB_TITLES = {
   negotiations: "Negotiations",
   company: "Company Profile",
   perks: "Perks Shop",
+  payments: "Billing & Payments",
   settings: "Account Settings",
 };
 
@@ -52,6 +54,7 @@ const BUSINESS_TAB_IDS = new Set([
   "negotiations",
   "company",
   "perks",
+  "payments",
   "settings",
 ]);
 
@@ -304,6 +307,7 @@ export default function BusinessDashboard({ onLogout, onVerify, isVerified = fal
           )}
           {tab === "company" && <BusinessCompany />}
           {tab === "perks" && <BusinessPerksShop />}
+          {tab === "payments" && <BusinessPayments isVerified={isVerified} />}
           {tab === "settings" && <SettingsPage />}
         </div>
       </div>

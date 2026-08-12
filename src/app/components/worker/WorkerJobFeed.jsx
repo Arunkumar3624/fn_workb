@@ -162,13 +162,13 @@ function JobDetailModal({ job, onClose, onApply, applying, applyError, alreadyAp
               <h3 className="mt-6 text-sm font-bold text-slate-900 dark:text-white">Qualifications</h3>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {formatExperience(job) && (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-[#1B3FAB]/15 bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 px-2.5 py-1 text-xs font-semibold text-[#1B3FAB]">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-[#1B3FAB]/15 bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 px-2.5 py-1 text-xs font-semibold text-[#1B3FAB] dark:text-blue-400">
                     <Clock className="h-3 w-3" />
                     {formatExperience(job)}
                   </span>
                 )}
                 {formatEducation(job) && (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-[#1B3FAB]/15 bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 px-2.5 py-1 text-xs font-semibold text-[#1B3FAB]">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-[#1B3FAB]/15 bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 px-2.5 py-1 text-xs font-semibold text-[#1B3FAB] dark:text-blue-400">
                     <GraduationCap className="h-3 w-3" />
                     {formatEducation(job)}
                     {job.education_notes ? ` — ${job.education_notes}` : ""}
@@ -244,7 +244,7 @@ function InviteCard({ candidate, onRespond, responding }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#1B3FAB]/20 bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 px-5 py-4 dark:border-[#1B3FAB]/30">
       <div className="min-w-0">
-        <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.16em] text-[#1B3FAB]">
+        <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.16em] text-[#1B3FAB] dark:text-blue-400">
           <Sparkles className="h-3.5 w-3.5" />
           Direct invite from {candidate.business_name}
         </p>
@@ -653,13 +653,13 @@ export default function WorkerJobFeed() {
                           </span>
                         )}
                         {formatExperience(job) && (
-                          <span className="inline-flex items-center gap-1 rounded-md border border-[#1B3FAB]/15 bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 px-2.5 py-1 text-xs font-semibold text-[#1B3FAB]">
+                          <span className="inline-flex items-center gap-1 rounded-md border border-[#1B3FAB]/15 bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 px-2.5 py-1 text-xs font-semibold text-[#1B3FAB] dark:text-blue-400">
                             <Clock className="h-3 w-3" />
                             {formatExperience(job)}
                           </span>
                         )}
                         {formatEducation(job) && (
-                          <span className="inline-flex items-center gap-1 rounded-md border border-[#1B3FAB]/15 bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 px-2.5 py-1 text-xs font-semibold text-[#1B3FAB]">
+                          <span className="inline-flex items-center gap-1 rounded-md border border-[#1B3FAB]/15 bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 px-2.5 py-1 text-xs font-semibold text-[#1B3FAB] dark:text-blue-400">
                             <GraduationCap className="h-3 w-3" />
                             {formatEducation(job)}
                           </span>

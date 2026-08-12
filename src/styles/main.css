@@ -18,13 +18,15 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Native number-input spin buttons (increase/decrease arrows) are drawn by
-   the OS/browser using its own light-scheme chrome by default, so they sit
-   as a stark white box inside an otherwise dark field. `color-scheme` tells
-   the browser which native widget palette to use — applying it under .dark
-   makes every stepper across the app (Post a Job, Filters, Onboarding, …)
-   render with dark-native arrows without touching each input individually. */
-html.dark input[type="number"] {
+/* Every native widget the browser itself draws — number-input spin arrows,
+   scrollbar thumbs/tracks inside scrollable textareas and panels, <select>
+   dropdown popups, date pickers — defaults to the OS's light-scheme chrome
+   regardless of the page's own theme, so it sits as a stark white/light
+   element inside an otherwise dark UI. `color-scheme` tells the browser
+   which native palette to use for all of that at once; setting it on the
+   root under .dark fixes every one of these across the whole app in one
+   place instead of chasing each occurrence individually. */
+html.dark {
   color-scheme: dark;
 }
 

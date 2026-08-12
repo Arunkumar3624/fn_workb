@@ -131,7 +131,7 @@ function AttachmentBubble({ message, isMine, onPreview }) {
           href={message.submission_url}
           target="_blank"
           rel="noreferrer"
-          className="flex items-center gap-1.5 text-sm font-semibold text-[#1B3FAB] hover:underline"
+          className="flex items-center gap-1.5 text-sm font-semibold text-[#1B3FAB] dark:text-blue-400 hover:underline"
         >
           {isInternalLink(message.submission_url) ? (
             <img src={brandLogo} alt="WorkBridge" className="h-3.5 w-3.5 flex-shrink-0 object-contain" />

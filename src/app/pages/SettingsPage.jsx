@@ -1,21 +1,16 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { motion } from "motion/react";
 import {
   AlertCircle,
   Bell,
-  Building2,
   Camera,
-  Check,
   CheckCircle2,
   Headphones,
   Loader2,
   Lock,
   ShieldAlert,
   ShieldCheck,
-  Sparkles,
   Trash2,
-  TrendingUp,
   User,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
@@ -27,7 +22,6 @@ import { ApiError } from "../lib/apiClient";
 import { getPushStatus, subscribeToPush, unsubscribeFromPush } from "../lib/pushNotifications";
 import SupportChat from "../components/shared/SupportChat";
 import ThemeToggle from "../components/shared/ThemeToggle";
-import VerificationFeesTable from "../components/shared/VerificationFeesTable";
 
 const MAX_AVATAR_BYTES = 1.5 * 1024 * 1024;
 
@@ -35,7 +29,6 @@ const TABS = [
   { id: "general", label: "General Profile", icon: User },
   { id: "security", label: "Security & Auth", icon: Lock },
   { id: "notifications", label: "Notifications", icon: Bell },
-  { id: "billing", label: "Billing & Subscriptions", icon: Sparkles },
   { id: "support", label: "Support", icon: Headphones },
   { id: "danger", label: "Danger Zone", icon: ShieldAlert },
 ];
@@ -391,182 +384,6 @@ function NotificationsTab() {
   );
 }
 
-// Business-only now — the worker-facing subscription preview moved to
-// WorkerWallet.jsx's own tab (Target 3's consolidation), so this settings
-// tab is hidden entirely for workers (see the isWorker guard where this is
-// rendered). Nothing worker-specific is left to branch on here.
-//
-// Yearly prices are the real, exact figures WorkBridge is pricing these at
-// (2 months free — 10 months' worth of monthly billing) — not a computed
-// discount approximation, matching WorkerWallet.jsx's own SUBSCRIPTION_TIERS
-// pattern for the same reason.
-const BUSINESS_TIERS = [
-  {
-    id: "free",
-    name: "Free",
-    monthlyPrice: 0,
-    yearlyPrice: 0,
-    icon: ShieldCheck,
-    perks: ["2 job posts/month", "Standard matching"],
-  },
-  {
-    id: "growth",
-    name: "Growth",
-    monthlyPrice: 499,
-    yearlyPrice: 4999,
-    icon: TrendingUp,
-    highlight: true,
-    perks: ["20 posts/month", "Smart matching", "Dashboard"],
-  },
-  {
-    id: "enterprise",
-    name: "Enterprise",
-    monthlyPrice: 1499,
-    yearlyPrice: 14999,
-    icon: Building2,
-    premium: true,
-    perks: ["Unlimited posts", "Bulk hiring", "Dedicated manager"],
-  },
-];
-
-function formatBusinessTierPrice(tier, isYearly) {
-  if (tier.monthlyPrice === 0) return { amount: "₹0", period: "/mo" };
-  if (!isYearly) return { amount: `₹${tier.monthlyPrice.toLocaleString("en-IN")}`, period: "/mo" };
-  return { amount: `₹${tier.yearlyPrice.toLocaleString("en-IN")}`, period: "/year (2 months free)" };
-}
-
-// Same real, controlled Monthly/Yearly toggle as WorkerWallet.jsx's
-// BillingToggle — kept as its own small copy here rather than a shared
-// import, since a business page reaching into a worker component folder for
-// a 20-line pill would be a stranger dependency than just repeating it.
-function BillingToggle({ isYearly, onChange }) {
-  return (
-    <div className="relative inline-flex items-center rounded-full bg-slate-100 p-1 dark:bg-slate-800">
-      <motion.span
-        className="absolute inset-y-1 left-1 w-24 rounded-full bg-white shadow-sm dark:bg-slate-700"
-        animate={{ x: isYearly ? 96 : 0 }}
-        transition={{ type: "spring", stiffness: 500, damping: 30 }}
-      />
-      <button
-        type="button"
-        onClick={() => onChange(false)}
-        className={`relative z-10 w-24 rounded-full py-2 text-sm transition-colors ${
-          !isYearly ? "font-semibold text-slate-900 dark:text-white" : "text-slate-500 dark:text-slate-400"
-        }`}
-      >
-        Monthly
-      </button>
-      <button
-        type="button"
-        onClick={() => onChange(true)}
-        className={`relative z-10 w-24 rounded-full py-2 text-sm transition-colors ${
-          isYearly ? "font-semibold text-slate-900 dark:text-white" : "text-slate-500 dark:text-slate-400"
-        }`}
-      >
-        Yearly
-      </button>
-      {/* Pushed clear above the pill (was -top-3, which sat right on top of
-          the Yearly label and overlapped it) so it reads as its own badge,
-          not a smear across the toggle. */}
-      <span className="absolute -right-2 -top-7 whitespace-nowrap rounded-full bg-[#FF6B35]/10 px-2 py-1 text-[11px] font-bold text-[#FF6B35]">
-        2 Months Free
-      </span>
-    </div>
-  );
-}
-
-function BillingTab() {
-  const [isYearly, setIsYearly] = useState(false);
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-50 to-white p-6 dark:border-slate-800 dark:from-slate-800/60 dark:to-slate-900">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Current Plan</p>
-          <p className="mt-1 text-2xl font-black text-[#0A1128] dark:text-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-            Free
-          </p>
-        </div>
-        <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
-          <ShieldCheck className="h-5 w-5" />
-        </span>
-      </div>
-
-      <div className="flex justify-center">
-        <BillingToggle isYearly={isYearly} onChange={setIsYearly} />
-      </div>
-
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-        {BUSINESS_TIERS.map((tier) => {
-          const Icon = tier.icon;
-          const { amount, period } = formatBusinessTierPrice(tier, isYearly);
-          const cardCls = tier.premium
-            ? "bg-[#0F172A] text-white border border-white/10 shadow-lg shadow-slate-900/20"
-            : tier.highlight
-              ? "bg-white border-2 border-[#FF6B35] shadow-md shadow-orange-500/10 dark:bg-slate-900"
-              : "bg-white border border-slate-200 dark:bg-slate-900 dark:border-slate-800";
-
-          return (
-            <div key={tier.id} className={`relative flex flex-col rounded-2xl p-6 transition-transform duration-300 hover:-translate-y-1 ${cardCls}`}>
-              {tier.highlight && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#FF6B35] px-3 py-1 text-[10px] font-black uppercase tracking-wide text-white">
-                  Most Popular
-                </span>
-              )}
-              <span className={`mb-3 flex h-9 w-9 items-center justify-center rounded-xl ${tier.premium ? "bg-white/10 text-[#FF6B35]" : "bg-slate-100 text-[#1B3FAB] dark:bg-slate-800"}`}>
-                <Icon className="h-4 w-4" />
-              </span>
-
-              <p className={`text-xs font-bold uppercase tracking-wide ${tier.premium ? "text-slate-300" : "text-slate-400"}`}>
-                {tier.name}
-              </p>
-              <p className="mt-1.5 flex items-baseline gap-1">
-                <span className={`text-2xl font-black ${tier.premium ? "" : "text-[#0A1128] dark:text-white"}`} style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                  {amount}
-                </span>
-                <span className={`text-xs font-semibold ${tier.premium ? "text-slate-400" : "text-slate-400"}`}>{period}</span>
-              </p>
-
-              <ul className="mt-4 flex-1 space-y-2">
-                {tier.perks.map((perk) => (
-                  <li key={perk} className="flex items-start gap-2 text-xs leading-5">
-                    <span
-                      className={`mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full ${
-                        tier.premium ? "bg-emerald-400/20 text-emerald-300" : "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400"
-                      }`}
-                    >
-                      <Check className="h-2.5 w-2.5" />
-                    </span>
-                    <span className={tier.premium ? "text-slate-300" : "text-slate-600 dark:text-slate-300"}>{perk}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <button
-                disabled
-                className={`mt-6 w-full cursor-not-allowed rounded-xl py-2.5 text-xs font-bold ${
-                  tier.premium
-                    ? "bg-white/10 text-slate-300"
-                    : tier.id === "free"
-                      ? "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
-                      : "border border-slate-200 text-slate-400 dark:border-slate-700 dark:text-slate-500"
-                }`}
-              >
-                {tier.id === "free" ? "Current Plan" : "Coming soon"}
-              </button>
-            </div>
-          );
-        })}
-      </div>
-      <p className="text-center text-[11px] text-slate-400">
-        Paid plans aren't live yet — this is a preview of what's coming.
-      </p>
-
-      <VerificationFeesTable />
-    </div>
-  );
-}
-
 function DangerZoneTab() {
   const { logout } = useAuth();
   const navigate = useNavigate();
@@ -627,12 +444,6 @@ export default function SettingsPage() {
   useDocumentTitle("Settings — WorkBridge");
   const location = useLocation();
   const { currentUser } = useAuth();
-  // Target 3's consolidation moved the worker-facing subscription preview
-  // into WorkerWallet.jsx's own tab — this settings tab would otherwise be
-  // a second, redundant path to the same thing. Business's Billing tab
-  // (Standard/Growth) isn't part of that consolidation and stays put.
-  const isWorker = currentUser?.role === "worker";
-  const visibleTabs = isWorker ? TABS.filter((tab) => tab.id !== "billing") : TABS;
   // settingsTab lets a caller (SupportFab.jsx) deep-link straight to a
   // specific tab here — e.g. navigate("/worker/settings", { state: {
   // settingsTab: "support" } }). The effect below re-syncs on every
@@ -657,7 +468,7 @@ export default function SettingsPage() {
       <div className="flex flex-col gap-6 md:flex-row">
         <aside className="flex-shrink-0 md:w-1/4">
           <nav className="wb-scroll-clean flex gap-1.5 overflow-x-auto md:flex-col md:gap-1 md:overflow-visible">
-            {visibleTabs.map(({ id, label, icon: Icon }) => (
+            {TABS.map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
                 onClick={() => setActiveTab(id)}
@@ -678,7 +489,6 @@ export default function SettingsPage() {
           {activeTab === "general" && <GeneralProfileTab />}
           {activeTab === "security" && <SecurityTab />}
           {activeTab === "notifications" && <NotificationsTab />}
-          {activeTab === "billing" && !isWorker && <BillingTab />}
           {activeTab === "support" && (
             // SupportChat's internals rely on `h-full` cascading from an
             // ancestor with a definite height (it previously lived inside

@@ -8,7 +8,7 @@ import {
   Briefcase,
   Check,
   CheckCircle2,
-  Download,
+  FolderOpen,
   Loader2,
   Lock,
   MessageSquare,
@@ -232,7 +232,7 @@ function WorkerDetailDrawer({ project, onClose, onOpenChat }) {
                       the place to actually share files. The real submission
                       flow lives in Negotiations (see the "Open Chat" CTA
                       below), so only the existing deliverables list shows. */}
-                  <DeliverablesPanel projectId={project.id} readOnly />
+                  <DeliverablesPanel projectId={project.id} readOnly downloadable />
                 </div>
               )}
             </div>
@@ -328,7 +328,7 @@ function PaymentApprovalModal({ project, isSubmitting, submitError, onClose, onC
               </div>
 
               <div className="mb-5 flex items-start gap-2.5 rounded-xl border border-blue-100 bg-blue-50 p-3.5 dark:border-blue-900/40 dark:bg-blue-500/10">
-                <ShieldCheck className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-blue-500" />
+                <ShieldCheck className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-blue-500 dark:text-blue-400" />
                 <p className="text-xs leading-relaxed text-blue-700 dark:text-blue-400" style={DATA_FONT}>
                   This tells WorkBridge to pay {project.worker_name} out of the funds you already
                   secured in escrow — our team completes the transfer shortly after you confirm.
@@ -772,7 +772,7 @@ function ApplicantsModal({ project, candidates, isLoading, respondingId, onClose
                           <StandingBadge standingDoor={c.standing_door} currentLevel={c.current_level} />
                           <span
                             className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                              c.source === "INVITE" ? "bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 text-[#1B3FAB]" : "bg-slate-200 text-slate-600 dark:text-slate-400"
+                              c.source === "INVITE" ? "bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 text-[#1B3FAB] dark:text-blue-400" : "bg-slate-200 text-slate-600 dark:text-slate-400"
                             }`}
                           >
                             {c.source === "INVITE" ? "You invited" : "Applied"}
@@ -1342,7 +1342,7 @@ export default function BusinessProjects({ onOpenChat }) {
                 >
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0">
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 px-2.5 py-1 text-[11px] font-bold text-[#1B3FAB]">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 px-2.5 py-1 text-[11px] font-bold text-[#1B3FAB] dark:text-blue-400">
                         <Briefcase className="h-3 w-3" />
                         Live on Job Feed
                       </span>
@@ -1352,7 +1352,7 @@ export default function BusinessProjects({ onOpenChat }) {
                       <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">No worker assigned yet — anyone can apply, or invite someone directly.</p>
                     </div>
                     <div className="flex-shrink-0 sm:text-right">
-                      <div className="text-lg font-extrabold text-[#1B3FAB]">{formatINR(p.budget)}</div>
+                      <div className="text-lg font-extrabold text-[#1B3FAB] dark:text-blue-400">{formatINR(p.budget)}</div>
                     </div>
                   </div>
                   <div className="mt-4 flex flex-wrap items-center gap-2.5">
@@ -1463,7 +1463,7 @@ export default function BusinessProjects({ onOpenChat }) {
                           </div>
                         </div>
                         <div className="flex-shrink-0 sm:ml-4 sm:text-right">
-                          <div className="text-lg font-extrabold text-[#1B3FAB]">{formatINR(p.budget)}</div>
+                          <div className="text-lg font-extrabold text-[#1B3FAB] dark:text-blue-400">{formatINR(p.budget)}</div>
                           <div className="mt-0.5 font-mono text-xs text-slate-400 dark:text-slate-500">Secured: {formatINR(p.budget)}</div>
                         </div>
                       </div>
@@ -1487,7 +1487,7 @@ export default function BusinessProjects({ onOpenChat }) {
                       <div className="flex flex-wrap items-center gap-2.5">
                         <button
                           onClick={() => setWorkerDrawerProject(p)}
-                          className="flex min-h-[44px] items-center gap-1.5 rounded-xl border border-[#1B3FAB]/15 bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 px-4 py-2 text-xs font-semibold text-[#1B3FAB] transition-colors hover:bg-[#1B3FAB]/10"
+                          className="flex min-h-[44px] items-center gap-1.5 rounded-xl border border-[#1B3FAB]/15 bg-[#F4F6FF] dark:bg-[#1B3FAB]/10 px-4 py-2 text-xs font-semibold text-[#1B3FAB] dark:text-blue-400 transition-colors hover:bg-[#1B3FAB]/10"
                         >
                           <UserCheck className="h-3.5 w-3.5" />
                           View Worker
@@ -1505,9 +1505,9 @@ export default function BusinessProjects({ onOpenChat }) {
                           {downloadingId === p.id ? (
                             <Loader2 className="h-3.5 w-3.5 animate-spin" />
                           ) : (
-                            <Download className="h-3.5 w-3.5" />
+                            <FolderOpen className="h-3.5 w-3.5" />
                           )}
-                          Download Files
+                          View Files
                           {p.new_deliverables_count > 0 && (
                             <span
                               className="absolute -top-2 -right-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white shadow-sm"
@@ -1608,7 +1608,7 @@ export default function BusinessProjects({ onOpenChat }) {
                         {p.status === "COMPLETED" && (
                           <Link
                             to={`/invoice?id=${p.id}`}
-                            className="ml-auto text-xs font-bold text-[#1B3FAB] hover:underline"
+                            className="ml-auto text-xs font-bold text-[#1B3FAB] dark:text-blue-400 hover:underline"
                           >
                             View Invoice
                           </Link>
