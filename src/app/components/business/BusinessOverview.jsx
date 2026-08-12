@@ -521,7 +521,12 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
               ))}
             </div>
 
-            <div className="divide-y divide-slate-50 dark:divide-slate-800">
+            {/* Capped to roughly 4 visible rows (same 300px cap as Payment
+                History below) with a smooth, chrome-free internal scroll —
+                showing all 6+ rows uncapped made this card much taller than
+                the Funds in Process/Financial Summary column beside it,
+                leaving a big empty gap under the shorter column. */}
+            <div className="wb-scroll-clean max-h-[300px] divide-y divide-slate-50 overflow-y-auto scroll-smooth dark:divide-slate-800">
               {filteredProjects.length > 0 ? filteredProjects.map((p, i) => (
                 <div
                   key={p.id}
