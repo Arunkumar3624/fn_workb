@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
   AlertCircle,
   ArrowUpRight,
   BadgeCheck,
+  ChevronLeft,
+  ChevronRight,
   Clock3,
   FileText,
   Search,
@@ -111,13 +113,9 @@ function ThreadNavigator({ threads, groupsByCounterparty, selectedThreadId, onSe
   return (
     <aside className="flex h-full w-[300px] flex-shrink-0 flex-col overflow-hidden border-r border-slate-200 bg-slate-50/80 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/80">
       <div className="border-b border-slate-200 bg-white/70 px-5 py-5 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/60">
-        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
-          Thread Navigator
-        </p>
-        <div className="mt-1 flex items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-3">
           <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">
-            Negotiations
-          </h1>
+            Chats          </h1>
           <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-black text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-400">
             {threads.length} {threads.length === 1 ? "Conversation" : "Conversations"}
           </span>
@@ -269,13 +267,38 @@ function HubHeader({ thread, projects, onViewContractTerms, blockStatus, blockAc
   const isCancelled = mostUrgent?.status === "CANCELLED";
   const otherUserId = thread.other_user_id;
 
+  // The chip strip hides its native scrollbar (wb-scroll-clean) for a
+  // cleaner look, but with nothing visible in its place a row that overflows
+  // just looked cut off mid-chip with no hint there was more to see. These
+  // arrows are the discoverable, click-only way to reach it — they only
+  // render on the side that actually has more to scroll to.
+  const chipStripRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const updateChipScrollState = () => {
+    const el = chipStripRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 4);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  };
+
+  useEffect(() => {
+    updateChipScrollState();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projects]);
+
+  const scrollChips = (direction) => {
+    chipStripRef.current?.scrollBy({ left: direction * 240, behavior: "smooth" });
+  };
+
   return (
     <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/80 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/80">
       <div className="flex items-center justify-between gap-5 px-6 py-4">
         <div className="min-w-0 flex-1 [&>div]:border-b-0 [&>div]:bg-transparent [&>div]:px-0 [&>div]:py-0">
           <IdentityHeader
             name={thread.other_name}
-            subtitle={projects.length === 1 ? projects[0].title : `${projects.length} projects together`}
+            subtitle={projects.length === 1 ? projects[0].title : `${projects.length} projects `}
             initials={getInitials(thread.other_name)}
             avatarBg="bg-[#1B3FAB]"
             verified
@@ -348,10 +371,37 @@ function HubHeader({ thread, projects, onViewContractTerms, blockStatus, blockAc
       )}
 
       {projects.length > 0 && (
-        <div className="wb-scroll-clean flex gap-2 overflow-x-auto px-6 pb-4" onWheel={handleHorizontalWheelScroll}>
-          {projects.map((project) => (
-            <ProjectChip key={project.id} project={project} onClick={onViewContractTerms} />
-          ))}
+        <div className="relative flex items-center">
+          {canScrollLeft && (
+            <button
+              type="button"
+              onClick={() => scrollChips(-1)}
+              aria-label="Scroll projects left"
+              className="absolute left-1 z-10 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:text-white"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+          )}
+          <div
+            ref={chipStripRef}
+            onScroll={updateChipScrollState}
+            onWheel={handleHorizontalWheelScroll}
+            className="wb-scroll-clean flex scroll-smooth gap-2 overflow-x-auto px-6 pb-4"
+          >
+            {projects.map((project) => (
+              <ProjectChip key={project.id} project={project} onClick={onViewContractTerms} />
+            ))}
+          </div>
+          {canScrollRight && (
+            <button
+              type="button"
+              onClick={() => scrollChips(1)}
+              aria-label="Scroll projects right"
+              className="absolute right-1 z-10 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:text-white"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          )}
         </div>
       )}
     </header>

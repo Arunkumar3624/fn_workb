@@ -122,7 +122,7 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
           a padded content div below it. Capped at max-w-[1200px], same as
           the Body section further down — otherwise the cover spans the
           full page width while everything below it is centered/narrower. */}
-      <div className="max-w-[1200px] mx-auto px-1 pt-1">
+      <div className="w-full px-1 pt-1">
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_20px_55px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-900">
         {/* No heightClass override — same default as WorkerProfile.jsx's
             cover (h-40 sm:h-48), so the two pages' banners always match
@@ -237,7 +237,7 @@ function ProfileView({ profile, onEdit, onCoverUpload, coverUploading, coverErro
       </div>
 
       {/* ── Body ──────────────────────────────────────────────────────────── */}
-      <div className="px-7 py-6 max-w-[1200px] mx-auto">
+      <div className="px-7 py-6 w-full">
 
         {/* STATS/VERIFICATIONS below are illustrative sample data, not yet
             pulled from real activity (job-post counts, real hires, the real
@@ -596,21 +596,19 @@ function EditForm({ draft, onChange, onSave, onCancel, saving, saveError }) {
           <EditFormSection icon={ShieldCheck} title="Verification">
             {isVerified ? (
               <Field label="Verification Frame">
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={frameShown}
-                  onClick={() => setShowVerificationFrame(!frameShown)}
-                  className="flex items-center gap-2.5 text-sm font-semibold text-slate-600 dark:text-slate-300"
-                >
-                  <span className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${frameShown ? "bg-[#FF6B35]" : "bg-slate-300 dark:bg-slate-700"}`}>
-                    <span
-                      className="inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform"
-                      style={{ transform: frameShown ? "translateX(1.125rem)" : "translateX(0.25rem)" }}
+                <label className="flex cursor-pointer items-center gap-2.5 text-sm font-semibold text-slate-600 dark:text-slate-300">
+                  <span className="relative inline-flex flex-shrink-0">
+                    <input
+                      type="checkbox"
+                      className="peer sr-only"
+                      checked={frameShown}
+                      onChange={() => setShowVerificationFrame(!frameShown)}
                     />
+                    <span className="h-6 w-11 rounded-full bg-slate-300 transition-colors peer-checked:bg-[#FF6B35] dark:bg-slate-700" />
+                    <span className="absolute left-[2px] top-[2px] h-5 w-5 rounded-full border border-slate-300 bg-white shadow transition-transform peer-checked:translate-x-full dark:border-slate-500" />
                   </span>
                   Display Verification Frame on my avatar
-                </button>
+                </label>
               </Field>
             ) : (
               <p className="text-sm text-slate-400 dark:text-slate-500">

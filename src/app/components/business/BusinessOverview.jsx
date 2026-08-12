@@ -271,7 +271,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
       <div className="pointer-events-none absolute -top-24 -left-24 -z-10 h-[26rem] w-[26rem] rounded-full bg-[#1B3FAB]/25 blur-[110px]" />
       <div className="pointer-events-none absolute top-56 -right-24 -z-10 h-[26rem] w-[26rem] rounded-full bg-emerald-400/20 blur-[110px]" />
       <div className="pointer-events-none absolute bottom-0 left-1/3 -z-10 h-96 w-96 rounded-full bg-purple-400/20 blur-[110px]" />
-      <div className="relative max-w-6xl mx-auto">
+      <div className="relative w-full">
 
         {/* ── Header ─────────────────────────────────────────────────────── */}
         <div className="flex items-center justify-between mb-7">

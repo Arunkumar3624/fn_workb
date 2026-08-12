@@ -262,7 +262,7 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
               {/* Card 1: Basic Details */}
               <SectionCard
                 icon={Briefcase}
-                title="JOB Details"
+                title="Job Details"
                 sub="Set the job title and category"
               >
                 <div>

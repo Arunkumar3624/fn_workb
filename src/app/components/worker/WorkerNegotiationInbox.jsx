@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
 import {
@@ -6,6 +6,8 @@ import {
   BadgeCheck,
   Briefcase,
   Check,
+  ChevronLeft,
+  ChevronRight,
   Clock3,
   FileText,
   IndianRupee,
@@ -442,6 +444,29 @@ function ChatPanel({ thread, projects, onViewDetails }) {
     getBlockStatus(otherUserId).then(setBlockStatus).catch(() => {});
   }, [otherUserId]);
 
+  // Same discoverable scroll affordance as BusinessNegotiationHub.jsx's chip
+  // row — wb-scroll-clean hides the native scrollbar, so without these
+  // arrows an overflowing row just looked cut off with no hint of more.
+  const chipStripRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const updateChipScrollState = () => {
+    const el = chipStripRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 4);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  };
+
+  useEffect(() => {
+    updateChipScrollState();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projects]);
+
+  const scrollChips = (direction) => {
+    chipStripRef.current?.scrollBy({ left: direction * 240, behavior: "smooth" });
+  };
+
   const handleBlock = async () => {
     if (!otherUserId || blockActionBusy) return;
     setBlockActionBusy(true);
@@ -542,13 +567,40 @@ function ChatPanel({ thread, projects, onViewDetails }) {
         )}
 
         {projects.length > 0 && (
-          <div className="wb-scroll-clean flex gap-2 overflow-x-auto px-6 pb-4" onWheel={handleHorizontalWheelScroll}>
-            {activeProjects.map((project) => (
-              <ProjectChip key={project.id} project={project} onClick={onViewDetails} />
-            ))}
-            {historyProjects.map((project) => (
-              <ProjectChip key={project.id} project={project} onClick={onViewDetails} />
-            ))}
+          <div className="relative flex items-center">
+            {canScrollLeft && (
+              <button
+                type="button"
+                onClick={() => scrollChips(-1)}
+                aria-label="Scroll projects left"
+                className="absolute left-1 z-10 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:text-white"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+            )}
+            <div
+              ref={chipStripRef}
+              onScroll={updateChipScrollState}
+              onWheel={handleHorizontalWheelScroll}
+              className="wb-scroll-clean flex scroll-smooth gap-2 overflow-x-auto px-6 pb-4"
+            >
+              {activeProjects.map((project) => (
+                <ProjectChip key={project.id} project={project} onClick={onViewDetails} />
+              ))}
+              {historyProjects.map((project) => (
+                <ProjectChip key={project.id} project={project} onClick={onViewDetails} />
+              ))}
+            </div>
+            {canScrollRight && (
+              <button
+                type="button"
+                onClick={() => scrollChips(1)}
+                aria-label="Scroll projects right"
+                className="absolute right-1 z-10 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:text-white"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            )}
           </div>
         )}
       </header>
@@ -584,8 +636,7 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
 
   useEffect(() => {
     let cancelled = false;
-    // pageSize: 100 (the API's max) rather than the default 20 — Negotiations
-    // needs every project with every counterparty, not just the 20 most
+    // pageSize: 100 (the API's max) rather than the default 20 — Chats    // needs every project with every counterparty, not just the 20 most
     // recent across the whole account, or an older project could silently
     // fall off a thread's own history here.
     Promise.all([listThreads(), listProjects({ role: "worker", pageSize: 100 })])

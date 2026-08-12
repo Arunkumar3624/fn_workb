@@ -357,8 +357,8 @@ export default function BusinessPayments({ isVerified }) {
   }, []);
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
-      <div className="mb-6 rounded-2xl bg-gradient-to-r from-[#0F172A] to-[#1B3FAB] p-6 shadow-sm sm:p-8">
+    <div className="w-full px-4 py-8 sm:px-6 sm:py-10">
+      <div className="mb-6 rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 p-6 shadow-md sm:p-8">
         <h1 className="text-xl font-extrabold text-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
           Billing & Payments
         </h1>

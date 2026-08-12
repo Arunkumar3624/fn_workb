@@ -455,7 +455,7 @@ export default function WorkerJobFeed() {
 
   return (
     <div className="wb-scroll-clean relative h-full min-h-0 overflow-y-auto bg-gradient-to-br from-[#dbe4ff] via-[#eef1ff] to-[#ffe4d2] pb-20 text-slate-900 dark:text-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
-      <section className="relative mx-auto max-w-7xl px-6 py-8">
+      <section className="relative w-full px-6 py-8">
         <SubscriptionBanner onUpgrade={() => navigate("/worker/wallet?tab=subscription")} />
 
         <div className="mb-8 rounded-2xl border border-white/70 bg-white/60 backdrop-blur-xl p-6 shadow-lg shadow-slate-200/40 dark:border-slate-800 dark:bg-slate-900/60">

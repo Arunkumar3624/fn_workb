@@ -159,7 +159,7 @@ export default function WorkerLedger({ embedded = false }) {
   const trend = buildTrend(activity);
 
   return (
-    <div className={embedded ? "" : "mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10"}>
+    <div className={embedded ? "" : "w-full px-4 py-8 sm:px-6 sm:py-10"}>
       <div className="mb-6">
         {!embedded && (
           <h1 className="text-xl font-extrabold text-[#0A1128] dark:text-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>

@@ -571,7 +571,15 @@ export default function WorkerWorkspace() {
               <ProjectCompletionHub
                 perspective="worker"
                 counterpartName={selectedTask.business_name}
-                amount={Number(selectedTask.budget)}
+                // Real net payout, not the gross project budget — "released
+                // to your wallet" was quoting the full budget while the
+                // platform fee (completeProject, backend) actually deducts
+                // it before crediting the wallet, overstating what landed
+                // there. Gross stays the honest figure everywhere else
+                // (Job Feed, the task list here) — this one spot is
+                // specifically claiming what was deposited, so it has to
+                // match the real deposit.
+                amount={Math.round(Number(selectedTask.budget) * (1 - Number(selectedTask.platform_fee_pct ?? 8) / 100))}
                 review={existingReview}
                 onSubmit={async (rating, feedback) => {
                   setReviewError("");
@@ -680,8 +688,7 @@ export default function WorkerWorkspace() {
                   className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#1B3FAB]/20 bg-[#F4F6FF] px-5 py-4 text-sm font-bold text-[#1B3FAB] dark:text-blue-400 transition hover:bg-[#1B3FAB]/10 dark:border-[#1B3FAB]/30 dark:bg-[#1B3FAB]/10 dark:hover:bg-[#1B3FAB]/15"
                 >
                   <MessageSquare className="h-4 w-4" />
-                  Open Chat in Negotiations
-                </button>
+                  Open Chat in Chats                </button>
               </motion.div>
               </div>
             </div>

@@ -234,7 +234,7 @@ export default function WorkerTokenShop({ embedded = false }) {
   };
 
   return (
-    <div className={embedded ? "" : "mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10"}>
+    <div className={embedded ? "" : "w-full px-4 py-8 sm:px-6 sm:py-10"}>
       <div className={embedded ? "" : "rounded-2xl border border-slate-200 bg-slate-50/80 p-6 shadow-sm backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/60"}>
       <div className="mb-6 flex items-center justify-between">
         <div>

@@ -202,7 +202,7 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
   return (
     <>
     <div className="min-h-screen bg-slate-50 p-7 wb-tab-enter dark:bg-slate-950">
-      <div className="max-w-6xl mx-auto">
+      <div className="w-full">
 
         <div className="mb-4 flex items-start justify-between gap-4 flex-wrap">
           <div>

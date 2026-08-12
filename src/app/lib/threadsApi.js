@@ -3,8 +3,7 @@
 // of (not replacing) the original per-project routes in messagesApi.js.
 import { apiFetch } from "./apiClient";
 
-// One row per counterparty, newest activity first — the merged Negotiations
-// inbox's thread list.
+// One row per counterparty, newest activity first — the merged Chats// inbox's thread list.
 export function listThreads() {
   return apiFetch(`/api/threads`);
 }

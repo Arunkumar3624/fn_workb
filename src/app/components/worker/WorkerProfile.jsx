@@ -151,27 +151,19 @@ function BehaviorLevelBento({ behaviorScore, verified }) {
           {/* Stealth Mode — only reachable at all once verified is real and
               true, since there's nothing to toggle for someone who hasn't
               earned a frame yet. */}
-          <button
-            type="button"
-            role="switch"
-            aria-checked={currentUser?.showVerificationFrame !== false}
-            onClick={() => setShowVerificationFrame(currentUser?.showVerificationFrame === false)}
-            className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400"
-          >
+          <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
             Display Verification Frame
-            <span
-              className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${
-                currentUser?.showVerificationFrame !== false ? "bg-[#FF6B35]" : "bg-slate-300 dark:bg-slate-700"
-              }`}
-            >
-              <span
-                className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${
-                  currentUser?.showVerificationFrame !== false ? "translate-x-4.5" : "translate-x-1"
-                }`}
-                style={{ transform: currentUser?.showVerificationFrame !== false ? "translateX(1.125rem)" : "translateX(0.25rem)" }}
+            <span className="relative inline-flex flex-shrink-0">
+              <input
+                type="checkbox"
+                className="peer sr-only"
+                checked={currentUser?.showVerificationFrame !== false}
+                onChange={() => setShowVerificationFrame(currentUser?.showVerificationFrame === false)}
               />
+              <span className="h-6 w-11 rounded-full bg-slate-300 transition-colors peer-checked:bg-[#FF6B35] dark:bg-slate-700" />
+              <span className="absolute left-[2px] top-[2px] h-5 w-5 rounded-full border border-slate-300 bg-white shadow transition-transform peer-checked:translate-x-full dark:border-slate-500" />
             </span>
-          </button>
+          </label>
         </div>
       ) : (
         // Real, non-fabricated CTA — Worker ID Verified is genuinely free
@@ -396,7 +388,7 @@ export default function WorkerProfile() {
   return (
     <div className="wb-scroll-clean h-full overflow-y-auto bg-[#F8FAFC] dark:bg-slate-950">
       <main className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 pb-20 text-slate-900 dark:text-white">
-        <div className="mx-auto max-w-5xl px-4 pt-8">
+        <div className="w-full px-4 pt-8">
           <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_20px_55px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-900">
             <EditableCoverPhoto
               coverUrl={profile.coverUrl}
