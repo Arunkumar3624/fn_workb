@@ -18,6 +18,27 @@ function formatINR(amount) {
   return `₹${Number(amount || 0).toLocaleString("en-IN")}`;
 }
 
+// Recharts' default tooltip is a plain white box that clashes with the rest
+// of this card's glass/premium look — this replaces it with the same dark
+// glassmorphism treatment (blurred slate, soft shadow) the rest of the
+// dashboard's overlays use.
+function SpendingTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
+  const secured = payload.find((p) => p.dataKey === "secured")?.value ?? 0;
+  const delivered = payload.find((p) => p.dataKey === "delivered")?.value ?? 0;
+  return (
+    <div className="rounded-xl border border-white/10 bg-slate-900/95 px-4 py-3 shadow-xl backdrop-blur-md">
+      <p className="mb-1.5 text-xs font-bold text-white">{label}</p>
+      <p className="flex items-center gap-1.5 text-xs font-semibold text-blue-300">
+        <span className="h-2 w-2 flex-shrink-0 rounded-sm bg-[#5b7fe8]" /> Secured: {formatINR(secured)}
+      </p>
+      <p className="mt-1 flex items-center gap-1.5 text-xs font-semibold text-purple-300">
+        <span className="h-2 w-2 flex-shrink-0 rounded-sm bg-purple-400" /> Delivered: {formatINR(delivered)}
+      </p>
+    </div>
+  );
+}
+
 function round2(n) {
   return Math.round(n * 100) / 100;
 }
@@ -747,21 +768,27 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
 
             <div className="relative mt-5 mb-3" style={{ height: 190 }}>
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={monthly} margin={{ top: 0, right: 0, left: 0, bottom: 0 }} barGap={2}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                <BarChart data={monthly} margin={{ top: 0, right: 0, left: 0, bottom: 0 }} barGap={3}>
+                  <defs>
+                    <linearGradient id="securedBarGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#3757d6" />
+                      <stop offset="100%" stopColor="#1B3FAB" />
+                    </linearGradient>
+                    <linearGradient id="deliveredBarGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#d8b4fe" />
+                      <stop offset="100%" stopColor="#c084fc" />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E2E8F0" />
                   <XAxis
                     dataKey="m"
                     tick={{ fontSize: 10, fill: "#64748b" }}
                     axisLine={false}
                     tickLine={false}
                   />
-                  <Tooltip
-                    cursor={{ fill: "rgba(148,163,184,0.08)" }}
-                    formatter={(value, name) => [formatINR(value), name === "secured" ? "Secured" : "Delivered"]}
-                    contentStyle={{ borderRadius: 12, border: "1px solid #e2e8f0", fontSize: 12 }}
-                  />
-                  <Bar dataKey="secured" name="secured" fill="#1B3FAB" radius={[3, 3, 0, 0]} maxBarSize={18} />
-                  <Bar dataKey="delivered" name="delivered" fill="#c084fc" radius={[3, 3, 0, 0]} maxBarSize={18} />
+                  <Tooltip content={<SpendingTooltip />} cursor={{ fill: "transparent" }} />
+                  <Bar dataKey="secured" name="secured" fill="url(#securedBarGradient)" radius={[6, 6, 0, 0]} barSize={32} />
+                  <Bar dataKey="delivered" name="delivered" fill="url(#deliveredBarGradient)" radius={[6, 6, 0, 0]} barSize={32} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

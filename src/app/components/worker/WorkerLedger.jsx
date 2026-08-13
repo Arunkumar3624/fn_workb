@@ -70,7 +70,7 @@ function buildTrend(activity) {
   for (let i = 6; i >= 0; i--) {
     const d = new Date(now);
     d.setDate(d.getDate() - i);
-    days.push({ key: d.toDateString(), day: d.toLocaleDateString("en-US", { weekday: "short" }), net: 0 });
+    days.push({ key: d.toDateString(), sortAt: d.getTime(), day: d.toLocaleDateString("en-US", { weekday: "short" }), net: 0 });
   }
   const byKey = new Map(days.map((d) => [d.key, d]));
   for (const row of activity) {
@@ -78,7 +78,10 @@ function buildTrend(activity) {
     if (!bucket) continue;
     bucket.net += row.kind === "spend" ? -row.purchase.token_cost : row.event.token_delta;
   }
-  return days;
+  // Defensive — the loop above already builds these oldest-first, but the
+  // chart's left-to-right reading only makes sense chronologically, so this
+  // guarantees it regardless of how the days above were constructed.
+  return days.sort((a, b) => a.sortAt - b.sortAt);
 }
 
 function timeAgo(dateString) {
@@ -190,7 +193,7 @@ export default function WorkerLedger({ embedded = false }) {
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
               <XAxis dataKey="day" tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
-              <YAxis domain={[0, "auto"]} tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} width={32} />
+              <YAxis domain={[0, "dataMax + 20"]} tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} width={32} />
               <Tooltip
                 cursor={{ stroke: "#FF6B35", strokeWidth: 1, strokeDasharray: "4 4" }}
                 formatter={(value) => [`${value >= 0 ? "+" : ""}${value} 🪙`, "Net"]}
