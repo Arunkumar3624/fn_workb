@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { Briefcase, Search, Wallet, User, LogOut, ShieldCheck, Handshake, Settings, Sparkles } from "lucide-react";
+import { Briefcase, Search, Wallet, User, LogOut, Handshake, Settings, Sparkles } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { listProjects } from "../../lib/projectsApi";
 import { getInitials } from "../../utils/formValidation";
+import { calculateLevel } from "../../utils/gamification";
 import PinnedBadgeOverlay from "../shared/PinnedBadgeOverlay";
 import brandLogo from "../../assets/logo.png";
 import { shouldShowFrame, verifiedRingClass } from "../../utils/verification";
@@ -26,6 +27,7 @@ export default function WorkerSidebar({ tab, onTabChange, onLogout }) {
   const { currentUser } = useAuth();
   const [hasPendingInvites, setHasPendingInvites] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const { currentLevel } = calculateLevel(currentUser?.xp ?? 0);
 
   useEffect(() => {
     let cancelled = false;
@@ -98,13 +100,17 @@ export default function WorkerSidebar({ tab, onTabChange, onLogout }) {
           )}
         </div>
         {!isCollapsed && (
-          <div className="mt-3 flex items-center justify-between rounded-lg border border-[#10B981]/20 bg-[#10B981]/10 px-3 py-2">
+          <div className={`mt-3 flex items-center justify-between rounded-lg border px-3 py-2 ${
+            currentUser?.verified ? "border-[#10B981]/20 bg-[#10B981]/10" : "border-amber-400/20 bg-amber-400/10"
+          }`}>
             <div className="flex items-center gap-2">
-              <span className="h-2.5 w-2.5 rounded-full bg-[#10B981]" />
-              <span className="text-xs font-medium text-emerald-300">Available</span>
+              <span className={`h-2.5 w-2.5 rounded-full ${currentUser?.verified ? "bg-[#10B981]" : "bg-amber-400"}`} />
+              <span className={`text-xs font-medium ${currentUser?.verified ? "text-emerald-300" : "text-amber-300"}`}>
+                {currentUser?.verified ? "Verified" : "Unverified"}
+              </span>
             </div>
             <span className="rounded-full bg-white/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-300">
-              {currentUser?.behavior_score ?? 0} Score
+              Level {currentLevel}
             </span>
           </div>
         )}
@@ -158,26 +164,10 @@ export default function WorkerSidebar({ tab, onTabChange, onLogout }) {
       </nav>
 
       <div className={`border-t border-white/10 py-4 ${isCollapsed ? "px-2" : "px-4"}`}>
-        <div
-          title={isCollapsed ? (currentUser?.verified ? "Verified User" : "Unverified") : undefined}
-          className={`flex items-center gap-3 rounded-lg border py-3 ${isCollapsed ? "justify-center px-0" : "px-3"} ${
-            currentUser?.verified ? "border-[#10B981]/20 bg-[#10B981]/10" : "border-amber-400/20 bg-amber-400/10"
-          }`}
-        >
-          <ShieldCheck className={`h-4 w-4 flex-shrink-0 ${currentUser?.verified ? "text-emerald-300" : "text-amber-300"}`} />
-          {!isCollapsed && (
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-white">{currentUser?.verified ? "Verified User" : "Unverified"}</p>
-              <p className={`truncate text-xs ${currentUser?.verified ? "text-emerald-200" : "text-amber-200"}`}>
-                {currentUser?.verified ? "Identity & payment protected" : "Complete verification to build trust"}
-              </p>
-            </div>
-          )}
-        </div>
         <button
           onClick={onLogout}
           title={isCollapsed ? "Sign out" : undefined}
-          className={`mt-3 flex w-full items-center gap-3 rounded-2xl py-2.5 text-sm text-slate-400 transition-colors hover:bg-white/5 hover:text-white ${
+          className={`flex w-full items-center gap-3 rounded-2xl py-2.5 text-sm text-slate-400 transition-colors hover:bg-white/5 hover:text-white ${
             isCollapsed ? "justify-center px-0" : "px-3"
           }`}
         >

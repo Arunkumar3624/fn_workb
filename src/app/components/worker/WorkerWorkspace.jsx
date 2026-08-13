@@ -375,7 +375,7 @@ export default function WorkerWorkspace() {
         <div className="mb-4 flex items-center justify-between">
           <div>
             {/* <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400 dark:text-slate-500">'Pending' ➔ 'In Progress' ➔ 'In Review' ➔ 'Completed'</p> */}
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Your active work</h2>
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Good Luck With Your Work!</h2>
           </div>
           <div className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-500 dark:text-slate-400 shadow-sm dark:bg-slate-800">
             {tasks.length} live

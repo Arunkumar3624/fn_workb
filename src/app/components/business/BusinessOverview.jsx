@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import {
   AlertCircle, ArrowRight, BadgeCheck, Briefcase, Calendar, CheckCircle2, Lock,
   Plus, Receipt, Shield, ShieldCheck, TrendingUp, UserCheck, Zap,
@@ -31,7 +32,6 @@ const ACTIVE_STATUSES = new Set(["INVITED", "ACCEPTED", "PENDING_FUNDS", "FUNDS_
 // PENDING_FUNDS deliberately excluded — the transfer is only submitted for
 // verification at that point, not yet confirmed as real held funds.
 const FUNDS_HELD_STATUSES = new Set(["FUNDS_SECURED", "WORK_IN_PROGRESS", "FILES_SUBMITTED"]);
-const CHART_MAX_FLOOR = 1000; // avoid a div-by-zero-flavored 0-height chart on a brand-new account
 
 // ── Micro sparkline ───────────────────────────────────────────────────────────
 function Sparkline({ data, color, darkColor }) {
@@ -235,7 +235,6 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
     }
     return months;
   }, [paymentFeed]);
-  const chartMax = Math.max(CHART_MAX_FLOOR, ...monthly.map((m) => Math.max(m.secured, m.delivered)));
 
   const deliveredThisMonth = useMemo(() => {
     const now = new Date();
@@ -746,40 +745,25 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
               </div>
             </div>
 
-            <div className="relative mt-5 mb-3">
-              {/* Horizontal gridlines — value reference lines behind the
-                  bars, spaced to match the same 170px scale the bar heights
-                  themselves are computed against. Taller than before so the
-                  chart itself fills more of the card instead of leaving a
-                  gap between it and the stats row below. */}
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-[170px]">
-                {[0, 25, 50, 75].map((pct) => (
-                  <div key={pct} className="absolute inset-x-0 border-t border-dashed border-slate-200 dark:border-slate-800" style={{ top: `${pct * 1.7}px` }} />
-                ))}
-              </div>
-              <div className="relative flex items-end gap-2">
-                {monthly.map(({ m, secured, delivered }) => {
-                  const sH = secured > 0 ? Math.max(4, Math.round((secured / chartMax) * 170)) : 0;
-                  const dH = delivered > 0 ? Math.max(4, Math.round((delivered / chartMax) * 170)) : 0;
-                  return (
-                    <div key={m} className="flex-1">
-                      <div className="flex items-end gap-px" style={{ height: "170px" }}>
-                        <div
-                          title={`Secured ${formatINR(secured)}`}
-                          className="flex-1 bg-[#1B3FAB] hover:bg-[#1635A0] rounded-t-sm transition-colors cursor-default"
-                          style={{ height: `${sH}px` }}
-                        />
-                        <div
-                          title={`Delivered ${formatINR(delivered)}`}
-                          className="flex-1 bg-purple-400 hover:bg-purple-500 rounded-t-sm transition-colors cursor-default"
-                          style={{ height: `${dH}px` }}
-                        />
-                      </div>
-                      <p className="text-[10px] text-center text-slate-600 dark:text-slate-400 mt-2">{m}</p>
-                    </div>
-                  );
-                })}
-              </div>
+            <div className="relative mt-5 mb-3" style={{ height: 190 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={monthly} margin={{ top: 0, right: 0, left: 0, bottom: 0 }} barGap={2}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                  <XAxis
+                    dataKey="m"
+                    tick={{ fontSize: 10, fill: "#64748b" }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <Tooltip
+                    cursor={{ fill: "rgba(148,163,184,0.08)" }}
+                    formatter={(value, name) => [formatINR(value), name === "secured" ? "Secured" : "Delivered"]}
+                    contentStyle={{ borderRadius: 12, border: "1px solid #e2e8f0", fontSize: 12 }}
+                  />
+                  <Bar dataKey="secured" name="secured" fill="#1B3FAB" radius={[3, 3, 0, 0]} maxBarSize={18} />
+                  <Bar dataKey="delivered" name="delivered" fill="#c084fc" radius={[3, 3, 0, 0]} maxBarSize={18} />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
 
             <div className="mt-auto h-px bg-slate-100 dark:bg-slate-800 my-4" />

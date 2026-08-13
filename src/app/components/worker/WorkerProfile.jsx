@@ -83,9 +83,17 @@ function ReviewCard({ review }) {
   return (
     <article className="rounded-lg bg-slate-50 p-5 ring-1 ring-slate-100 dark:bg-slate-800 dark:ring-slate-700">
       <div className="flex items-center gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-sm font-bold text-slate-700 dark:text-slate-200 shadow-sm">
-          {getInitials(review.reviewer_name)}
-        </div>
+        {review.reviewer_avatar_url ? (
+          <img
+            src={review.reviewer_avatar_url}
+            alt={review.reviewer_name}
+            className="h-11 w-11 flex-shrink-0 rounded-full object-cover shadow-sm"
+          />
+        ) : (
+          <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-white text-sm font-bold text-slate-700 dark:text-slate-200 shadow-sm">
+            {getInitials(review.reviewer_name)}
+          </div>
+        )}
         <div>
           <h3 className="text-sm font-bold text-slate-900 dark:text-white">{review.reviewer_name}</h3>
           <p className="text-xs font-medium text-slate-500 dark:text-slate-400">

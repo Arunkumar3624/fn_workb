@@ -41,7 +41,7 @@ function getGreeting() {
 const TAB_TITLES = {
   feed: "Job Feed",
   negotiations: "Chats",
-  workspace: "Active Workspace",
+  workspace: "Your Workspace",
   wallet: "Wallet & Subscription",
   economy: "Economy Hub",
   profile: "My Profile",

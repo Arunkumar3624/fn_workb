@@ -111,7 +111,7 @@ function ThreadNavigator({ threads, groupsByCounterparty, selectedThreadId, onSe
     : threads;
 
   return (
-    <aside className="flex h-full w-[300px] flex-shrink-0 flex-col overflow-hidden border-r border-slate-200 bg-slate-50/80 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/80">
+    <aside className="flex h-full w-[340px] flex-shrink-0 flex-col overflow-hidden border-r border-slate-200 bg-slate-50/80 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/80">
       <div className="border-b border-slate-200 bg-white/70 px-5 py-5 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/60">
         <div className="flex items-center justify-between gap-3">
           <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">

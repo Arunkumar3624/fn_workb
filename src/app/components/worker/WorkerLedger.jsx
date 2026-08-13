@@ -190,12 +190,21 @@ export default function WorkerLedger({ embedded = false }) {
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
               <XAxis dataKey="day" tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} width={32} />
+              <YAxis domain={[0, "auto"]} tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} width={32} />
               <Tooltip
+                cursor={{ stroke: "#FF6B35", strokeWidth: 1, strokeDasharray: "4 4" }}
                 formatter={(value) => [`${value >= 0 ? "+" : ""}${value} 🪙`, "Net"]}
                 contentStyle={{ borderRadius: 12, border: "1px solid #f1f5f9", fontSize: 12 }}
               />
-              <Area type="monotone" dataKey="net" stroke="#FF6B35" strokeWidth={2} fill="url(#ledgerTrendGradient)" name="Net Tokens" />
+              <Area
+                type="monotone"
+                dataKey="net"
+                stroke="#FF6B35"
+                strokeWidth={2}
+                fill="url(#ledgerTrendGradient)"
+                name="Net Tokens"
+                activeDot={{ r: 5, strokeWidth: 2, stroke: "#FF6B35", fill: "#fff" }}
+              />
             </AreaChart>
           </ResponsiveContainer>
         </motion.div>
