@@ -699,7 +699,7 @@ export default function WorkerWorkspace() {
                   className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#1B3FAB]/20 bg-[#F4F6FF] px-5 py-4 text-sm font-bold text-[#1B3FAB] dark:text-blue-400 transition hover:bg-[#1B3FAB]/10 dark:border-[#1B3FAB]/30 dark:bg-[#1B3FAB]/10 dark:hover:bg-[#1B3FAB]/15"
                 >
                   <MessageSquare className="h-4 w-4" />
-                  Open Chat in Negotiations
+                  Open Chat in Chats
                 </button>
               </motion.div>
               </div>

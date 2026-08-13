@@ -24,26 +24,14 @@ import { useDocumentTitle } from "../hooks/useDocumentTitle";
 
 // A real, local-time-of-day greeting — not a fixed "Welcome back" — so the
 // new warm header actually reads as personalized rather than static copy.
+// Text-only, no emoji, across every period.
 function getGreeting() {
   const hour = new Date().getHours();
 
-  if (hour >= 5 && hour < 12) {
-    // A clean, simple sun behind a cloud or a standard coffee cup is widely accepted in business contexts
-    return { text: "Good Morning", emoji: "🌤️" }; 
-  } 
-  
-  if (hour >= 12 && hour < 17) {
-    // Standard, minimalist sun for the peak of the day
-    return { text: "Good Afternoon", emoji: "☀️" }; 
-  } 
-  
-  if (hour >= 17 && hour < 21) {
-    // A simple crescent moon, removing the busy cityscape
-    return { text: "Good Evening", emoji: "🌙" }; 
-  } 
-  
-  // A clean, dark night sky to indicate after-hours
-  return { text: "Good Night", emoji: "🌃" }; 
+  if (hour >= 5 && hour < 12) return { text: "Good Morning" };
+  if (hour >= 12 && hour < 17) return { text: "Good Afternoon" };
+  if (hour >= 17 && hour < 21) return { text: "Good Evening" };
+  return { text: "Good Night" };
 }
 
 // "Lobby vs. Workroom": the big warm greeting only belongs on the landing
@@ -52,7 +40,7 @@ function getGreeting() {
 // doesn't repeat itself (and eat vertical space) on every navigation.
 const TAB_TITLES = {
   feed: "Job Feed",
-  negotiations: "Negotiations",
+  negotiations: "Chats",
   workspace: "Active Workspace",
   wallet: "Wallet & Subscription",
   economy: "Economy Hub",
@@ -145,7 +133,7 @@ export default function WorkerDashboard({ onLogout }) {
               )}
               <div className="min-w-0">
                 <h1 className="truncate text-lg font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-xl">
-                  {greeting.text}, {currentUser?.name?.split(" ")[0] ?? "there"}! {greeting.emoji}
+                  {greeting.text}, {currentUser?.name?.split(" ")[0] ?? "there"}!
                 </h1>
                 <p className="truncate text-xs text-slate-500 dark:text-slate-400 sm:text-sm">
                   Ready to crush some goals today? Here are your top matches.

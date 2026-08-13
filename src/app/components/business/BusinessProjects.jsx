@@ -257,7 +257,7 @@ function WorkerDetailDrawer({ project, onClose, onOpenChat }) {
                 className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#FF6B35] py-3 text-sm font-bold text-white transition-all hover:bg-[#e55a2b]"
               >
                 <MessageSquare className="h-4 w-4" />
-                Open Chat in Negotiations
+                Open Chat in Chats
               </button>
             </div>
           </motion.div>

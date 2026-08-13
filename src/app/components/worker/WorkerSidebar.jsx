@@ -14,7 +14,7 @@ import { shouldShowFrame, verifiedRingClass } from "../../utils/verification";
 // SupportFab is the fast path to it now, not the sidebar.
 const NAV = [
   { id: "feed", label: "Job Feed", icon: Search },
-  { id: "negotiations", label: "Negotiations", icon: Handshake },
+  { id: "negotiations", label: "Chats", icon: Handshake },
   { id: "workspace", label: "Active Workspace", icon: Briefcase },
   { id: "wallet", label: "Wallet", icon: Wallet },
   { id: "economy", label: "Economy Hub", icon: Sparkles },
@@ -54,8 +54,12 @@ export default function WorkerSidebar({ tab, onTabChange, onLogout }) {
       >
         <div className={`flex items-center gap-3 ${isCollapsed ? "justify-center" : ""}`}>
           <div
-            onClick={(e) => e.stopPropagation()}
-            className="flex h-11 w-11 flex-shrink-0 cursor-default items-center justify-center rounded-lg bg-[#ffffff] shadow-lg shadow-[#FF6B35]/25"
+            onClick={(e) => {
+              e.stopPropagation();
+              onTabChange("feed");
+            }}
+            title="Go to Job Feed"
+            className="flex h-11 w-11 flex-shrink-0 cursor-pointer items-center justify-center rounded-lg bg-[#ffffff] shadow-lg shadow-[#FF6B35]/25"
           >
             <img src={brandLogo} alt="" className="h-6 w-6 object-contain" />
           </div>

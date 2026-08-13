@@ -25,7 +25,7 @@ const NAV = [
   { id: "post", label: "Post a Job", icon: Plus },
   { id: "workers", label: "Find Workers", icon: Users },
   { id: "projects", label: "Active Projects", icon: Briefcase },
-  { id: "negotiations", label: "Negotiations", icon: MessageSquare },
+  { id: "negotiations", label: "Chats", icon: MessageSquare },
   { id: "company", label: "Company Profile", icon: Building2 },
   { id: "perks", label: "Perks Shop", icon: Store },
   { id: "payments", label: "Billing & Payments", icon: Wallet },
@@ -55,8 +55,12 @@ export default function BusinessSidebar({
       >
         <div className={`flex items-center gap-2.5 ${isCollapsed ? "justify-center" : ""}`}>
           <div
-            onClick={(e) => e.stopPropagation()}
-            className="flex h-10 w-10 flex-shrink-0 cursor-default items-center justify-center rounded-lg bg-[#ffffff]"
+            onClick={(e) => {
+              e.stopPropagation();
+              onTabChange("overview");
+            }}
+            title="Go to Overview"
+            className="flex h-10 w-10 flex-shrink-0 cursor-pointer items-center justify-center rounded-lg bg-[#ffffff]"
           >
             <img src={brandLogo} alt="" className="h-6 w-6 object-contain" />
           </div>

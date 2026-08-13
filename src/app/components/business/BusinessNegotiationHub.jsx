@@ -143,6 +143,8 @@ function ThreadNavigator({ threads, groupsByCounterparty, selectedThreadId, onSe
           const group = groupsByCounterparty.get(thread.other_user_id) ?? [];
           const badge = getThreadBadge(group);
           const preview = thread.last_message_body || "No messages yet";
+          const ongoingCount = group.filter((p) => !CLOSED_STATUSES.has(p.status)).length;
+          const completedCount = group.filter((p) => p.status === "COMPLETED").length;
 
           return (
             <button
@@ -174,6 +176,22 @@ function ThreadNavigator({ threads, groupsByCounterparty, selectedThreadId, onSe
                 <p className="mt-0.5 truncate text-xs font-semibold text-slate-500 dark:text-slate-400">
                   {preview}
                 </p>
+                {(ongoingCount > 0 || completedCount > 0) && (
+                  <div className="mt-1 flex items-center gap-2.5 text-[11px] font-semibold text-slate-400 dark:text-slate-500">
+                    {ongoingCount > 0 && (
+                      <span className="inline-flex items-center gap-1">
+                        <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                        Ongoing: {ongoingCount}
+                      </span>
+                    )}
+                    {completedCount > 0 && (
+                      <span className="inline-flex items-center gap-1">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                        Completed: {completedCount}
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
               <span className={`flex-shrink-0 rounded-full border px-2 py-1 text-[10px] font-black ${TONE_CLASSES[badge.tone]}`}>
                 {badge.label}
@@ -261,6 +279,7 @@ function ProjectChip({ project, onClick }) {
 
 function HubHeader({ thread, projects, onViewContractTerms, blockStatus, blockActionBusy, onBlock, onUnblock }) {
   const { isImpersonating } = useAuth();
+  const completedCount = projects.filter((p) => p.status === "COMPLETED").length;
   const mostUrgent = projects.find((p) => !CLOSED_STATUSES.has(p.status)) ?? projects[0] ?? null;
   const fundsSecured = mostUrgent ? FUNDS_SECURED_STATUSES.has(mostUrgent.status) : false;
   const isPaidOut = mostUrgent?.status === "COMPLETED";
@@ -298,7 +317,7 @@ function HubHeader({ thread, projects, onViewContractTerms, blockStatus, blockAc
         <div className="min-w-0 flex-1 [&>div]:border-b-0 [&>div]:bg-transparent [&>div]:px-0 [&>div]:py-0">
           <IdentityHeader
             name={thread.other_name}
-            subtitle={projects.length === 1 ? projects[0].title : `${projects.length} projects `}
+            subtitle={projects.length === 1 ? projects[0].title : `${completedCount} project${completedCount === 1 ? "" : "s"} completed together`}
             initials={getInitials(thread.other_name)}
             avatarBg="bg-[#1B3FAB]"
             verified
