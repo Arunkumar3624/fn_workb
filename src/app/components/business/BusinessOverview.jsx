@@ -534,7 +534,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
                   style={{ animationDelay: `${(i + 4) * 50}ms` }}
                 >
                   <div className="col-span-5 flex items-center gap-3 min-w-0">
-                    <Avatar initials={getInitials(p.worker_name)} size="w-8 h-8" text="text-xs" />
+                    <Avatar initials={getInitials(p.worker_name)} avatarUrl={p.worker_avatar_url} size="w-8 h-8" text="text-xs" />
                     <div className="min-w-0">
                       <div className="font-semibold text-[#0F172A] dark:text-white text-sm truncate">{p.title}</div>
                       <div className="text-slate-600 dark:text-slate-400 text-xs mt-0.5 flex items-center gap-1">
@@ -602,7 +602,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
                       <div key={p.id}>
                         <div className="flex items-center justify-between mb-1.5">
                           <div className="flex items-center gap-2 min-w-0">
-                            <Avatar initials={getInitials(p.worker_name)} size="w-6 h-6" text="text-[9px]" />
+                            <Avatar initials={getInitials(p.worker_name)} avatarUrl={p.worker_avatar_url} size="w-6 h-6" text="text-[9px]" />
                             <span className="text-xs font-semibold text-[#0F172A] dark:text-white truncate">{p.title}</span>
                           </div>
                           <span className="text-xs font-bold text-[#1B3FAB] dark:text-blue-400 flex-shrink-0 ml-2">{formatINR(p.budget)}</span>

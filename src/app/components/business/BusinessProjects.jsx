@@ -43,7 +43,7 @@ import {
 import { listCandidatesForProject, respondToCandidate, inviteWorkerToProject } from "../../lib/candidatesApi";
 import { getPublicProfile } from "../../lib/profilesApi";
 import { listSubmissions, submitLink } from "../../lib/submissionsApi";
-import { submitReview, listReviewsFor } from "../../lib/reviewsApi";
+import { submitReview, updateReview, listReviewsFor } from "../../lib/reviewsApi";
 import { getInitials } from "../../utils/formValidation";
 import { useAuth } from "../../context/AuthContext";
 import { getSocket } from "../../lib/socketClient";
@@ -167,7 +167,7 @@ function WorkerDetailDrawer({ project, onClose, onOpenChat }) {
               <div className="px-6">
                 <div className="flex items-end justify-between -mt-10">
                   <div className="relative z-10 flex-shrink-0">
-                    <Avatar initials={getInitials(project.worker_name)} bg="bg-[#1B3FAB]" size="w-20 h-20" text="text-xl" />
+                    <Avatar initials={getInitials(project.worker_name)} avatarUrl={project.worker_avatar_url} bg="bg-[#1B3FAB]" size="w-20 h-20" text="text-xl" />
                     {profile?.verified && (
                       <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-emerald-500">
                         <ShieldCheck className="h-3 w-3 text-white" />
@@ -876,10 +876,12 @@ function RatingModal({ project, currentUserId, onClose, onRated }) {
             amount={earnings}
             review={existingReview}
             onSubmit={async (rating, feedback) => {
-              const created = await submitReview({ projectId: project.id, rating, feedback });
-              setExistingReview(created);
-              onRated?.(project.id, created.rating);
-              return created;
+              const saved = existingReview
+                ? await updateReview({ projectId: project.id, rating, feedback })
+                : await submitReview({ projectId: project.id, rating, feedback });
+              setExistingReview(saved);
+              onRated?.(project.id, saved.rating);
+              return saved;
             }}
           />
         )}
@@ -1497,7 +1499,7 @@ export default function BusinessProjects({ onOpenChat }) {
                     <div className="p-4 sm:p-5">
                       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div className="flex min-w-0 items-center gap-3">
-                          <Avatar initials={getInitials(p.worker_name)} bg="bg-[#1B3FAB]" size="w-12 h-12" text="text-xs" />
+                          <Avatar initials={getInitials(p.worker_name)} avatarUrl={p.worker_avatar_url} bg="bg-[#1B3FAB]" size="w-12 h-12" text="text-xs" />
                           <div className="min-w-0">
                             <h3 className="truncate text-[15px] font-extrabold text-[#0F172A] dark:text-white" style={HEADING_FONT}>
                               {p.title}
@@ -1728,7 +1730,7 @@ export default function BusinessProjects({ onOpenChat }) {
                       <X className="h-3.5 w-3.5" />
                     </button>
                     <div className="flex min-w-0 items-center gap-3 pr-6">
-                      <Avatar initials={getInitials(p.worker_name)} bg="bg-[#1B3FAB]" size="w-10 h-10" text="text-xs" />
+                      <Avatar initials={getInitials(p.worker_name)} avatarUrl={p.worker_avatar_url} bg="bg-[#1B3FAB]" size="w-10 h-10" text="text-xs" />
                       <div className="min-w-0">
                         <p className="truncate text-sm font-bold text-[#0F172A] dark:text-white">{p.title}</p>
                         <p className="text-xs text-slate-500 dark:text-slate-400">with {p.worker_name || "a freelancer"}</p>

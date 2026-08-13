@@ -88,7 +88,7 @@ export default function ReviewModule({
               className="mt-4 inline-flex min-h-[40px] items-center gap-2 rounded-xl px-1 text-sm font-bold text-slate-400 transition hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-300"
             >
               <Edit3 className="h-4 w-4" />
-              Edit
+              {rating === 0 ? "Submit Rating" : "Edit Rating"}
             </button>
           </motion.div>
         ) : (
@@ -139,7 +139,7 @@ export default function ReviewModule({
               className="mt-4 inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-[#FF6B35] px-5 py-3 text-sm font-black text-white shadow-sm shadow-orange-200 transition hover:bg-[#e85d27] disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Save className="h-4 w-4" />
-              {saving ? "Saving..." : "Save Changes"}
+              {saving ? "Saving..." : initialRating > 0 ? "Update Rating" : "Submit Rating"}
             </button>
           </motion.div>
         )}

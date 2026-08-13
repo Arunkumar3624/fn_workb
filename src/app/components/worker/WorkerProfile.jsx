@@ -187,7 +187,7 @@ function BehaviorLevelBento({ behaviorScore, verified }) {
           <button
             type="button"
             onClick={() => navigate("/worker/wallet?tab=subscription")}
-            className="flex flex-shrink-0 items-center gap-1.5 rounded-xl bg-[#FF6B35] px-4 py-2.5 text-xs font-bold text-white transition-all hover:shadow-lg active:scale-[0.98]"
+            className="flex flex-shrink-0 items-center gap-1.5 rounded-xl bg-[#FF6B35] px-4 py-2.5 text-xs font-bold text-white transition-all duration-200 hover:bg-[#E85D2A] hover:shadow-lg active:scale-[0.98]"
           >
             Get Verified — Free
           </button>

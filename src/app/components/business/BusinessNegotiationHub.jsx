@@ -319,6 +319,7 @@ function HubHeader({ thread, projects, onViewContractTerms, blockStatus, blockAc
             name={thread.other_name}
             subtitle={projects.length === 1 ? projects[0].title : `${completedCount} project${completedCount === 1 ? "" : "s"} completed together`}
             initials={getInitials(thread.other_name)}
+            avatarUrl={thread.other_avatar_url}
             avatarBg="bg-[#1B3FAB]"
             verified
           />

@@ -13,7 +13,7 @@ import Avatar from "../shared/Avatar";
 import { useAuth } from "../../context/AuthContext";
 import { listProjects, updateProjectStatus } from "../../lib/projectsApi";
 import { listMyCandidates } from "../../lib/candidatesApi";
-import { submitReview, listReviewsFor } from "../../lib/reviewsApi";
+import { submitReview, updateReview, listReviewsFor } from "../../lib/reviewsApi";
 import { PROJECT_STATUS_META, nextProjectStatus } from "../../utils/projectStatus";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { ApiError } from "../../lib/apiClient";
@@ -374,7 +374,7 @@ export default function WorkerWorkspace() {
       <aside className="flex max-h-[45vh] min-h-0 w-full flex-col border-b border-slate-200 bg-slate-50 p-4 sm:p-5 md:max-h-none md:w-[40%] md:min-w-[320px] md:max-w-[440px] md:border-b-0 md:border-r dark:border-slate-800 dark:bg-gradient-to-b dark:from-slate-950 dark:to-slate-900">
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400 dark:text-slate-500">Pipeline</p>
+            {/* <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400 dark:text-slate-500">'Pending' ➔ 'In Progress' ➔ 'In Review' ➔ 'Completed'</p> */}
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Your active work</h2>
           </div>
           <div className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-500 dark:text-slate-400 shadow-sm dark:bg-slate-800">
@@ -448,7 +448,7 @@ export default function WorkerWorkspace() {
                       </button>
                     )}
                     <div className="flex items-start gap-2.5 pr-5">
-                      <Avatar initials={getInitials(application.business_name)} bg="bg-[#1B3FAB]" size="w-8 h-8" text="text-[10px]" />
+                      <Avatar initials={getInitials(application.business_name)} avatarUrl={application.business_avatar_url} bg="bg-[#1B3FAB]" size="w-8 h-8" text="text-[10px]" />
                       <div className="min-w-0">
                         <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">{application.project_title}</p>
                         <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{application.business_name}</p>
@@ -512,7 +512,7 @@ export default function WorkerWorkspace() {
                     )}
                     <div className="flex items-start justify-between gap-3 pr-5">
                       <div className="flex min-w-0 items-start gap-2.5">
-                        <Avatar initials={getInitials(task.business_name)} bg="bg-[#1B3FAB]" size="w-8 h-8" text="text-[10px]" />
+                        <Avatar initials={getInitials(task.business_name)} avatarUrl={task.business_avatar_url} bg="bg-[#1B3FAB]" size="w-8 h-8" text="text-[10px]" />
                         <div className="min-w-0">
                           <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">{task.title}</p>
                           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{task.business_name}</p>
@@ -584,9 +584,11 @@ export default function WorkerWorkspace() {
                 onSubmit={async (rating, feedback) => {
                   setReviewError("");
                   try {
-                    const created = await submitReview({ projectId: selectedTask.id, rating, feedback });
-                    setExistingReview(created);
-                    return created;
+                    const saved = existingReview
+                      ? await updateReview({ projectId: selectedTask.id, rating, feedback })
+                      : await submitReview({ projectId: selectedTask.id, rating, feedback });
+                    setExistingReview(saved);
+                    return saved;
                   } catch (err) {
                     setReviewError(err instanceof ApiError ? err.message : "Could not submit review.");
                     throw err;
