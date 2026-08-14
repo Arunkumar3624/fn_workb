@@ -29,6 +29,7 @@ import { getInitials } from "../../utils/formValidation";
 import { calculateLevel, calculateProgressBar, getNextTier, getTierData } from "../../utils/gamification";
 import PinnedBadgeOverlay from "../shared/PinnedBadgeOverlay";
 import EconomyInfoTooltip from "../shared/EconomyInfoTooltip";
+import SharedSkillPicker from "../shared/SharedSkillPicker";
 import { ApiError } from "../../lib/apiClient";
 import { getSocket } from "../../lib/socketClient";
 import EditableCoverPhoto from "../shared/EditableCoverPhoto";
@@ -222,7 +223,7 @@ export default function WorkerProfile() {
     bio: currentUser?.profile?.bio ?? "",
     location: currentUser?.profile?.location ?? "",
     hourlyRate: currentUser?.profile?.hourlyRate ?? "",
-    skillsText: (currentUser?.profile?.skills ?? []).join(", "),
+    skills: currentUser?.profile?.skills ?? [],
     education: currentUser?.profile?.education ?? [],
     certifications: currentUser?.profile?.certifications ?? [],
     projects: currentUser?.profile?.projects ?? [],
@@ -274,7 +275,7 @@ export default function WorkerProfile() {
       bio: currentUser?.profile?.bio ?? "",
       location: currentUser?.profile?.location ?? "",
       hourlyRate: currentUser?.profile?.hourlyRate ?? "",
-      skillsText: (currentUser?.profile?.skills ?? []).join(", "),
+      skills: currentUser?.profile?.skills ?? [],
       education: currentUser?.profile?.education ?? [],
       certifications: currentUser?.profile?.certifications ?? [],
       projects: currentUser?.profile?.projects ?? [],
@@ -302,7 +303,6 @@ export default function WorkerProfile() {
     setSaving(true);
     setSaveError("");
     try {
-      const skills = draft.skillsText.split(",").map((s) => s.trim()).filter(Boolean);
       const phone = draft.phone.replace(/\D/g, "");
       if (phone && phone.length !== 10) {
         setSaveError("Phone number must be exactly 10 digits.");
@@ -316,7 +316,7 @@ export default function WorkerProfile() {
           bio: draft.bio.trim(),
           location: draft.location.trim(),
           hourlyRate: draft.hourlyRate ? Number(draft.hourlyRate) : null,
-          skills,
+          skills: draft.skills,
           education: draft.education
             .map((e) => ({ degree: e.degree?.trim() ?? "", school: e.school?.trim() ?? "", year: e.year?.trim() ?? "" }))
             .filter((e) => e.degree || e.school),
@@ -753,13 +753,13 @@ export default function WorkerProfile() {
                     />
                   </label>
                   <label className="block">
-                    <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Skills (comma separated)</span>
-                    <input
-                      value={draft.skillsText}
-                      onChange={(e) => setDraft((d) => ({ ...d, skillsText: e.target.value }))}
-                      placeholder="React, Node.js, PostgreSQL"
-                      className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-[#1B3FAB] focus:ring-4 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800"
-                    />
+                    <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Skills</span>
+                    <div className="mt-2">
+                      <SharedSkillPicker
+                        selectedSkills={draft.skills}
+                        onChange={(skills) => setDraft((d) => ({ ...d, skills }))}
+                      />
+                    </div>
                   </label>
                 </div>
               </EditSection>

@@ -30,6 +30,20 @@ html.dark {
   color-scheme: dark;
 }
 
+/* Chrome/Edge paint an autofilled input with their own opaque background
+   (ignoring the site's background-color) via an internal transition that
+   only fires once the field is filled — delaying that transition long
+   enough that it never visibly completes is the standard way to suppress
+   it, leaving the input's real Tailwind background/text colors showing
+   through instead of the browser's light-grey (or, under color-scheme:
+   dark above, a mismatched dark-grey) autofill fill. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  transition: background-color 600000s 0s, color 600000s 0s;
+}
+
 body {
   background: var(--wb-bg);
 }

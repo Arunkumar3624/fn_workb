@@ -83,7 +83,10 @@ export const postJobSchema = z
     category: cleanText,
     tier: cleanText,
     brief: cleanLongText,
-    skills: cleanLongText,
+    // A real array of short tags now (SharedSkillPicker.jsx), not a
+    // comma-separated string a user could type anything into — see
+    // SharedSkillPicker's own comment for why free text broke matching.
+    skills: z.array(z.string()).default([]),
     // Deadline and "Estimated Project Duration" used to be two separate,
     // easy-to-contradict inputs (pick a calendar date, then also type a
     // free-text duration that had no real relationship to it). One number
@@ -121,22 +124,14 @@ export const postJobSchema = z
       data.maxExperienceYears >= data.minExperienceYears,
     { message: "Max experience must be ≥ min experience.", path: ["maxExperienceYears"] }
   )
-  // Required Skills is a comma-separated list of short tags, not full
-  // sentences — pasting a paragraph (e.g. straight from a job description)
-  // used to fail silently with a raw 400 from the server's per-item length
-  // check, with no client-side warning at all telling the user which entry
-  // was the problem. Mirrors the backend's own cap (projects.validators.js).
+  // Required Skills is a list of short tags, not full sentences — a
+  // freehand chip typed straight from a job description could still slip
+  // a whole paragraph in as "one skill." Mirrors the backend's own cap
+  // (projects.validators.js).
   .refine(
-    (data) => {
-      if (!data.skills) return true;
-      return data.skills
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean)
-        .every((s) => s.split(/\s+/).filter(Boolean).length <= MAX_SKILL_WORDS);
-    },
+    (data) => data.skills.every((s) => s.split(/\s+/).filter(Boolean).length <= MAX_SKILL_WORDS),
     {
-      message: `Each skill must be ${MAX_SKILL_WORDS} words or fewer — looks like a full sentence got in there. Keep skills short (e.g. "React, Node.js"); put longer requirements in the Project Brief instead.`,
+      message: `Each skill must be ${MAX_SKILL_WORDS} words or fewer — looks like a full sentence got in there. Keep skills short (e.g. "React", "Node.js"); put longer requirements in the Project Brief instead.`,
       path: ["skills"],
     }
   );

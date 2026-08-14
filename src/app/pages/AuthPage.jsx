@@ -22,6 +22,7 @@ import {
 import { adminAuthSchema, authSchema, signupSchema, forgotPasswordSchema } from "../utils/formValidation";
 import { apiFetch } from "../lib/apiClient";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 
 const USER_CONFIG = {
   worker: { label: "Freelancer", Icon: Briefcase, bg: "bg-[#FF6B2C]", shadow: "shadow-[#FF6B2C]/30" },
@@ -54,7 +55,7 @@ const REGISTER_BENEFITS = {
 };
 
 const OTP_LENGTH = 6;
-const AUTH_INPUT_CLASS = "h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-[#1B3FAB] focus:bg-white focus:ring-4 focus:ring-[#1B3FAB]/10";
+const AUTH_INPUT_CLASS = "h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-[#1B3FAB] focus:bg-white focus:ring-4 focus:ring-[#1B3FAB]/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500 dark:focus:bg-slate-800";
 
 // Only set in real deployments that have created a Google OAuth client —
 // see .env.example. Every Google-Sign-In bit below is a no-op when this is
@@ -84,6 +85,27 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
   const otpInputs = useRef([]);
   const verifyingRef = useRef(false);
   const { authenticate } = useAuth();
+  const { resolvedTheme } = useTheme();
+
+  // Every entry point below (mount, switching signin/signup, Forgot
+  // Password, "back to sign in", "edit account details") used to hand-roll
+  // this same ~8-line reset. Two of those five copies had quietly drifted
+  // to forget setShowPassword, and a third forgot all three password-
+  // visibility flags — so a revealed password from one flow could still
+  // read as "shown" after jumping to another. One definition now, so
+  // every call site resets identically.
+  const resetAuthState = () => {
+    setAuthStep("input");
+    setPendingCredentials(null);
+    setOtp(Array(OTP_LENGTH).fill(""));
+    setOtpError("");
+    setInfoMessage("");
+    setFormError("");
+    setResendCountdown(0);
+    setShowPassword(false);
+    setNewPassword("");
+    setShowNewPassword(false);
+  };
 
   const activeSchema = isAdmin
     ? adminAuthSchema
@@ -104,18 +126,10 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
   });
 
   useEffect(() => {
-    setAuthStep("input");
+    resetAuthState();
     setAuthMode("signin");
-    setPendingCredentials(null);
-    setOtp(Array(OTP_LENGTH).fill(""));
-    setOtpError("");
-    setInfoMessage("");
-    setFormError("");
-    setResendCountdown(0);
-    setShowPassword(false);
-    setNewPassword("");
-    setShowNewPassword(false);
     reset({ fullName: "", email: "", phone: "", password: "" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin, reset, userType]);
 
   useEffect(() => {
@@ -192,21 +206,23 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
     googleButtonRef.current.innerHTML = "";
     window.google.accounts.id.renderButton(googleButtonRef.current, {
       type: "standard",
-      theme: "outline",
+      // Google's own button is a hosted iframe — it never picks up our
+      // Tailwind dark: classes, so it has to be told which of Google's two
+      // themes to draw explicitly. resolvedTheme (ThemeContext) in the
+      // dependency array is what makes this actually re-render the button
+      // when the user toggles theme mid-session, not just on first paint.
+      theme: resolvedTheme === "dark" ? "filled_black" : "outline",
       size: "large",
       shape: "pill",
       width: 336,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [googleScriptReady, isAdmin, authStep, authMode, userType]);
+  }, [googleScriptReady, isAdmin, authStep, authMode, userType, resolvedTheme]);
 
   const changeMode = (mode) => {
     if (mode === authMode) return;
+    resetAuthState();
     setAuthMode(mode);
-    setFormError("");
-    setShowPassword(false);
-    setNewPassword("");
-    setShowNewPassword(false);
     reset({ fullName: "", email: "", phone: "", password: "" });
   };
 
@@ -214,30 +230,14 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
   // same input -> otp two-step shape, but the otp step here ends in setting
   // a new password instead of just proving the email is real.
   const startForgotPassword = () => {
-    setAuthStep("input");
+    resetAuthState();
     setAuthMode("forgot");
-    setPendingCredentials(null);
-    setOtp(Array(OTP_LENGTH).fill(""));
-    setOtpError("");
-    setInfoMessage("");
-    setFormError("");
-    setResendCountdown(0);
-    setNewPassword("");
-    setShowNewPassword(false);
     reset({ fullName: "", email: "", phone: "", password: "" });
   };
 
   const backToSignIn = () => {
-    setAuthStep("input");
+    resetAuthState();
     setAuthMode("signin");
-    setPendingCredentials(null);
-    setOtp(Array(OTP_LENGTH).fill(""));
-    setOtpError("");
-    setInfoMessage("");
-    setFormError("");
-    setResendCountdown(0);
-    setNewPassword("");
-    setShowNewPassword(false);
     reset({ fullName: "", email: "", phone: "", password: "" });
   };
 
@@ -441,13 +441,10 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
     }
   };
 
+  // Deliberately does not call reset(form) — "edit account details" means
+  // the user wants to fix what they already typed, not have it wiped.
   const editDetails = () => {
-    setAuthStep("input");
-    setOtp(Array(OTP_LENGTH).fill(""));
-    setOtpError("");
-    setInfoMessage("");
-    setPendingCredentials(null);
-    setResendCountdown(0);
+    resetAuthState();
   };
 
   const isOtpComplete = otp.every(Boolean);
@@ -524,14 +521,14 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
         <div className="pointer-events-none absolute -bottom-12 -right-12 h-48 w-48 rounded-full bg-[#1B3FAB]/10" />
       </aside>
 
-      <main className="relative flex flex-1 items-center justify-center overflow-hidden bg-[#F4F6FF] px-4 py-10 sm:p-8">
+      <main className="relative flex flex-1 items-center justify-center overflow-hidden bg-[#F4F6FF] px-4 py-10 dark:bg-slate-950 sm:p-8">
         <div className="pointer-events-none absolute -right-24 top-16 h-72 w-72 animate-pulse rounded-full bg-[#FF6B2C]/10 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-28 left-12 h-80 w-80 rounded-full bg-[#1B3FAB]/10 blur-3xl" />
 
         <button
           type="button"
           onClick={onBack}
-          className="absolute left-5 top-5 flex items-center gap-2 text-sm font-medium text-slate-500 md:hidden"
+          className="absolute left-5 top-5 flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-400 md:hidden"
         >
           <ArrowLeft className="h-4 w-4" /> Back
         </button>
@@ -544,31 +541,31 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
             </div>
           </div>
 
-          <section className="overflow-hidden rounded-2xl border border-white/50 bg-white/70 shadow-xl backdrop-blur-xl">
+          <section className="overflow-hidden rounded-2xl border border-white/50 bg-white/70 shadow-xl backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/70">
             {authStep === "input" && authMode !== "forgot" && (
-              <div className={`grid border-b border-slate-200/80 bg-white/40 ${isAdmin ? "grid-cols-1" : "grid-cols-2"}`}>
+              <div className={`grid border-b border-slate-200/80 bg-white/40 dark:border-slate-800 dark:bg-slate-900/40 ${isAdmin ? "grid-cols-1" : "grid-cols-2"}`}>
                 {isAdmin ? (
-                  <div className="relative py-4 text-center text-sm font-bold text-[#1B3FAB]">
+                  <div className="relative py-4 text-center text-sm font-bold text-[#1B3FAB] dark:text-blue-400">
                     Admin Sign In
-                    <span className="absolute inset-x-0 bottom-0 h-0.5 bg-[#1B3FAB]" />
+                    <span className="absolute inset-x-0 bottom-0 h-0.5 bg-[#1B3FAB] dark:bg-blue-400" />
                   </div>
                 ) : (
                   <>
                 <button
                   type="button"
                   onClick={() => changeMode("signin")}
-                  className={`relative py-4 text-sm font-bold transition ${authMode === "signin" ? "text-[#1B3FAB]" : "text-slate-400 hover:text-slate-600"}`}
+                  className={`relative py-4 text-sm font-bold transition ${authMode === "signin" ? "text-[#1B3FAB] dark:text-blue-400" : "text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"}`}
                 >
                   Sign In
-                  {authMode === "signin" && <span className="absolute inset-x-0 bottom-0 h-0.5 bg-[#1B3FAB]" />}
+                  {authMode === "signin" && <span className="absolute inset-x-0 bottom-0 h-0.5 bg-[#1B3FAB] dark:bg-blue-400" />}
                 </button>
                 <button
                   type="button"
                   onClick={() => changeMode("signup")}
-                  className={`relative py-4 text-sm font-bold transition ${authMode === "signup" ? "text-[#1B3FAB]" : "text-slate-400 hover:text-slate-600"}`}
+                  className={`relative py-4 text-sm font-bold transition ${authMode === "signup" ? "text-[#1B3FAB] dark:text-blue-400" : "text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"}`}
                 >
                   Create Account
-                  {authMode === "signup" && <span className="absolute inset-x-0 bottom-0 h-0.5 bg-[#1B3FAB]" />}
+                  {authMode === "signup" && <span className="absolute inset-x-0 bottom-0 h-0.5 bg-[#1B3FAB] dark:bg-blue-400" />}
                 </button>
                   </>
                 )}
@@ -577,28 +574,28 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
 
             <div className="p-6 sm:p-8">
               {authStep === "otp" ? (
-                <div className="rounded-2xl border border-white/50 bg-white/40 p-5 shadow-xl backdrop-blur-xl sm:p-6">
+                <div className="rounded-2xl border border-white/50 bg-white/40 p-5 shadow-xl backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/40 sm:p-6">
                   <button
                     type="button"
                     onClick={editDetails}
-                    className="mb-5 flex items-center gap-2 text-xs font-semibold text-slate-500 transition hover:text-[#1B3FAB]"
+                    className="mb-5 flex items-center gap-2 text-xs font-semibold text-slate-500 transition hover:text-[#1B3FAB] dark:text-slate-400 dark:hover:text-blue-400"
                   >
                     <ArrowLeft className="h-4 w-4" /> {authMode === "forgot" ? "Use a different email" : "Edit account details"}
                   </button>
 
                   <div className="text-center">
-                    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FFF0E9] text-[#FF6B2C] shadow-sm">
+                    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FFF0E9] text-[#FF6B2C] shadow-sm dark:bg-orange-500/10">
                       <Shield className="h-7 w-7" />
                     </div>
-                    <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.24em] text-[#1B3FAB]">
+                    <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.24em] text-[#1B3FAB] dark:text-blue-400">
                       {authMode === "forgot" ? "Account recovery" : "Identity check"}
                     </p>
-                    <h2 className="text-2xl font-black tracking-tight text-[#0A1128]">
+                    <h2 className="text-2xl font-black tracking-tight text-[#0A1128] dark:text-white">
                       {authMode === "forgot" ? "Reset your password" : "Verify it's you"}
                     </h2>
-                    <p className="mt-2 text-sm leading-relaxed text-slate-500">
+                    <p className="mt-2 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
                       Enter the 6-digit code sent to<br />
-                      <span className="font-semibold text-slate-800">{pendingCredentials?.email}</span>
+                      <span className="font-semibold text-slate-800 dark:text-white">{pendingCredentials?.email}</span>
                     </p>
                   </div>
 
@@ -616,7 +613,7 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
                         aria-label={`OTP digit ${index + 1}`}
                         maxLength={1}
                         disabled={verifyingOtp}
-                        className="h-12 min-w-0 rounded-xl border border-slate-200 bg-white/80 text-center text-xl font-black text-[#0A1128] shadow-sm outline-none transition focus:-translate-y-0.5 focus:border-[#FF6B2C] focus:ring-4 focus:ring-[#FF6B2C]/10 disabled:opacity-60 sm:h-14 sm:text-2xl"
+                        className="h-12 min-w-0 rounded-xl border border-slate-200 bg-white/80 text-center text-xl font-black text-[#0A1128] shadow-sm outline-none transition focus:-translate-y-0.5 focus:border-[#FF6B2C] focus:ring-4 focus:ring-[#FF6B2C]/10 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800/80 dark:text-white sm:h-14 sm:text-2xl"
                       />
                     ))}
                   </div>
@@ -637,7 +634,7 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
                           <button
                             type="button"
                             onClick={() => setShowNewPassword((visible) => !visible)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-700 dark:hover:text-slate-200"
                             aria-label={showNewPassword ? "Hide password" : "Show password"}
                           >
                             {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -648,9 +645,9 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
                   )}
 
                   <div aria-live="polite" className="mt-4 min-h-10 text-center">
-                    {verifyingOtp && <p className="text-sm font-semibold text-[#1B3FAB]">{authMode === "forgot" ? "Resetting your password…" : "Verifying your code…"}</p>}
-                    {!verifyingOtp && otpError && <p className="text-sm font-medium text-red-600">{otpError}</p>}
-                    {!verifyingOtp && !otpError && infoMessage && <p className="text-sm text-emerald-700">{infoMessage}</p>}
+                    {verifyingOtp && <p className="text-sm font-semibold text-[#1B3FAB] dark:text-blue-400">{authMode === "forgot" ? "Resetting your password…" : "Verifying your code…"}</p>}
+                    {!verifyingOtp && otpError && <p className="text-sm font-medium text-red-600 dark:text-red-400">{otpError}</p>}
+                    {!verifyingOtp && !otpError && infoMessage && <p className="text-sm text-emerald-700 dark:text-emerald-400">{infoMessage}</p>}
                   </div>
 
                   <button
@@ -664,13 +661,13 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
                       : verifyingOtp ? "Verifying…" : "Verify & Continue"}
                   </button>
 
-                  <div className="mt-5 text-center text-sm text-slate-500">
+                  <div className="mt-5 text-center text-sm text-slate-500 dark:text-slate-400">
                     Didn&apos;t receive it?{" "}
                     <button
                       type="button"
                       onClick={handleResend}
                       disabled={resendCountdown > 0 || sendingOtp}
-                      className="font-bold text-[#FF6B2C] transition hover:text-[#e65b22] disabled:cursor-not-allowed disabled:text-slate-400"
+                      className="font-bold text-[#FF6B2C] transition hover:text-[#e65b22] disabled:cursor-not-allowed disabled:text-slate-400 dark:disabled:text-slate-600"
                     >
                       {sendingOtp
                         ? "Sending…"
@@ -679,14 +676,14 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
                           : "Resend Code"}
                     </button>
                   </div>
-                  <p className="mt-3 text-center text-xs text-slate-400">
+                  <p className="mt-3 text-center text-xs text-slate-400 dark:text-slate-500">
                     The code expires in {authMode === "forgot" ? "15" : "10"} minutes.
                   </p>
                 </div>
               ) : (
                 <>
                   <div className="mb-6 text-center">
-                    <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.24em] text-[#1B3FAB]">
+                    <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.24em] text-[#1B3FAB] dark:text-blue-400">
                       {authMode === "forgot"
                         ? "Account recovery"
                         : isAdmin
@@ -695,10 +692,10 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
                             ? "Secure email verification"
                             : "Password sign-in"}
                     </p>
-                    <h2 className="text-2xl font-black tracking-tight text-[#0A1128]">
+                    <h2 className="text-2xl font-black tracking-tight text-[#0A1128] dark:text-white">
                       {authMode === "forgot" ? "Reset your password" : isAdmin ? "Admin sign in" : authMode === "signin" ? "Welcome back" : "Join WorkBridge"}
                     </h2>
-                    <p className="mt-2 text-sm text-slate-500">
+                    <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
                       {authMode === "forgot"
                         ? "Enter your account email and we'll send you a reset code."
                         : isAdmin
@@ -710,7 +707,7 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
                   </div>
 
                   {formError && (
-                    <div className="mb-5 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+                    <div className="mb-5 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400" role="alert">
                       <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
                       <span>{formError}</span>
                     </div>
@@ -724,12 +721,12 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
                     <div className="mb-5">
                       <div className="flex min-h-11 items-center justify-center" ref={googleButtonRef} />
                       {googleSubmitting && (
-                        <p className="mt-2 text-center text-xs font-semibold text-slate-500">Signing you in…</p>
+                        <p className="mt-2 text-center text-xs font-semibold text-slate-500 dark:text-slate-400">Signing you in…</p>
                       )}
                       <div className="mt-5 flex items-center gap-3">
-                        <span className="h-px flex-1 bg-slate-200" />
-                        <span className="text-xs font-semibold text-slate-400">or continue with email</span>
-                        <span className="h-px flex-1 bg-slate-200" />
+                        <span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
+                        <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">or continue with email</span>
+                        <span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
                       </div>
                     </div>
                   )}
@@ -739,7 +736,7 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
                       <button
                         type="button"
                         onClick={backToSignIn}
-                        className="mb-1 flex items-center gap-2 text-xs font-semibold text-slate-500 transition hover:text-[#1B3FAB]"
+                        className="mb-1 flex items-center gap-2 text-xs font-semibold text-slate-500 transition hover:text-[#1B3FAB] dark:text-slate-400 dark:hover:text-blue-400"
                       >
                         <ArrowLeft className="h-4 w-4" /> Back to sign in
                       </button>
@@ -775,7 +772,7 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
                     {!isAdmin && authMode === "signup" && (
                       <Field label="Mobile number" error={errors.phone?.message} Icon={Smartphone}>
                         <div className="flex gap-2">
-                          <span className="flex h-12 items-center rounded-xl border border-slate-200 bg-slate-100 px-3 text-sm font-semibold text-slate-600">+91</span>
+                          <span className="flex h-12 items-center rounded-xl border border-slate-200 bg-slate-100 px-3 text-sm font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">+91</span>
                           <input
                             type="tel"
                             inputMode="numeric"
@@ -802,7 +799,7 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
                           <button
                             type="button"
                             onClick={() => setShowPassword((visible) => !visible)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-700 dark:hover:text-slate-200"
                             aria-label={showPassword ? "Hide password" : "Show password"}
                           >
                             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -816,7 +813,7 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
                         <button
                           type="button"
                           onClick={startForgotPassword}
-                          className="text-xs font-semibold text-[#1B3FAB] transition hover:text-[#163596]"
+                          className="text-xs font-semibold text-[#1B3FAB] transition hover:text-[#163596] dark:text-blue-400 dark:hover:text-blue-300"
                         >
                           Forgot password?
                         </button>
@@ -839,17 +836,17 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
 
                     {!isAdmin && authMode === "signup" && (
                       <>
-                        <div className="flex items-center justify-center gap-2 pt-1 text-xs text-slate-400">
-                          <Shield className="h-3.5 w-3.5 text-emerald-600" />
+                        <div className="flex items-center justify-center gap-2 pt-1 text-xs text-slate-400 dark:text-slate-500">
+                          <Shield className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
                           We'll email you a 6-digit code to verify your address
                         </div>
-                        <p className="pt-1 text-center text-[11px] text-slate-400">
+                        <p className="pt-1 text-center text-[11px] text-slate-400 dark:text-slate-500">
                           By creating an account, you agree to WorkBridge's{" "}
-                          <Link to="/terms" className="font-semibold text-[#1B3FAB] hover:underline">
+                          <Link to="/terms" className="font-semibold text-[#1B3FAB] hover:underline dark:text-blue-400">
                             Terms
                           </Link>{" "}
                           and{" "}
-                          <Link to="/privacy" className="font-semibold text-[#1B3FAB] hover:underline">
+                          <Link to="/privacy" className="font-semibold text-[#1B3FAB] hover:underline dark:text-blue-400">
                             Privacy Policy
                           </Link>
                           .
@@ -871,11 +868,11 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
 function Field({ label, error, Icon, children }) {
   return (
     <label className="block">
-      <span className="mb-1.5 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-slate-600">
-        <Icon className="h-3.5 w-3.5 text-slate-400" /> {label}
+      <span className="mb-1.5 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-400">
+        <Icon className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" /> {label}
       </span>
       {children}
-      {error && <span className="mt-1.5 block text-xs font-semibold text-red-500">{error}</span>}
+      {error && <span className="mt-1.5 block text-xs font-semibold text-red-500 dark:text-red-400">{error}</span>}
     </label>
   );
 }

@@ -5,6 +5,7 @@ import {
   AlertCircle,
   Briefcase,
   CheckCircle2,
+  ChevronDown,
   ChevronRight,
   Clock,
   Eye,
@@ -21,6 +22,7 @@ import {
   Zap,
 } from "lucide-react";
 import LockedCurrencyInput from "../common/LockedCurrencyInput";
+import SharedSkillPicker from "../shared/SharedSkillPicker";
 import { formatINR, postJobSchema } from "../../utils/formValidation";
 import { trackEvent } from "../../lib/analytics";
 import { createProject } from "../../lib/projectsApi";
@@ -122,7 +124,7 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
       category: "Tech & Development",
       tier: "Professional",
       brief: "",
-      skills: "",
+      skills: [],
       durationDays: 14,
       budget: 30000,
       applicationWindow: 7,
@@ -178,9 +180,7 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
     try {
       trackEvent("JobPosted", { category: watchedCategory, budget: summaryBudget });
 
-      const requiredSkills = formData.skills
-        ? formData.skills.split(",").map((s) => s.trim()).filter(Boolean).slice(0, 20)
-        : undefined;
+      const requiredSkills = formData.skills.length > 0 ? formData.skills.slice(0, 20) : undefined;
 
       // One input, two derived facts — the deadline (a real date) and the
       // duration shown to workers now always agree, since they're computed
@@ -277,19 +277,21 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                 </div>
 
                 <div>
-                  {/* Category — free-text combobox with suggestions */}
+                  {/* A real dropdown, strictly enforcing CATEGORIES — used
+                      to be a free-text combobox that only *suggested* these
+                      values, so nothing stopped "tech" / "Tech" / a typo
+                      from all landing as different categories. */}
                   <FieldLabel>Category</FieldLabel>
-                  <input
-                    list="wb-category-list"
-                    {...register("category")}
-                    placeholder="Type or choose…"
-                    className={inputCls}
-                  />
-                  <datalist id="wb-category-list">
-                    {CATEGORIES.map((c) => (
-                      <option key={c} value={c} />
-                    ))}
-                  </datalist>
+                  <div className="relative">
+                    <select {...register("category")} className={`${inputCls} appearance-none pr-10`}>
+                      {CATEGORIES.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+                  </div>
                   <FieldError message={errors.category?.message} />
                 </div>
               </SectionCard>
@@ -313,14 +315,13 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
 
                 <div>
                   <FieldLabel>Required Skills</FieldLabel>
-                  <input
-                    type="text"
-                    placeholder="e.g. React, Node.js, PostgreSQL (comma separated)"
-                    {...register("skills", { setValueAs: (v) => v.trim() })}
-                    className={inputCls}
+                  <SharedSkillPicker
+                    selectedSkills={watchedSkills}
+                    onChange={(skills) => setValue("skills", skills, { shouldValidate: true })}
+                    placeholder="Search or add a skill…"
                   />
                   <p className="mt-1.5 text-xs text-slate-400 dark:text-slate-500">
-                    Short tags only, comma separated — longer requirements (Agile process, cloud experience, etc.) belong in the Project Brief above.
+                    Short tags only — longer requirements (Agile process, cloud experience, etc.) belong in the Project Brief above.
                   </p>
                   <FieldError message={errors.skills?.message} />
                 </div>
@@ -393,6 +394,16 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                 title="Budget & Timeline"
                 sub="Set your project budget and how long the worker has to complete it"
               >
+                {/* WorkBridge runs on escrow exclusively — no hourly
+                    billing exists, so this isn't a setting to look for
+                    elsewhere on the page. Read-only, explains itself. */}
+                <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-500/10 dark:text-emerald-400">
+                  🔒 Fixed Price Escrow
+                </div>
+                <p className="text-xs text-slate-400 dark:text-slate-500">
+                  WorkBridge is fixed-price only — the full budget below is held in escrow and released to the worker once you approve the delivered work. There's no hourly billing to switch to.
+                </p>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <FieldLabel>Project Duration (Days)</FieldLabel>
@@ -410,6 +421,7 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                         ? `Due ${resolveDeadlinePreview(watchedDurationDays)} — this is the one deadline workers see.`
                         : "How many days does the worker have to deliver, once they start?"}
                     </p>
+                    <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">Maximum 365 days.</p>
                     <FieldError message={errors.durationDays?.message} />
                   </div>
                   <div>
@@ -427,6 +439,7 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                         Enter a budget to see the deposit total
                       </p>
                     )}
+                    <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">Maximum ₹50,00,000.</p>
                     <FieldError message={errors.budget?.message} />
                   </div>
                 </div>
@@ -443,6 +456,7 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                     className={`${inputCls} sm:w-1/2`}
                   />
                   <p className="mt-1.5 text-xs text-slate-400 dark:text-slate-500">How long this post stays open to new applicants — separate from the project duration above.</p>
+                  <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">Maximum 90 days.</p>
                   <FieldError message={errors.applicationWindow?.message} />
                 </div>
 
@@ -638,9 +652,11 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                         <p className="text-slate-400 dark:text-slate-500">Applicants</p>
                         <p className="mt-0.5 font-black text-slate-900 dark:text-white">0</p>
                       </div>
-                      <div className="py-2.5 px-1 border-x border-slate-200 dark:border-slate-700">
+                      <div className="flex flex-col items-center justify-center gap-1 py-2.5 px-1 border-x border-slate-200 dark:border-slate-700">
                         <p className="text-slate-400 dark:text-slate-500">Type</p>
-                        <p className="mt-0.5 font-black text-slate-900 dark:text-white">Fixed</p>
+                        <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-[9px] font-bold text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-500/10 dark:text-emerald-400">
+                          🔒 Fixed
+                        </span>
                       </div>
                       <div className="py-2.5 px-1">
                         <p className="text-slate-400 dark:text-slate-500">Rating</p>
@@ -657,21 +673,16 @@ export default function BusinessPostJob({ onVerify, isVerified, onJobPosted }) {
                     </div>
 
                     {/* Skills tags */}
-                    {watchedSkills && (
+                    {watchedSkills.length > 0 && (
                       <div className="mt-3 flex flex-wrap gap-1">
-                        {watchedSkills
-                          .split(",")
-                          .map((s) => s.trim())
-                          .filter(Boolean)
-                          .slice(0, 3)
-                          .map((s) => (
-                            <span
-                              key={s}
-                              className="rounded-full border border-slate-200 bg-white px-2.5 py-0.5 text-[10px] font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
-                            >
-                              {s}
-                            </span>
-                          ))}
+                        {watchedSkills.slice(0, 3).map((s) => (
+                          <span
+                            key={s}
+                            className="rounded-full border border-slate-200 bg-white px-2.5 py-0.5 text-[10px] font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                          >
+                            {s}
+                          </span>
+                        ))}
                       </div>
                     )}
 
