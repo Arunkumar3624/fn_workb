@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState, lazy, Suspense } from "react";
 import {
   Star,
   ShieldCheck,
@@ -14,7 +14,10 @@ import {
 import Avatar from "../shared/Avatar";
 import PinnedBadgeOverlay from "../shared/PinnedBadgeOverlay";
 import WorkerShareableProfile from "../worker/WorkerShareableProfile";
-import InviteWorkerModal from "./InviteWorkerModal";
+// Only renders once an invite is actually clicked, never on initial page
+// load — lazy-loaded rather than bundled into this tab's own chunk.
+const InviteWorkerModal = lazy(() => import("./InviteWorkerModal"));
+import SuspenseFallback from "../common/SuspenseFallback";
 import { listWorkers } from "../../lib/profilesApi";
 import { listProjects, createProject } from "../../lib/projectsApi";
 import { submitLink } from "../../lib/submissionsApi";
@@ -379,15 +382,17 @@ export default function BusinessWorkers({ pendingJob, onInviteSent, onViewProjec
       )}
 
       {inviteTarget && (
-        <InviteWorkerModal
-          worker={inviteTarget}
-          openJobs={openJobs}
-          onClose={() => setInviteTarget(null)}
-          onSubmitExisting={submitExistingJobInvite}
-          onSubmitNew={(details) => submitInvite(inviteTarget, details)}
-          submitting={submitting}
-          error={inviteError}
-        />
+        <Suspense fallback={<SuspenseFallback fullScreen={false} />}>
+          <InviteWorkerModal
+            worker={inviteTarget}
+            openJobs={openJobs}
+            onClose={() => setInviteTarget(null)}
+            onSubmitExisting={submitExistingJobInvite}
+            onSubmitNew={(details) => submitInvite(inviteTarget, details)}
+            submitting={submitting}
+            error={inviteError}
+          />
+        </Suspense>
       )}
 
       {toast && (

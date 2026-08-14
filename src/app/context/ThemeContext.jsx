@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 // theme.css already ships a complete light+dark CSS variable set and
 // `@custom-variant dark (&:is(.dark *));` (shadcn's default setup) — every
@@ -32,11 +32,11 @@ export function ThemeProvider({ children }) {
   const [theme, setThemeState] = useState(getStoredTheme);
   const [resolvedTheme, setResolvedTheme] = useState(() => applyResolvedTheme(getStoredTheme()));
 
-  const setTheme = (next) => {
+  const setTheme = useCallback((next) => {
     if (!VALID_THEMES.has(next)) return;
     window.localStorage.setItem(STORAGE_KEY, next);
     setThemeState(next);
-  };
+  }, []);
 
   useEffect(() => {
     setResolvedTheme(applyResolvedTheme(theme));
@@ -51,7 +51,15 @@ export function ThemeProvider({ children }) {
     return () => media.removeEventListener("change", handleChange);
   }, [theme]);
 
-  return <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme }}>{children}</ThemeContext.Provider>;
+  // ThemeProvider sits above the router at the app root (App.jsx) — every
+  // useTheme() consumer anywhere in the tree re-renders on any change to
+  // this object's identity, not just a real theme change. Unmemoized here
+  // meant a fresh object (and a fresh setTheme closure) on every render,
+  // which also defeated any consumer's own useCallback/useEffect deps that
+  // included setTheme.
+  const value = useMemo(() => ({ theme, resolvedTheme, setTheme }), [theme, resolvedTheme, setTheme]);
+
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
 export function useTheme() {

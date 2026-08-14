@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -32,8 +32,12 @@ import TimelineTracker from "../shared/TimelineTracker";
 import ProjectCompletionHub from "../shared/ProjectCompletionHub";
 import DeliverablesPanel from "../shared/DeliverablesPanel";
 import DeadlineCountdown from "../shared/DeadlineCountdown";
-import EscrowFundingDrawer from "./EscrowFundingDrawer";
-import InviteWorkerModal from "./InviteWorkerModal";
+import SuspenseFallback from "../common/SuspenseFallback";
+// Both only ever render once a real action is clicked (funding a project,
+// inviting/rehiring a worker) — never on initial page load — so they're
+// lazy-loaded rather than bundled into BusinessProjects.jsx's own chunk.
+const EscrowFundingDrawer = lazy(() => import("./EscrowFundingDrawer"));
+const InviteWorkerModal = lazy(() => import("./InviteWorkerModal"));
 import { getTierData } from "../../utils/gamification";
 import { PROJECT_STATUS_META } from "../../utils/projectStatus";
 import {
@@ -1951,13 +1955,17 @@ export default function BusinessProjects({ onOpenChat }) {
         onOpenChat={onOpenChat}
       />
 
-      <EscrowFundingDrawer
-        project={fundingProject}
-        onClose={() => setFundingProject(null)}
-        onFunded={(updatedProject) => {
-          setProjects((prev) => prev.map((p) => (p.id === updatedProject.id ? updatedProject : p)));
-        }}
-      />
+      {fundingProject && (
+        <Suspense fallback={<SuspenseFallback fullScreen={false} />}>
+          <EscrowFundingDrawer
+            project={fundingProject}
+            onClose={() => setFundingProject(null)}
+            onFunded={(updatedProject) => {
+              setProjects((prev) => prev.map((p) => (p.id === updatedProject.id ? updatedProject : p)));
+            }}
+          />
+        </Suspense>
+      )}
 
       <PaymentApprovalModal
         project={paymentProject}
@@ -2026,19 +2034,21 @@ export default function BusinessProjects({ onOpenChat }) {
       />
 
       {rehireProject && (
-        <InviteWorkerModal
-          worker={{ id: rehireProject.worker_id, name: rehireProject.worker_name || "this freelancer" }}
-          openJobs={openJobsForRehire}
-          title={`Rehire ${rehireProject.worker_name || "this freelancer"}`}
-          onClose={() => {
-            setRehireProject(null);
-            setRehireError("");
-          }}
-          onSubmitExisting={submitRehireExistingProject}
-          onSubmitNew={submitRehireNewProject}
-          submitting={rehireSubmitting}
-          error={rehireError}
-        />
+        <Suspense fallback={<SuspenseFallback fullScreen={false} />}>
+          <InviteWorkerModal
+            worker={{ id: rehireProject.worker_id, name: rehireProject.worker_name || "this freelancer" }}
+            openJobs={openJobsForRehire}
+            title={`Rehire ${rehireProject.worker_name || "this freelancer"}`}
+            onClose={() => {
+              setRehireProject(null);
+              setRehireError("");
+            }}
+            onSubmitExisting={submitRehireExistingProject}
+            onSubmitNew={submitRehireNewProject}
+            submitting={rehireSubmitting}
+            error={rehireError}
+          />
+        </Suspense>
       )}
     </div>
   );

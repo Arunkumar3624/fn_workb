@@ -1,9 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { AlertCircle, ArrowLeft, Clock, Download, Loader2, Lock, ShieldCheck, Zap } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { getProject } from "../lib/projectsApi";
-import EscrowFundingDrawer from "../components/business/EscrowFundingDrawer";
+// Only renders once "Fund Escrow" is actually clicked (fundingOpen), never
+// on initial page load — lazy-loaded rather than bundled into this route's
+// own chunk.
+const EscrowFundingDrawer = lazy(() => import("../components/business/EscrowFundingDrawer"));
+import SuspenseFallback from "../components/common/SuspenseFallback";
 import { PROJECT_STATUS_META } from "../utils/projectStatus";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { trackEvent } from "../lib/analytics";
@@ -339,13 +343,17 @@ export default function InvoicePage() {
         </div>
       </div>
 
-      <EscrowFundingDrawer
-        project={fundingOpen ? project : null}
-        onClose={() => setFundingOpen(false)}
-        onFunded={(updatedProject) => {
-          setProject((prev) => ({ ...prev, ...updatedProject }));
-        }}
-      />
+      {fundingOpen && (
+        <Suspense fallback={<SuspenseFallback fullScreen={false} />}>
+          <EscrowFundingDrawer
+            project={project}
+            onClose={() => setFundingOpen(false)}
+            onFunded={(updatedProject) => {
+              setProject((prev) => ({ ...prev, ...updatedProject }));
+            }}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }

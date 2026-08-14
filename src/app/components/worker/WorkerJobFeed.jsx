@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { AnimatePresence, motion } from "motion/react";
@@ -38,7 +38,12 @@ import PerkCountdown from "../shared/PerkCountdown";
 import { applyToProject, listMyCandidates, respondToCandidate } from "../../lib/candidatesApi";
 import { ApiError } from "../../lib/apiClient";
 import { getSocket } from "../../lib/socketClient";
-import ApplicationQuizModal from "./ApplicationQuizModal";
+// Only renders once a job with a quiz is actually opened, never on initial
+// page load — lazy-loaded rather than bundled into the feed's own chunk.
+// It has no exit animation of its own (plain `if (!open) return null`), so
+// gating its mount externally below changes nothing about how it closes.
+const ApplicationQuizModal = lazy(() => import("./ApplicationQuizModal"));
+import SuspenseFallback from "../common/SuspenseFallback";
 import JobFilters from "./JobFilters";
 import { EDUCATION_LABELS } from "../../utils/educationLevels";
 
@@ -806,17 +811,21 @@ export default function WorkerJobFeed() {
         alreadyApplied={selectedJob ? appliedProjectIds.has(selectedJob.id) : false}
       />
 
-      <ApplicationQuizModal
-        open={Boolean(quizJob)}
-        submitting={applying}
-        onSubmitAnswered={() => submitApplication(true)}
-        onSkip={() => submitApplication(false)}
-        onCancel={() => {
-          if (applying) return;
-          setQuizJob(null);
-          setPendingMessage("");
-        }}
-      />
+      {quizJob && (
+        <Suspense fallback={<SuspenseFallback fullScreen={false} />}>
+          <ApplicationQuizModal
+            open
+            submitting={applying}
+            onSubmitAnswered={() => submitApplication(true)}
+            onSkip={() => submitApplication(false)}
+            onCancel={() => {
+              if (applying) return;
+              setQuizJob(null);
+              setPendingMessage("");
+            }}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }
