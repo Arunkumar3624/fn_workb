@@ -337,24 +337,23 @@ function HubHeader({ thread, projects, onViewContractTerms, onProjectUpdated, bl
             avatarBg="bg-[#1B3FAB]"
             verified
           />
+          {(ongoingCount > 0 || completedCount > 0) && (
+            <div className="mt-1 flex items-center gap-2.5 pl-[52px] text-[11px] font-semibold text-slate-400 dark:text-slate-500">
+              {ongoingCount > 0 && (
+                <span className="inline-flex items-center gap-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                  Ongoing: {ongoingCount}
+                </span>
+              )}
+              {completedCount > 0 && (
+                <span className="inline-flex items-center gap-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  Completed: {completedCount}
+                </span>
+              )}
+            </div>
+          )}
         </div>
-
-        {(ongoingCount > 0 || completedCount > 0) && (
-          <div className="flex flex-shrink-0 items-center gap-2.5 self-start pt-1 text-[11px] font-semibold text-slate-400 dark:text-slate-500">
-            {ongoingCount > 0 && (
-              <span className="inline-flex items-center gap-1">
-                <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
-                Ongoing: {ongoingCount}
-              </span>
-            )}
-            {completedCount > 0 && (
-              <span className="inline-flex items-center gap-1">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                Completed: {completedCount}
-              </span>
-            )}
-          </div>
-        )}
 
         {mostUrgent && (
           <div className="flex flex-shrink-0 items-center gap-3">
