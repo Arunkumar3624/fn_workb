@@ -23,6 +23,9 @@ const HireTalentPage = lazy(() => import("./pages/HireTalentPage"));
 const EnterprisePage = lazy(() => import("./pages/EnterprisePage"));
 const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
 const TermsPage = lazy(() => import("./pages/TermsPage"));
+const RefundCancellationPage = lazy(() => import("./pages/RefundCancellationPage"));
+const PricingPage = lazy(() => import("./pages/PricingPage"));
+const ContactPage = lazy(() => import("./pages/ContactPage"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
 const InvoicePage = lazy(() => import("./pages/InvoicePage"));
 const WorkerDashboard = lazy(() => import("./pages/WorkerDashboard"));
@@ -170,6 +173,30 @@ function AppRoutes() {
         element={
           <PageShell onSelect={handleSelect}>
             <TermsPage />
+          </PageShell>
+        }
+      />
+      <Route
+        path="/refund-policy"
+        element={
+          <PageShell onSelect={handleSelect}>
+            <RefundCancellationPage />
+          </PageShell>
+        }
+      />
+      <Route
+        path="/pricing"
+        element={
+          <PageShell onSelect={handleSelect}>
+            <PricingPage />
+          </PageShell>
+        }
+      />
+      <Route
+        path="/contact"
+        element={
+          <PageShell onSelect={handleSelect}>
+            <ContactPage />
           </PageShell>
         }
       />

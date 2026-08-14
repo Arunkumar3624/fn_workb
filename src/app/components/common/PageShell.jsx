@@ -151,6 +151,9 @@ export function PageShell({ children, onSelect }) {
               <ul className="mt-4 space-y-3 text-sm">
                 <li><Link to="/privacy" className="transition-colors hover:text-white">Privacy Policy</Link></li>
                 <li><Link to="/terms" className="transition-colors hover:text-white">Terms &amp; Conditions</Link></li>
+                <li><Link to="/refund-policy" className="transition-colors hover:text-white">Refund &amp; Cancellation</Link></li>
+                <li><Link to="/pricing" className="transition-colors hover:text-white">Pricing &amp; Commission</Link></li>
+                <li><Link to="/contact" className="transition-colors hover:text-white">Contact Us</Link></li>
               </ul>
             </div>
           </div>
