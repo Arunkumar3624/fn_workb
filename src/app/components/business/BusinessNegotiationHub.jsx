@@ -327,33 +327,34 @@ function HubHeader({ thread, projects, onViewContractTerms, onProjectUpdated, bl
 
   return (
     <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/80 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/80">
-      {(ongoingCount > 0 || completedCount > 0) && (
-        <div className="flex items-center justify-end gap-2.5 px-6 pt-2 text-[11px] font-semibold text-slate-400 dark:text-slate-500">
-          {ongoingCount > 0 && (
-            <span className="inline-flex items-center gap-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
-              Ongoing: {ongoingCount}
-            </span>
-          )}
-          {completedCount > 0 && (
-            <span className="inline-flex items-center gap-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              Completed: {completedCount}
-            </span>
-          )}
-        </div>
-      )}
       <div className="flex items-center justify-between gap-5 px-6 py-4">
         <div className="min-w-0 flex-1 [&>div]:border-b-0 [&>div]:bg-transparent [&>div]:px-0 [&>div]:py-0">
           <IdentityHeader
             name={thread.other_name}
-            subtitle={projects.length === 1 ? projects[0].title : `${completedCount} project${completedCount === 1 ? "" : "s"} completed together`}
+            subtitle={projects.length === 1 ? projects[0].title : undefined}
             initials={getInitials(thread.other_name)}
             avatarUrl={thread.other_avatar_url}
             avatarBg="bg-[#1B3FAB]"
             verified
           />
         </div>
+
+        {(ongoingCount > 0 || completedCount > 0) && (
+          <div className="flex flex-shrink-0 items-center gap-2.5 self-start pt-1 text-[11px] font-semibold text-slate-400 dark:text-slate-500">
+            {ongoingCount > 0 && (
+              <span className="inline-flex items-center gap-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                Ongoing: {ongoingCount}
+              </span>
+            )}
+            {completedCount > 0 && (
+              <span className="inline-flex items-center gap-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                Completed: {completedCount}
+              </span>
+            )}
+          </div>
+        )}
 
         {mostUrgent && (
           <div className="flex flex-shrink-0 items-center gap-3">
