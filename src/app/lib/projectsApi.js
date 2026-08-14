@@ -28,6 +28,25 @@ export function listOpenProjects() {
   return apiFetch("/api/projects/open");
 }
 
+// Real effect of the "Featured Employer Spotlight" perk — businesses with
+// an active, unconsumed purchase, scoped to their currently-open posts.
+export function getFeaturedEmployers() {
+  return apiFetch("/api/projects/featured-employers");
+}
+
+// Real effect of the "AI Shortlist" perk — 3 workers ranked by real skill
+// overlap with this project. Requires an active purchase targeting this
+// project (see perksApi.js); the single-use tier is spent on first call.
+export function getProjectShortlist(id) {
+  return apiFetch(`/api/projects/${id}/shortlist`);
+}
+
+// Real effect of the "Enterprise Broadcast" perk — sends a real push +
+// in-app notification to the platform's top-rated workers about this post.
+export function broadcastProject(id) {
+  return apiFetch(`/api/projects/${id}/broadcast`, { method: "POST" });
+}
+
 // Deliberately unguarded on the backend (see routes/public.routes.js) — a
 // logged-out visitor browsing the Job Board doesn't need an account, only
 // applying to one does. apiFetch works fine with no token present.

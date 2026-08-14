@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AlertCircle, ArrowUpRight, CheckCircle2, Loader2, Receipt } from "lucide-react";
+import { AlertCircle, ArrowUpRight, CheckCircle2, Loader2, Receipt, Zap } from "lucide-react";
 import { listDisputes, resolveDispute } from "../../lib/adminApi";
 import { PROJECT_STATUS_META } from "../../utils/projectStatus";
 
@@ -75,7 +75,15 @@ export default function AdminDisputesTab() {
                     <span className="font-mono text-xs font-semibold text-slate-500 bg-white/50 px-2 py-0.5 rounded">
                       {d.id.slice(0, 8).toUpperCase()}
                     </span>
-                    <h3 className="mt-1.5 font-semibold text-slate-900" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{d.title}</h3>
+                    <h3 className="mt-1.5 flex items-center gap-1.5 font-semibold text-slate-900" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                      {d.title}
+                      {d.has_fast_track && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-bold text-violet-700">
+                          <Zap className="h-3 w-3" />
+                          Fast-Tracked
+                        </span>
+                      )}
+                    </h3>
                     <p className="text-slate-500 text-sm mt-0.5">No reason recorded — review the activity timeline below.</p>
                   </div>
                   <div className="text-right flex-shrink-0">

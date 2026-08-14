@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { AlertCircle, Banknote, CheckCircle2, Loader2, XCircle } from "lucide-react";
+import { AlertCircle, Banknote, CheckCircle2, Loader2, Zap, XCircle } from "lucide-react";
 import { listPendingWithdrawals, resolveWithdrawal } from "../../lib/adminApi";
 
 function formatINR(amount) {
@@ -100,8 +100,14 @@ export default function AdminWithdrawalsTab() {
                     <span className="rounded bg-white/50 px-2 py-0.5 font-mono text-xs font-semibold text-slate-500">
                       {w.id.slice(0, 8).toUpperCase()}
                     </span>
-                    <h3 className="mt-1.5 font-semibold text-slate-900" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                    <h3 className="mt-1.5 flex items-center gap-1.5 font-semibold text-slate-900" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                       {w.worker_name}
+                      {w.has_fast_track && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-bold text-violet-700">
+                          <Zap className="h-3 w-3" />
+                          Fast-Tracked
+                        </span>
+                      )}
                     </h3>
                     <p className="mt-0.5 text-sm text-slate-500">
                       Requested {new Date(w.created_at).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}

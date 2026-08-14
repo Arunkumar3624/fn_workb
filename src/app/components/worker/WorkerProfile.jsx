@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
+import { toast } from "sonner";
 import {
   AlertCircle,
   Award,
@@ -23,6 +24,7 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import { updateOwnProfile } from "../../lib/profilesApi";
 import { listReviewsFor } from "../../lib/reviewsApi";
+import { getMyProfileAudits } from "../../lib/perksApi";
 import { getInitials } from "../../utils/formValidation";
 import { calculateLevel, calculateProgressBar, getNextTier, getTierData } from "../../utils/gamification";
 import PinnedBadgeOverlay from "../shared/PinnedBadgeOverlay";
@@ -194,7 +196,7 @@ function BehaviorLevelBento({ behaviorScore, verified }) {
           </div>
           <button
             type="button"
-            onClick={() => navigate("/worker/wallet?tab=subscription")}
+            onClick={() => toast.info("Subscriptions are coming soon!")}
             className="flex flex-shrink-0 items-center gap-1.5 rounded-xl bg-[#FF6B35] px-4 py-2.5 text-xs font-bold text-white transition-all duration-200 hover:bg-[#E85D2A] hover:shadow-lg active:scale-[0.98]"
           >
             Get Verified — Free
@@ -209,6 +211,10 @@ export default function WorkerProfile() {
   const { currentUser, updateCurrentUser } = useAuth();
   const [reviews, setReviews] = useState([]);
   const [reviewsLoading, setReviewsLoading] = useState(true);
+  // Real request history behind the "Skill Bridge Profile Audit" perk (see
+  // WorkerTokenShop.jsx / AdminAuditsTab.jsx) — only the latest one is
+  // shown, since a new purchase always starts a fresh PENDING request.
+  const [profileAudits, setProfileAudits] = useState([]);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState({
     title: currentUser?.title ?? "",
@@ -234,6 +240,13 @@ export default function WorkerProfile() {
       .then(setReviews)
       .catch(() => setReviews([]))
       .finally(() => setReviewsLoading(false));
+  }, [currentUser?.id]);
+
+  useEffect(() => {
+    if (!currentUser?.id) return;
+    getMyProfileAudits()
+      .then(setProfileAudits)
+      .catch(() => setProfileAudits([]));
   }, [currentUser?.id]);
 
   // A business rating this worker mid-session (this tab already open)
@@ -597,6 +610,25 @@ export default function WorkerProfile() {
                   </div>
                 )}
               </ProfileCard>
+
+              {profileAudits.length > 0 && (
+                <ProfileCard>
+                  <h2 className="text-lg font-bold text-slate-900 dark:text-white">Skill Bridge Profile Audit</h2>
+                  {profileAudits[0].status === "PENDING" ? (
+                    <p className="mt-3 flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400">
+                      <span className="h-2 w-2 flex-shrink-0 rounded-full bg-amber-400" />
+                      Your resume &amp; portfolio review is in the queue — WorkBridge staff will post feedback here.
+                    </p>
+                  ) : (
+                    <div className="mt-3 rounded-xl border border-violet-100 bg-violet-50/70 p-4 dark:border-violet-900/40 dark:bg-violet-500/10">
+                      <p className="text-xs font-bold uppercase tracking-wide text-violet-500 dark:text-violet-400">
+                        Reviewed {new Date(profileAudits[0].resolved_at).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}
+                      </p>
+                      <p className="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-300">{profileAudits[0].admin_note}</p>
+                    </div>
+                  )}
+                </ProfileCard>
+              )}
 
               <ProfileCard>
                 <h2 className="text-lg font-bold text-slate-900 dark:text-white">Client Reviews</h2>

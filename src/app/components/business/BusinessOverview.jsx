@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
+import { toast } from "sonner";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import {
   AlertCircle, ArrowRight, BadgeCheck, Briefcase, Calendar, CheckCircle2, Lock,
@@ -485,7 +486,7 @@ export default function BusinessOverview({ onPostJob, onViewProjects, isVerified
                 </p>
               </div>
               <button
-                onClick={() => goToPayments("subscription")}
+                onClick={() => toast.info("Subscriptions are coming soon!")}
                 className="flex-shrink-0 rounded-xl bg-[#FF6B35] px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
               >
                 Upgrade Plan

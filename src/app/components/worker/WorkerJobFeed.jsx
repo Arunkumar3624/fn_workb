@@ -33,7 +33,7 @@ import {
 // card rather than computing/guessing a per-job figure.
 const COMPLETION_XP_REWARD = 50;
 const COMPLETION_TOKEN_REWARD = 25;
-import { listOpenProjects } from "../../lib/projectsApi";
+import { listOpenProjects, getFeaturedEmployers } from "../../lib/projectsApi";
 import { applyToProject, listMyCandidates, respondToCandidate } from "../../lib/candidatesApi";
 import { ApiError } from "../../lib/apiClient";
 import { getSocket } from "../../lib/socketClient";
@@ -300,6 +300,10 @@ export default function WorkerJobFeed() {
   // feed itself stays the focus; opening it is a deliberate action, not
   // permanent screen real estate the way the earlier sidebar was.
   const [filtersOpen, setFiltersOpen] = useState(false);
+  // Real effect of the "Featured Employer Spotlight" perk — businesses with
+  // an active purchase, shown as a strip above the feed. Non-critical, so a
+  // failed fetch just leaves the strip empty rather than erroring the page.
+  const [featuredEmployers, setFeaturedEmployers] = useState([]);
 
   const loadJobs = () => {
     listOpenProjects()
@@ -315,6 +319,7 @@ export default function WorkerJobFeed() {
   useEffect(() => {
     loadJobs();
     loadMyCandidates();
+    getFeaturedEmployers().then(setFeaturedEmployers).catch(() => {});
   }, []);
 
   // Applications/invites move fast (someone else can fill a job at any
@@ -456,7 +461,7 @@ export default function WorkerJobFeed() {
   return (
     <div className="wb-scroll-clean relative h-full min-h-0 overflow-y-auto bg-gradient-to-br from-[#dbe4ff] via-[#eef1ff] to-[#ffe4d2] pb-20 text-slate-900 dark:text-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       <section className="relative w-full px-6 py-8">
-        <SubscriptionBanner onUpgrade={() => navigate("/worker/wallet?tab=subscription")} />
+        <SubscriptionBanner onUpgrade={() => toast.info("Subscriptions are coming soon!")} />
 
         <div className="mb-8 rounded-2xl border border-white/70 bg-white/60 backdrop-blur-xl p-6 shadow-lg shadow-slate-200/40 dark:border-slate-800 dark:bg-slate-900/60">
           <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400 dark:text-slate-500">WorkBridge Job Feed</p>
@@ -550,6 +555,39 @@ export default function WorkerJobFeed() {
           )}
         </AnimatePresence>
 
+        {featuredEmployers.length > 0 && (
+          <div className="mb-6">
+            <p className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">
+              <Sparkles className="h-3.5 w-3.5 text-[#FF6B35]" />
+              Featured Employers
+            </p>
+            <div className="flex gap-3 overflow-x-auto pb-1">
+              {featuredEmployers.map((employer) => (
+                <button
+                  key={employer.id}
+                  type="button"
+                  onClick={() => setQuery(employer.business_name)}
+                  className="flex flex-shrink-0 items-center gap-2.5 rounded-2xl border border-violet-200 bg-violet-50/70 px-4 py-2.5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-violet-900/40 dark:bg-violet-500/10"
+                >
+                  {employer.avatar_url ? (
+                    <img src={employer.avatar_url} alt={employer.business_name} className="h-8 w-8 flex-shrink-0 rounded-lg object-cover" />
+                  ) : (
+                    <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-violet-500 text-xs font-bold text-white">
+                      {employer.business_name?.[0]?.toUpperCase() ?? "?"}
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="truncate text-xs font-bold text-slate-900 dark:text-white">{employer.business_name}</p>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      {employer.open_job_count} open job{employer.open_job_count === 1 ? "" : "s"}
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="min-w-0">
             {loading ? (
               <div className="flex justify-center py-16">
@@ -628,6 +666,12 @@ export default function WorkerJobFeed() {
                           <span className="inline-flex items-center gap-1 rounded-full bg-[#FF6B35] px-2 py-0.5 text-[11px] font-bold text-white">
                             <Flame className="h-3 w-3" />
                             Urgent
+                          </span>
+                        )}
+                        {job.has_flash_post && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-teal-500 px-2 py-0.5 text-[11px] font-bold text-white">
+                            <Zap className="h-3 w-3" />
+                            Boosted
                           </span>
                         )}
                         <span
