@@ -168,8 +168,6 @@ function ThreadNavigator({ threads, groupsByCounterparty, selectedThreadId, onSe
           const group = groupsByCounterparty.get(thread.other_user_id) ?? [];
           const badge = getThreadBadge(group);
           const preview = thread.last_message_body || "No messages yet";
-          const ongoingCount = group.filter((p) => !CLOSED_STATUSES.has(p.status)).length;
-          const completedCount = group.filter((p) => p.status === "COMPLETED").length;
 
           return (
             <button
@@ -199,22 +197,6 @@ function ThreadNavigator({ threads, groupsByCounterparty, selectedThreadId, onSe
                   </span>
                 </div>
                 <p className="mt-0.5 truncate text-xs font-semibold text-slate-500 dark:text-slate-400">{preview}</p>
-                {(ongoingCount > 0 || completedCount > 0) && (
-                  <div className="mt-1 flex items-center gap-2.5 text-[11px] font-semibold text-slate-400 dark:text-slate-500">
-                    {ongoingCount > 0 && (
-                      <span className="inline-flex items-center gap-1">
-                        <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
-                        Ongoing: {ongoingCount}
-                      </span>
-                    )}
-                    {completedCount > 0 && (
-                      <span className="inline-flex items-center gap-1">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                        Completed: {completedCount}
-                      </span>
-                    )}
-                  </div>
-                )}
               </div>
             </button>
           );
@@ -446,6 +428,7 @@ function ChatPanel({ thread, projects, onViewDetails, onProjectUpdated }) {
   const activeProjects = useMemo(() => projects.filter((p) => !CLOSED_STATUSES.has(p.status)), [projects]);
   const historyProjects = useMemo(() => projects.filter((p) => CLOSED_STATUSES.has(p.status)), [projects]);
   const completedCount = useMemo(() => projects.filter((p) => p.status === "COMPLETED").length, [projects]);
+  const ongoingCount = useMemo(() => projects.filter((p) => !CLOSED_STATUSES.has(p.status)).length, [projects]);
   const mostUrgent = projects.find((p) => !CLOSED_STATUSES.has(p.status)) ?? projects[0] ?? null;
   const fundsSecured = mostUrgent ? FUNDS_SECURED_STATUSES.has(mostUrgent.status) : false;
   const isPaidOut = mostUrgent?.status === "COMPLETED";
@@ -553,6 +536,22 @@ function ChatPanel({ thread, projects, onViewDetails, onProjectUpdated }) {
   return (
     <section className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-slate-50 dark:bg-gradient-to-b dark:from-slate-950 dark:to-slate-900">
       <header className="sticky top-0 z-10 flex-shrink-0 border-b border-slate-200 bg-white/95 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/95">
+        {(ongoingCount > 0 || completedCount > 0) && (
+          <div className="flex items-center justify-end gap-2.5 px-6 pt-2 text-[11px] font-semibold text-slate-400 dark:text-slate-500">
+            {ongoingCount > 0 && (
+              <span className="inline-flex items-center gap-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                Ongoing: {ongoingCount}
+              </span>
+            )}
+            {completedCount > 0 && (
+              <span className="inline-flex items-center gap-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                Completed: {completedCount}
+              </span>
+            )}
+          </div>
+        )}
         <div className="flex items-center justify-between gap-4 pr-6">
           <div className="min-w-0 flex-1 [&>div]:border-b-0 [&>div]:bg-transparent">
             <IdentityHeader

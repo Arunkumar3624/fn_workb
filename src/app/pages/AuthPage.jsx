@@ -719,7 +719,16 @@ export default function AuthPage({ userType, onSuccess, onBack }) {
                       that looks live but does nothing. */}
                   {!isAdmin && authMode !== "forgot" && GOOGLE_CLIENT_ID && (
                     <div className="mb-5">
-                      <div className="flex min-h-11 items-center justify-center" ref={googleButtonRef} />
+                      {/* Google's "Sign in as [account]" chip (shown when the
+                          browser already has a signed-in Google session) is
+                          rendered by Google itself and always draws light/white
+                          no matter what theme is passed to renderButton — a
+                          known Google Identity Services limitation, not
+                          something our own dark: classes can reach into the
+                          iframe and fix. Framing it in its own rounded, padded
+                          card makes that look like a deliberate light chip
+                          inside the dark form instead of an unstyled bug. */}
+                      <div className="flex min-h-11 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 p-1.5 shadow-sm dark:border-slate-700" ref={googleButtonRef} />
                       {googleSubmitting && (
                         <p className="mt-2 text-center text-xs font-semibold text-slate-500 dark:text-slate-400">Signing you in…</p>
                       )}
