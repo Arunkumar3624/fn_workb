@@ -386,32 +386,40 @@ export default function WorkerJobFeed() {
     setYourExperience("");
   };
 
-  const filteredJobs = jobs.filter((job) => {
-    if (query.trim()) {
-      const searchable = `${job.title} ${job.description ?? ""} ${job.business_name}`.toLowerCase();
-      if (!searchable.includes(query.trim().toLowerCase())) return false;
-    }
-    if (urgentOnly && !job.is_urgent) return false;
-    const budget = Number(job.budget);
-    if (budgetRange.min !== "" && budget < Number(budgetRange.min)) return false;
-    if (budgetRange.max !== "" && budget > Number(budgetRange.max)) return false;
-    if (selectedSkills.length > 0 && !selectedSkills.some((skill) => job.required_skills?.includes(skill))) return false;
-    // ANY means the business set no real requirement, so it always
-    // qualifies regardless of which levels are checked.
-    if (
-      selectedEducationLevels.length > 0 &&
-      job.education_level !== "ANY" &&
-      !selectedEducationLevels.includes(job.education_level)
-    ) {
-      return false;
-    }
-    if (yourExperience !== "") {
-      const years = Number(yourExperience);
-      if (job.min_experience_years != null && years < job.min_experience_years) return false;
-      if (job.max_experience_years != null && years > job.max_experience_years) return false;
-    }
-    return true;
-  });
+  // Real win for useMemo, not a superstitious one: this component re-renders
+  // on plenty of state unrelated to the filters themselves (opening a job's
+  // detail modal, the quiz modal, applying, etc.), and without this the
+  // full filter/scan over `jobs` re-ran on every single one of those too.
+  const filteredJobs = useMemo(
+    () =>
+      jobs.filter((job) => {
+        if (query.trim()) {
+          const searchable = `${job.title} ${job.description ?? ""} ${job.business_name}`.toLowerCase();
+          if (!searchable.includes(query.trim().toLowerCase())) return false;
+        }
+        if (urgentOnly && !job.is_urgent) return false;
+        const budget = Number(job.budget);
+        if (budgetRange.min !== "" && budget < Number(budgetRange.min)) return false;
+        if (budgetRange.max !== "" && budget > Number(budgetRange.max)) return false;
+        if (selectedSkills.length > 0 && !selectedSkills.some((skill) => job.required_skills?.includes(skill))) return false;
+        // ANY means the business set no real requirement, so it always
+        // qualifies regardless of which levels are checked.
+        if (
+          selectedEducationLevels.length > 0 &&
+          job.education_level !== "ANY" &&
+          !selectedEducationLevels.includes(job.education_level)
+        ) {
+          return false;
+        }
+        if (yourExperience !== "") {
+          const years = Number(yourExperience);
+          if (job.min_experience_years != null && years < job.min_experience_years) return false;
+          if (job.max_experience_years != null && years > job.max_experience_years) return false;
+        }
+        return true;
+      }),
+    [jobs, query, urgentOnly, budgetRange, selectedSkills, selectedEducationLevels, yourExperience]
+  );
 
   // JobDetailModal's "Apply Now" no longer applies directly — it opens the
   // quiz step instead. The real POST /candidates call (and the real
