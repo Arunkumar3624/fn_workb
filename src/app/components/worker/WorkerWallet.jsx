@@ -23,6 +23,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion, AnimatePresence } from "motion/react";
 import LockedCurrencyInput from "../common/LockedCurrencyInput";
+import ComingSoonOverlay from "../shared/ComingSoonOverlay";
 import VerificationFeesTable from "../shared/VerificationFeesTable";
 import { positiveCurrencySchema } from "../../utils/formValidation";
 import { getWallet, withdraw, listWithdrawals } from "../../lib/walletApi";
@@ -429,7 +430,12 @@ export default function WorkerWallet() {
       </div>
 
       {walletTab === "subscription" ? (
-        <SubscriptionTab />
+        <ComingSoonOverlay
+          title="Upgrade Subscription — Coming Soon"
+          message="Paid plans need real payment processing, which isn't live yet. This will open up once it is."
+        >
+          <SubscriptionTab />
+        </ComingSoonOverlay>
       ) : (
       <>
 

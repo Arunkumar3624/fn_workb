@@ -27,6 +27,7 @@ import {
   X,
 } from "lucide-react";
 import Avatar from "../shared/Avatar";
+import PerkCountdown from "../shared/PerkCountdown";
 import TimelineTracker from "../shared/TimelineTracker";
 import ProjectCompletionHub from "../shared/ProjectCompletionHub";
 import DeliverablesPanel from "../shared/DeliverablesPanel";
@@ -877,11 +878,14 @@ function ApplicantsModal({ project, candidates, isLoading, respondingId, onClose
                         <div className="flex flex-wrap items-center gap-1.5">
                           <p className="text-sm font-bold text-[#0F172A] dark:text-white">{c.worker_name}</p>
                           <StandingBadge standingDoor={c.standing_door} currentLevel={c.current_level} />
-                          {c.has_gold_highlight && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-bold text-white">
-                              <Award className="h-3 w-3" />
-                              Highlighted
-                            </span>
+                          {c.gold_highlight_expires_at && (
+                            <>
+                              <span className="inline-flex items-center gap-1 rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-bold text-white">
+                                <Award className="h-3 w-3" />
+                                Highlighted
+                              </span>
+                              <PerkCountdown expiresAt={c.gold_highlight_expires_at} />
+                            </>
                           )}
                           <span
                             className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${

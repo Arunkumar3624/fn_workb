@@ -129,7 +129,7 @@ function BehaviorLevelBento({ behaviorScore, verified }) {
   const tier = score >= 750 ? "Elite" : score >= 500 ? "Trusted" : "Building Trust";
 
   return (
-    <section className="mt-6 rounded-lg bg-white p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)] dark:bg-slate-900">
+    <section className="relative z-30 mt-6 rounded-lg bg-white p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)] dark:bg-slate-900">
       <div className="flex items-end justify-between gap-4">
         <div>
           <p className="flex items-center gap-1 text-xs font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">

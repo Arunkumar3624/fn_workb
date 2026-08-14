@@ -4,21 +4,25 @@ import {
   AlertCircle,
   ArrowUpRight,
   BadgeCheck,
+  Check,
   ChevronLeft,
   ChevronRight,
   Clock3,
   FileText,
+  Loader2,
+  Pencil,
   Search,
   ShieldCheck,
   ShieldOff,
   Sparkles,
   UserX,
   Users,
+  X,
 } from "lucide-react";
 import Avatar from "../shared/Avatar";
 import IdentityHeader from "../shared/IdentityHeader";
 import ChatThread from "../shared/ChatThread";
-import { listProjects } from "../../lib/projectsApi";
+import { listProjects, resolveBudgetProposal } from "../../lib/projectsApi";
 import { listThreads } from "../../lib/threadsApi";
 import { getBlockStatus, blockUser, unblockUser } from "../../lib/blocksApi";
 import { getInitials } from "../../utils/formValidation";
@@ -277,7 +281,7 @@ function ProjectChip({ project, onClick }) {
   );
 }
 
-function HubHeader({ thread, projects, onViewContractTerms, blockStatus, blockActionBusy, onBlock, onUnblock }) {
+function HubHeader({ thread, projects, onViewContractTerms, onProjectUpdated, blockStatus, blockActionBusy, onBlock, onUnblock }) {
   const { isImpersonating } = useAuth();
   const completedCount = projects.filter((p) => p.status === "COMPLETED").length;
   const mostUrgent = projects.find((p) => !CLOSED_STATUSES.has(p.status)) ?? projects[0] ?? null;
@@ -285,6 +289,33 @@ function HubHeader({ thread, projects, onViewContractTerms, blockStatus, blockAc
   const isPaidOut = mostUrgent?.status === "COMPLETED";
   const isCancelled = mostUrgent?.status === "CANCELLED";
   const otherUserId = thread.other_user_id;
+
+  // The worker's real counter-offer on this project's budget (see
+  // WorkerNegotiationInbox.jsx's mirror, which is the only place one gets
+  // created) — accept writes it into the real budget; decline just clears
+  // it. Reset whenever the underlying project changes so a stale busy/error
+  // state never bleeds into a different thread.
+  const [resolvingBudget, setResolvingBudget] = useState(false);
+  const [budgetResolveError, setBudgetResolveError] = useState("");
+
+  useEffect(() => {
+    setResolvingBudget(false);
+    setBudgetResolveError("");
+  }, [mostUrgent?.id]);
+
+  const handleResolveBudget = async (approved) => {
+    if (!mostUrgent) return;
+    setResolvingBudget(true);
+    setBudgetResolveError("");
+    try {
+      const updated = await resolveBudgetProposal(mostUrgent.id, approved);
+      onProjectUpdated?.(updated);
+    } catch (err) {
+      setBudgetResolveError(err instanceof ApiError ? err.message : "Could not resolve this proposal.");
+    } finally {
+      setResolvingBudget(false);
+    }
+  };
 
   // The chip strip hides its native scrollbar (wb-scroll-clean) for a
   // cleaner look, but with nothing visible in its place a row that overflows
@@ -387,6 +418,37 @@ function HubHeader({ thread, projects, onViewContractTerms, blockStatus, blockAc
             <Sparkles className="h-3.5 w-3.5 text-[#FF6B35]" />
             {formatINR(mostUrgent.budget)}
           </span>
+
+          {/* The worker's real counter-offer — only ever set while
+              ACCEPTED (pre-funding); see WorkerNegotiationInbox.jsx's
+              propose UI, the only place this gets created. */}
+          {mostUrgent.proposed_budget && (
+            <div className="flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 dark:border-amber-900/40 dark:bg-amber-950/30">
+              <Pencil className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
+              <span className="text-xs font-bold text-amber-700 dark:text-amber-400">
+                Proposed {formatINR(mostUrgent.proposed_budget)}
+              </span>
+              <button
+                type="button"
+                onClick={() => handleResolveBudget(true)}
+                disabled={resolvingBudget}
+                title="Accept this budget"
+                className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-white transition-colors hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {resolvingBudget ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleResolveBudget(false)}
+                disabled={resolvingBudget}
+                title="Decline this budget"
+                className="flex h-6 w-6 items-center justify-center rounded-full border border-amber-300 text-amber-600 transition-colors hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-amber-800 dark:text-amber-400 dark:hover:bg-amber-950/50"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          )}
+          {budgetResolveError && <span className="w-full text-xs font-semibold text-red-500 dark:text-red-400">{budgetResolveError}</span>}
         </div>
       )}
 
@@ -433,7 +495,7 @@ function HubHeader({ thread, projects, onViewContractTerms, blockStatus, blockAc
 // The feed/composer are ChatThread (shared/ChatThread.jsx) — a real,
 // persisted conversation that spans every project with this worker, not
 // just one.
-function FocusHub({ thread, projects, onViewContractTerms }) {
+function FocusHub({ thread, projects, onViewContractTerms, onProjectUpdated }) {
   const activeProjects = useMemo(() => projects.filter((p) => !CLOSED_STATUSES.has(p.status)), [projects]);
 
   // Block/Unblock now lives in HubHeader's own row rather than as its own
@@ -490,6 +552,7 @@ function FocusHub({ thread, projects, onViewContractTerms }) {
             thread={thread}
             projects={projects}
             onViewContractTerms={onViewContractTerms}
+            onProjectUpdated={onProjectUpdated}
             blockStatus={blockStatus}
             blockActionBusy={blockActionBusy}
             onBlock={handleBlock}
@@ -622,7 +685,14 @@ export default function BusinessNegotiationHub({ onFindTalent, onViewContractTer
       />
 
       {activeThread ? (
-        <FocusHub thread={activeThread} projects={activeGroup} onViewContractTerms={onViewContractTerms} />
+        <FocusHub
+          thread={activeThread}
+          projects={activeGroup}
+          onViewContractTerms={onViewContractTerms}
+          onProjectUpdated={(updated) =>
+            setProjects((current) => current.map((project) => (project.id === updated.id ? { ...project, ...updated } : project)))
+          }
+        />
       ) : (
         <NoThreadSelected hasThreads={threads.length > 0} onFindTalent={onFindTalent} />
       )}

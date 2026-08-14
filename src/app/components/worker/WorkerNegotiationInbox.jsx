@@ -14,6 +14,7 @@ import {
   Loader2,
   LockKeyhole,
   MessageSquare,
+  Pencil,
   ShieldCheck,
   ShieldOff,
   UserX,
@@ -23,7 +24,7 @@ import Avatar from "../shared/Avatar";
 import IdentityHeader from "../shared/IdentityHeader";
 import DeliverablesPanel from "../shared/DeliverablesPanel";
 import ChatThread from "../shared/ChatThread";
-import { listProjects, updateProjectStatus } from "../../lib/projectsApi";
+import { listProjects, updateProjectStatus, proposeBudget } from "../../lib/projectsApi";
 import { listThreads } from "../../lib/threadsApi";
 import { getBlockStatus, blockUser, unblockUser } from "../../lib/blocksApi";
 import { getInitials } from "../../utils/formValidation";
@@ -440,7 +441,7 @@ function ProjectChip({ project, onClick }) {
 // with X" label with none of that. The project chip strip is what replaced
 // the old single-project header now that one merged conversation
 // (ChatThread, shared/ChatThread.jsx) can span several projects at once.
-function ChatPanel({ thread, projects, onViewDetails }) {
+function ChatPanel({ thread, projects, onViewDetails, onProjectUpdated }) {
   const { isImpersonating } = useAuth();
   const activeProjects = useMemo(() => projects.filter((p) => !CLOSED_STATUSES.has(p.status)), [projects]);
   const historyProjects = useMemo(() => projects.filter((p) => CLOSED_STATUSES.has(p.status)), [projects]);
@@ -449,6 +450,43 @@ function ChatPanel({ thread, projects, onViewDetails }) {
   const fundsSecured = mostUrgent ? FUNDS_SECURED_STATUSES.has(mostUrgent.status) : false;
   const isPaidOut = mostUrgent?.status === "COMPLETED";
   const isCancelled = mostUrgent?.status === "CANCELLED";
+
+  // The posted budget is no longer fixed — while a project sits ACCEPTED
+  // (funds not yet secured), the worker can propose a real counter-offer;
+  // the business accepts or declines it from their own side (see
+  // BusinessNegotiationHub.jsx's mirror of this). Reset whenever the
+  // underlying project changes so a stale draft never bleeds into a
+  // different thread.
+  const [proposingBudget, setProposingBudget] = useState(false);
+  const [budgetDraft, setBudgetDraft] = useState("");
+  const [budgetSubmitting, setBudgetSubmitting] = useState(false);
+  const [budgetError, setBudgetError] = useState("");
+
+  useEffect(() => {
+    setProposingBudget(false);
+    setBudgetDraft("");
+    setBudgetError("");
+  }, [mostUrgent?.id]);
+
+  const handleProposeBudget = async () => {
+    const amount = Number(budgetDraft);
+    if (!mostUrgent || !amount || amount <= 0) {
+      setBudgetError("Enter a real amount.");
+      return;
+    }
+    setBudgetSubmitting(true);
+    setBudgetError("");
+    try {
+      const updated = await proposeBudget(mostUrgent.id, amount);
+      onProjectUpdated?.(updated);
+      setProposingBudget(false);
+      setBudgetDraft("");
+    } catch (err) {
+      setBudgetError(err instanceof ApiError ? err.message : "Could not send this proposal.");
+    } finally {
+      setBudgetSubmitting(false);
+    }
+  };
 
   // Block/Unblock now lives here (in the header row) rather than as its
   // own separate bar inside ChatThread — same real, mutual, WhatsApp-style
@@ -582,6 +620,60 @@ function ChatPanel({ thread, projects, onViewDetails }) {
               <IndianRupee className="h-3.5 w-3.5 text-[#FF6B35]" />
               {formatINR(mostUrgent.budget)}
             </span>
+
+            {/* Budget negotiation — only while ACCEPTED (pre-funding); once
+                funds are secured the escrowed amount is locked. */}
+            {mostUrgent.status === "ACCEPTED" && (
+              mostUrgent.proposed_budget ? (
+                <span className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-400">
+                  <Pencil className="h-3.5 w-3.5" />
+                  You proposed {formatINR(mostUrgent.proposed_budget)} — awaiting response
+                </span>
+              ) : !proposingBudget ? (
+                <button
+                  type="button"
+                  onClick={() => setProposingBudget(true)}
+                  className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-[#1B3FAB] shadow-sm transition-colors hover:bg-[#F4F6FF] dark:border-slate-700 dark:bg-slate-800 dark:text-blue-400 dark:hover:bg-[#1B3FAB]/10"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                  Propose New Budget
+                </button>
+              ) : (
+                <div className="flex items-center gap-1.5">
+                  <div className="relative">
+                    <IndianRupee className="pointer-events-none absolute left-2.5 top-1/2 h-3 w-3 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="number"
+                      min="1"
+                      autoFocus
+                      value={budgetDraft}
+                      onChange={(event) => setBudgetDraft(event.target.value)}
+                      placeholder="New amount"
+                      className="h-8 w-32 rounded-full border border-slate-200 bg-white pl-7 pr-2 text-xs font-bold text-slate-900 outline-none focus:border-[#1B3FAB] dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleProposeBudget}
+                    disabled={budgetSubmitting}
+                    className="flex h-8 items-center gap-1 rounded-full bg-[#1B3FAB] px-3 text-xs font-bold text-white transition-colors hover:bg-[#16327A] disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {budgetSubmitting ? <Loader2 className="h-3 w-3 animate-spin" /> : "Send"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProposingBudget(false);
+                      setBudgetError("");
+                    }}
+                    className="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:text-slate-500 dark:hover:bg-slate-800"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              )
+            )}
+            {budgetError && <span className="w-full text-xs font-semibold text-red-500 dark:text-red-400">{budgetError}</span>}
           </div>
         )}
 
@@ -830,7 +922,7 @@ export default function WorkerNegotiationInbox({ initialProjectId }) {
         />
       </aside>
 
-      <ChatPanel thread={selectedThread} projects={selectedGroup} onViewDetails={openDetails} />
+      <ChatPanel thread={selectedThread} projects={selectedGroup} onViewDetails={openDetails} onProjectUpdated={patchProject} />
 
       <JobDetailsModal
         project={selectedJobDetails}

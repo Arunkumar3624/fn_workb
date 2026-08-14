@@ -10,6 +10,7 @@ import { listProjects } from "../../lib/projectsApi";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { ApiError } from "../../lib/apiClient";
 import VerificationFeesTable from "../shared/VerificationFeesTable";
+import ComingSoonOverlay from "../shared/ComingSoonOverlay";
 
 function formatINR(amount) {
   return `₹${Number(amount || 0).toLocaleString("en-IN")}`;
@@ -385,8 +386,22 @@ export default function BusinessPayments({ isVerified }) {
       </div>
 
       {subTab === "invoices" && <InvoicesTab projects={projects} loading={loading} loadError={loadError} />}
-      {subTab === "subscription" && <SubscriptionTab />}
-      {subTab === "trust" && <TrustTab isVerified={isVerified} />}
+      {subTab === "subscription" && (
+        <ComingSoonOverlay
+          title="Subscription Plans — Coming Soon"
+          message="Paid plans need real payment processing, which isn't live yet. This will open up once it is."
+        >
+          <SubscriptionTab />
+        </ComingSoonOverlay>
+      )}
+      {subTab === "trust" && (
+        <ComingSoonOverlay
+          title="Trust & Verification — Coming Soon"
+          message="These paid trust badges need real payment processing, which isn't live yet. Your business verification itself is unaffected — that's still real and free."
+        >
+          <TrustTab isVerified={isVerified} />
+        </ComingSoonOverlay>
+      )}
     </div>
   );
 }

@@ -847,11 +847,11 @@ function PostJobGate({ onVerify }) {
         style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
       >
         <CheckCircle2 className="w-5 h-5" />
-        Verify My Business - ₹470.82
-        <span className="text-white/70 text-sm font-normal">one-time</span>
+        Verify My Business
+        <span className="text-white/70 text-sm font-normal">Free</span>
       </button>
       <p className="text-xs text-slate-400 dark:text-slate-500 mt-3">
-        Lifetime verified status - No recurring fees - Review in 24-48 hrs
+        Lifetime verified status - Completely free - Review in 24-48 hrs
       </p>
     </div>
   );

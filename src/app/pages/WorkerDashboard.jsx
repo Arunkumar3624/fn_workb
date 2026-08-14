@@ -162,7 +162,11 @@ export default function WorkerDashboard({ onLogout }) {
                 </div>
               )}
 
-              <div className="hidden items-center gap-3 rounded-2xl border border-white/20 bg-[#0F172A]/90 px-4 py-2 shadow-sm backdrop-blur-md sm:flex">
+              {/* relative z-30 — see BusinessDashboard.jsx's identical pill
+                  for why: backdrop-blur alone doesn't stop a later
+                  `position: relative` page section from painting over this
+                  box (and its tooltip popover) regardless of DOM order. */}
+              <div className="relative z-30 hidden items-center gap-3 rounded-2xl border border-white/20 bg-[#0F172A]/90 px-4 py-2 shadow-sm backdrop-blur-md sm:flex">
                 <span className="flex items-center gap-1.5 text-sm font-bold text-white">
                   <Flame className="h-4 w-4 text-[#FF6B35]" />
                   {currentUser?.current_streak ?? 0}

@@ -14,7 +14,10 @@ export default function ReviewModule({
   const [rating, setRating] = useState(initialRating);
   const [hoverRating, setHoverRating] = useState(0);
   const [feedback, setFeedback] = useState(initialFeedback);
-  const [isEditing, setIsEditing] = useState(false);
+  // No existing rating means there's nothing to "view" yet — open straight
+  // into the clickable star row instead of making the user click "Submit
+  // Rating" once just to unlock the stars they're about to click anyway.
+  const [isEditing, setIsEditing] = useState(initialRating === 0);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -22,7 +25,7 @@ export default function ReviewModule({
     setRating(initialRating);
     setFeedback(initialFeedback);
     setHoverRating(0);
-    setIsEditing(false);
+    setIsEditing(initialRating === 0);
     setError("");
   }, [initialRating, initialFeedback]);
 

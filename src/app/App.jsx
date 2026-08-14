@@ -28,7 +28,6 @@ const InvoicePage = lazy(() => import("./pages/InvoicePage"));
 const WorkerDashboard = lazy(() => import("./pages/WorkerDashboard"));
 const BusinessDashboard = lazy(() => import("./pages/BusinessDashboard"));
 const BusinessVerification = lazy(() => import("./pages/BusinessVerification"));
-const BusinessVerificationDrawer = lazy(() => import("./pages/BusinessVerificationDrawer"));
 const AdminPanel = lazy(() => import("./pages/AdminPanel"));
 const PublicProfilePage = lazy(() => import("./pages/PublicProfilePage"));
 
@@ -74,14 +73,16 @@ function AppRoutes() {
   }, [location.pathname]);
   // The real, persisted fact — set only by an admin approving verification
   // (POST /api/admin/verify/:id), so it's accurate across reloads/logins.
-  // mockVerifiedThisSession exists only because the payment gateway itself
-  // is still a local simulation (no real endpoint a business can call to
-  // set this on their own) — it lets the existing Pay & Verify demo flow
-  // keep working end-to-end in the current tab, but deliberately does NOT
-  // persist: reload and you're back to whatever currentUser.verified says.
+  // mockVerifiedThisSession exists only because there's no real endpoint a
+  // business can call to set this on their own yet — it lets the existing
+  // verification wizard demo flow keep working end-to-end in the current
+  // tab, but deliberately does NOT persist: reload and you're back to
+  // whatever currentUser.verified says. Business verification is free —
+  // there was never a real payment gateway behind the old ₹470.82 step
+  // (BusinessVerificationDrawer.jsx was a setTimeout with no backend call
+  // at all), so it's been removed rather than left as a fake paywall.
   const [mockVerifiedThisSession, setMockVerifiedThisSession] = useState(false);
   const isBusinessVerified = Boolean(currentUser?.verified) || mockVerifiedThisSession;
-  const [showPayDrawer, setShowPayDrawer] = useState(false);
   const [showVerifiedCelebration, setShowVerifiedCelebration] = useState(false);
 
   const handleSelect = (type) => {
@@ -108,11 +109,6 @@ function AppRoutes() {
 
   const handleWizardComplete = () => {
     navigate("/business");
-    setShowPayDrawer(true);
-  };
-
-  const handlePaymentSuccess = () => {
-    setShowPayDrawer(false);
     setMockVerifiedThisSession(true);
     setShowVerifiedCelebration(true);
   };
@@ -223,19 +219,11 @@ function AppRoutes() {
         path="/business"
         element={
           <ProtectedRoute roles={["business"]}>
-            <>
-              <BusinessDashboard
-                onLogout={handleLogout}
-                onVerify={() => navigate("/verify")}
-                isVerified={isBusinessVerified}
-              />
-              {showPayDrawer && (
-                <BusinessVerificationDrawer
-                  onClose={() => setShowPayDrawer(false)}
-                  onPaymentSuccess={handlePaymentSuccess}
-                />
-              )}
-            </>
+            <BusinessDashboard
+              onLogout={handleLogout}
+              onVerify={() => navigate("/verify")}
+              isVerified={isBusinessVerified}
+            />
           </ProtectedRoute>
         }
       />
@@ -243,19 +231,11 @@ function AppRoutes() {
         path="/business-dashboard"
         element={
           <ProtectedRoute roles={["business"]}>
-            <>
-              <BusinessDashboard
-                onLogout={handleLogout}
-                onVerify={() => navigate("/verify")}
-                isVerified={isBusinessVerified}
-              />
-              {showPayDrawer && (
-                <BusinessVerificationDrawer
-                  onClose={() => setShowPayDrawer(false)}
-                  onPaymentSuccess={handlePaymentSuccess}
-                />
-              )}
-            </>
+            <BusinessDashboard
+              onLogout={handleLogout}
+              onVerify={() => navigate("/verify")}
+              isVerified={isBusinessVerified}
+            />
           </ProtectedRoute>
         }
       />

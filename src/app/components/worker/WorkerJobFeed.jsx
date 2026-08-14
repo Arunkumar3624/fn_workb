@@ -34,6 +34,7 @@ import {
 const COMPLETION_XP_REWARD = 50;
 const COMPLETION_TOKEN_REWARD = 25;
 import { listOpenProjects, getFeaturedEmployers } from "../../lib/projectsApi";
+import PerkCountdown from "../shared/PerkCountdown";
 import { applyToProject, listMyCandidates, respondToCandidate } from "../../lib/candidatesApi";
 import { ApiError } from "../../lib/apiClient";
 import { getSocket } from "../../lib/socketClient";
@@ -668,11 +669,14 @@ export default function WorkerJobFeed() {
                             Urgent
                           </span>
                         )}
-                        {job.has_flash_post && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-teal-500 px-2 py-0.5 text-[11px] font-bold text-white">
-                            <Zap className="h-3 w-3" />
-                            Boosted
-                          </span>
+                        {job.flash_post_expires_at && (
+                          <>
+                            <span className="inline-flex items-center gap-1 rounded-full bg-teal-500 px-2 py-0.5 text-[11px] font-bold text-white">
+                              <Zap className="h-3 w-3" />
+                              Boosted
+                            </span>
+                            <PerkCountdown expiresAt={job.flash_post_expires_at} />
+                          </>
                         )}
                         <span
                           title={`Completing this job pays out +${COMPLETION_XP_REWARD} XP and +${COMPLETION_TOKEN_REWARD} Tokens, on top of the ₹${Number(job.budget).toLocaleString("en-IN")} budget`}

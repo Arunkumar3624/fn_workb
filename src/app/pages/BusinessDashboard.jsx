@@ -225,7 +225,17 @@ export default function BusinessDashboard({ onLogout, onVerify, isVerified = fal
                   {isVerified ? "Verified" : "Unverified"}
                 </span>
 
-                <div className="hidden items-center gap-3 rounded-2xl border border-white/20 bg-[#0F172A]/90 px-4 py-2 shadow-sm backdrop-blur-md sm:flex">
+                {/* relative z-30 — backdrop-blur alone creates a stacking
+                    context for this pill's own children (the tooltip
+                    popover included), but without an explicit position this
+                    whole box still paints in normal document flow. Any
+                    later `position: relative` section further down the
+                    page (e.g. BusinessOverview.jsx's own sections) then
+                    wins the paint order regardless of DOM order, burying
+                    the popover under it. Making this pill itself
+                    positioned with a real z-index is what actually fixes
+                    that, not raising the popover's own z-index further. */}
+                <div className="relative z-30 hidden items-center gap-3 rounded-2xl border border-white/20 bg-[#0F172A]/90 px-4 py-2 shadow-sm backdrop-blur-md sm:flex">
                   <button
                     type="button"
                     onClick={() => setTab("perks")}

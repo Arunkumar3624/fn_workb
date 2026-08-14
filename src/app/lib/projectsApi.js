@@ -128,3 +128,14 @@ export function completeProject(id) {
 export function cancelAndRefund(id) {
   return apiFetch(`/api/projects/${id}/cancel-refund`, { method: "POST" });
 }
+
+// Budget negotiation — the worker's real counter-offer on the posted
+// budget (worker-only, ACCEPTED-only) and the business's real accept/
+// decline of it (business-only). See projects.controller.js.
+export function proposeBudget(id, budget) {
+  return apiFetch(`/api/projects/${id}/propose-budget`, { method: "POST", body: { budget } });
+}
+
+export function resolveBudgetProposal(id, approved) {
+  return apiFetch(`/api/projects/${id}/resolve-budget`, { method: "POST", body: { approved } });
+}
